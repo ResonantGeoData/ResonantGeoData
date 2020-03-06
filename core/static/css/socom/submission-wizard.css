@@ -1,0 +1,279 @@
+/* Progress Bar Styles
+** ================================ */
+
+.stepper {
+  background: #424b52;
+  display: block;
+  padding: 60px 60px 35px;
+}
+
+.stepper .steps {
+  display: flex;
+  justify-content: space-between;
+}
+
+.stepper .steps .step {
+  color: #9aa5ad;
+  padding-top: 15px;
+  position: relative;
+  width: 175px;
+}
+
+.stepper .steps .step h3 {
+  color: #fff;
+  margin: 0;
+}
+
+.stepper .steps .step p .change {
+  align-items: center;
+  color: #fff;
+  display: inline-flex;
+  font-size: 18px;
+  opacity: .7;
+  position: relative;
+  transition: all .35s ease-in-out;
+  white-space: nowrap;
+}
+
+.stepper .steps .step p .change:hover {
+  opacity: 1;
+}
+
+.stepper .steps .step p .change:hover:after {
+  display: none;
+}
+
+.stepper .steps .step p .change i {
+  font-size: 20px;
+  margin-left: 4px;
+  opacity: .6;
+}
+
+.stepper .steps .step p .change .tooltip {
+  background: rgba(0, 0, 0, .8);
+  border-radius: 3px;
+  display: none;
+  font-size: 14px;
+  padding: 1px 6px 4px;
+  position: absolute;
+  left: 104%;
+  white-space: nowrap;
+}
+
+.stepper .steps .step p .change:hover .tooltip {
+  display: inline-block;
+}
+
+.stepper .steps .step.active {
+  color: #fff;
+}
+
+.stepper .steps .step.active .step-num {
+  background: #00d1b2;
+  color: #1c776a;
+}
+
+.stepper .steps .step.active h3 {
+  color: #00d1b2;
+  font-weight: 600;
+}
+
+.stepper .steps .step .step-num {
+  background: #dbdbdb;
+  border-radius: 100px;
+  color: #616161;
+  font-size: 36px;
+  font-weight: 600;
+  height: 60px;
+  line-height: .45em;
+  padding: 20px;
+  position: absolute;
+  text-align: center;
+  top: -62px;
+  width: 60px;
+}
+
+.stepper .steps .step .step-num i {
+  font-size: 42px;
+  left: 50%;
+  position: absolute;
+  top: 50%;
+  transform: translate(-50%, -50%);
+}
+
+/* 1st step */
+.stepper .steps .step:first-of-type {
+  text-align: left;
+}
+
+.stepper .steps .step:first-of-type .step-num {
+  left: -10px;
+}
+
+/* 2nd step */
+.stepper .steps .step:nth-child(2) {
+  text-align: center;
+}
+
+.stepper .steps .step:nth-child(2) .step-num {
+  left: 50%;
+  transform: translateX(-50%);
+}
+
+/* 3rd step */
+.stepper .steps .step:last-of-type {
+  text-align: right;
+}
+
+.stepper .steps .step:last-of-type .step-num {
+  right: -10px;
+}
+
+/* Submission Wizard Styles
+** ================================ */
+
+.wizard .new-team,
+.wizard .existing-team,
+.wizard .new-approach,
+.wizard .existing-approach,
+.wizard .new-submission {
+  padding: 30px 50px;
+}
+
+.wizard .new-team,
+.wizard .new-approach {
+  border-right: 1px solid #e3e6e8;
+}
+
+.wizard .existing-team ul,
+.wizard .existing-approach ul {
+  list-style: none;
+  margin: 0;
+}
+
+.wizard .existing-team ul li,
+.wizard .existing-approach ul li {
+  background: #79858e;
+  border: 1px solid #58636b;
+  border-radius: 3px;
+}
+
+.wizard .existing-team ul li a,
+.wizard .existing-approach ul li a {
+  align-items: center;
+  color: #fff;
+  display: flex;
+  font-weight: 600;
+  padding: 10px 15px;
+}
+
+.wizard .existing-team ul li a:hover,
+.wizard .existing-approach ul li a:hover {
+  background: #58636b;
+}
+
+.wizard ul li a:hover:after {
+  display: none;
+}
+
+.wizard .existing-team ul li a i,
+.wizard .existing-approach ul li a i {
+  margin-right: 10px;
+}
+
+.wizard .existing-team ul li a p {
+  line-height: 1.2em;
+  margin: 0;
+}
+
+.wizard .existing-team ul li a p span {
+  display: block;
+  font-size: 14px;
+  font-weight: 400;
+}
+
+/* form styles */
+
+form.create-team .fields,
+form.create-approach .fields,
+form.create-submission .fields,
+form.edit-team .fields,
+form.create-invitation .fields {
+  border-bottom: 1px solid #e3e6e8;
+  margin-bottom: 20px;
+  padding: 10px 0 20px;
+}
+
+.wizard form.create-submission {
+  max-width: 480px;
+}
+
+.wizard form .field.external-data {
+  padding-bottom: 15px;
+}
+
+.wizard form .file {
+  display: block;
+}
+
+.wizard form .file .file-icon i {
+  font-size: 20px;
+}
+
+.wizard form .file .help {
+  font-size: 16px;
+  padding: 10px;
+  text-align: center;
+}
+
+.wizard form .file .help ul {
+  list-style: none;
+  margin: 0;
+}
+
+form .optional {
+  background: #f5f5f5;
+  border: 1px dotted #dbdbdb;
+  border-radius: 5px;
+  color: #777;
+  margin-top: 30px;
+  padding: 20px 25px 30px;
+}
+
+form .optional .field {
+  margin-top: 20px;
+}
+
+form .optional .note {
+  border-left: 3px solid #00A9A5;
+  font-size: 13px;
+  margin-bottom: 0;
+  padding-bottom: 3px;
+  padding-left: 10px;
+}
+
+label.checkbox {
+  align-items: center;
+  display: flex;
+}
+
+label.checkbox p {
+  padding-left: 10px;
+}
+
+label.checkbox .external-data > p {
+  margin: 0 !important;
+}
+
+label.checkbox .external-data > p:last-of-type {
+  color: #777;
+}
+
+.field .description {
+  padding: 10px;
+}
+
+.field .p-label {
+  margin-bottom: 4px !important;
+  padding-left: 10px;
+}

@@ -1,0 +1,35 @@
+{% extends "base.html" %}
+
+{% block content %}
+  <!--
+  {% for challenge in challenges %}
+  <section class="section container">
+      <div class="section-header">
+        <h1>{{ challenge.name }}</h1>
+      </div>
+      <div class="section-content">
+        <div class="tasks-list columns is-multiline is-vcentered">
+          {% for task in challenge.tasks.all %}
+            <div class="task column is-one-third{% if task.locked %} inactive{% endif %}">
+              <a href="{{ task.get_absolute_url }}" alt="{{ task.name }}">
+                <span class="task-name"><i class="material-icons">assignment</i> {{ task.name }}</span>
+                {% if task.short_description %}
+                <span class="task-desc">
+                  {{ task.short_description | truncatechars:170 }}
+                </span>
+                {% endif %}
+              </a>
+              {% if task.hidden %}
+              <span class="badge">
+                <i class="material-icons">visibility_off</i>
+              </span>
+              {% endif %}
+            </div>
+          {% endfor %}
+        </div>
+      </div>
+  </section>
+  {% endfor %}
+  -->
+{% endblock %}
+

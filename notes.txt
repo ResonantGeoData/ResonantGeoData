@@ -1,0 +1,15 @@
+These are internal notes that should be cleaned up to share:
+
+Make a new environment:
+
+  python -m virtualenv --python=python3.7 env37
+
+Run the project:
+
+  env37/bin/python manage.py runserver 0.0.0.0:8081
+
+
+Basic tutorial and references
+
+  https://docs.djangoproject.com/en/3.0/intro/tutorial01/
+  https://github.com/ImageMarkup/stade/

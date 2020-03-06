@@ -1,0 +1,74 @@
+/* Login/Logout Styles
+** ================================ */
+
+.section.container.login,
+.section.container.signup,
+.section.container.pwreset {
+  max-width: 470px;
+}
+
+.section.container.login .notification,
+.section.container.signup .notification,
+.section.container.pwreset .notification {
+  margin-bottom: 30px;
+  margin-top: -10px;
+}
+
+.section.container.login form.login,
+.section.container.signup form.signup,
+.section.container.pwreset form.password_reset {
+  margin:0;
+}
+
+form.login .fields,
+form.signup .fields,
+form.password_reset .fields {
+  border-bottom: 1px solid #e3e6e8;
+  margin-bottom: 20px;
+  padding: 10px 0 20px;
+}
+
+form .fields .column {
+  padding: 5px 12px;
+}
+
+form .fields hr.column {
+  margin: 0 0 12px;
+  padding: 0;
+}
+
+form.login .fields .rememberme input[type="checkbox"] {
+  margin-right: 5px;
+}
+
+.section.container.login .is-grouped {
+  justify-content: space-between;
+}
+
+/* Form Validation Styles
+** ================================ */
+
+form > .help {
+  align-items: center;
+  border: 1px solid #ff3860;
+  border-radius: 3px;
+  display: flex;
+  font-size: 16px;
+  line-height: 1.25em;
+  margin-bottom: 10px;
+  padding: 10px 20px;
+}
+
+form > .help i {
+  margin-right: 10px;
+}
+
+form > .help ul {
+  list-style: none;
+  margin:0;
+}
+
+form .field .help {
+  margin: 0;
+  padding: 0 10px 10px;
+}

@@ -1,0 +1,42 @@
+.s3fileinput-set,
+.s3fileinput-uploading {
+  flex: 1 1 0;
+  border-radius: 4px;
+  border: 1px solid #dbdbdb;
+  font-size: 1em;
+}
+
+.s3fileinput-info {
+  height: 2.25em;
+  line-height: 1.5;
+  padding-left: calc(0.625em - 1px);
+  padding-bottom: calc(0.375em - 1px);
+  padding-right: calc(0.625em - 1px);
+  padding-top: calc(0.375em - 1px);
+  white-space: normal;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.s3fileinput-wrapper button {
+  margin-left: calc(0.625em - 1px);
+  margin-bottom: calc(0.375em - 1px);
+  margin-right: calc(0.625em - 1px);
+  margin-top: calc(0.375em - 1px);
+}
+
+.s3fileinput-uploading .s3fileinput-info {
+  visibility: hidden;
+  display: unset;
+}
+
+.s3fileinput-uploading .s3fileinput-spinner-wrapper {
+  width: 80% !important;
+}
+
+.s3fileinput-set ~ span.file-cta,
+.s3fileinput-uploading ~ span.file-cta,
+.s3fileinput-set ~ span.file-name,
+.s3fileinput-uploading ~ span.file-name {
+  display: none;
+}
