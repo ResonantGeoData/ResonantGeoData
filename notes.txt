@@ -9,6 +9,34 @@ Run the project:
   env37/bin/python manage.py runserver 0.0.0.0:8081
 
 
+Needed:
+
+- Rules to determine which users are allowed to do various actions (these
+  should be added as non-admin forms are added to do tasks)
+- Validator on upload files (at least make sure algorithms are docker tarballs)
+- Store docker tag and hash with the docker files so we don't both moving
+  docker tarballs around if they are already on the worker.
+- Run docker tasks via celery: this would get the docker tarball if needed,
+  load it, get the dataset if needed, then
+  "docker run <tag> <dataset> > result" and store the result.  It might be
+  better to do "docker run <tag> <dataset> <output file name>"
+- Run score tasks via celery in much the same way
+- Need various public-facing pages:
+  - Available Tasks
+  - User's Algorithms
+    - Current
+    - Historic
+  - Results / Recent results
+  - Scores / Recent scores
+  - Leaderboard
+    - per task and/or user
+  - Public overview
+- Be able to run algorithms on data without groundtruth
+- Consider Dan's suggestion of pipeline algorithms
+  - Allow default extra arguments to algorithm dockers (perhaps the input and
+    output would be specified via {input} and {output}
+
+
 Basic tutorial and references
 
   https://docs.djangoproject.com/en/3.0/intro/tutorial01/

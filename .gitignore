@@ -51,3 +51,4 @@ ENV/
 env37/
 
 *.sqlite3
+files/
