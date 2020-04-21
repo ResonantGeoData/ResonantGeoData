@@ -28,6 +28,7 @@ class Dataset(models.Model):
     creator = models.ForeignKey(get_user_model(), on_delete=models.DO_NOTHING)
     created = models.DateTimeField(default=timezone.now)
     active = models.BooleanField(default=True)
+    tasks = models.ManyToManyField(Task)
     # TODO: If we try to edit data and this has been referenced anywhere, we
     # need to make a new model and mark this one as inactive
     data = models.FileField(upload_to='dataset')

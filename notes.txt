@@ -41,3 +41,7 @@ Basic tutorial and references
 
   https://docs.djangoproject.com/en/3.0/intro/tutorial01/
   https://github.com/ImageMarkup/stade/
+
+Other challenges:
+  
+  https://www.topcoder.com/urban3d
