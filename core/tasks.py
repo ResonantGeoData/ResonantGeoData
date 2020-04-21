@@ -1,0 +1,114 @@
+import boto3
+from celery import shared_task
+from celery.utils.log import get_task_logger
+from contextlib import contextmanager
+from django.db.models.fields.files import FieldFile
+import docker
+import os
+from pathlib import Path, PurePath
+import shutil
+from storages.backends.s3boto3 import S3Boto3StorageFile
+import subprocess
+import tempfile
+import time
+from typing import Generator
+
+from core.models import Algorithm, Dataset, AlgorithmJob, AlgorithmResult
+
+logger = get_task_logger(__name__)
+
+
+@contextmanager
+def _field_file_to_local_path(field_file: FieldFile) -> Generator[Path, None, None]:
+    with field_file.open('rb'):
+        file_obj: File = field_file.file
+
+        if isinstance(file_obj, S3Boto3StorageFile):
+            field_file_basename = PurePath(field_file.name).name
+            with tempfile.NamedTemporaryFile('wb', suffix=field_file_basename) as dest_stream:
+                shutil.copyfileobj(file_obj, dest_stream)
+                dest_stream.flush()
+
+                yield Path(dest_stream.name)
+        else:
+            yield Path(file_obj.name)
+
+
+def _run_algorithm(algorithm_job):
+    # TODO: refactor to run on a worker on a separate machine, which means
+    # using API calls to get the algorithm_job from a passed id along with the
+    # referenced algorithm, dataset, and files for each.
+    algorithm_file: FieldFile = algorithm_job.algorithm.data
+    dataset_file: FieldFile = algorithm_job.dataset.data
+    try:
+        with _field_file_to_local_path(algorithm_file) as algorithm_path, \
+                _field_file_to_local_path(dataset_file) as dataset_path:
+            client = docker.from_env(version='auto', timeout=3600)
+            image = None
+            if algorithm_job.algorithm.docker_image_id:
+                try:
+                    image = client.images.get(algorithm_job.algorithm.docker_image_id)
+                    logger.info('Loaded existing docker image %r' % algorithm_job.algorithm.docker_image_id)
+                except docker.errors.ImageNotFound:
+                    pass
+            if not image:
+                logger.info('Loading docker image %s' % algorithm_path)
+                image = client.images.load(open(algorithm_path, 'rb'))
+                if len(image) != 1:
+                    raise Exception('tar file contains more than one image')
+                image = image[0]
+                algorithm_job.algorithm.docker_image_id = image.attrs['Id']
+                algorithm_job.algorithm.save(update_fields=['docker_image_id'])
+                logger.info('Loaded docker image %r' % algorithm_job.algorithm.docker_image_id)
+            logger.info('Running image %s with data %s' % (algorithm_path, dataset_path))
+            tmpdir = tempfile.mkdtemp()
+            output_path = os.path.join(tmpdir, 'output.dat')
+            stderr_path = os.path.join(tmpdir, 'stderr.dat')
+            try:
+                subprocess.check_call(
+                    ['docker', 'run', '--rm', '-i', '--name',
+                     'algorithm_job_%s_%s' % (algorithm_job.id, time.time()),
+                     str(algorithm_job.algorithm.docker_image_id)],
+                    stdin=open(dataset_path, 'rb'),
+                    stdout=open(output_path, 'wb'),
+                    stderr=open(stderr_path, 'wb'))
+                result = 0
+                algorithm_job.fail_reason = ''
+            except subprocess.CalledProcessError as exc:
+                result = exc.returncode
+                logger.info('Failed to successfully run image %s (%r)' % (algorithm_path, exc))
+                algorithm_job.fail_reason = 'Return code: %s\nException:\n%r' % (result, exc)
+            logger.info('Finished running image with result %r' % result)
+            # Store result
+            algorithm_result = AlgorithmResult(
+                algorithm_job=algorithm_job)
+            algorithm_result.data.save(
+                'algorithm_job_%s.dat' % algorithm_job.id, open(output_path, 'rb'))
+            algorithm_result.log.save(
+                'algorithm_job_%s_log.dat' % algorithm_job.id, open(output_path, 'rb'))
+            algorithm_result.save()
+            shutil.rmtree(tmpdir)
+            algorithm_job.status = AlgorithmJob.Status.SUCCEEDED if not result else AlgorithmJob.Status.FAILED
+    except Exception as exc:
+        logger.exception(f'Internal error run algorithm {algorithm_job.id}: {exc}')
+        algorithm_job.status = AlgorithmJob.Status.INTERNAL_FAILURE
+        try:
+            algorithm_job.fail_reason = exc.args[0]
+        except Exception:
+            pass
+    return algorithm_job
+
+
+@shared_task(time_limit=86400)
+def run_algorithm(algorithm_job_id, dry_run=False):
+    algorithm_job = AlgorithmJob.objects.get(pk=algorithm_job_id)
+    if not dry_run:
+        algorithm_job.status = AlgorithmJob.Status.RUNNING
+        algorithm_job.save()
+
+    algorithm_job = _run_algorithm(algorithm_job)
+
+    if not dry_run:
+        algorithm_job.save()
+
+        # Notify

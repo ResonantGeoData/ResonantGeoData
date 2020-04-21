@@ -1,0 +1,11 @@
+FROM viame_cpu:latest
+
+CMD bash -c ' \
+cat - >/tmp/results.dat && \
+. /viame/setup_viame.sh && \
+python /viame/configs/score_results.py \
+ -computed /results.dat -truth /groundtruth.dat \
+ -threshold 0.05 -stats /tmp/output_score_tracks.txt && \
+cat /tmp/output_score_tracks.txt \
+'
+

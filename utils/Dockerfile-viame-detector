@@ -1,0 +1,13 @@
+FROM viame_cpu:latest
+
+CMD bash -c ' \
+mkdir /tmp/dataset >&2 && \
+tar -xv -C /tmp/dataset >/dev/null && \
+cd /viame/examples/object_detection >&2 && \
+bash -c "find /tmp/dataset -type f | sort >/tmp/inputlist.txt" >&2 && \
+cat /tmp/inputlist.txt >&2 && \
+. /viame/setup_viame.sh >&2 && \
+kwiver runner /viame/configs/pipelines/detector_default.pipe -s input:video_filename=/tmp/inputlist.txt >&2 && \
+cat computed_detections.csv \
+'
+

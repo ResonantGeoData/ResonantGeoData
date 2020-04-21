@@ -7,6 +7,10 @@ Make a new environment:
 Run the project:
 
   env37/bin/python manage.py runserver 0.0.0.0:8081
+  env37/bin/python -m celery worker --app socom.celery --loglevel info --without-heartbeat --concurrency `nproc` -Ofair --prefetch-multiplier 1 -E
+
+Note:
+  Don't run girder_worker on the same instance of rabbitmq.
 
 
 Needed:
@@ -18,14 +22,18 @@ Needed:
   docker tarballs around if they are already on the worker.
 - Run docker tasks via celery: this would get the docker tarball if needed,
   load it, get the dataset if needed, then
-  "docker run <tag> <dataset> > result" and store the result.  It might be
+  "docker run <tag> < dataset > result" and store the result.  It might be
   better to do "docker run <tag> <dataset> <output file name>"
 - Run score tasks via celery in much the same way
 - Need various public-facing pages:
-  - Available Tasks
+  - Available Tasks (list along with dataset info)
+    - Task specific page with more details
   - User's Algorithms
+    - Upload
     - Current
-    - Historic
+    - Historic (old versions)
+  - Run Algorithm (pick algorithm and matching dataset)
+    - Show running algorithms
   - Results / Recent results
   - Scores / Recent scores
   - Leaderboard

@@ -1,10 +1,19 @@
 from django.contrib.auth import get_user_model
 from django.db import models
 from django.utils import timezone
+from django.utils.translation import gettext_lazy as _
 
 
 # We may want to have some sort of access permissions on Task, Dataset,
 # Groundtruth, etc.
+
+class DeferredFieldsManager(models.Manager):
+    def __init__(self, *deferred_fields):
+        self.deferred_fields = deferred_fields
+        super().__init__()
+
+    def get_queryset(self):
+        return super().get_queryset().defer(*self.deferred_fields)
 
 
 class Task(models.Model):
@@ -72,17 +81,10 @@ class Algorithm(models.Model):
     creator = models.ForeignKey(get_user_model(), on_delete=models.DO_NOTHING)
     created = models.DateTimeField(default=timezone.now)
     active = models.BooleanField(default=True)
+    docker_image_id = models.TextField(null=True, blank=True)
     # TODO: If we try to edit data and this has been referenced anywhere, we
     # need to make a new model and mark this one as inactive
     data = models.FileField(upload_to='algorithm')
-
-
-class AlgorithmResult(models.Model):
-    algorithm = models.ForeignKey(Algorithm, on_delete=models.CASCADE)
-    dataset = models.ForeignKey(Dataset, on_delete=models.CASCADE)
-    created = models.DateTimeField(default=timezone.now)
-    # TODO: if results are small, do we want to store them in the database?
-    data = models.FileField(upload_to='results')
 
 
 class ScoreAlgorithm(models.Model):
@@ -101,6 +103,40 @@ class ScoreAlgorithm(models.Model):
     # TODO: If we try to edit data and this has been referenced anywhere, we
     # need to make a new model and mark this one as inactive
     data = models.FileField(upload_to='scorealgorithm')
+
+
+class AlgorithmJob(models.Model):
+    class Meta:
+        ordering = ['-created']
+
+    class Status(models.TextChoices):
+        QUEUED = 'queued', _('Queued for processing')
+        RUNNING = 'running', _('Processing')
+        INTERNAL_FAILURE = 'internal_failure', _('Internal failure')
+        FAILED = 'failed', _('Failed')
+        SUCCEEDED = 'success', _('Succeeded')
+
+    algorithm = models.ForeignKey(Algorithm, on_delete=models.DO_NOTHING)
+    dataset = models.ForeignKey(Dataset, on_delete=models.DO_NOTHING)
+    creator = models.ForeignKey(get_user_model(), on_delete=models.DO_NOTHING)
+    created = models.DateTimeField(default=timezone.now)
+    status = models.CharField(max_length=20, default=Status.QUEUED, choices=Status.choices)
+    fail_reason = models.TextField(blank=True)
+
+    # it might be nice to have an array of status/timestamp/log for tracking
+    # when status changed.
+
+    def run_algorithm(self):
+        from . import tasks
+
+        tasks.run_algorithm(self)
+
+
+class AlgorithmResult(models.Model):
+    algorithm_job = models.ForeignKey(AlgorithmJob, on_delete=models.CASCADE, blank=True, null=True)
+    created = models.DateTimeField(default=timezone.now)
+    data = models.FileField(upload_to='results')
+    log = models.FileField(upload_to='results_logs', null=True, blank=True)
 
 
 class ScoreResult(models.Model):
