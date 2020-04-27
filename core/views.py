@@ -20,5 +20,12 @@ def index(request):
 @login_required
 @require_http_methods(['POST'])
 def run_algorithm(request, algorithm_job_id):
-    algorithm = get_object_or_404(AlgorithmJob, pk=algorithm_job_id)
-    algorithm.run_algorithm()
+    algorithm_job = get_object_or_404(AlgorithmJob, pk=algorithm_job_id)
+    algorithm_job.run_algorithm()
+
+
+@login_required
+@require_http_methods(['POST'])
+def run_scoring(request, algorithm_job_id):
+    score_job = get_object_or_404(ScoreJob, pk=score_job_id)
+    score_job.run_scoring()

@@ -11,9 +11,18 @@ def run_algorithm(modeladmin, request, queryset):
         tasks.run_algorithm.delay(algorithm_job.id)
 
 
+@admin_display(short_description='Run scoring')
+def run_scoring(modeladmin, request, queryset):
+    for score_job in queryset:
+        tasks.run_scoring.delay(score_job.id)
+
+
 class AlgorithmJobAdmin(admin.ModelAdmin):
-    # list_display = ['status']
     actions = [run_algorithm]
+
+
+class ScoreJobAdmin(admin.ModelAdmin):
+    actions = [run_scoring]
 
 
 admin.site.register(models.Task)
@@ -24,3 +33,4 @@ admin.site.register(models.AlgorithmResult)
 admin.site.register(models.ScoreAlgorithm)
 admin.site.register(models.ScoreResult)
 admin.site.register(models.AlgorithmJob, AlgorithmJobAdmin)
+admin.site.register(models.ScoreJob, ScoreJobAdmin)

@@ -100,9 +100,10 @@ class ScoreAlgorithm(models.Model):
     creator = models.ForeignKey(get_user_model(), on_delete=models.DO_NOTHING)
     created = models.DateTimeField(default=timezone.now)
     active = models.BooleanField(default=True)
+    docker_image_id = models.TextField(null=True, blank=True)
     # TODO: If we try to edit data and this has been referenced anywhere, we
     # need to make a new model and mark this one as inactive
-    data = models.FileField(upload_to='scorealgorithm')
+    data = models.FileField(upload_to='score_algorithm')
 
 
 class AlgorithmJob(models.Model):
@@ -139,10 +140,33 @@ class AlgorithmResult(models.Model):
     log = models.FileField(upload_to='results_logs', null=True, blank=True)
 
 
-class ScoreResult(models.Model):
-    algorithmresult = models.ForeignKey(AlgorithmResult, on_delete=models.CASCADE)
-    groundtruth = models.ForeignKey(Groundtruth, on_delete=models.CASCADE)
-    scorealgorithm = models.ForeignKey(ScoreAlgorithm, on_delete=models.CASCADE)
+class ScoreJob(models.Model):
+    class Status(models.TextChoices):
+        QUEUED = 'queued', _('Queued for processing')
+        RUNNING = 'running', _('Processing')
+        INTERNAL_FAILURE = 'internal_failure', _('Internal failure')
+        FAILED = 'failed', _('Failed')
+        SUCCEEDED = 'success', _('Succeeded')
+
+    score_algorithm = models.ForeignKey(ScoreAlgorithm, on_delete=models.DO_NOTHING)
+    algorithm_result = models.ForeignKey(AlgorithmResult, on_delete=models.DO_NOTHING)
+    groundtruth = models.ForeignKey(Groundtruth, on_delete=models.DO_NOTHING)
+    creator = models.ForeignKey(get_user_model(), on_delete=models.DO_NOTHING)
     created = models.DateTimeField(default=timezone.now)
-    # TODO: if results are small, do we want to store them in the database?
+    status = models.CharField(max_length=20, default=Status.QUEUED, choices=Status.choices)
+    fail_reason = models.TextField(blank=True)
+
+    # it might be nice to have an array of status/timestamp/log for tracking
+    # when status changed.
+
+    def run_scoring(self):
+        from . import tasks
+
+        tasks.run_scoring(self)
+
+
+class ScoreResult(models.Model):
+    score_job = models.ForeignKey(ScoreJob, on_delete=models.CASCADE, blank=True, null=True)
+    created = models.DateTimeField(default=timezone.now)
     data = models.FileField(upload_to='scores')
+    log = models.FileField(upload_to='scores_logs', null=True, blank=True)

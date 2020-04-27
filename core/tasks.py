@@ -13,7 +13,7 @@ import tempfile
 import time
 from typing import Generator
 
-from core.models import Algorithm, Dataset, AlgorithmJob, AlgorithmResult
+from core.models import AlgorithmJob, AlgorithmResult, ScoreJob, ScoreResult
 
 logger = get_task_logger(__name__)
 
@@ -35,9 +35,6 @@ def _field_file_to_local_path(field_file: FieldFile) -> Generator[Path, None, No
 
 
 def _run_algorithm(algorithm_job):
-    # TODO: refactor to run on a worker on a separate machine, which means
-    # using API calls to get the algorithm_job from a passed id along with the
-    # referenced algorithm, dataset, and files for each.
     algorithm_file: FieldFile = algorithm_job.algorithm.data
     dataset_file: FieldFile = algorithm_job.dataset.data
     try:
@@ -85,7 +82,7 @@ def _run_algorithm(algorithm_job):
             algorithm_result.data.save(
                 'algorithm_job_%s.dat' % algorithm_job.id, open(output_path, 'rb'))
             algorithm_result.log.save(
-                'algorithm_job_%s_log.dat' % algorithm_job.id, open(output_path, 'rb'))
+                'algorithm_job_%s_log.dat' % algorithm_job.id, open(stderr_path, 'rb'))
             algorithm_result.save()
             shutil.rmtree(tmpdir)
             algorithm_job.status = AlgorithmJob.Status.SUCCEEDED if not result else AlgorithmJob.Status.FAILED
@@ -105,10 +102,84 @@ def run_algorithm(algorithm_job_id, dry_run=False):
     if not dry_run:
         algorithm_job.status = AlgorithmJob.Status.RUNNING
         algorithm_job.save()
-
     algorithm_job = _run_algorithm(algorithm_job)
-
     if not dry_run:
         algorithm_job.save()
+        # Notify
 
+def _run_scoring(score_job):
+    score_algorithm_file: FieldFile = score_job.score_algorithm.data
+    algorithm_result_file: FieldFile = score_job.algorithm_result.data
+    groundtruth_file: FieldFile = score_job.groundtruth.data
+    try:
+        with _field_file_to_local_path(score_algorithm_file) as score_algorithm_path, \
+                _field_file_to_local_path(algorithm_result_file) as algorithm_result_path, \
+                _field_file_to_local_path(groundtruth_file) as groundtruth_path:
+            client = docker.from_env(version='auto', timeout=3600)
+            image = None
+            if score_job.score_algorithm.docker_image_id:
+                try:
+                    image = client.images.get(score_job.score_algorithm.docker_image_id)
+                    logger.info('Loaded existing docker image %r' % score_job.score_algorithm.docker_image_id)
+                except docker.errors.ImageNotFound:
+                    pass
+            if not image:
+                logger.info('Loading docker image %s' % score_algorithm_path)
+                image = client.images.load(open(score_algorithm_path, 'rb'))
+                if len(image) != 1:
+                    raise Exception('tar file contains more than one image')
+                image = image[0]
+                score_job.score_algorithm.docker_image_id = image.attrs['Id']
+                score_job.score_algorithm.save(update_fields=['docker_image_id'])
+                logger.info('Loaded docker image %r' % score_job.score_algorithm.docker_image_id)
+            logger.info('Running image %s with groundtruth %s and results %s' % (
+                score_algorithm_path, groundtruth_path, algorithm_result_path))
+            tmpdir = tempfile.mkdtemp()
+            output_path = os.path.join(tmpdir, 'output.dat')
+            stderr_path = os.path.join(tmpdir, 'stderr.dat')
+            try:
+                subprocess.check_call(
+                    ['docker', 'run', '--rm', '-i', '--name',
+                     'score_job_%s_%s' % (score_job.id, time.time()),
+                     '-v', '%s:%s:ro' % (groundtruth_path, '/groundtruth.dat'),
+                     str(score_job.score_algorithm.docker_image_id)],
+                    stdin=open(algorithm_result_path, 'rb'),
+                    stdout=open(output_path, 'wb'),
+                    stderr=open(stderr_path, 'wb'))
+                result = 0
+                score_job.fail_reason = ''
+            except subprocess.CalledProcessError as exc:
+                result = exc.returncode
+                logger.info('Failed to successfully run image %s (%r)' % (score_algorithm_path, exc))
+                score_job.fail_reason = 'Return code: %s\nException:\n%r' % (result, exc)
+            logger.info('Finished running image with result %r' % result)
+            # Store result
+            score_result = ScoreResult(
+                score_job=score_job)
+            score_result.data.save(
+                'score_job_%s.dat' % score_job.id, open(output_path, 'rb'))
+            score_result.log.save(
+                'score_job_%s_log.dat' % score_job.id, open(stderr_path, 'rb'))
+            score_result.save()
+            shutil.rmtree(tmpdir)
+            score_job.status = ScoreJob.Status.SUCCEEDED if not result else ScoreJob.Status.FAILED
+    except Exception as exc:
+        logger.exception(f'Internal error run score_algorithm {score_job.id}: {exc}')
+        score_job.status = ScoreJob.Status.INTERNAL_FAILURE
+        try:
+            score_job.fail_reason = exc.args[0]
+        except Exception:
+            pass
+    return score_job
+
+
+@shared_task(time_limit=86400)
+def run_scoring(score_job_id, dry_run=False):
+    score_job = ScoreJob.objects.get(pk=score_job_id)
+    if not dry_run:
+        score_job.status = ScoreJob.Status.RUNNING
+        score_job.save()
+    score_job = _run_scoring(score_job)
+    if not dry_run:
+        score_job.save()
         # Notify
