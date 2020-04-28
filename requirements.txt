@@ -1,0 +1,15 @@
+django
+django-cors-headers
+django-allauth
+djangorestframework
+django-import-export
+django-debug-toolbar
+django-extensions
+django-admin-display
+django-storages
+celery
+uritemplate
+docker
+rules
+markdownifyp
+boto3
