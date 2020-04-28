@@ -1,5 +1,6 @@
 from django.contrib import admin
 from django_admin_display import admin_display
+from django.utils.safestring import mark_safe
 
 from . import models
 from . import tasks
@@ -17,20 +18,148 @@ def run_scoring(modeladmin, request, queryset):
         tasks.run_scoring.delay(score_job.id)
 
 
+class AlgorithmAdmin(admin.ModelAdmin):
+    list_display = ('__str__', 'creator', 'created', 'active', 'data_link')
+    readonly_fields = ('data_link',)
+
+    def data_link(self, obj):
+        if obj.data:
+            return mark_safe('<a href="%s" download>Download</a>' % (obj.data.url,))
+        else:
+            return "No attachment"
+
+    data_link.allow_tags = True
+
+
 class AlgorithmJobAdmin(admin.ModelAdmin):
+    list_display = ('__str__', 'creator', 'created', 'algorithm', 'dataset', 'status')
     actions = [run_algorithm]
 
 
+class AlgorithmResultAdmin(admin.ModelAdmin):
+    list_display = ('__str__', 'created', 'algorithm_job', 'algorithm', 'dataset', 'data_link', 'log_link')
+    readonly_fields = ('data_link', 'log_link', 'algorithm', 'dataset')
+
+    def data_link(self, obj):
+        if obj.data:
+            return mark_safe('<a href="%s" download>Download</a>' % (obj.data.url,))
+        else:
+            return "No attachment"
+
+    data_link.allow_tags = True
+
+    def log_link(self, obj):
+        if obj.log:
+            return mark_safe('<a href="%s" download>Download</a>' % (obj.log.url,))
+        else:
+            return "No attachment"
+
+    log_link.allow_tags = True
+
+    def algorithm(self, obj):
+        return obj.algorithm_job.algorithm
+
+    def dataset(self, obj):
+        return obj.algorithm_job.dataset
+
+
+class DatasetAdmin(admin.ModelAdmin):
+    list_display = ('__str__', 'creator', 'created', 'task_list', 'active', 'data_link')
+    readonly_fields = ('data_link', 'task_list')
+
+    def data_link(self, obj):
+        if obj.data:
+            return mark_safe('<a href="%s" download>Download</a>' % (obj.data.url,))
+        else:
+            return "No attachment"
+
+    data_link.allow_tags = True
+
+    def task_list(self, obj):
+        return ', '.join([t.name for t in obj.tasks.all()])
+
+
+class GroundtruthAdmin(admin.ModelAdmin):
+    list_display = ('__str__', 'task', 'creator', 'created', 'active', 'public', 'data_link')
+    readonly_fields = ('data_link',)
+
+    def data_link(self, obj):
+        if obj.data:
+            return mark_safe('<a href="%s" download>Download</a>' % (obj.data.url,))
+        else:
+            return "No attachment"
+
+    data_link.allow_tags = True
+
+
+class ScoreAlgorithmAdmin(admin.ModelAdmin):
+    list_display = ('__str__', 'task', 'creator', 'created', 'active', 'data_link')
+    readonly_fields = ('data_link',)
+
+    def data_link(self, obj):
+        if obj.data:
+            return mark_safe('<a href="%s" download>Download</a>' % (obj.data.url,))
+        else:
+            return "No attachment"
+
+    data_link.allow_tags = True
+
+
 class ScoreJobAdmin(admin.ModelAdmin):
+    list_display = ('__str__', 'creator', 'created', 'score_algorithm', 'algorithm_result', 'groundtruth', 'status')
     actions = [run_scoring]
 
 
-admin.site.register(models.Task)
-admin.site.register(models.Dataset)
-admin.site.register(models.Groundtruth)
-admin.site.register(models.Algorithm)
-admin.site.register(models.AlgorithmResult)
-admin.site.register(models.ScoreAlgorithm)
-admin.site.register(models.ScoreResult)
+class ScoreResultAdmin(admin.ModelAdmin):
+    list_display = (
+        '__str__', 'created', 'score_job', 'algorithm', 'dataset', 'algorithm_result',
+        'score_algorithm', 'groundtruth', 'data_link', 'log_link')
+    readonly_fields = (
+        'data_link', 'log_link', 'algorithm', 'dataset', 'algorithm_result',
+        'score_algorithm', 'groundtruth')
+
+    def data_link(self, obj):
+        if obj.data:
+            return mark_safe('<a href="%s" download>Download</a>' % (obj.data.url,))
+        else:
+            return "No attachment"
+
+    data_link.allow_tags = True
+
+    def log_link(self, obj):
+        if obj.log:
+            return mark_safe('<a href="%s" download>Download</a>' % (obj.log.url,))
+        else:
+            return "No attachment"
+
+    log_link.allow_tags = True
+
+    def algorithm(self, obj):
+        return obj.score_job.algorithm_result.algorithm_job.algorithm
+
+    def dataset(self, obj):
+        return obj.score_job.algorithm_result.algorithm_job.dataset
+
+    def algorithm_result(self, obj):
+        return obj.score_job.algorithm_result
+
+    def score_algorithm(self, obj):
+        return obj.score_job.score_algorithm
+
+    def groundtruth(self, obj):
+        return obj.score_job.groundtruth
+
+
+class TaskAdmin(admin.ModelAdmin):
+    list_display = ('__str__', 'creator', 'created', 'active')
+
+
+admin.site.register(models.Task, TaskAdmin)
+admin.site.register(models.Dataset, DatasetAdmin)
+admin.site.register(models.Groundtruth, GroundtruthAdmin)
+admin.site.register(models.Algorithm, AlgorithmAdmin)
+admin.site.register(models.AlgorithmResult, AlgorithmResultAdmin)
+admin.site.register(models.ScoreAlgorithm, ScoreAlgorithmAdmin)
+admin.site.register(models.ScoreResult, ScoreResultAdmin)
 admin.site.register(models.AlgorithmJob, AlgorithmJobAdmin)
 admin.site.register(models.ScoreJob, ScoreJobAdmin)
