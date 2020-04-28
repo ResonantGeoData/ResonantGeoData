@@ -11,5 +11,5 @@ celery
 uritemplate
 docker
 rules
-markdownifyp
+markdownify
 boto3
