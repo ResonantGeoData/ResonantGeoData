@@ -1,0 +1,18 @@
+FROM python:3.7-alpine
+
+# This compares two binary files by frequency of unsigned char values that 
+# appear in the files.  For each value that is present at least once in either 
+# file, the score is min(freqA, freqB)/max(freqA, freqB).  The overall score is
+# the average of these scores.
+CMD python -c $'# \n\
+import pprint, sys \n\
+data = sys.stdin.buffer.read() \n\
+gt = open("/groundtruth.dat", "rb").read() \n\
+dc = {c: data.count(c)/len(data) for c in set(data)|set(gt)} \n\
+gc = {c: gt.count(c)/len(gt) for c in set(data)|set(gt)} \n\
+score = {c: min(gc[c], dc[c]) / max(dc[c], gc[c]) for c in gc} \n\
+sys.stderr.write("freq gr.truth data     score\\n") \n\
+for c in sorted(set(gc)): \n\
+  sys.stderr.write("%4d %8.6f %8.6f %8.6f\\n" % (c, gc[c], dc[c], score[c])) \n\
+print(sum(score.values())/len(score)) \n\
+'
