@@ -1,8 +1,14 @@
 These are internal notes that should be cleaned up to share:
 
+Dependencies:
+  - Python 3.7 or newer (not tested with older versions)
+  - RabbitMQ installed and running
+  - Docker daemon installed and running
+
 Make a new environment:
 
   python -m virtualenv --python=python3.7 env37
+  env37/bin/python -m pip install -e .
 
 Run the project:
 
