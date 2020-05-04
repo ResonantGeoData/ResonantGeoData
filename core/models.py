@@ -35,7 +35,6 @@ class Task(models.Model):
     def get_absolute_url(self):
         return reverse('task-detail', kwargs={'pk': self.pk, 'name': self.name})
 
-
 class Dataset(models.Model):
     def __str__(self):
         return self.name
@@ -50,6 +49,9 @@ class Dataset(models.Model):
     # TODO: If we try to edit data and this has been referenced anywhere, we
     # need to make a new model and mark this one as inactive
     data = models.FileField(upload_to='dataset')
+
+    def __str__(self):
+        return self.name
 
 
 class Groundtruth(models.Model):
@@ -76,6 +78,9 @@ class Groundtruth(models.Model):
     # need to make a new model and mark this one as inactive
     data = models.FileField(upload_to='groundtruth')
 
+    def __str__(self):
+        return self.name
+
 
 class Algorithm(models.Model):
     def __str__(self):
@@ -100,6 +105,9 @@ class Algorithm(models.Model):
     def get_absolute_url(self):
         return reverse('algorithm-detail', kwargs={'creator': str(self.creator), 'pk': self.pk})
 
+    def __str__(self):
+        return self.name
+
 
 class ScoreAlgorithm(models.Model):
     def __str__(self):
@@ -120,6 +128,9 @@ class ScoreAlgorithm(models.Model):
     data = models.FileField(upload_to='score_algorithm', validators=[
         validators.MimetypeValidator(['application/x-tar'])
     ])
+
+    def __str__(self):
+        return self.name
 
 
 class AlgorithmJob(models.Model):
@@ -227,3 +238,5 @@ class ScoreResult(models.Model):
     created = models.DateTimeField(default=timezone.now)
     data = models.FileField(upload_to='scores')
     log = models.FileField(upload_to='scores_logs', null=True, blank=True)
+    overall_score = models.FloatField(null=True, blank=True, validators=[MaxValueValidator(1.0), MinValueValidator(0.0)])
+    result_type = models.CharField(max_length=10, null=True, blank=True)
