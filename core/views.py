@@ -37,19 +37,25 @@ def run_scoring(request, algorithm_job_id):
 @login_required
 def algorithms(request):
     """Dashboard of user's uploaded algorithms."""
+    ## Get a list of all of the algorithms for the current user
+    user = request.user
+    # another way: models.Algorithm.objects.filter(creator=user)
+    algs = user.algorithm_set.all()
     context = {
-
+        'algorithms' : algs,
     }
-    return render(request, 'core/algorithms.html', )#context)
+    return render(request, 'core/algorithms.html', context)
 
 
 @login_required
 def jobs(request):
     """Dashboard of a user's jobs."""
+    user = request.user
+    jobs = user.algorithmjob_set.all()
     context = {
-
+        'jobs': jobs,
     }
-    return render(request, 'core/jobs.html', )#context)
+    return render(request, 'core/jobs.html', context)
 
 
 @login_required

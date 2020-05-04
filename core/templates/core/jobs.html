@@ -4,4 +4,26 @@
 {% extends "base.html" %}
 {% block content %}
   <h1>My Jobs</h1>
+
+  <table class="table">
+    <thead class="thead-dark">
+      <tr>
+        <th>Created</th>
+        <th>Algorithm</th>
+        <th>Dataset</th>
+        <th>Status</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for job in jobs %}
+        <tr>
+          <td>{{ job.created }}</td>
+          <td>{{ job.algorithm }}</td>
+          <td>{{ job.dataset }}</td>
+          <!-- TODO: how to use the better formtatted version? e.g. "Succeeded" vs "success" -->
+          <td>{{ job.status }}</td>
+        </tr>
+      {% endfor %}
+    </tbody>
+  </table>
 {% endblock content %}

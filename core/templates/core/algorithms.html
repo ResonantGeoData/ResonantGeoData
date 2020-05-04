@@ -1,5 +1,28 @@
 <!-- This page has a dashboard for the curent user's algorithms. It lets them manage (create, reupload, delete, etc the algorithms they have) -->
 {% extends "base.html" %}
 {% block content %}
-  <h1>My Algorims</h1>
+  <h1>My Algorithms</h1>
+
+  <table class="table">
+    <thead class="thead-dark">
+      <tr>
+        <th>Name</th>
+        <th>Task</th>
+        <th>Active</th>
+        <th>Created</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for algorithm in algorithms %}
+        <tr>
+          <td>{{ algorithm.name }}</td>
+          <td>{{ algorithm.task }}</td>
+          <td>{{ algorithm.active }}</td>
+          <td>{{ algorithm.created }}</td>
+        </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+
+
 {% endblock content %}
