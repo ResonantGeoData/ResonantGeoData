@@ -26,9 +26,6 @@
         <div class="navigation">
           <ul class="navbar">
             {% if user.is_authenticated %}
-              <li class="index">
-                  <a href="{% url 'index' %}" class="button is-small">Home</a>
-              </li>
               <strong>{{ request.user.email }}</strong>
               {% if user.is_superuser %}
               <li class="admin">
