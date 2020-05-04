@@ -4,35 +4,18 @@
 
 {% block content %}
 
+  <h1>ResonantGeoData</h1>
+
   {% if user.is_authenticated %}
 
-
-    <!-- Now list out all of the tasks to infinity! -->
-    <!-- TODO: we probably don't want to render all taks on the deployed site... maybe just a few of the recently posted ones? -->
-
-    {% for task in tasks %}
-    <section class="section container">
-        <div class="section-header">
-          <h1>{{ task.name }}</h1>
-          <div class="task-metadata">
-            <small class="text">Posted by: {{ task.creator }} on {{ task.created|date:"F d, Y" }}.</small>
-            {% if task.active %}
-              <small>Status: Active</small>
-            {% else %}
-              <small>Status: Closed</small>
-            {% endif %}
-          </div>
-        </div>
-        <div class="section-content">
-          <p class="article-content">{{ task.description }}</p>
-        </div>
-    </section>
-    {% endfor %}
+    <!-- TODO: what to show on home page?? -->
+    <p>
+      Use the sidebar to get started!
+    </p>
 
   {% else %}
     <!-- TODO: will the context still be loaded if a user is not authenicated?? I think so.... could be an issue if you don't want external people to see the tasks -->
     <!-- TODO: we may just want to have the external page be entirey seperate -->
-    <h1>ResonantGeoData</h1>
     <p>
       2D/3D/4D Geospatial Data API and Machine Learning System for Evaluation
     </p>

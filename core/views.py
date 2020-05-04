@@ -14,10 +14,7 @@ def handler500(request):
 
 
 def index(request):
-    context = {
-        'tasks': Task.objects.all(),
-    }
-    return render(request, 'index.html', context)
+    return render(request, 'index.html')
 
 
 @login_required
@@ -62,6 +59,6 @@ def jobs(request):
 def tasks(request):
     """All task postings."""
     context = {
-
+        'tasks': Task.objects.all(),
     }
-    return render(request, 'core/tasks.html', )#context)
+    return render(request, 'core/tasks.html', context)

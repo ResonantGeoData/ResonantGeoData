@@ -26,6 +26,9 @@ class Task(models.Model):
     created = models.DateTimeField(default=timezone.now)
     active = models.BooleanField(default=True)
 
+    def __str__(self):
+        return self.name
+
 
 class Dataset(models.Model):
     def __str__(self):
@@ -41,6 +44,9 @@ class Dataset(models.Model):
     # TODO: If we try to edit data and this has been referenced anywhere, we
     # need to make a new model and mark this one as inactive
     data = models.FileField(upload_to='dataset')
+
+    def __str__(self):
+        return self.name
 
 
 class Groundtruth(models.Model):
@@ -67,6 +73,9 @@ class Groundtruth(models.Model):
     # need to make a new model and mark this one as inactive
     data = models.FileField(upload_to='groundtruth')
 
+    def __str__(self):
+        return self.name
+
 
 class Algorithm(models.Model):
     def __str__(self):
@@ -86,6 +95,9 @@ class Algorithm(models.Model):
     # need to make a new model and mark this one as inactive
     data = models.FileField(upload_to='algorithm')
 
+    def __str__(self):
+        return self.name
+
 
 class ScoreAlgorithm(models.Model):
     def __str__(self):
@@ -104,6 +116,9 @@ class ScoreAlgorithm(models.Model):
     # TODO: If we try to edit data and this has been referenced anywhere, we
     # need to make a new model and mark this one as inactive
     data = models.FileField(upload_to='score_algorithm')
+
+    def __str__(self):
+        return self.name
 
 
 class AlgorithmJob(models.Model):

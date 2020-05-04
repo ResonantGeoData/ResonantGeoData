@@ -10,6 +10,7 @@
       <tr>
         <th>Created</th>
         <th>Algorithm</th>
+        <th>Task</th>
         <th>Dataset</th>
         <th>Status</th>
       </tr>
@@ -19,6 +20,7 @@
         <tr>
           <td>{{ job.created }}</td>
           <td>{{ job.algorithm }}</td>
+          <td>{{ job.algorithm.task }}</td>
           <td>{{ job.dataset }}</td>
           <!-- TODO: how to use the better formtatted version? e.g. "Succeeded" vs "success" -->
           <td>{{ job.status }}</td>

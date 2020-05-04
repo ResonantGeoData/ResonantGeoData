@@ -17,7 +17,7 @@
         <tr>
           <td>{{ algorithm.name }}</td>
           <td>{{ algorithm.task }}</td>
-          <td>{{ algorithm.active }}</td>
+          <td>{{ algorithm.active|yesno:"✔,✘" }}</td>
           <td>{{ algorithm.created }}</td>
         </tr>
       {% endfor %}
