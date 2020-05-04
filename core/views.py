@@ -32,3 +32,30 @@ def run_algorithm(request, algorithm_job_id):
 def run_scoring(request, algorithm_job_id):
     score_job = get_object_or_404(ScoreJob, pk=score_job_id)
     score_job.run_scoring()
+
+
+@login_required
+def algorithms(request):
+    """Dashboard of user's uploaded algorithms."""
+    context = {
+
+    }
+    return render(request, 'core/algorithms.html', )#context)
+
+
+@login_required
+def jobs(request):
+    """Dashboard of a user's jobs."""
+    context = {
+
+    }
+    return render(request, 'core/jobs.html', )#context)
+
+
+@login_required
+def tasks(request):
+    """All task postings."""
+    context = {
+
+    }
+    return render(request, 'core/tasks.html', )#context)
