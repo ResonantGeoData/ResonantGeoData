@@ -26,9 +26,6 @@
         <div class="navigation">
           <ul class="navbar">
             {% if user.is_authenticated %}
-              <li class="index">
-                  <a href="{% url 'index' %}" class="button is-small">Home</a>
-              </li>
               <strong>{{ request.user.email }}</strong>
               {% if user.is_superuser %}
               <li class="admin">
@@ -91,7 +88,39 @@
         </div>
       {% endif %}
 
-      {% block content %}{% endblock %}
+
+      <main role="main" class="container">
+      <div class="row">
+        <div class="col-md-8">
+          {% if messages %}
+            {% for message in messages %}
+              <div class="alert alert-{{ message.tags }}">
+                {{ message }}
+              </div>
+            {% endfor %}
+          {% endif %}
+          {% block content %}{% endblock %}
+        </div>
+        <div class="col-md-4">
+          <div class="content-section">
+            <h3>Useful Links</h3>
+            <p class='text-muted'>
+              <ul class="list-group">
+                <li class="list-group-item list-group-item-dark">
+                  <a class="mr-2" href="{% url 'index' %}">Home</a>
+                </li>
+                <li class="list-group-item list-group-item-dark">
+                  <a class="mr-2" href="{% url 'algorithms' %}">My Algorithms</a>
+                </li>
+                <li class="list-group-item list-group-item-dark">
+                  <a class="mr-2" href="{% url 'jobs' %}">My Jobs</a>
+                </li>
+              </ul>
+            </p>
+          </div>
+        </div>
+      </div>
+    </main>
 
     </div>
 
