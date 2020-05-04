@@ -3,7 +3,7 @@ from django.shortcuts import get_object_or_404, render
 from django.views.decorators.http import require_http_methods
 import logging
 
-from .models import AlgorithmJob
+from .models import AlgorithmJob, Task
 
 
 logger = logging.getLogger(__name__)
@@ -14,7 +14,10 @@ def handler500(request):
 
 
 def index(request):
-    return render(request, 'index.html', {})
+    context = {
+        'tasks': Task.objects.all(),
+    }
+    return render(request, 'index.html', context)
 
 
 @login_required

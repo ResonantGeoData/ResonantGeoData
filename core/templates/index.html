@@ -1,35 +1,57 @@
 {% extends "base.html" %}
+<!-- This is the home page. It checks if user is authenicated and if not, only shows a brief message about the project. Use nav bar to login. -->
+
 
 {% block content %}
-  <!--
-  {% for challenge in challenges %}
-  <section class="section container">
+
+  {% if user.is_authenticated %}
+
+    <section class="section container">
+      <!-- TODO: This is a placeholder of links to all the pages where a user can do stuff -->
       <div class="section-header">
-        <h1>{{ challenge.name }}</h1>
+        <h1>Useful Links</h1>
       </div>
       <div class="section-content">
-        <div class="tasks-list columns is-multiline is-vcentered">
-          {% for task in challenge.tasks.all %}
-            <div class="task column is-one-third{% if task.locked %} inactive{% endif %}">
-              <a href="{{ task.get_absolute_url }}" alt="{{ task.name }}">
-                <span class="task-name"><i class="material-icons">assignment</i> {{ task.name }}</span>
-                {% if task.short_description %}
-                <span class="task-desc">
-                  {{ task.short_description | truncatechars:170 }}
-                </span>
-                {% endif %}
-              </a>
-              {% if task.hidden %}
-              <span class="badge">
-                <i class="material-icons">visibility_off</i>
-              </span>
-              {% endif %}
-            </div>
-          {% endfor %}
-        </div>
+        <!-- Leaving out since I list them below -->
+        <!-- <a class="mr-2" href="#">Tasks</a> -->
+        <a class="mr-2" href="#">My Algorithms</a>
+        <a class="mr-2" href="#">My Jobs</a>
       </div>
-  </section>
-  {% endfor %}
-  -->
-{% endblock %}
+    </section>
 
+    <!-- Now list out all of the tasks to infinity! -->
+    <!-- TODO: we probably don't want to render all taks on the deployed site... maybe just a few of the recently posted ones? -->
+
+    {% for task in tasks %}
+    <section class="section container">
+        <div class="section-header">
+          <h1>{{ task.name }}</h1>
+          <div class="task-metadata">
+            <small class="text">Posted by: {{ task.creator }} on {{ task.created|date:"F d, Y" }}.</small>
+            {% if task.active %}
+              <small>Status: Active</small>
+            {% else %}
+              <small>Status: Closed</small>
+            {% endif %}
+          </div>
+        </div>
+        <div class="section-content">
+          <p class="article-content">{{ task.description }}</p>
+        </div>
+    </section>
+    {% endfor %}
+
+  {% else %}
+    <!-- TODO: will the context still be loaded if a user is not authenicated?? I think so.... could be an issue if you don't want external people to see the tasks -->
+    <!-- TODO: we may just want to have the external page be entirey seperate -->
+    <h1>ResonantGeoData</h1>
+    <p>
+      2D/3D/4D Geospatial Data API and Machine Learning System for Evaluation
+    </p>
+    <p>
+      This is the project home page that is visible to unauthenticated users
+    </p>
+
+  {% endif %}
+
+{% endblock %}
