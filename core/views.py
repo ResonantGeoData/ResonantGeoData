@@ -5,9 +5,7 @@ from django.utils import timezone
 from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
 from django.views.generic import DetailView, CreateView, DeleteView
 import logging
-
 from .models import Algorithm, AlgorithmJob, ScoreJob, Task
-
 
 logger = logging.getLogger(__name__)
 
@@ -18,7 +16,6 @@ def handler500(request):
 
 def index(request):
     return render(request, 'index.html')
-
 
 @login_required
 @require_http_methods(['POST'])
