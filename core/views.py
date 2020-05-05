@@ -81,7 +81,11 @@ class AlgorithmDetailView(LoginRequiredMixin, _CustomUserTest, DetailView):
 
 class AlgorithmDeleteView(LoginRequiredMixin, _CustomUserTest, DeleteView):
     model = Algorithm
+<<<<<<< HEAD
     success_url = '/algorithms/'
+=======
+    success_url = "/algorithms/"
+>>>>>>> Add delete algorithm view
 
 
 class TaskDetailView(LoginRequiredMixin, DetailView):
