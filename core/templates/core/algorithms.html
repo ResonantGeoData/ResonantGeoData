@@ -3,6 +3,10 @@
 {% block content %}
   <h1>My Algorithms</h1>
 
+  <div class="btn-group btn-group-sm" role="group" aria-label="Algorithm Tools">
+    <a type="button" class="btn btn-success" href="{% url 'new-algorithm' %}">New Algorithm</a>
+  </div>
+
   <table class="table">
     <thead class="thead-dark">
       <tr>
@@ -15,7 +19,7 @@
     <tbody>
       {% for algorithm in algorithms %}
         <tr>
-          <td>{{ algorithm.name }}</td>
+          <td><a href="{% url 'algorithm-detail' algorithm.creator algorithm.pk %}">{{ algorithm.name }}</a></td>
           <td>{{ algorithm.task }}</td>
           <td>{{ algorithm.active|yesno:"✔,✘" }}</td>
           <td>{{ algorithm.created }}</td>

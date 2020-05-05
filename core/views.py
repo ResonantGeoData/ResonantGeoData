@@ -1,9 +1,15 @@
 from django.contrib.auth.decorators import login_required
 from django.shortcuts import get_object_or_404, render
 from django.views.decorators.http import require_http_methods
+from django.contrib import messages
+from django.utils import timezone
+from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
+from django.views.generic import (ListView, DetailView, CreateView, UpdateView,
+                                  DeleteView,
+                                  )
 import logging
 
-from .models import AlgorithmJob, Task
+from .models import Algorithm, AlgorithmJob, Task
 
 
 logger = logging.getLogger(__name__)
@@ -62,3 +68,25 @@ def tasks(request):
         'tasks': Task.objects.all(),
     }
     return render(request, 'core/tasks.html', context)
+
+
+class _CustomUserTest(UserPassesTestMixin):
+    """A helper to ensure that the current user is only requesting o view their own data."""
+
+    def test_func(self):
+        object = self.get_object()
+        return self.request.user == object.creator
+
+
+class AlgorithmDetailView(_CustomUserTest, DetailView):
+    model = Algorithm
+
+
+class AlgorithmCreateView(LoginRequiredMixin, CreateView):
+    model = Algorithm
+    fields = ['name', 'task', 'description', 'data', 'active']
+
+    def form_valid(self, form):
+        form.instance.creator = self.request.user
+        form.instance.created = timezone.now()
+        return super().form_valid(form)

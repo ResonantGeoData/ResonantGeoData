@@ -2,7 +2,7 @@ from django.contrib.auth import get_user_model
 from django.db import models
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
-
+from django.urls import reverse
 
 # We may want to have some sort of access permissions on Task, Dataset,
 # Groundtruth, etc.
@@ -97,6 +97,9 @@ class Algorithm(models.Model):
 
     def __str__(self):
         return self.name
+
+    def get_absolute_url(self):
+        return reverse('algorithm-detail', kwargs={'creator': str(self.creator), 'pk': self.pk})
 
 
 class ScoreAlgorithm(models.Model):
