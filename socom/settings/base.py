@@ -53,6 +53,7 @@ INSTALLED_APPS = [
     'import_export',
     'rules.apps.AutodiscoverRulesConfig',
     'markdownify',
+    'crispy_forms',
 ]
 SITE_ID = 1
 

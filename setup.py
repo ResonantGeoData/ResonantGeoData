@@ -31,5 +31,6 @@ setup(
         'django-debug-toolbar',
         'django-extensions',
         # 'django-minio-storage',
+        'django-crispy-forms',
     ],
 )
