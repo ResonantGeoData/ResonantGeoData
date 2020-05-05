@@ -6,15 +6,8 @@ from django.db.models.signals import post_save
 from django.urls import reverse
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
-<<<<<<< HEAD
 
 from . import validators
-<<<<<<< HEAD
-=======
-from django.urls import reverse
->>>>>>> Add create and detail views for algorithm
-=======
->>>>>>> Validate that algorithms are tar files.
 
 # We may want to have some sort of access permissions on Task, Dataset,
 # Groundtruth, etc.
@@ -108,7 +101,6 @@ class Algorithm(models.Model):
     data = models.FileField(upload_to='algorithm', validators=[
         validators.MimetypeValidator(['application/x-tar'])
     ])
-<<<<<<< HEAD
 
     def get_absolute_url(self):
         return reverse('algorithm-detail', kwargs={'creator': str(self.creator), 'pk': self.pk})
@@ -118,9 +110,6 @@ class Algorithm(models.Model):
 
     def get_absolute_url(self):
         return reverse('algorithm-detail', kwargs={'creator': str(self.creator), 'pk': self.pk})
-=======
->>>>>>> Validate that algorithms are tar files.
-
 
 class ScoreAlgorithm(models.Model):
     def __str__(self):
