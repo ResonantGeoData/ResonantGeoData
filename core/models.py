@@ -130,13 +130,9 @@ class ScoreAlgorithm(models.Model):
     data = models.FileField(upload_to='score_algorithm', validators=[
         validators.MimetypeValidator(['application/x-tar'])
     ])
-<<<<<<< HEAD
 
     def __str__(self):
         return self.name
-=======
->>>>>>> Validate that algorithms are tar files.
-
 
 class AlgorithmJob(models.Model):
     class Meta:
@@ -189,10 +185,14 @@ def post_save_algorithm_job(sender, instance, *args, **kwargs):
     def get_absolute_url(self):
         return reverse('algorithm-detail', kwargs={'creator': str(self.creator), 'pk': self.pk})
 
+    @property
+    def results(self):
+        """Helper to get all associated AlgorithmResult objects."""
+        return self.algorithmresult_set.all()
+
 
 class AlgorithmResult(models.Model):
     """NOTE: this is really a 'job result', not an 'algorithm result'..."""
-
     algorithm_job = models.ForeignKey(AlgorithmJob, on_delete=models.CASCADE, blank=True, null=True)
     created = models.DateTimeField(default=timezone.now)
     data = models.FileField(upload_to='results')
