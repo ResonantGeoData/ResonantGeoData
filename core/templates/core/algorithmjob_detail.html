@@ -1,0 +1,16 @@
+{% extends "base.html" %}
+{% block content %}
+  <article class="media content-section">
+    <div class="media-body">
+      <div class="article-metadata">
+        <small class="text-muted">{{ object.created }}</small>
+      </div>
+      <h2 class="article-title">{{ object.name }}</h2>
+      <p class="article-content">Status: {{ object.status }}</p>
+      <p class="article-content">Fail Reason: {{ object.fail_reason }}</p>
+      <p class="article-content">Uploaded for task: <a href="{% url 'task-detail' object.algorithm.task.pk object.algorithm.task.name %}">{{ object.algorithm.task }}</a></p>
+      <p class="article-content">Algorithm to run: <a href="{% url 'algorithm-detail' object.algorithm.creator object.algorithm.pk %}">{{ object.algorithm }}</a></p>
+      <p class="article-content">Dataset: {{ object.dataset }}</p>
+    </div>
+  </article>
+{% endblock content %}

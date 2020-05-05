@@ -86,6 +86,10 @@ class TaskDetailView(LoginRequiredMixin, DetailView):
     model = Task
 
 
+class JobDetailView(LoginRequiredMixin, _CustomUserTest, DetailView):
+    model = AlgorithmJob
+
+
 class AlgorithmCreateView(LoginRequiredMixin, CreateView):
     model = Algorithm
     fields = ['name', 'task', 'description', 'data', 'active']

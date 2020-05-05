@@ -8,6 +8,7 @@ urlpatterns = [
     path('algorithms/<str:creator>/<int:pk>/', views.AlgorithmDetailView.as_view(), name="algorithm-detail"),
     path('algorithms/new/', views.AlgorithmCreateView.as_view(), name="new-algorithm"),
     path('jobs/', views.jobs, name='jobs'),
+    path('jobs/<str:creator>/<int:pk>/', views.JobDetailView.as_view(), name="job-detail"),
     path('tasks/', views.tasks, name='tasks'),
     path('algorithms/<int:pk>-<str:name>/', views.TaskDetailView.as_view(), name="task-detail"),
 ]

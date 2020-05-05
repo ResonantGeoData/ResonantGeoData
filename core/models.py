@@ -153,6 +153,9 @@ class AlgorithmJob(models.Model):
 
         tasks.run_algorithm(self)
 
+    def get_absolute_url(self):
+        return reverse('algorithm-detail', kwargs={'creator': str(self.creator), 'pk': self.pk})
+
 
 class AlgorithmResult(models.Model):
     algorithm_job = models.ForeignKey(AlgorithmJob, on_delete=models.CASCADE, blank=True, null=True)
