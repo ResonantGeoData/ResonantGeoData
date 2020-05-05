@@ -15,8 +15,13 @@ urlpatterns = [
     path('algorithms/new/', views.AlgorithmCreateView.as_view(), name="new-algorithm"),
 >>>>>>> Add delete algorithm view
     path('jobs/', views.jobs, name='jobs'),
+<<<<<<< HEAD
     path('jobs/new/', views.JobCreateView.as_view(), name='new-job'),
     path('jobs/<str:creator>/<int:pk>/', views.JobDetailView.as_view(), name='job-detail'),
+=======
+    path('jobs/new/', views.JobCreateView.as_view(), name="new-job"),
+    path('jobs/<str:creator>/<int:pk>/', views.JobDetailView.as_view(), name="job-detail"),
+>>>>>>> Add create job view
     path('tasks/', views.tasks, name='tasks'),
 <<<<<<< HEAD
     path('task/<int:pk>-<str:name>/', views.TaskDetailView.as_view(), name='task-detail'),

@@ -108,7 +108,13 @@ class AlgorithmCreateView(LoginRequiredMixin, CreateView):
 
 class JobCreateView(LoginRequiredMixin, CreateView):
     model = AlgorithmJob
+<<<<<<< HEAD
     fields = ['algorithm', 'dataset', ]
+=======
+    fields = ['algorithm', 'dataset',]
+
+    # TODO: when the form saves, we need to trigger the job to run
+>>>>>>> Add create job view
 
     def form_valid(self, form):
         form.instance.creator = self.request.user
