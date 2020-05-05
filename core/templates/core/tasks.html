@@ -9,7 +9,7 @@
   {% for task in tasks %}
   <section class="section container">
       <div class="section-header">
-        <h1>{{ task.name }}</h1>
+        <h1><a href="{% url 'task-detail' task.pk task.name %}">{{ task.name }}</a></h1>
         <div class="task-metadata">
           <small class="text">Posted by: {{ task.creator }} on {{ task.created|date:"F d, Y" }}.</small>
           {% if task.active %}

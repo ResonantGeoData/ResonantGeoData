@@ -8,6 +8,7 @@
   <table class="table">
     <thead class="thead-dark">
       <tr>
+        <th>ID</th>
         <th>Created</th>
         <th>Algorithm</th>
         <th>Task</th>
@@ -18,9 +19,10 @@
     <tbody>
       {% for job in jobs %}
         <tr>
+          <td>{{ job.id }}</td>
           <td>{{ job.created }}</td>
-          <td>{{ job.algorithm }}</td>
-          <td>{{ job.algorithm.task }}</td>
+          <td><a href="{% url 'algorithm-detail' job.algorithm.creator job.algorithm.pk %}">{{ job.algorithm }}</a></td>
+          <td><a href="{% url 'task-detail' job.algorithm.task.pk job.algorithm.task.name %}">{{ job.algorithm.task }}</a></td>
           <td>{{ job.dataset }}</td>
           <!-- TODO: how to use the better formtatted version? e.g. "Succeeded" vs "success" -->
           <td>{{ job.status }}</td>

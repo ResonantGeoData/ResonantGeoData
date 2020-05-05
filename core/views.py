@@ -78,8 +78,12 @@ class _CustomUserTest(UserPassesTestMixin):
         return self.request.user == object.creator
 
 
-class AlgorithmDetailView(_CustomUserTest, DetailView):
+class AlgorithmDetailView(LoginRequiredMixin, _CustomUserTest, DetailView):
     model = Algorithm
+
+
+class TaskDetailView(LoginRequiredMixin, DetailView):
+    model = Task
 
 
 class AlgorithmCreateView(LoginRequiredMixin, CreateView):

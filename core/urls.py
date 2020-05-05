@@ -9,6 +9,7 @@ urlpatterns = [
     path('algorithms/new/', views.AlgorithmCreateView.as_view(), name="new-algorithm"),
     path('jobs/', views.jobs, name='jobs'),
     path('tasks/', views.tasks, name='tasks'),
+    path('algorithms/<int:pk>-<str:name>/', views.TaskDetailView.as_view(), name="task-detail"),
 ]
 
 handler500 = views.handler500
