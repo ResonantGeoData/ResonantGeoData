@@ -156,6 +156,7 @@ class AlgorithmJob(models.Model):
     # it might be nice to have an array of status/timestamp/log for tracking
     # when status changed.
 
+<<<<<<< HEAD
     def get_absolute_url(self):
         return reverse('job-detail', kwargs={'creator': str(self.creator), 'pk': self.pk})
 
@@ -182,6 +183,8 @@ class AlgorithmJob(models.Model):
 def post_save_algorithm_job(sender, instance, *args, **kwargs):
     transaction.on_commit(lambda: instance.post_save(**kwargs))
 
+=======
+>>>>>>> Run algorithm and scoring jobs when queued.
     def get_absolute_url(self):
         return reverse('job-detail', kwargs={'creator': str(self.creator), 'pk': self.pk})
 
@@ -189,6 +192,25 @@ def post_save_algorithm_job(sender, instance, *args, **kwargs):
     def results(self):
         """Helper to get all associated AlgorithmResult objects."""
         return self.algorithmresult_set.all()
+
+    def run_algorithm(self):
+        """Run the job asynchronously."""
+        from . import tasks
+
+        tasks.run_algorithm.delay(self.id)
+
+
+    def post_save(self, created, *args, **kwargs):
+        if not created and kwargs.get('update_fields') and 'status' not in kwargs.get('update_fields'):
+            return
+        if self.status == self.Status.QUEUED:
+            self.run_algorithm()
+        # We may want to implement canceling here
+
+
+@receiver(post_save, sender=AlgorithmJob)
+def post_save_algorithm_job(sender, instance, *args, **kwargs):
+    transaction.on_commit(lambda: instance.post_save(**kwargs))
 
 
 class AlgorithmResult(models.Model):
