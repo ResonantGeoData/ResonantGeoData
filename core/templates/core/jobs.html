@@ -3,7 +3,13 @@
 <!-- When clicking on a job, it will take you to `detail-job` -->
 {% extends "base.html" %}
 {% block content %}
-  <h1>My Jobs</h1>
+  <h1 class="article-title">
+    <span>My Jobs</span>
+    <div class="btn-group btn-group-sm" role="group" aria-label="Job Tools">
+      <a type="button" class="btn btn-success" href="{% url 'new-job' %}">New Job</a>
+    </div>
+  </h1>
+  <hr/>
 
   <table class="table">
     <thead class="thead-dark">

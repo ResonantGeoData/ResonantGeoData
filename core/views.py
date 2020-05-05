@@ -103,3 +103,15 @@ class AlgorithmCreateView(LoginRequiredMixin, CreateView):
         form.instance.creator = self.request.user
         form.instance.created = timezone.now()
         return super().form_valid(form)
+
+
+class JobCreateView(LoginRequiredMixin, CreateView):
+    model = AlgorithmJob
+    fields = ['algorithm', 'dataset',]
+
+    # TODO: when the form saves, we need to trigger the job to run
+
+    def form_valid(self, form):
+        form.instance.creator = self.request.user
+        form.instance.created = timezone.now()
+        return super().form_valid(form)

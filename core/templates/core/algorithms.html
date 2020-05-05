@@ -1,11 +1,14 @@
 <!-- This page has a dashboard for the curent user's algorithms. It lets them manage (create, reupload, delete, etc the algorithms they have) -->
 {% extends "base.html" %}
 {% block content %}
-  <h1>My Algorithms</h1>
 
-  <div class="btn-group btn-group-sm" role="group" aria-label="Algorithm Tools">
-    <a type="button" class="btn btn-success" href="{% url 'new-algorithm' %}">New Algorithm</a>
-  </div>
+  <h1 class="article-title">
+    <span>My Algorithms</span>
+    <div class="btn-group btn-group-sm" role="group" aria-label="Algorithm Tools">
+      <a type="button" class="btn btn-success" href="{% url 'new-algorithm' %}">New Algorithm</a>
+    </div>
+  </h1>
+  <hr/>
 
   <table class="table">
     <thead class="thead-dark">

@@ -9,6 +9,7 @@ urlpatterns = [
     path('algorithms/<str:creator>/<int:pk>/delete/', views.AlgorithmDeleteView.as_view(), name="delete-algorithm"),
     path('algorithms/new/', views.AlgorithmCreateView.as_view(), name="new-algorithm"),
     path('jobs/', views.jobs, name='jobs'),
+    path('jobs/new/', views.JobCreateView.as_view(), name="new-job"),
     path('jobs/<str:creator>/<int:pk>/', views.JobDetailView.as_view(), name="job-detail"),
     path('tasks/', views.tasks, name='tasks'),
     path('task/<int:pk>-<str:name>/', views.TaskDetailView.as_view(), name="task-detail"),

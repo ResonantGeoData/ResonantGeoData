@@ -5,7 +5,17 @@
       <div class="article-metadata">
         <small class="text-muted">{{ object.created }}</small>
       </div>
-      <h2 class="article-title">{{ object.name }}</h2>
+
+      <h2 class="article-title">
+        <span>Job {{ object.id }}</span>
+        <div class="btn-group btn-group-sm" role="group">
+          <!-- TODO: make sure this button will trigger a run -->
+          <a type="button" class="btn btn-info">Rerun Job</a>
+        </div>
+      </h2>
+      <hr/>
+
+
       <p class="article-content">Status: {{ object.status }}</p>
       <p class="article-content">Fail Reason: {{ object.fail_reason }}</p>
       <p class="article-content">Uploaded for task: <a href="{% url 'task-detail' object.algorithm.task.pk object.algorithm.task.name %}">{{ object.algorithm.task }}</a></p>
