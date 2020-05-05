@@ -14,6 +14,8 @@ import time
 from typing import Generator
 
 from .models import AlgorithmJob, AlgorithmResult, ScoreJob, ScoreResult
+# enum for result type
+from enum import Enum
 
 logger = get_task_logger(__name__)
 
@@ -154,13 +156,18 @@ def _run_scoring(score_job):
                 logger.info('Failed to successfully run image %s (%r)' % (score_algorithm_path, exc))
                 score_job.fail_reason = 'Return code: %s\nException:\n%r' % (result, exc)
             logger.info('Finished running image with result %r' % result)
-            # Store result
             score_result = ScoreResult(
                 score_job=score_job)
             score_result.data.save(
                 'score_job_%s.dat' % score_job.id, open(output_path, 'rb'))
             score_result.log.save(
                 'score_job_%s_log.dat' % score_job.id, open(stderr_path, 'rb'))
+            # one line code to extract the float from data file
+            score_result.overall_score = (float([line.strip() for line in score_result.data][0]))
+            # depends on the data type the return type varies
+            result_type = Enum('result_type', 'simple roc')
+            # for now, always return 'simple' as result type
+            score_result.result_type = (list(result_type)[0].name)
             score_result.save()
             shutil.rmtree(tmpdir)
             score_job.status = ScoreJob.Status.SUCCEEDED if not result else ScoreJob.Status.FAILED
