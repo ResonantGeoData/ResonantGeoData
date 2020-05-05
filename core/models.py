@@ -160,7 +160,7 @@ class AlgorithmJob(models.Model):
         tasks.run_algorithm(self)
 
     def get_absolute_url(self):
-        return reverse('algorithm-detail', kwargs={'creator': str(self.creator), 'pk': self.pk})
+        return reverse('job-detail', kwargs={'creator': str(self.creator), 'pk': self.pk})
 
     @property
     def results(self):
