@@ -183,7 +183,7 @@ def post_save_algorithm_job(sender, instance, *args, **kwargs):
     transaction.on_commit(lambda: instance.post_save(**kwargs))
 
     def get_absolute_url(self):
-        return reverse('algorithm-detail', kwargs={'creator': str(self.creator), 'pk': self.pk})
+        return reverse('job-detail', kwargs={'creator': str(self.creator), 'pk': self.pk})
 
     @property
     def results(self):
