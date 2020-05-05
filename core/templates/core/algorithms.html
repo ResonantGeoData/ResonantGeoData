@@ -20,7 +20,7 @@
       {% for algorithm in algorithms %}
         <tr>
           <td><a href="{% url 'algorithm-detail' algorithm.creator algorithm.pk %}">{{ algorithm.name }}</a></td>
-          <td><a href="{% url 'task-detail' algorithm.task.pk algorithm.task.name %}">{{ algorithm.task }}</td>
+          <td><a href="{% url 'task-detail' algorithm.task.pk algorithm.task.name %}">{{ algorithm.task }}</a></td>
           <td>{{ algorithm.active|yesno:"✔,✘" }}</td>
           <td>{{ algorithm.created }}</td>
         </tr>
