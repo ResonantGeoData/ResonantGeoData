@@ -3,6 +3,7 @@ from django.db import models
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
 
+from . import validators
 
 # We may want to have some sort of access permissions on Task, Dataset,
 # Groundtruth, etc.
@@ -84,7 +85,9 @@ class Algorithm(models.Model):
     docker_image_id = models.TextField(null=True, blank=True)
     # TODO: If we try to edit data and this has been referenced anywhere, we
     # need to make a new model and mark this one as inactive
-    data = models.FileField(upload_to='algorithm')
+    data = models.FileField(upload_to='algorithm', validators=[
+        validators.MimetypeValidator(['application/x-tar'])
+    ])
 
 
 class ScoreAlgorithm(models.Model):
@@ -103,7 +106,9 @@ class ScoreAlgorithm(models.Model):
     docker_image_id = models.TextField(null=True, blank=True)
     # TODO: If we try to edit data and this has been referenced anywhere, we
     # need to make a new model and mark this one as inactive
-    data = models.FileField(upload_to='score_algorithm')
+    data = models.FileField(upload_to='score_algorithm', validators=[
+        validators.MimetypeValidator(['application/x-tar'])
+    ])
 
 
 class AlgorithmJob(models.Model):
