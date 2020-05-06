@@ -118,6 +118,7 @@ def _run_scoring(score_job):
         with _field_file_to_local_path(score_algorithm_file) as score_algorithm_path, \
                 _field_file_to_local_path(algorithm_result_file) as algorithm_result_path, \
                 _field_file_to_local_path(groundtruth_file) as groundtruth_path:
+                # Start a new detached httpd container?
             client = docker.from_env(version='auto', timeout=3600)
             image = None
             if score_job.score_algorithm.docker_image_id:

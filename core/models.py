@@ -13,7 +13,6 @@ from django.core.validators import MaxValueValidator, MinValueValidator
 # We may want to have some sort of access permissions on Task, Dataset,
 # Groundtruth, etc.
 
-
 class DeferredFieldsManager(models.Manager):
     def __init__(self, *deferred_fields):
         self.deferred_fields = deferred_fields
