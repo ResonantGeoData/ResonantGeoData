@@ -18,6 +18,7 @@ def run_scoring(modeladmin, request, queryset):
         tasks.run_scoring.delay(score_job.id)
 
 
+@admin.register(models.Algorithm)
 class AlgorithmAdmin(admin.ModelAdmin):
     list_display = ('__str__', 'creator', 'created', 'active', 'data_link')
     readonly_fields = ('data_link',)
@@ -31,11 +32,13 @@ class AlgorithmAdmin(admin.ModelAdmin):
     data_link.allow_tags = True
 
 
+@admin.register(models.AlgorithmJob)
 class AlgorithmJobAdmin(admin.ModelAdmin):
     list_display = ('__str__', 'creator', 'created', 'algorithm', 'dataset', 'status')
     actions = [run_algorithm]
 
 
+@admin.register(models.AlgorithmResult)
 class AlgorithmResultAdmin(admin.ModelAdmin):
     list_display = ('__str__', 'created', 'algorithm_job', 'algorithm', 'dataset', 'data_link', 'log_link')
     readonly_fields = ('data_link', 'log_link', 'algorithm', 'dataset')
@@ -63,6 +66,7 @@ class AlgorithmResultAdmin(admin.ModelAdmin):
         return obj.algorithm_job.dataset
 
 
+@admin.register(models.Dataset)
 class DatasetAdmin(admin.ModelAdmin):
     list_display = ('__str__', 'creator', 'created', 'task_list', 'active', 'data_link')
     readonly_fields = ('data_link', 'task_list')
@@ -79,6 +83,7 @@ class DatasetAdmin(admin.ModelAdmin):
         return ', '.join([t.name for t in obj.tasks.all()])
 
 
+@admin.register(models.Groundtruth)
 class GroundtruthAdmin(admin.ModelAdmin):
     list_display = ('__str__', 'task', 'creator', 'created', 'active', 'public', 'data_link')
     readonly_fields = ('data_link',)
@@ -92,6 +97,7 @@ class GroundtruthAdmin(admin.ModelAdmin):
     data_link.allow_tags = True
 
 
+@admin.register(models.ScoreAlgorithm)
 class ScoreAlgorithmAdmin(admin.ModelAdmin):
     list_display = ('__str__', 'task', 'creator', 'created', 'active', 'data_link')
     readonly_fields = ('data_link',)
@@ -105,11 +111,13 @@ class ScoreAlgorithmAdmin(admin.ModelAdmin):
     data_link.allow_tags = True
 
 
+@admin.register(models.ScoreJob)
 class ScoreJobAdmin(admin.ModelAdmin):
     list_display = ('__str__', 'creator', 'created', 'score_algorithm', 'algorithm_result', 'groundtruth', 'status')
     actions = [run_scoring]
 
 
+@admin.register(models.ScoreResult)
 class ScoreResultAdmin(admin.ModelAdmin):
     list_display = (
         '__str__', 'created', 'score_job', 'algorithm', 'dataset', 'algorithm_result',
@@ -150,16 +158,6 @@ class ScoreResultAdmin(admin.ModelAdmin):
         return obj.score_job.groundtruth
 
 
+@admin.register(models.Task)
 class TaskAdmin(admin.ModelAdmin):
     list_display = ('__str__', 'creator', 'created', 'active')
-
-
-admin.site.register(models.Task, TaskAdmin)
-admin.site.register(models.Dataset, DatasetAdmin)
-admin.site.register(models.Groundtruth, GroundtruthAdmin)
-admin.site.register(models.Algorithm, AlgorithmAdmin)
-admin.site.register(models.AlgorithmResult, AlgorithmResultAdmin)
-admin.site.register(models.ScoreAlgorithm, ScoreAlgorithmAdmin)
-admin.site.register(models.ScoreResult, ScoreResultAdmin)
-admin.site.register(models.AlgorithmJob, AlgorithmJobAdmin)
-admin.site.register(models.ScoreJob, ScoreJobAdmin)
