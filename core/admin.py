@@ -38,7 +38,7 @@ class AlgorithmJobAdmin(admin.ModelAdmin):
 
 class AlgorithmResultAdmin(admin.ModelAdmin):
     list_display = ('__str__', 'created', 'algorithm_job', 'algorithm', 'dataset', 'data_link', 'log_link')
-    readonly_fields = ('data_link', 'log_link', 'algorithm', 'dataset')
+    readonly_fields = ('data_link', 'algorithm', 'dataset', 'log_link', 'log_preview')
 
     def data_link(self, obj):
         if obj.data:
@@ -61,6 +61,15 @@ class AlgorithmResultAdmin(admin.ModelAdmin):
 
     def dataset(self, obj):
         return obj.algorithm_job.dataset
+
+    def log_preview(self, obj):
+        if obj.log:
+            log = "\n".join(obj.log.readlines())
+            if len(log) > 0:
+                return log
+            else:
+                return "Log is empty"
+        return "No log to preview"
 
 
 class DatasetAdmin(admin.ModelAdmin):
