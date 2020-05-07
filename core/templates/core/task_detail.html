@@ -1,0 +1,14 @@
+{% extends "base.html" %}
+{% block content %}
+  <article class="media content-section">
+    <div class="media-body">
+      <div class="article-metadata">
+        <small class="text-muted">{{ object.created }}</small>
+      </div>
+      <h2 class="article-title">{{ object.name }}</h2>
+      <hr/>
+      <p class="article-content">Status: {{ object.active|yesno:"✔,✘" }}</p>
+      <p class="article-content">Description: {{ object.description }}</p>
+    </div>
+  </article>
+{% endblock content %}

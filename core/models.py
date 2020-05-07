@@ -1,5 +1,9 @@
 from django.contrib.auth import get_user_model
 from django.db import models
+from django.db import transaction
+from django.dispatch import receiver
+from django.db.models.signals import post_save
+from django.urls import reverse
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
 
@@ -27,6 +31,12 @@ class Task(models.Model):
     created = models.DateTimeField(default=timezone.now)
     active = models.BooleanField(default=True)
 
+    def __str__(self):
+        return self.name
+
+    def get_absolute_url(self):
+        return reverse('task-detail', kwargs={'pk': self.pk, 'name': self.name})
+
 
 class Dataset(models.Model):
     def __str__(self):
@@ -42,6 +52,9 @@ class Dataset(models.Model):
     # TODO: If we try to edit data and this has been referenced anywhere, we
     # need to make a new model and mark this one as inactive
     data = models.FileField(upload_to='dataset')
+
+    def __str__(self):
+        return self.name
 
 
 class Groundtruth(models.Model):
@@ -68,6 +81,9 @@ class Groundtruth(models.Model):
     # need to make a new model and mark this one as inactive
     data = models.FileField(upload_to='groundtruth')
 
+    def __str__(self):
+        return self.name
+
 
 class Algorithm(models.Model):
     def __str__(self):
@@ -88,6 +104,12 @@ class Algorithm(models.Model):
     data = models.FileField(upload_to='algorithm', validators=[
         validators.MimetypeValidator(['application/x-tar'])
     ])
+
+    def __str__(self):
+        return self.name
+
+    def get_absolute_url(self):
+        return reverse('algorithm-detail', kwargs={'creator': str(self.creator), 'pk': self.pk})
 
 
 class ScoreAlgorithm(models.Model):
@@ -110,12 +132,16 @@ class ScoreAlgorithm(models.Model):
         validators.MimetypeValidator(['application/x-tar'])
     ])
 
+    def __str__(self):
+        return self.name
+
 
 class AlgorithmJob(models.Model):
     class Meta:
         ordering = ['-created']
 
     class Status(models.TextChoices):
+        CREATED = 'created', _('Created but not queued')
         QUEUED = 'queued', _('Queued for processing')
         RUNNING = 'running', _('Processing')
         INTERNAL_FAILURE = 'internal_failure', _('Internal failure')
@@ -132,13 +158,36 @@ class AlgorithmJob(models.Model):
     # it might be nice to have an array of status/timestamp/log for tracking
     # when status changed.
 
+    def get_absolute_url(self):
+        return reverse('job-detail', kwargs={'creator': str(self.creator), 'pk': self.pk})
+
+    @property
+    def results(self):
+        """Helper to get all associated AlgorithmResult objects."""
+        return self.algorithmresult_set.all()
+
     def run_algorithm(self):
+        """Run the job asynchronously."""
         from . import tasks
 
-        tasks.run_algorithm(self)
+        tasks.run_algorithm.delay(self.id)
+
+
+    def post_save(self, created, *args, **kwargs):
+        if not created and kwargs.get('update_fields') and 'status' not in kwargs.get('update_fields'):
+            return
+        if self.status == self.Status.QUEUED:
+            self.run_algorithm()
+        # We may want to implement canceling here
+
+
+@receiver(post_save, sender=AlgorithmJob)
+def post_save_algorithm_job(sender, instance, *args, **kwargs):
+    transaction.on_commit(lambda: instance.post_save(**kwargs))
 
 
 class AlgorithmResult(models.Model):
+    """NOTE: this is really a 'job result', not an 'algorithm result'..."""
     algorithm_job = models.ForeignKey(AlgorithmJob, on_delete=models.CASCADE, blank=True, null=True)
     created = models.DateTimeField(default=timezone.now)
     data = models.FileField(upload_to='results')
@@ -147,11 +196,14 @@ class AlgorithmResult(models.Model):
 
 class ScoreJob(models.Model):
     class Status(models.TextChoices):
+        CREATED = 'created', _('Created but not queued')
         QUEUED = 'queued', _('Queued for processing')
         RUNNING = 'running', _('Processing')
         INTERNAL_FAILURE = 'internal_failure', _('Internal failure')
         FAILED = 'failed', _('Failed')
         SUCCEEDED = 'success', _('Succeeded')
+
+    previous_status = None
 
     score_algorithm = models.ForeignKey(ScoreAlgorithm, on_delete=models.DO_NOTHING)
     algorithm_result = models.ForeignKey(AlgorithmResult, on_delete=models.DO_NOTHING)
@@ -165,9 +217,23 @@ class ScoreJob(models.Model):
     # when status changed.
 
     def run_scoring(self):
+        """Run the job asynchronously."""
         from . import tasks
+        import sys
+        sys.stderr.write('SCORE JOB %r\n' % [self.id])
+        tasks.run_scoring.delay(self.id)
 
-        tasks.run_scoring(self)
+    def post_save(self, created, *args, **kwargs):
+        if not created and kwargs.get('update_fields') and 'status' not in kwargs.get('update_fields'):
+            return
+        if self.status == self.Status.QUEUED:
+            self.run_scoring()
+        # We may want to implement canceling here
+
+
+@receiver(post_save, sender=ScoreJob)
+def post_save_score_job(sender, instance, *args, **kwargs):
+    transaction.on_commit(lambda: instance.post_save(**kwargs))
 
 
 class ScoreResult(models.Model):

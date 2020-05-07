@@ -1,8 +1,10 @@
 from django.core.exceptions import ValidationError
+from django.utils.deconstruct import deconstructible
 from django.utils.translation import gettext_lazy as _
 import magic
 
 
+@deconstructible
 class MimetypeValidator(object):
     def __init__(self, mimetypes, message=None):
         self.mimetypes = mimetypes
@@ -24,3 +26,6 @@ class MimetypeValidator(object):
                   'mimetypes': ', '.join(self.mimetypes)
                 },
                 code='invalid_mimetype')
+
+    def __eq__(self, other):
+        return self.mimetypes == other.mimetypes

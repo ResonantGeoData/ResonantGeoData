@@ -1,0 +1,39 @@
+<!-- This is a page where users can manage all of their jobs -->
+<!-- This will be a dashboard/table where they can see past jobs' status, re-run old jobs, and create new jobs -->
+<!-- When clicking on a job, it will take you to `detail-job` -->
+{% extends "base.html" %}
+{% block content %}
+  <h1 class="article-title">
+    <span>My Jobs</span>
+    <div class="btn-group btn-group-sm" role="group" aria-label="Job Tools">
+      <a type="button" class="btn btn-success" href="{% url 'new-job' %}">New Job</a>
+    </div>
+  </h1>
+  <hr/>
+
+  <table class="table">
+    <thead class="thead-dark">
+      <tr>
+        <th>ID</th>
+        <th>Created</th>
+        <th>Algorithm</th>
+        <th>Task</th>
+        <th>Dataset</th>
+        <th>Status</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for job in jobs %}
+        <tr>
+          <td><a href="{% url 'job-detail' job.creator job.pk %}">Job {{ job.id }}</a></td>
+          <td>{{ job.created }}</td>
+          <td><a href="{% url 'algorithm-detail' job.algorithm.creator job.algorithm.pk %}">{{ job.algorithm }}</a></td>
+          <td><a href="{% url 'task-detail' job.algorithm.task.pk job.algorithm.task.name %}">{{ job.algorithm.task }}</a></td>
+          <td>{{ job.dataset }}</td>
+          <!-- TODO: how to use the better formtatted version? e.g. "Succeeded" vs "success" -->
+          <td>{{ job.status }}</td>
+        </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+{% endblock content %}

@@ -1,0 +1,49 @@
+{% extends "base.html" %}
+{% block content %}
+  <article class="media content-section">
+    <div class="media-body">
+      <div class="article-metadata">
+        <small class="text-muted">{{ object.created }}</small>
+      </div>
+
+      <h2 class="article-title">
+        <span>Job {{ object.id }}</span>
+        <div class="btn-group btn-group-sm" role="group">
+          <!-- TODO: make sure this button will trigger a run -->
+          <a type="button" class="btn btn-info">Rerun Job</a>
+        </div>
+      </h2>
+      <hr/>
+
+
+      <p class="article-content">Status: {{ object.status }}</p>
+      <p class="article-content">Fail Reason: {{ object.fail_reason }}</p>
+      <p class="article-content">Uploaded for task: <a href="{% url 'task-detail' object.algorithm.task.pk object.algorithm.task.name %}">{{ object.algorithm.task }}</a></p>
+      <p class="article-content">Algorithm to run: <a href="{% url 'algorithm-detail' object.algorithm.creator object.algorithm.pk %}">{{ object.algorithm }}</a></p>
+      <p class="article-content">Dataset: {{ object.dataset }}</p>
+
+      <!-- Now show a list of associated results -->
+      <h2>Results</h2>
+      <table class="table">
+        <thead class="thead-dark">
+          <tr>
+            <th>ID</th>
+            <th>Created</th>
+            <th>Data</th>
+            <th>Log</th>
+          </tr>
+        </thead>
+        <tbody>
+        {% for result in object.results %}
+          <tr>
+            <td>{{ result.id }}</td>
+            <td>{{ result.created }}</td>
+            <td><a href="{{ result.data.url }}" download>Download Data</a></td>
+            <td><a href="{{ result.log.url }}" download>Download Log</a></td>
+          </tr>
+        {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </article>
+{% endblock content %}

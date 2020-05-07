@@ -1,0 +1,28 @@
+<!-- This is a page where the latest tasks are shown/listed. -->
+{% extends "base.html" %}
+{% block content %}
+  <h1>Tasks</h1>
+
+  <!-- Now list out all of the tasks to infinity! -->
+  <!-- TODO: we probably don't want to render all taks on the deployed site... maybe just a few of the recently posted ones? -->
+
+  {% for task in tasks %}
+  <section class="section container">
+      <div class="section-header">
+        <h1><a href="{% url 'task-detail' task.pk task.name %}">{{ task.name }}</a></h1>
+        <div class="task-metadata">
+          <small class="text">Posted by: {{ task.creator }} on {{ task.created|date:"F d, Y" }}.</small>
+          {% if task.active %}
+            <small>Status: Active</small>
+          {% else %}
+            <small>Status: Closed</small>
+          {% endif %}
+        </div>
+      </div>
+      <div class="section-content">
+        <p class="article-content">{{ task.description }}</p>
+      </div>
+  </section>
+  {% endfor %}
+
+{% endblock content %}

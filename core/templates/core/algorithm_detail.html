@@ -1,0 +1,23 @@
+{% extends "base.html" %}
+{% block content %}
+  <article class="media content-section">
+    <div class="media-body">
+      <div class="article-metadata">
+        <small class="text-muted">{{ object.created }}</small>
+      </div>
+
+      <h2 class="article-title">
+        <span>{{ object.name }}</span>
+        <div class="btn-group btn-group-sm" role="group">
+          <a type="button" class="btn btn-danger" href="{% url 'delete-algorithm' algorithm.creator algorithm.pk %}">Delete Algorithm</a>
+        </div>
+      </h2>
+      <hr/>
+
+      <p class="article-content">Status: {{ object.active|yesno:"✔,✘" }}</p>
+      <p class="article-content">Uploaded for task: {{ object.task }}</p>
+      <p class="article-content">Description: {{ object.description }}</p>
+      <a href="{{ object.data.url }}" download>Download Docker Image</a>
+    </div>
+  </article>
+{% endblock content %}
