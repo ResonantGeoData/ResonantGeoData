@@ -1,8 +1,5 @@
 from django.contrib import admin
 from django_admin_display import admin_display
-#  When you write own templatetags or filters,
-# then you need to mark the string as safe from python,
-# because the developer will assume
 from django.utils.safestring import mark_safe
 
 from . import models
@@ -128,23 +125,14 @@ class ScoreJobAdmin(admin.ModelAdmin):
     list_display = ('__str__', 'creator', 'created', 'score_algorithm', 'algorithm_result', 'groundtruth', 'status')
     actions = [run_scoring]
 
-<<<<<<< HEAD
-
 @admin.register(models.ScoreResult)
 class ScoreResultAdmin(admin.ModelAdmin):
     list_display = (
         '__str__', 'created', 'score_job', 'algorithm', 'dataset', 'algorithm_result',
-<<<<<<< HEAD
-        'score_algorithm', 'groundtruth', 'data_link', 'log_link', 'overall_score', 'result_type')
+        'score_algorithm', 'groundtruth', 'data_link', 'log_link', 'overall_score','result_type')
     readonly_fields = (
         'data_link', 'log_link', 'algorithm', 'dataset', 'algorithm_result',
-        'score_algorithm', 'groundtruth', 'overall_score', 'result_type')
-=======
-        'score_algorithm', 'groundtruth', 'data_link', 'log_link','overall_score')
-    readonly_fields = (
-        'data_link', 'log_link', 'algorithm', 'dataset', 'algorithm_result',
-        'score_algorithm', 'groundtruth','overall_score')
->>>>>>> added overall_score
+        'score_algorithm', 'groundtruth', 'overall_score','result_type')
 
     def data_link(self, obj):
         if obj.data:
@@ -177,18 +165,11 @@ class ScoreResultAdmin(admin.ModelAdmin):
     def groundtruth(self, obj):
         return obj.score_job.groundtruth
 
-<<<<<<< HEAD
-    def overall_score(self, obj):
-            return obj.score_job.overall_score
-=======
-    # overall_score
     def overall_score(self, obj):
         return obj.score_job.overall_score
->>>>>>> added overall_score
 
     def result_type(self, obj):
-        return obj.score_job.
-
+        return obj.score_job.result_type
 
 @admin.register(models.Task)
 class TaskAdmin(admin.ModelAdmin):

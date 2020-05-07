@@ -256,6 +256,7 @@ def post_save_score_job(sender, instance, *args, **kwargs):
 class ScoreResult(models.Model):
     score_job = models.ForeignKey(ScoreJob, on_delete=models.CASCADE, blank=True, null=True)
     created = models.DateTimeField(default=timezone.now)
+    #  setting the upload directory and file name
     data = models.FileField(upload_to='scores')
     log = models.FileField(upload_to='scores_logs', null=True, blank=True)
     overall_score = models.FloatField(null=True, blank=True, validators=[MaxValueValidator(1.0), MinValueValidator(0.0)])
