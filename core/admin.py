@@ -27,7 +27,7 @@ class AlgorithmAdmin(admin.ModelAdmin):
         if obj.data:
             return mark_safe('<a href="%s" download>Download</a>' % (obj.data.url,))
         else:
-            return "No attachment"
+            return 'No attachment'
 
     data_link.allow_tags = True
 
@@ -47,7 +47,7 @@ class AlgorithmResultAdmin(admin.ModelAdmin):
         if obj.data:
             return mark_safe('<a href="%s" download>Download</a>' % (obj.data.url,))
         else:
-            return "No attachment"
+            return 'No attachment'
 
     data_link.allow_tags = True
 
@@ -55,7 +55,7 @@ class AlgorithmResultAdmin(admin.ModelAdmin):
         if obj.log:
             return mark_safe('<a href="%s" download>Download</a>' % (obj.log.url,))
         else:
-            return "No attachment"
+            return 'No attachment'
 
     log_link.allow_tags = True
 
@@ -84,7 +84,7 @@ class DatasetAdmin(admin.ModelAdmin):
         if obj.data:
             return mark_safe('<a href="%s" download>Download</a>' % (obj.data.url,))
         else:
-            return "No attachment"
+            return 'No attachment'
 
     data_link.allow_tags = True
 
@@ -101,7 +101,7 @@ class GroundtruthAdmin(admin.ModelAdmin):
         if obj.data:
             return mark_safe('<a href="%s" download>Download</a>' % (obj.data.url,))
         else:
-            return "No attachment"
+            return 'No attachment'
 
     data_link.allow_tags = True
 
@@ -115,7 +115,7 @@ class ScoreAlgorithmAdmin(admin.ModelAdmin):
         if obj.data:
             return mark_safe('<a href="%s" download>Download</a>' % (obj.data.url,))
         else:
-            return "No attachment"
+            return 'No attachment'
 
     data_link.allow_tags = True
 
@@ -139,7 +139,7 @@ class ScoreResultAdmin(admin.ModelAdmin):
         if obj.data:
             return mark_safe('<a href="%s" download>Download</a>' % (obj.data.url,))
         else:
-            return "No attachment"
+            return 'No attachment'
 
     data_link.allow_tags = True
 
@@ -147,7 +147,7 @@ class ScoreResultAdmin(admin.ModelAdmin):
         if obj.log:
             return mark_safe('<a href="%s" download>Download</a>' % (obj.log.url,))
         else:
-            return "No attachment"
+            return 'No attachment'
 
     log_link.allow_tags = True
 

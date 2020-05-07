@@ -1,15 +1,12 @@
 from django.contrib.auth.decorators import login_required
 from django.shortcuts import get_object_or_404, render
 from django.views.decorators.http import require_http_methods
-from django.contrib import messages
 from django.utils import timezone
 from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
-from django.views.generic import (ListView, DetailView, CreateView, UpdateView,
-                                  DeleteView,
-                                  )
+from django.views.generic import DetailView, CreateView, DeleteView
 import logging
 
-from .models import Algorithm, AlgorithmJob, Task
+from .models import Algorithm, AlgorithmJob, ScoreJob, Task
 
 
 logger = logging.getLogger(__name__)
@@ -32,7 +29,7 @@ def run_algorithm(request, algorithm_job_id):
 
 @login_required
 @require_http_methods(['POST'])
-def run_scoring(request, algorithm_job_id):
+def run_scoring(request, score_job_id):
     score_job = get_object_or_404(ScoreJob, pk=score_job_id)
     score_job.run_scoring()
 
@@ -40,12 +37,12 @@ def run_scoring(request, algorithm_job_id):
 @login_required
 def algorithms(request):
     """Dashboard of user's uploaded algorithms."""
-    ## Get a list of all of the algorithms for the current user
+    # Get a list of all of the algorithms for the current user
     user = request.user
     # another way: models.Algorithm.objects.filter(creator=user)
     algs = user.algorithm_set.all()
     context = {
-        'algorithms' : algs,
+        'algorithms': algs,
     }
     return render(request, 'core/algorithms.html', context)
 
@@ -84,7 +81,7 @@ class AlgorithmDetailView(LoginRequiredMixin, _CustomUserTest, DetailView):
 
 class AlgorithmDeleteView(LoginRequiredMixin, _CustomUserTest, DeleteView):
     model = Algorithm
-    success_url = "/algorithms/"
+    success_url = '/algorithms/'
 
 
 class TaskDetailView(LoginRequiredMixin, DetailView):
@@ -107,7 +104,7 @@ class AlgorithmCreateView(LoginRequiredMixin, CreateView):
 
 class JobCreateView(LoginRequiredMixin, CreateView):
     model = AlgorithmJob
-    fields = ['algorithm', 'dataset',]
+    fields = ['algorithm', 'dataset', ]
 
     def form_valid(self, form):
         form.instance.creator = self.request.user

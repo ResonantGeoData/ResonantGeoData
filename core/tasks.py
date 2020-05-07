@@ -1,7 +1,7 @@
-import boto3
 from celery import shared_task
 from celery.utils.log import get_task_logger
 from contextlib import contextmanager
+from django.core.files import File
 from django.db.models.fields.files import FieldFile
 import docker
 import os
@@ -13,7 +13,7 @@ import tempfile
 import time
 from typing import Generator
 
-from core.models import AlgorithmJob, AlgorithmResult, ScoreJob, ScoreResult
+from .models import AlgorithmJob, AlgorithmResult, ScoreJob, ScoreResult
 
 logger = get_task_logger(__name__)
 
@@ -70,7 +70,7 @@ def _run_algorithm(algorithm_job):
                     stdout=open(output_path, 'wb'),
                     stderr=open(stderr_path, 'wb'))
                 result = 0
-                algorithm_job.fail_reason = ''
+                algorithm_job.fail_reason = None
             except subprocess.CalledProcessError as exc:
                 result = exc.returncode
                 logger.info('Failed to successfully run image %s (%r)' % (algorithm_path, exc))
@@ -101,11 +101,12 @@ def run_algorithm(algorithm_job_id, dry_run=False):
     algorithm_job = AlgorithmJob.objects.get(pk=algorithm_job_id)
     if not dry_run:
         algorithm_job.status = AlgorithmJob.Status.RUNNING
-        algorithm_job.save()
+        algorithm_job.save(update_fields=['status'])
     algorithm_job = _run_algorithm(algorithm_job)
     if not dry_run:
         algorithm_job.save()
         # Notify
+
 
 def _run_scoring(score_job):
     score_algorithm_file: FieldFile = score_job.score_algorithm.data
@@ -147,7 +148,7 @@ def _run_scoring(score_job):
                     stdout=open(output_path, 'wb'),
                     stderr=open(stderr_path, 'wb'))
                 result = 0
-                score_job.fail_reason = ''
+                score_job.fail_reason = None
             except subprocess.CalledProcessError as exc:
                 result = exc.returncode
                 logger.info('Failed to successfully run image %s (%r)' % (score_algorithm_path, exc))
@@ -178,7 +179,7 @@ def run_scoring(score_job_id, dry_run=False):
     score_job = ScoreJob.objects.get(pk=score_job_id)
     if not dry_run:
         score_job.status = ScoreJob.Status.RUNNING
-        score_job.save()
+        score_job.save(update_fields=['status'])
     score_job = _run_scoring(score_job)
     if not dry_run:
         score_job.save()

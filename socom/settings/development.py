@@ -15,6 +15,7 @@ INTERNAL_IPS = ['127.0.0.1', '0.0.0.0']
 
 # ALLOWED_HOSTS=['*']
 
+
 def show_toolbar(request):
     return True
 

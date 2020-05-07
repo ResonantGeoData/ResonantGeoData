@@ -18,12 +18,12 @@ class MimetypeValidator(object):
                 _(self.message or 'Could not determine mimetype of %(value)s'),
                 params={'value': value},
                 code='invalid_mimetype')
-        if not mime in self.mimetypes:
+        if mime not in self.mimetypes:
             raise ValidationError(
                 self.message or _('%(value)s is not a file of mimetype %(mimetypes)s'),
                 params={
-                  'value': value,
-                  'mimetypes': ', '.join(self.mimetypes)
+                    'value': value,
+                    'mimetypes': ', '.join(self.mimetypes)
                 },
                 code='invalid_mimetype')
 
