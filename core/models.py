@@ -8,7 +8,8 @@ from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
 
 from . import validators
-
+# max and min validator for float
+from django.core.validators import MaxValueValidator, MinValueValidator
 # We may want to have some sort of access permissions on Task, Dataset,
 # Groundtruth, etc.
 
@@ -50,9 +51,6 @@ class Dataset(models.Model):
     # need to make a new model and mark this one as inactive
     data = models.FileField(upload_to='dataset')
 
-    def __str__(self):
-        return self.name
-
 
 class Groundtruth(models.Model):
     # The data used by the scorer to compare the output of the algorithm
@@ -77,9 +75,6 @@ class Groundtruth(models.Model):
     # TODO: If we try to edit data and this has been referenced anywhere, we
     # need to make a new model and mark this one as inactive
     data = models.FileField(upload_to='groundtruth')
-
-    def __str__(self):
-        return self.name
 
 
 class Algorithm(models.Model):
@@ -156,7 +151,31 @@ class AlgorithmJob(models.Model):
     # it might be nice to have an array of status/timestamp/log for tracking
     # when status changed.
 
-<<<<<<< HEAD
+    def get_absolute_url(self):
+        return reverse('job-detail', kwargs={'creator': str(self.creator), 'pk': self.pk})
+
+    @property
+    def results(self):
+        """Get all associated AlgorithmResult objects."""
+        return self.algorithmresult_set.all()
+
+    def run_algorithm(self):
+        """Run the job asynchronously."""
+        from . import tasks
+
+        tasks.run_algorithm.delay(self.id)
+
+    def post_save(self, created, *args, **kwargs):
+        if not created and kwargs.get('update_fields') and 'status' not in kwargs.get('update_fields'):
+            return
+        if self.status == self.Status.QUEUED:
+            self.run_algorithm()
+        # We may want to implement canceling here
+
+
+@receiver(post_save, sender=AlgorithmJob)
+def post_save_algorithm_job(sender, instance, *args, **kwargs):
+    transaction.on_commit(lambda: instance.post_save(**kwargs))
     def get_absolute_url(self):
         return reverse('job-detail', kwargs={'creator': str(self.creator), 'pk': self.pk})
 
@@ -183,38 +202,10 @@ class AlgorithmJob(models.Model):
 def post_save_algorithm_job(sender, instance, *args, **kwargs):
     transaction.on_commit(lambda: instance.post_save(**kwargs))
 
-=======
->>>>>>> Run algorithm and scoring jobs when queued.
-    def get_absolute_url(self):
-        return reverse('job-detail', kwargs={'creator': str(self.creator), 'pk': self.pk})
-
-    @property
-    def results(self):
-        """Helper to get all associated AlgorithmResult objects."""
-        return self.algorithmresult_set.all()
-
-    def run_algorithm(self):
-        """Run the job asynchronously."""
-        from . import tasks
-
-        tasks.run_algorithm.delay(self.id)
-
-
-    def post_save(self, created, *args, **kwargs):
-        if not created and kwargs.get('update_fields') and 'status' not in kwargs.get('update_fields'):
-            return
-        if self.status == self.Status.QUEUED:
-            self.run_algorithm()
-        # We may want to implement canceling here
-
-
-@receiver(post_save, sender=AlgorithmJob)
-def post_save_algorithm_job(sender, instance, *args, **kwargs):
-    transaction.on_commit(lambda: instance.post_save(**kwargs))
-
 
 class AlgorithmResult(models.Model):
     """NOTE: this is really a 'job result', not an 'algorithm result'..."""
+
     algorithm_job = models.ForeignKey(AlgorithmJob, on_delete=models.CASCADE, blank=True, null=True)
     created = models.DateTimeField(default=timezone.now)
     data = models.FileField(upload_to='results')
