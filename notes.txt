@@ -13,7 +13,7 @@ Make a new environment:
 Run the project:
 
   env37/bin/python manage.py runserver 0.0.0.0:8081
-  env37/bin/python -m celery worker --app socom.celery --loglevel info --without-heartbeat --concurrency `nproc` -Ofair --prefetch-multiplier 1 -E
+  env37/bin/python -m celery worker --app rgd.celery --loglevel info --without-heartbeat --concurrency `nproc` -Ofair --prefetch-multiplier 1 -E
 
 Note:
   Don't run girder_worker on the same instance of rabbitmq.

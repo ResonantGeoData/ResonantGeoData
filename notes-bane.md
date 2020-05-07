@@ -13,12 +13,12 @@ Launch site in background then launch celery worker:
 
 ```bash
 python manage.py runserver 0.0.0.0:8081 &
-python -m celery worker --app socom.celery --loglevel info --without-heartbeat
+python -m celery worker --app rgd.celery --loglevel info --without-heartbeat
 ```
 
 ## Perusing the Code
 
-`socom` is the main site
+`rgd` is the main site
 `core` is an app to control the "challenge"/"task" interface
 
 
