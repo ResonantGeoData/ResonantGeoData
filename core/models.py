@@ -12,6 +12,7 @@ from . import validators
 # We may want to have some sort of access permissions on Task, Dataset,
 # Groundtruth, etc.
 
+
 class DeferredFieldsManager(models.Manager):
     def __init__(self, *deferred_fields):
         self.deferred_fields = deferred_fields
@@ -23,7 +24,7 @@ class DeferredFieldsManager(models.Manager):
 
 class Task(models.Model):
     def __str__(self):
-        return f'Task ({self.id}) {self.name}'
+        return self.name
 
     name = models.CharField(max_length=100)
     description = models.TextField(blank=True)
@@ -31,16 +32,13 @@ class Task(models.Model):
     created = models.DateTimeField(default=timezone.now)
     active = models.BooleanField(default=True)
 
-    def __str__(self):
-        return self.name
-
     def get_absolute_url(self):
         return reverse('task-detail', kwargs={'pk': self.pk, 'name': self.name})
 
 
 class Dataset(models.Model):
     def __str__(self):
-        return f'Dataset ({self.id}) {self.name}'
+        return self.name
 
     # A tarball of data
     name = models.CharField(max_length=100)
@@ -53,19 +51,16 @@ class Dataset(models.Model):
     # need to make a new model and mark this one as inactive
     data = models.FileField(upload_to='dataset')
 
-    def __str__(self):
-        return self.name
-
 
 class Groundtruth(models.Model):
     # The data used by the scorer to compare the output of the algorithm
+
     def __str__(self):
-        return f'Groundtruth ({self.id}) {self.name}'
+        return self.name
 
     class Meta:
-        """
-        Groundtruth is for a specific task and dataset
-        """
+        """Groundtruth is for a specific task and dataset."""
+
         unique_together = ('task', 'dataset')
 
     name = models.CharField(max_length=100)
@@ -81,13 +76,10 @@ class Groundtruth(models.Model):
     # need to make a new model and mark this one as inactive
     data = models.FileField(upload_to='groundtruth')
 
-    def __str__(self):
-        return self.name
-
 
 class Algorithm(models.Model):
     def __str__(self):
-        return f'Algorithm ({self.id}) {self.name}'
+        return self.name
 
     # A docker that takes a dataset and outputs results
     # A docker tarball; when creating, we can offer to pull a docker
@@ -105,16 +97,13 @@ class Algorithm(models.Model):
         validators.MimetypeValidator(['application/x-tar'])
     ])
 
-    def __str__(self):
-        return self.name
-
     def get_absolute_url(self):
         return reverse('algorithm-detail', kwargs={'creator': str(self.creator), 'pk': self.pk})
 
 
 class ScoreAlgorithm(models.Model):
     def __str__(self):
-        return f'Score Algorithm ({self.id}) {self.name}'
+        return self.name
 
     # A docker that takes an algorithm's output and a groundtruth as input and
     # outputs a score
@@ -131,9 +120,6 @@ class ScoreAlgorithm(models.Model):
     data = models.FileField(upload_to='score_algorithm', validators=[
         validators.MimetypeValidator(['application/x-tar'])
     ])
-
-    def __str__(self):
-        return self.name
 
 
 class AlgorithmJob(models.Model):
@@ -163,7 +149,7 @@ class AlgorithmJob(models.Model):
 
     @property
     def results(self):
-        """Helper to get all associated AlgorithmResult objects."""
+        """Get all associated AlgorithmResult objects."""
         return self.algorithmresult_set.all()
 
     def run_algorithm(self):
@@ -171,7 +157,6 @@ class AlgorithmJob(models.Model):
         from . import tasks
 
         tasks.run_algorithm.delay(self.id)
-
 
     def post_save(self, created, *args, **kwargs):
         if not created and kwargs.get('update_fields') and 'status' not in kwargs.get('update_fields'):
@@ -188,6 +173,7 @@ def post_save_algorithm_job(sender, instance, *args, **kwargs):
 
 class AlgorithmResult(models.Model):
     """NOTE: this is really a 'job result', not an 'algorithm result'..."""
+
     algorithm_job = models.ForeignKey(AlgorithmJob, on_delete=models.CASCADE, blank=True, null=True)
     created = models.DateTimeField(default=timezone.now)
     data = models.FileField(upload_to='results')
