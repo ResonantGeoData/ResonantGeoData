@@ -1,11 +1,11 @@
 @import url('dist/bulma.css');
 
-@import url('socom/base.css'); /* fonts, links, headings, structure */
-@import url('socom/transitions.css'); /* transition classes */
+@import url('rgd/base.css'); /* fonts, links, headings, structure */
+@import url('rgd/transitions.css'); /* transition classes */
 
-@import url('socom/account.css'); /* login/logout styles */
-/* @import url('socom/dashboard.css'); /* dashboard styles */
-/* @import url('socom/submission-details.css'); /* submission detail styles */
-/* @import url('socom/submission-wizard.css'); /* submission wizard styles */
-/* @import url('socom/task_dashboard.css'); /* task dashboard styles */
-/* @import url('socom/joist.css');
+@import url('rgd/account.css'); /* login/logout styles */
+/* @import url('rgd/dashboard.css'); /* dashboard styles */
+/* @import url('rgd/submission-details.css'); /* submission detail styles */
+/* @import url('rgd/submission-wizard.css'); /* submission wizard styles */
+/* @import url('rgd/task_dashboard.css'); /* task dashboard styles */
+/* @import url('rgd/joist.css');

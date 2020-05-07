@@ -1,7 +1,7 @@
 from setuptools import setup
 
 setup(
-    name='socom-challenge',
+    name='resonantgeodata-challenge',
     version='0.1',
     python_requires='>=3.6.0',
     install_requires=[

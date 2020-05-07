@@ -139,7 +139,7 @@ class AlgorithmJob(models.Model):
     creator = models.ForeignKey(get_user_model(), on_delete=models.DO_NOTHING)
     created = models.DateTimeField(default=timezone.now)
     status = models.CharField(max_length=20, default=Status.QUEUED, choices=Status.choices)
-    fail_reason = models.TextField(blank=True)
+    fail_reason = models.TextField(null=True, blank=True)
 
     # it might be nice to have an array of status/timestamp/log for tracking
     # when status changed.
@@ -197,7 +197,7 @@ class ScoreJob(models.Model):
     creator = models.ForeignKey(get_user_model(), on_delete=models.DO_NOTHING)
     created = models.DateTimeField(default=timezone.now)
     status = models.CharField(max_length=20, default=Status.QUEUED, choices=Status.choices)
-    fail_reason = models.TextField(blank=True)
+    fail_reason = models.TextField(null=True, blank=True)
 
     # it might be nice to have an array of status/timestamp/log for tracking
     # when status changed.
