@@ -1,8 +1,11 @@
 from django.contrib.auth import get_user_model
 from django.db import models
+from django.db import transaction
+from django.dispatch import receiver
+from django.db.models.signals import post_save
+from django.urls import reverse
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
-from django.urls import reverse
 
 from . import validators
 
@@ -138,6 +141,7 @@ class AlgorithmJob(models.Model):
         ordering = ['-created']
 
     class Status(models.TextChoices):
+        CREATED = 'created', _('Created but not queued')
         QUEUED = 'queued', _('Queued for processing')
         RUNNING = 'running', _('Processing')
         INTERNAL_FAILURE = 'internal_failure', _('Internal failure')
@@ -154,11 +158,6 @@ class AlgorithmJob(models.Model):
     # it might be nice to have an array of status/timestamp/log for tracking
     # when status changed.
 
-    def run_algorithm(self):
-        from . import tasks
-
-        tasks.run_algorithm(self)
-
     def get_absolute_url(self):
         return reverse('job-detail', kwargs={'creator': str(self.creator), 'pk': self.pk})
 
@@ -166,6 +165,25 @@ class AlgorithmJob(models.Model):
     def results(self):
         """Helper to get all associated AlgorithmResult objects."""
         return self.algorithmresult_set.all()
+
+    def run_algorithm(self):
+        """Run the job asynchronously."""
+        from . import tasks
+
+        tasks.run_algorithm.delay(self.id)
+
+
+    def post_save(self, created, *args, **kwargs):
+        if not created and kwargs.get('update_fields') and 'status' not in kwargs.get('update_fields'):
+            return
+        if self.status == self.Status.QUEUED:
+            self.run_algorithm()
+        # We may want to implement canceling here
+
+
+@receiver(post_save, sender=AlgorithmJob)
+def post_save_algorithm_job(sender, instance, *args, **kwargs):
+    transaction.on_commit(lambda: instance.post_save(**kwargs))
 
 
 class AlgorithmResult(models.Model):
@@ -178,11 +196,14 @@ class AlgorithmResult(models.Model):
 
 class ScoreJob(models.Model):
     class Status(models.TextChoices):
+        CREATED = 'created', _('Created but not queued')
         QUEUED = 'queued', _('Queued for processing')
         RUNNING = 'running', _('Processing')
         INTERNAL_FAILURE = 'internal_failure', _('Internal failure')
         FAILED = 'failed', _('Failed')
         SUCCEEDED = 'success', _('Succeeded')
+
+    previous_status = None
 
     score_algorithm = models.ForeignKey(ScoreAlgorithm, on_delete=models.DO_NOTHING)
     algorithm_result = models.ForeignKey(AlgorithmResult, on_delete=models.DO_NOTHING)
@@ -196,9 +217,23 @@ class ScoreJob(models.Model):
     # when status changed.
 
     def run_scoring(self):
+        """Run the job asynchronously."""
         from . import tasks
+        import sys
+        sys.stderr.write('SCORE JOB %r\n' % [self.id])
+        tasks.run_scoring.delay(self.id)
 
-        tasks.run_scoring(self)
+    def post_save(self, created, *args, **kwargs):
+        if not created and kwargs.get('update_fields') and 'status' not in kwargs.get('update_fields'):
+            return
+        if self.status == self.Status.QUEUED:
+            self.run_scoring()
+        # We may want to implement canceling here
+
+
+@receiver(post_save, sender=ScoreJob)
+def post_save_score_job(sender, instance, *args, **kwargs):
+    transaction.on_commit(lambda: instance.post_save(**kwargs))
 
 
 class ScoreResult(models.Model):
