@@ -156,12 +156,6 @@ def _run_scoring(score_job):
                 logger.info('Failed to successfully run image %s (%r)' % (score_algorithm_path, exc))
                 score_job.fail_reason = 'Return code: %s\nException:\n%r' % (result, exc)
             logger.info('Finished running image with result %r' % result)
-            # Store result
-            # make function to read output path and output that
-            # roc curve: format?
-            # determine: simple cure or roc curve
-            # return overall score(just a # to sort in results)
-            # what's in the float/curve
             score_result = ScoreResult(
                 score_job=score_job)
             score_result.data.save(
