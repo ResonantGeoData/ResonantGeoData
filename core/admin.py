@@ -67,12 +67,12 @@ class AlgorithmResultAdmin(admin.ModelAdmin):
 
     def log_preview(self, obj):
         if obj.log:
-            log = "\n".join(obj.log.readlines())
+            log = '\n'.join(obj.log.readlines())
             if len(log) > 0:
                 return log
             else:
-                return "Log is empty"
-        return "No log to preview"
+                return 'Log is empty'
+        return 'No log to preview'
 
 
 @admin.register(models.Dataset)
