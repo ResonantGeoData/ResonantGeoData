@@ -162,12 +162,9 @@ def _run_scoring(score_job):
                 'score_job_%s.dat' % score_job.id, open(output_path, 'rb'))
             score_result.log.save(
                 'score_job_%s_log.dat' % score_job.id, open(stderr_path, 'rb'))
-            # one line code to extract the float from data file
-            score_result.overall_score = (float([line.strip() for line in score_result.data][0]))
-            # depends on the data type the return type varies
-            result_type = Enum('result_type', 'simple roc')
-            # for now, always return 'simple' as result type
-            score_result.result_type = (list(result_type)[0].name)
+            score_result.overall_score, score_result.result_type = _overall_score_and_result_type(score_result.data)
+            # score_result.overall_score = float(0.92)
+            # score_result.result_type = 'SIMPLE'
             score_result.save()
             shutil.rmtree(tmpdir)
             score_job.status = ScoreJob.Status.SUCCEEDED if not result else ScoreJob.Status.FAILED
@@ -191,3 +188,13 @@ def run_scoring(score_job_id, dry_run=False):
     if not dry_run:
         score_job.save()
         # Notify
+
+def _overall_score_and_result_type(datafile):
+    # In the future, inspect the data to determine the result type.  For now, just extract a float from the data file
+    result_type = ScoreResult.ResultType.SIMPLE
+    # overall_score = float([line.strip() for line in datafile][0])
+    overall_score = float(datafile.readline())
+    # float([line.strip() for line in score_result.data][0]
+    # result_type = 'SIMPLE'
+    # overall_score = float(0.90)
+    return overall_score, result_type

@@ -13,6 +13,7 @@ from django.core.validators import MaxValueValidator, MinValueValidator
 # We may want to have some sort of access permissions on Task, Dataset,
 # Groundtruth, etc.
 
+
 class DeferredFieldsManager(models.Manager):
     def __init__(self, *deferred_fields):
         self.deferred_fields = deferred_fields
@@ -34,6 +35,7 @@ class Task(models.Model):
 
     def get_absolute_url(self):
         return reverse('task-detail', kwargs={'pk': self.pk, 'name': self.name})
+
 
 class Dataset(models.Model):
     def __str__(self):
@@ -99,11 +101,6 @@ class Algorithm(models.Model):
     def get_absolute_url(self):
         return reverse('algorithm-detail', kwargs={'creator': str(self.creator), 'pk': self.pk})
 
-    def __str__(self):
-        return self.name
-
-    def get_absolute_url(self):
-        return reverse('algorithm-detail', kwargs={'creator': str(self.creator), 'pk': self.pk})
 
 class ScoreAlgorithm(models.Model):
     def __str__(self):
@@ -125,8 +122,6 @@ class ScoreAlgorithm(models.Model):
         validators.MimetypeValidator(['application/x-tar'])
     ])
 
-    def __str__(self):
-        return self.name
 
 class AlgorithmJob(models.Model):
     class Meta:
@@ -150,31 +145,6 @@ class AlgorithmJob(models.Model):
     # it might be nice to have an array of status/timestamp/log for tracking
     # when status changed.
 
-    def get_absolute_url(self):
-        return reverse('job-detail', kwargs={'creator': str(self.creator), 'pk': self.pk})
-
-    @property
-    def results(self):
-        """Get all associated AlgorithmResult objects."""
-        return self.algorithmresult_set.all()
-
-    def run_algorithm(self):
-        """Run the job asynchronously."""
-        from . import tasks
-
-        tasks.run_algorithm.delay(self.id)
-
-    def post_save(self, created, *args, **kwargs):
-        if not created and kwargs.get('update_fields') and 'status' not in kwargs.get('update_fields'):
-            return
-        if self.status == self.Status.QUEUED:
-            self.run_algorithm()
-        # We may want to implement canceling here
-
-
-@receiver(post_save, sender=AlgorithmJob)
-def post_save_algorithm_job(sender, instance, *args, **kwargs):
-    transaction.on_commit(lambda: instance.post_save(**kwargs))
     def get_absolute_url(self):
         return reverse('job-detail', kwargs={'creator': str(self.creator), 'pk': self.pk})
 
@@ -256,8 +226,10 @@ def post_save_score_job(sender, instance, *args, **kwargs):
 class ScoreResult(models.Model):
     score_job = models.ForeignKey(ScoreJob, on_delete=models.CASCADE, blank=True, null=True)
     created = models.DateTimeField(default=timezone.now)
-    #  setting the upload directory and file name
     data = models.FileField(upload_to='scores')
     log = models.FileField(upload_to='scores_logs', null=True, blank=True)
     overall_score = models.FloatField(null=True, blank=True, validators=[MaxValueValidator(1.0), MinValueValidator(0.0)])
-    result_type = models.CharField(max_length=10, null=True, blank=True)
+    class ResultTypes(models.TextChoices):
+        SIMPLE = 'simple', _('Direct value')
+        ROC = 'roc', _('Receiver Operating Characteristic')
+    result_type = models.CharField(max_length=10, choices=ResultTypes.choices, null=True, blank=True)
