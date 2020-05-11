@@ -229,6 +229,7 @@ class ScoreResult(models.Model):
     data = models.FileField(upload_to='scores')
     log = models.FileField(upload_to='scores_logs', null=True, blank=True)
     overall_score = models.FloatField(null=True, blank=True, validators=[MaxValueValidator(1.0), MinValueValidator(0.0)])
+
     class ResultTypes(models.TextChoices):
         SIMPLE = 'simple', _('Direct value')
         ROC = 'roc', _('Receiver Operating Characteristic')

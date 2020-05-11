@@ -14,8 +14,6 @@ import time
 from typing import Generator
 
 from .models import AlgorithmJob, AlgorithmResult, ScoreJob, ScoreResult
-# enum for result type
-from enum import Enum
 
 logger = get_task_logger(__name__)
 
@@ -189,12 +187,9 @@ def run_scoring(score_job_id, dry_run=False):
         score_job.save()
         # Notify
 
+
 def _overall_score_and_result_type(datafile):
     # In the future, inspect the data to determine the result type.  For now, just extract a float from the data file
-    result_type = ScoreResult.ResultType.SIMPLE
-    # overall_score = float([line.strip() for line in datafile][0])
+    result_type = ScoreResult.ResultTypes.SIMPLE
     overall_score = float(datafile.readline())
-    # float([line.strip() for line in score_result.data][0]
-    # result_type = 'SIMPLE'
-    # overall_score = float(0.90)
     return overall_score, result_type

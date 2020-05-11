@@ -125,14 +125,15 @@ class ScoreJobAdmin(admin.ModelAdmin):
     list_display = ('__str__', 'creator', 'created', 'score_algorithm', 'algorithm_result', 'groundtruth', 'status')
     actions = [run_scoring]
 
+
 @admin.register(models.ScoreResult)
 class ScoreResultAdmin(admin.ModelAdmin):
     list_display = (
         '__str__', 'created', 'score_job', 'algorithm', 'dataset', 'algorithm_result',
-        'score_algorithm', 'groundtruth', 'data_link', 'log_link', 'overall_score','result_type')
+        'score_algorithm', 'groundtruth', 'data_link', 'log_link', 'overall_score', 'result_type')
     readonly_fields = (
         'data_link', 'log_link', 'algorithm', 'dataset', 'algorithm_result',
-        'score_algorithm', 'groundtruth', 'overall_score','result_type')
+        'score_algorithm', 'groundtruth', 'overall_score', 'result_type')
 
     def data_link(self, obj):
         if obj.data:
@@ -170,6 +171,7 @@ class ScoreResultAdmin(admin.ModelAdmin):
 
     def result_type(self, obj):
         return obj.score_job.result_type
+
 
 @admin.register(models.Task)
 class TaskAdmin(admin.ModelAdmin):
