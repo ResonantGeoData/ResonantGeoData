@@ -8,7 +8,8 @@ from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
 
 from . import validators
-
+# max and min validator for float
+from django.core.validators import MaxValueValidator, MinValueValidator
 # We may want to have some sort of access permissions on Task, Dataset,
 # Groundtruth, etc.
 
@@ -227,3 +228,9 @@ class ScoreResult(models.Model):
     created = models.DateTimeField(default=timezone.now)
     data = models.FileField(upload_to='scores')
     log = models.FileField(upload_to='scores_logs', null=True, blank=True)
+    overall_score = models.FloatField(null=True, blank=True, validators=[MaxValueValidator(1.0), MinValueValidator(0.0)])
+
+    class ResultTypes(models.TextChoices):
+        SIMPLE = 'simple', _('Direct value')
+        ROC = 'roc', _('Receiver Operating Characteristic')
+    result_type = models.CharField(max_length=10, choices=ResultTypes.choices, null=True, blank=True)

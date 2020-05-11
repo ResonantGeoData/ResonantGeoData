@@ -154,13 +154,13 @@ def _run_scoring(score_job):
                 logger.info('Failed to successfully run image %s (%r)' % (score_algorithm_path, exc))
                 score_job.fail_reason = 'Return code: %s\nException:\n%r' % (result, exc)
             logger.info('Finished running image with result %r' % result)
-            # Store result
             score_result = ScoreResult(
                 score_job=score_job)
             score_result.data.save(
                 'score_job_%s.dat' % score_job.id, open(output_path, 'rb'))
             score_result.log.save(
                 'score_job_%s_log.dat' % score_job.id, open(stderr_path, 'rb'))
+            score_result.overall_score, score_result.result_type = _overall_score_and_result_type(score_result.data)
             score_result.save()
             shutil.rmtree(tmpdir)
             score_job.status = ScoreJob.Status.SUCCEEDED if not result else ScoreJob.Status.FAILED
@@ -184,3 +184,10 @@ def run_scoring(score_job_id, dry_run=False):
     if not dry_run:
         score_job.save()
         # Notify
+
+
+def _overall_score_and_result_type(datafile):
+    # In the future, inspect the data to determine the result type.  For now, just extract a float from the data file
+    result_type = ScoreResult.ResultTypes.SIMPLE
+    overall_score = float(datafile.readline())
+    return overall_score, result_type
