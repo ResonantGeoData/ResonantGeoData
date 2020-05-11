@@ -161,8 +161,6 @@ def _run_scoring(score_job):
             score_result.log.save(
                 'score_job_%s_log.dat' % score_job.id, open(stderr_path, 'rb'))
             score_result.overall_score, score_result.result_type = _overall_score_and_result_type(score_result.data)
-            # score_result.overall_score = float(0.92)
-            # score_result.result_type = 'SIMPLE'
             score_result.save()
             shutil.rmtree(tmpdir)
             score_job.status = ScoreJob.Status.SUCCEEDED if not result else ScoreJob.Status.FAILED
