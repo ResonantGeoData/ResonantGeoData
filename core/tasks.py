@@ -83,6 +83,8 @@ def _run_algorithm(algorithm_job):
                 'algorithm_job_%s.dat' % algorithm_job.id, open(output_path, 'rb'))
             algorithm_result.log.save(
                 'algorithm_job_%s_log.dat' % algorithm_job.id, open(stderr_path, 'rb'))
+            # # score_result.log_message #####
+            algorithm_result.log_preview = _log_preview(algorithm_result.log)
             algorithm_result.save()
             shutil.rmtree(tmpdir)
             algorithm_job.status = AlgorithmJob.Status.SUCCEEDED if not result else AlgorithmJob.Status.FAILED
@@ -161,6 +163,8 @@ def _run_scoring(score_job):
             score_result.log.save(
                 'score_job_%s_log.dat' % score_job.id, open(stderr_path, 'rb'))
             score_result.overall_score, score_result.result_type = _overall_score_and_result_type(score_result.data)
+            # score_result.log_message
+            score_result.log_preview = _log_preview(score_result.log)
             score_result.save()
             shutil.rmtree(tmpdir)
             score_job.status = ScoreJob.Status.SUCCEEDED if not result else ScoreJob.Status.FAILED
@@ -191,3 +195,13 @@ def _overall_score_and_result_type(datafile):
     result_type = ScoreResult.ResultTypes.SIMPLE
     overall_score = float(datafile.readline())
     return overall_score, result_type
+
+
+def _log_preview(logfile):
+    if logfile:
+        log = '\n'.join(logfile.open('rt').readlines())
+        if len(log) > 0:
+            return log
+        else:
+            return 'Log is empty'
+    return 'No log to preview'

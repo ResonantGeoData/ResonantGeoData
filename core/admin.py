@@ -41,7 +41,7 @@ class AlgorithmJobAdmin(admin.ModelAdmin):
 @admin.register(models.AlgorithmResult)
 class AlgorithmResultAdmin(admin.ModelAdmin):
     list_display = ('__str__', 'created', 'algorithm_job', 'algorithm', 'dataset', 'data_link', 'log_link')
-    readonly_fields = ('data_link', 'algorithm', 'dataset', 'log_link', 'log_preview')
+    readonly_fields = ('data_link', 'algorithm', 'dataset', 'log_link', 'log_preview', 'log_message')
 
     def data_link(self, obj):
         if obj.data:
@@ -66,13 +66,11 @@ class AlgorithmResultAdmin(admin.ModelAdmin):
         return obj.algorithm_job.dataset
 
     def log_preview(self, obj):
-        if obj.log:
-            log = '\n'.join(obj.log.readlines())
-            if len(log) > 0:
-                return log
-            else:
-                return 'Log is empty'
-        return 'No log to preview'
+        return obj.algorithm_job.log_preview
+
+    def log_message(self, obj):
+        return obj.algorithm_job.log_message
+
 
 
 @admin.register(models.Dataset)
@@ -133,7 +131,7 @@ class ScoreResultAdmin(admin.ModelAdmin):
         'score_algorithm', 'groundtruth', 'data_link', 'log_link', 'overall_score', 'result_type')
     readonly_fields = (
         'data_link', 'log_link', 'algorithm', 'dataset', 'algorithm_result',
-        'score_algorithm', 'groundtruth', 'overall_score', 'result_type')
+        'score_algorithm', 'groundtruth', 'overall_score', 'result_type', 'log_preview', 'log_message')
 
     def data_link(self, obj):
         if obj.data:
@@ -171,6 +169,12 @@ class ScoreResultAdmin(admin.ModelAdmin):
 
     def result_type(self, obj):
         return obj.score_job.result_type
+
+    def log_preview(self, obj):
+        return obj.score_job.log_preview
+
+    def log_message(self, obj):
+        return obj.score_job.log_message
 
 
 @admin.register(models.Task)
