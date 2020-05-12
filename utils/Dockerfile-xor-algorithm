@@ -1,0 +1,15 @@
+FROM python:3.7-alpine
+
+# This compares two binary files by frequency of unsigned char values that 
+# appear in the files.  For each value that is present at least once in either 
+# file, the score is min(freqA, freqB)/max(freqA, freqB).  The overall score is
+# the average of these scores.
+CMD python -c $'# \n\
+import array, sys, time \n\
+data = sys.stdin.buffer.read() \n\
+sys.stderr.write("Read %d bytes\\n" % len(data)) \n\
+start = time.time() \n\
+xor = array.array("B", [255 - k for k in data]).tobytes() \n\
+sys.stderr.write("xored %d bytes in %5.3f s\\n" % (len(xor), time.time() - start)) \n\
+sys.stdout.buffer.write(xor) \n\
+'
