@@ -83,8 +83,7 @@ def _run_algorithm(algorithm_job):
                 'algorithm_job_%s.dat' % algorithm_job.id, open(output_path, 'rb'))
             algorithm_result.log.save(
                 'algorithm_job_%s_log.dat' % algorithm_job.id, open(stderr_path, 'rb'))
-            # # score_result.log_message #####
-            algorithm_result.log_preview = _log_preview(algorithm_result.log)
+            algorithm_result.log_preview = _log_preview(algorithm_result.log.open('rb'))
             algorithm_result.save()
             shutil.rmtree(tmpdir)
             algorithm_job.status = AlgorithmJob.Status.SUCCEEDED if not result else AlgorithmJob.Status.FAILED
@@ -163,8 +162,7 @@ def _run_scoring(score_job):
             score_result.log.save(
                 'score_job_%s_log.dat' % score_job.id, open(stderr_path, 'rb'))
             score_result.overall_score, score_result.result_type = _overall_score_and_result_type(score_result.data)
-            # score_result.log_message
-            score_result.log_preview = _log_preview(score_result.log)
+            score_result.log_preview = _log_preview(score_result.log.open('rb'))
             score_result.save()
             shutil.rmtree(tmpdir)
             score_job.status = ScoreJob.Status.SUCCEEDED if not result else ScoreJob.Status.FAILED
@@ -198,11 +196,14 @@ def _overall_score_and_result_type(datafile):
 
 
 def _log_preview(logfile):
-    if logfile:
-        # first 100kb(for now 100 new lines)
-        log = '\n'.join(logfile.open('rt').readlines()[0:100])
-        # last 100kb
-        # log = '\n'.join(logfile.open('rt').readlines()[-100:])
+    # only show 100kb end of the log file
+    try:
+        logfile.seek(-100000, os.SEEK_END)
+    except OSError as exc:
+        if exc.errno != 22:
+            raise
+    log = logfile.read().decode(errors='replace')
+    if log:
         if len(log) > 0:
             return log
         else:

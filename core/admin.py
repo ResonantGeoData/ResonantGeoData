@@ -72,7 +72,6 @@ class AlgorithmResultAdmin(admin.ModelAdmin):
         return obj.algorithm_job.log_message
 
 
-
 @admin.register(models.Dataset)
 class DatasetAdmin(admin.ModelAdmin):
     list_display = ('__str__', 'creator', 'created', 'task_list', 'active', 'data_link')

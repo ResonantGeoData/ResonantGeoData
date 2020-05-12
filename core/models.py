@@ -180,7 +180,6 @@ class AlgorithmResult(models.Model):
     data = models.FileField(upload_to='results')
     log = models.FileField(upload_to='results_logs', null=True, blank=True)
     log_message = models.TextField(default='This only show the end of the log')
-    # how to only display the last 100 kb??
     log_preview = models.TextField(max_length=100, null=True, blank=True)
 
 
@@ -238,5 +237,4 @@ class ScoreResult(models.Model):
         ROC = 'roc', _('Receiver Operating Characteristic')
     result_type = models.CharField(max_length=10, choices=ResultTypes.choices, null=True, blank=True)
     log_message = models.TextField(default='This only show the end of the log')
-    # needs to make it less than 100kb
     log_preview = models.TextField(max_length=100, null=True, blank=True)
