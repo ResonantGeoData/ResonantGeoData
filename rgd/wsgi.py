@@ -1,16 +1,11 @@
-"""
-WSGI config for ResonantGeoData project.
-
-It exposes the WSGI callable as a module-level variable named ``application``.
-
-For more information on this file, see
-https://docs.djangoproject.com/en/3.0/howto/deployment/wsgi/
-"""
-
 import os
 
+import configurations.importer
 from django.core.wsgi import get_wsgi_application
 
-os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'rgd.settings.development')
+os.environ['DJANGO_SETTINGS_MODULE'] = 'rgd.settings'
+if not os.environ.get('DJANGO_CONFIGURATION'):
+    raise ValueError('The environment variable "DJANGO_CONFIGURATION" must be set.')
+configurations.importer.install()
 
 application = get_wsgi_application()
