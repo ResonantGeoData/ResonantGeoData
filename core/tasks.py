@@ -199,7 +199,10 @@ def _overall_score_and_result_type(datafile):
 
 def _log_preview(logfile):
     if logfile:
-        log = '\n'.join(logfile.open('rt').readlines())
+        # first 100kb(for now 100 new lines)
+        log = '\n'.join(logfile.open('rt').readlines()[0:100])
+        # last 100kb
+        # log = '\n'.join(logfile.open('rt').readlines()[-100:])
         if len(log) > 0:
             return log
         else:
