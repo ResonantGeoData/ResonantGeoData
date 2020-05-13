@@ -1,11 +1,39 @@
 from django.contrib import admin
 from django_admin_display import admin_display
 from django.utils.safestring import mark_safe
+import os
 
 from . import models
 from . import tasks
 
-import os
+
+# should take the FileField object rather than the model.
+# a module for log preview
+def _text_preview(log_file):
+    # max file size for display, currently 100kb
+    maxlen = 10000
+    prefix_message = 'The output is too large to display in the browser.\n'
+    prefix_message += ('Only the last %s characters are displayed.\n \n' % (maxlen))
+    if log_file:
+        with log_file.open('rb') as datafile:
+            if len(datafile) > 0:
+                try:
+                    datafile.seek(-maxlen, os.SEEK_END)
+                except OSError as exc:
+                    if exc.errno != 22:
+                        # reraise exceptions except for trying to seek before the beginning
+                        raise
+                message = datafile.read().decode(errors='replace')
+                if len(log_file) < maxlen:
+                    # different prefix depends on the output size?
+                    prefix_message = 'Log output: \n'
+                    return prefix_message + message
+                else:
+                    return prefix_message + message
+            else:
+                return 'Log is empty'
+    else:
+        return 'No log file to display'
 
 
 @admin_display(short_description='Run algorithm')
@@ -67,22 +95,8 @@ class AlgorithmResultAdmin(admin.ModelAdmin):
     def dataset(self, obj):
         return obj.algorithm_job.dataset
 
-    # how to combine the function?
     def log_preview(self, obj):
-        maxlen = 10000
-        log_message = 'The log output is too large to display in the browser.\n'
-        log_message += ('Only the last %s characters are displayed.\n \n' % (maxlen))
-        if obj.log:
-            log = '\n'.join(obj.log.open('rt').readlines())
-            if len(log) > 0:
-                if len(log) < maxlen:
-                    return log
-                else:
-                    log_message += log
-                    return ''.join(log_message)
-            else:
-                return 'Log is empty'
-        return 'No log to preview'
+        return _text_preview(obj.log)
 
 
 @admin.register(models.Dataset)
@@ -182,22 +196,8 @@ class ScoreResultAdmin(admin.ModelAdmin):
     def result_type(self, obj):
         return obj.score_job.result_type
 
-    # how to combine the function?
     def log_preview(self, obj):
-        maxlen = 10000
-        log_message = 'The log output is too large to display in the browser.\n'
-        log_message += ('Only the last %s characters are displayed.\n \n' % (maxlen))
-        if obj.log:
-            log = '\n'.join(obj.log.open('rt').readlines())
-            if len(log) > 0:
-                if len(log) < maxlen:
-                    return log
-                else:
-                    log_message += log
-                    return ''.join(log_message)
-            else:
-                return 'Log is empty'
-        return 'No log to preview'
+        return _text_preview(obj.log)
 
 
 @admin.register(models.Task)
