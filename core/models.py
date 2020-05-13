@@ -91,15 +91,33 @@ class Algorithm(models.Model):
     creator = models.ForeignKey(get_user_model(), on_delete=models.DO_NOTHING)
     created = models.DateTimeField(default=timezone.now)
     active = models.BooleanField(default=True)
-    docker_image_id = models.TextField(null=True, blank=True)
     # TODO: If we try to edit data and this has been referenced anywhere, we
     # need to make a new model and mark this one as inactive
     data = models.FileField(upload_to='algorithm', validators=[
         validators.MimetypeValidator(['application/x-tar'])
     ])
+    docker_image_id = models.TextField(null=True, blank=True)
+    docker_attrs = models.TextField(null=True, blank=True)
+    docker_validation_failure = models.TextField(null=True, blank=True)
 
     def get_absolute_url(self):
         return reverse('algorithm-detail', kwargs={'creator': str(self.creator), 'pk': self.pk})
+
+    def validate_algorithm(self):
+        """Validate the algorithm asynchronously."""
+        from . import tasks
+
+        tasks.validate_algorithm.delay(self.id)
+
+    def _post_save(self, created, *args, **kwargs):
+        if not created and kwargs.get('update_fields') and 'data' not in kwargs.get('update_fields'):
+            return
+        self.validate_algorithm()
+
+
+@receiver(post_save, sender=Algorithm)
+def _post_save_algorithm(sender, instance, *args, **kwargs):
+    transaction.on_commit(lambda: instance._post_save(**kwargs))
 
 
 class ScoreAlgorithm(models.Model):
@@ -115,12 +133,30 @@ class ScoreAlgorithm(models.Model):
     creator = models.ForeignKey(get_user_model(), on_delete=models.DO_NOTHING)
     created = models.DateTimeField(default=timezone.now)
     active = models.BooleanField(default=True)
-    docker_image_id = models.TextField(null=True, blank=True)
     # TODO: If we try to edit data and this has been referenced anywhere, we
     # need to make a new model and mark this one as inactive
     data = models.FileField(upload_to='score_algorithm', validators=[
         validators.MimetypeValidator(['application/x-tar'])
     ])
+    docker_image_id = models.TextField(null=True, blank=True)
+    docker_attrs = models.TextField(null=True, blank=True)
+    docker_validation_failure = models.TextField(null=True, blank=True)
+
+    def validate_score_algorithm(self):
+        """Validate the algorithm asynchronously."""
+        from . import tasks
+
+        tasks.validate_scoring.delay(self.id)
+
+    def _post_save(self, created, *args, **kwargs):
+        if not created and kwargs.get('update_fields') and 'data' not in kwargs.get('update_fields'):
+            return
+        self.validate_score_algorithm()
+
+
+@receiver(post_save, sender=ScoreAlgorithm)
+def _post_save_score_algorithm(sender, instance, *args, **kwargs):
+    transaction.on_commit(lambda: instance._post_save(**kwargs))
 
 
 class AlgorithmJob(models.Model):
@@ -159,7 +195,7 @@ class AlgorithmJob(models.Model):
 
         tasks.run_algorithm.delay(self.id)
 
-    def post_save(self, created, *args, **kwargs):
+    def _post_save(self, created, *args, **kwargs):
         if not created and kwargs.get('update_fields') and 'status' not in kwargs.get('update_fields'):
             return
         if self.status == self.Status.QUEUED:
@@ -168,8 +204,8 @@ class AlgorithmJob(models.Model):
 
 
 @receiver(post_save, sender=AlgorithmJob)
-def post_save_algorithm_job(sender, instance, *args, **kwargs):
-    transaction.on_commit(lambda: instance.post_save(**kwargs))
+def _post_save_algorithm_job(sender, instance, *args, **kwargs):
+    transaction.on_commit(lambda: instance._post_save(**kwargs))
 
 
 class AlgorithmResult(models.Model):
@@ -179,8 +215,6 @@ class AlgorithmResult(models.Model):
     created = models.DateTimeField(default=timezone.now)
     data = models.FileField(upload_to='results')
     log = models.FileField(upload_to='results_logs', null=True, blank=True)
-    log_message = models.TextField(default='This only show the end of the log')
-    log_preview = models.TextField(max_length=100, null=True, blank=True)
 
 
 class ScoreJob(models.Model):
@@ -212,7 +246,7 @@ class ScoreJob(models.Model):
         sys.stderr.write('SCORE JOB %r\n' % [self.id])
         tasks.run_scoring.delay(self.id)
 
-    def post_save(self, created, *args, **kwargs):
+    def _post_save(self, created, *args, **kwargs):
         if not created and kwargs.get('update_fields') and 'status' not in kwargs.get('update_fields'):
             return
         if self.status == self.Status.QUEUED:
@@ -221,8 +255,8 @@ class ScoreJob(models.Model):
 
 
 @receiver(post_save, sender=ScoreJob)
-def post_save_score_job(sender, instance, *args, **kwargs):
-    transaction.on_commit(lambda: instance.post_save(**kwargs))
+def _post_save_score_job(sender, instance, *args, **kwargs):
+    transaction.on_commit(lambda: instance._post_save(**kwargs))
 
 
 class ScoreResult(models.Model):
@@ -236,5 +270,3 @@ class ScoreResult(models.Model):
         SIMPLE = 'simple', _('Direct value')
         ROC = 'roc', _('Receiver Operating Characteristic')
     result_type = models.CharField(max_length=10, choices=ResultTypes.choices, null=True, blank=True)
-    log_message = models.TextField(default='This only show the end of the log')
-    log_preview = models.TextField(max_length=100, null=True, blank=True)

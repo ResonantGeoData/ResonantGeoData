@@ -5,6 +5,8 @@ from django.utils.safestring import mark_safe
 from . import models
 from . import tasks
 
+import os
+
 
 @admin_display(short_description='Run algorithm')
 def run_algorithm(modeladmin, request, queryset):
@@ -41,7 +43,7 @@ class AlgorithmJobAdmin(admin.ModelAdmin):
 @admin.register(models.AlgorithmResult)
 class AlgorithmResultAdmin(admin.ModelAdmin):
     list_display = ('__str__', 'created', 'algorithm_job', 'algorithm', 'dataset', 'data_link', 'log_link')
-    readonly_fields = ('data_link', 'algorithm', 'dataset', 'log_link', 'log_preview', 'log_message')
+    readonly_fields = ('data_link', 'algorithm', 'dataset', 'log_link', 'log_preview')
 
     def data_link(self, obj):
         if obj.data:
@@ -65,11 +67,22 @@ class AlgorithmResultAdmin(admin.ModelAdmin):
     def dataset(self, obj):
         return obj.algorithm_job.dataset
 
+    # how to combine the function?
     def log_preview(self, obj):
-        return obj.algorithm_job.log_preview
-
-    def log_message(self, obj):
-        return obj.algorithm_job.log_message
+        maxlen = 10000
+        log_message = 'The log output is too large to display in the browser.\n'
+        log_message += ('Only the last %s characters are displayed.\n \n' % (maxlen))
+        if obj.log:
+            log = '\n'.join(obj.log.open('rt').readlines())
+            if len(log) > 0:
+                if len(log) < maxlen:
+                    return log
+                else:
+                    log_message += log
+                    return ''.join(log_message)
+            else:
+                return 'Log is empty'
+        return 'No log to preview'
 
 
 @admin.register(models.Dataset)
@@ -130,7 +143,7 @@ class ScoreResultAdmin(admin.ModelAdmin):
         'score_algorithm', 'groundtruth', 'data_link', 'log_link', 'overall_score', 'result_type')
     readonly_fields = (
         'data_link', 'log_link', 'algorithm', 'dataset', 'algorithm_result',
-        'score_algorithm', 'groundtruth', 'overall_score', 'result_type', 'log_preview', 'log_message')
+        'score_algorithm', 'groundtruth', 'overall_score', 'result_type', 'log_preview')
 
     def data_link(self, obj):
         if obj.data:
@@ -169,11 +182,22 @@ class ScoreResultAdmin(admin.ModelAdmin):
     def result_type(self, obj):
         return obj.score_job.result_type
 
+    # how to combine the function?
     def log_preview(self, obj):
-        return obj.score_job.log_preview
-
-    def log_message(self, obj):
-        return obj.score_job.log_message
+        maxlen = 10000
+        log_message = 'The log output is too large to display in the browser.\n'
+        log_message += ('Only the last %s characters are displayed.\n \n' % (maxlen))
+        if obj.log:
+            log = '\n'.join(obj.log.open('rt').readlines())
+            if len(log) > 0:
+                if len(log) < maxlen:
+                    return log
+                else:
+                    log_message += log
+                    return ''.join(log_message)
+            else:
+                return 'Log is empty'
+        return 'No log to preview'
 
 
 @admin.register(models.Task)

@@ -4,6 +4,7 @@ from contextlib import contextmanager
 from django.core.files import File
 from django.db.models.fields.files import FieldFile
 import docker
+import json
 import os
 from pathlib import Path, PurePath
 import shutil
@@ -13,7 +14,7 @@ import tempfile
 import time
 from typing import Generator
 
-from .models import AlgorithmJob, AlgorithmResult, ScoreJob, ScoreResult
+from .models import Algorithm, AlgorithmJob, AlgorithmResult, ScoreAlgorithm, ScoreJob, ScoreResult
 
 logger = get_task_logger(__name__)
 
@@ -83,7 +84,6 @@ def _run_algorithm(algorithm_job):
                 'algorithm_job_%s.dat' % algorithm_job.id, open(output_path, 'rb'))
             algorithm_result.log.save(
                 'algorithm_job_%s_log.dat' % algorithm_job.id, open(stderr_path, 'rb'))
-            algorithm_result.log_preview = _log_preview(algorithm_result.log.open('rb'))
             algorithm_result.save()
             shutil.rmtree(tmpdir)
             algorithm_job.status = AlgorithmJob.Status.SUCCEEDED if not result else AlgorithmJob.Status.FAILED
@@ -162,7 +162,6 @@ def _run_scoring(score_job):
             score_result.log.save(
                 'score_job_%s_log.dat' % score_job.id, open(stderr_path, 'rb'))
             score_result.overall_score, score_result.result_type = _overall_score_and_result_type(score_result.data)
-            score_result.log_preview = _log_preview(score_result.log.open('rb'))
             score_result.save()
             shutil.rmtree(tmpdir)
             score_job.status = ScoreJob.Status.SUCCEEDED if not result else ScoreJob.Status.FAILED
@@ -174,6 +173,52 @@ def _run_scoring(score_job):
         except Exception:
             pass
     return score_job
+
+
+def _validate_docker(docker_file):
+    results = {}
+    try:
+        with _field_file_to_local_path(docker_file) as docker_path:
+            client = docker.from_env(version='auto', timeout=3600)
+            logger.info('Loading docker image %s' % docker_path)
+            image = client.images.load(open(docker_path, 'rb'))
+            if len(image) != 1:
+                raise Exception('tar file contains more than one image')
+            image = image[0]
+            results['docker_image_id'] = image.attrs['Id']
+            results['docker_attrs'] = json.dumps(image.attrs)
+            logger.info('Loaded docker image %r' % results['docker_image_id'])
+    except Exception as exc:
+        logger.exception(f'Internal error validating docker image: {exc}')
+        try:
+            results['failed'] = exc.args[0]
+        except Exception:
+            results['failed'] = repr(exc)
+    return results
+
+
+@shared_task(time_limit=86400)
+def validate_algorithm(algorithm_id):
+    algorithm = Algorithm.objects.get(pk=algorithm_id)
+    algorithm_file: FieldFile = algorithm.data
+    results = _validate_docker(algorithm_file)
+    algorithm.docker_image_id = results.get('docker_image_id')
+    algorithm.docker_attrs = results.get('docker_attrs')
+    algorithm.docker_validation_failure = results.get('failed')
+    algorithm.save(update_fields=[
+        'docker_image_id', 'docker_attrs', 'docker_validation_failure'])
+
+
+@shared_task(time_limit=86400)
+def validate_scoring(score_algorithm_id):
+    score_algorithm = ScoreAlgorithm.objects.get(pk=score_algorithm_id)
+    score_algorithm_file: FieldFile = score_algorithm.data
+    results = _validate_docker(score_algorithm_file)
+    score_algorithm.docker_image_id = results.get('docker_image_id')
+    score_algorithm.docker_attrs = results.get('docker_attrs')
+    score_algorithm.docker_validation_failure = results.get('failed')
+    score_algorithm.save(update_fields=[
+        'docker_image_id', 'docker_attrs', 'docker_validation_failure'])
 
 
 @shared_task(time_limit=86400)
@@ -193,19 +238,3 @@ def _overall_score_and_result_type(datafile):
     result_type = ScoreResult.ResultTypes.SIMPLE
     overall_score = float(datafile.readline())
     return overall_score, result_type
-
-
-def _log_preview(logfile):
-    # only show 100kb end of the log file
-    try:
-        logfile.seek(-100000, os.SEEK_END)
-    except OSError as exc:
-        if exc.errno != 22:
-            raise
-    log = logfile.read().decode(errors='replace')
-    if log:
-        if len(log) > 0:
-            return log
-        else:
-            return 'Log is empty'
-    return 'No log to preview'
