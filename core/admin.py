@@ -1,7 +1,10 @@
 from django.contrib import admin
 from django_admin_display import admin_display
 from django.utils.safestring import mark_safe
+from django.utils.html import escape
+from django.template.defaultfilters import linebreaksbr
 from django.db.models import FileField
+
 import os
 
 from . import models
@@ -27,13 +30,13 @@ def _text_preview(log_file: FileField):
                         raise
                 message = datafile.read().decode(errors='replace')
                 if len(log_file) < maxlen:
-                    return message
+                    return mark_safe('<PRE>' + escape(message) + '</PRE>')
                 else:
                     prefix_message = f"""The output is too large to display in the browser.
                 Only the last {maxlen} characters are displayed.
-
                 """
-                    return prefix_message + message
+                    prefix_message = linebreaksbr(prefix_message)
+                    return mark_safe(prefix_message + '<PRE>' + escape(message) + '</PRE>')
             else:
                 return 'Log is empty'
     else:
