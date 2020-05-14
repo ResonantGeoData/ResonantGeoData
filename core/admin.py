@@ -2,6 +2,7 @@ from django.contrib import admin
 from django_admin_display import admin_display
 from django.utils.safestring import mark_safe
 from django.utils.html import escape
+from django.template.defaultfilters import linebreaksbr
 from django.db.models import FileField
 
 import os
@@ -33,9 +34,9 @@ def _text_preview(log_file: FileField):
                 else:
                     prefix_message = f"""The output is too large to display in the browser.
                 Only the last {maxlen} characters are displayed.
-
                 """
-                return mark_safe(escape(prefix_message) + '<PRE>' + escape(message) + '</PRE>')
+                    prefix_message = linebreaksbr(prefix_message)
+                    return mark_safe(prefix_message + '<PRE>' + escape(message) + '</PRE>')
             else:
                 return 'Log is empty'
     else:
