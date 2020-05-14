@@ -1,13 +1,11 @@
 from django.contrib import admin
 from django_admin_display import admin_display
 from django.utils.safestring import mark_safe
-from django import forms as file_field
+from django.db.models import FileField
 import os
 
 from . import models
 from . import tasks
-
-FileField = file_field
 
 
 def _text_preview(log_file: FileField):
