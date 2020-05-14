@@ -16,8 +16,6 @@ def _text_preview(log_file: FileField):
     """
     # max file size for display, currently 10kb
     maxlen = 10000
-    prefix_message = 'The output is too large to display in the browser.\n'
-    prefix_message += ('Only the last %s characters are displayed.\n \n' % (maxlen))
     if log_file:
         with log_file.open('rb') as datafile:
             if len(datafile) > 0:
@@ -31,6 +29,9 @@ def _text_preview(log_file: FileField):
                 if len(log_file) < maxlen:
                     return message
                 else:
+                    prefix_message = f"""The output is too large to display in the browser.
+                        Only the last {maxlen} characters are displayed.
+                        """
                     return prefix_message + message
             else:
                 return 'Log is empty'
