@@ -31,6 +31,7 @@ def _text_preview(log_file: FileField):
                 else:
                     prefix_message = f"""The output is too large to display in the browser.
                 Only the last {maxlen} characters are displayed.
+
                 """
                     return prefix_message + message
             else:
