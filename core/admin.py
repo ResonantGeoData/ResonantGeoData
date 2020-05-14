@@ -1,9 +1,43 @@
 from django.contrib import admin
 from django_admin_display import admin_display
 from django.utils.safestring import mark_safe
+from django.db.models import FileField
+import os
 
 from . import models
 from . import tasks
+
+
+def _text_preview(log_file: FileField):
+    """
+    Return the text of a file if it is short or the last portion of it if it is long.
+
+    :params: log_file A FileField to read text from.
+    """
+    # max file size for display, currently 10kb
+    maxlen = 10000
+    if log_file:
+        with log_file.open('rb') as datafile:
+            if len(datafile) > 0:
+                try:
+                    datafile.seek(-maxlen, os.SEEK_END)
+                except OSError as exc:
+                    if exc.errno != 22:
+                        # reraise exceptions except for trying to seek before the beginning
+                        raise
+                message = datafile.read().decode(errors='replace')
+                if len(log_file) < maxlen:
+                    return message
+                else:
+                    prefix_message = f"""The output is too large to display in the browser.
+                Only the last {maxlen} characters are displayed.
+
+                """
+                    return prefix_message + message
+            else:
+                return 'Log is empty'
+    else:
+        return 'No log file to display'
 
 
 @admin_display(short_description='Run algorithm')
@@ -66,13 +100,7 @@ class AlgorithmResultAdmin(admin.ModelAdmin):
         return obj.algorithm_job.dataset
 
     def log_preview(self, obj):
-        if obj.log:
-            log = '\n'.join(obj.log.readlines())
-            if len(log) > 0:
-                return log
-            else:
-                return 'Log is empty'
-        return 'No log to preview'
+        return _text_preview(obj.log)
 
 
 @admin.register(models.Dataset)
@@ -133,7 +161,7 @@ class ScoreResultAdmin(admin.ModelAdmin):
         'score_algorithm', 'groundtruth', 'data_link', 'log_link', 'overall_score', 'result_type')
     readonly_fields = (
         'data_link', 'log_link', 'algorithm', 'dataset', 'algorithm_result',
-        'score_algorithm', 'groundtruth', 'overall_score', 'result_type')
+        'score_algorithm', 'groundtruth', 'overall_score', 'result_type', 'log_preview')
 
     def data_link(self, obj):
         if obj.data:
@@ -171,6 +199,9 @@ class ScoreResultAdmin(admin.ModelAdmin):
 
     def result_type(self, obj):
         return obj.score_job.result_type
+
+    def log_preview(self, obj):
+        return _text_preview(obj.log)
 
 
 @admin.register(models.Task)
