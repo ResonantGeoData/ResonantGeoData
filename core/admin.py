@@ -1,16 +1,22 @@
 from django.contrib import admin
 from django_admin_display import admin_display
 from django.utils.safestring import mark_safe
+from django import forms as file_field
 import os
 
 from . import models
 from . import tasks
 
+FileField = file_field
 
-# should take the FileField object rather than the model.
-# a module for log preview
-def _text_preview(log_file):
-    # max file size for display, currently 100kb
+
+def _text_preview(log_file: FileField):
+    """
+    Return the text of a file if it is short or the last portion of it if it is long.
+
+    :params: log_file A FileField to read text from.
+    """
+    # max file size for display, currently 10kb
     maxlen = 10000
     prefix_message = 'The output is too large to display in the browser.\n'
     prefix_message += ('Only the last %s characters are displayed.\n \n' % (maxlen))
@@ -25,9 +31,7 @@ def _text_preview(log_file):
                         raise
                 message = datafile.read().decode(errors='replace')
                 if len(log_file) < maxlen:
-                    # different prefix depends on the output size?
-                    prefix_message = 'Log output: \n'
-                    return prefix_message + message
+                    return message
                 else:
                     return prefix_message + message
             else:
