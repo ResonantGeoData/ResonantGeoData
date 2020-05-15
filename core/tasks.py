@@ -13,6 +13,8 @@ import subprocess
 import tempfile
 import time
 from typing import Generator
+# return mime_type
+import magic
 
 from .models import Algorithm, AlgorithmJob, AlgorithmResult, ScoreAlgorithm, ScoreJob, ScoreResult
 
@@ -62,6 +64,7 @@ def _run_algorithm(algorithm_job):
             tmpdir = tempfile.mkdtemp()
             output_path = os.path.join(tmpdir, 'output.dat')
             stderr_path = os.path.join(tmpdir, 'stderr.dat')
+
             try:
                 subprocess.check_call(
                     ['docker', 'run', '--rm', '-i', '--name',
@@ -84,6 +87,8 @@ def _run_algorithm(algorithm_job):
                 'algorithm_job_%s.dat' % algorithm_job.id, open(output_path, 'rb'))
             algorithm_result.log.save(
                 'algorithm_job_%s_log.dat' % algorithm_job.id, open(stderr_path, 'rb'))
+            # find the mimetype of the file itself and its contents
+            algorithm_result.data_mimetype = _get_mimetype(output_path)
             algorithm_result.save()
             shutil.rmtree(tmpdir)
             algorithm_job.status = AlgorithmJob.Status.SUCCEEDED if not result else AlgorithmJob.Status.FAILED
@@ -238,3 +243,31 @@ def _overall_score_and_result_type(datafile):
     result_type = ScoreResult.ResultTypes.SIMPLE
     overall_score = float(datafile.readline())
     return overall_score, result_type
+
+
+def _get_mimetype(file_path):
+    mimetype = magic.from_file(file_path, mime=True)
+    # check if mimetype has something useful
+    # empty file returns inode/x-empty
+    if mimetype == 'inode/x-empty':
+        # if no mime type, it can be null(None)
+        return None
+    # Unsure about how to get file and content mime type seperately
+    mime_type = mimetype.split('/')
+    # file_mimetype = mime_type[0]
+    content_mimetype = mime_type[1]
+    """
+    check if the file is zipped since true
+    or false of uncompress has no effect on non-zip file
+    """
+    if content_mimetype == 'zip':
+        # to-do: store both mimetypes for uncompress=True and False,comma-separated
+        file = magic.Magic(mime=True, uncompress=False)
+        # combine the flag option, true returns the zipped file mime
+        zipped_file_mimetype = file.from_file(file_path)
+        return zipped_file_mimetype
+    else:
+        return mimetype
+    # to do: seperate file_mimetype and content_mimetype by comma
+    # and store them
+    # return mimetype
