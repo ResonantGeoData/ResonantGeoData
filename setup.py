@@ -20,6 +20,7 @@ setup(
         'django-unused-media',
         'djangorestframework',
         'docker',
+        'gputil',
         # 'psycopg2',
         'python-magic',
         'requests',
