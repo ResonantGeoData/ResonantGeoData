@@ -252,22 +252,15 @@ def _get_mimetype(file_path):
     if mimetype == 'inode/x-empty':
         # if no mime type, it can be null(None)
         return None
-    # Unsure about how to get file and content mime type seperately
-    mime_type = mimetype.split('/')
-    # file_mimetype = mime_type[0]
-    content_mimetype = mime_type[1]
-    """
-    check if the file is zipped since true
-    or false of uncompress has no effect on non-zip file
-    """
-    if content_mimetype == 'zip':
-        # to-do: store both mimetypes for uncompress=True and False,comma-separated
-        file = magic.Magic(mime=True, uncompress=False)
-        # combine the flag option, true returns the zipped file mime
-        zipped_file_mimetype = file.from_file(file_path)
-        return zipped_file_mimetype
+    unzipped_file = magic.Magic(mime=True, uncompress=True)
+    unzipped_file_mimetype = unzipped_file.from_file(file_path)
+    zipped_file = magic.Magic(mime=True, uncompress=False)
+    zipped_file_mimetype = zipped_file.from_file(file_path)
+    # if the file is unzipped
+    if unzipped_file_mimetype == zipped_file_mimetype:
+        return unzipped_file_mimetype
     else:
-        return mimetype
-    # to do: seperate file_mimetype and content_mimetype by comma
-    # and store them
-    # return mimetype
+        # seperate unzipped and zipped mimetype by comma
+        file_mimetype = ('%s,%s' % (unzipped_file_mimetype,zipped_file_mimetype))
+        # store both mimetypes and return
+        return file_mimetype
