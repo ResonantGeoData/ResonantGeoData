@@ -261,6 +261,6 @@ def _get_mimetype(file_path):
         return unzipped_file_mimetype
     else:
         # seperate unzipped and zipped mimetype by comma
-        file_mimetype = ('%s,%s' % (unzipped_file_mimetype,zipped_file_mimetype))
+        file_mimetype = ('%s,%s' % (unzipped_file_mimetype, zipped_file_mimetype))
         # store both mimetypes and return
         return file_mimetype
