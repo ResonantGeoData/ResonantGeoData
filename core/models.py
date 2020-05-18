@@ -215,6 +215,7 @@ class AlgorithmResult(models.Model):
     created = models.DateTimeField(default=timezone.now)
     data = models.FileField(upload_to='results')
     log = models.FileField(upload_to='results_logs', null=True, blank=True)
+    data_mimetype = models.TextField(null=True, blank=True)
 
 
 class ScoreJob(models.Model):

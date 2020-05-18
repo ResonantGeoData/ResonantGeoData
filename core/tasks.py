@@ -13,6 +13,7 @@ import subprocess
 import tempfile
 import time
 from typing import Generator
+import magic
 
 from .models import Algorithm, AlgorithmJob, AlgorithmResult, ScoreAlgorithm, ScoreJob, ScoreResult
 
@@ -62,6 +63,7 @@ def _run_algorithm(algorithm_job):
             tmpdir = tempfile.mkdtemp()
             output_path = os.path.join(tmpdir, 'output.dat')
             stderr_path = os.path.join(tmpdir, 'stderr.dat')
+
             try:
                 subprocess.check_call(
                     ['docker', 'run', '--rm', '-i', '--name',
@@ -84,6 +86,7 @@ def _run_algorithm(algorithm_job):
                 'algorithm_job_%s.dat' % algorithm_job.id, open(output_path, 'rb'))
             algorithm_result.log.save(
                 'algorithm_job_%s_log.dat' % algorithm_job.id, open(stderr_path, 'rb'))
+            algorithm_result.data_mimetype = _get_mimetype(output_path)
             algorithm_result.save()
             shutil.rmtree(tmpdir)
             algorithm_job.status = AlgorithmJob.Status.SUCCEEDED if not result else AlgorithmJob.Status.FAILED
@@ -238,3 +241,20 @@ def _overall_score_and_result_type(datafile):
     result_type = ScoreResult.ResultTypes.SIMPLE
     overall_score = float(datafile.readline())
     return overall_score, result_type
+
+
+def _get_mimetype(file_path):
+    mimetype = magic.from_file(file_path, mime=True)
+    # check if mimetype has something useful
+    # empty file returns inode/x-empty
+    if mimetype == 'inode/x-empty':
+        # if no mime type, it can be null(None)
+        return None
+    uncompressed_magic = magic.Magic(mime=True, uncompress=True)
+    uncompressed_mimetype = uncompressed_magic.from_file(file_path)
+    if mimetype == uncompressed_mimetype:
+        return mimetype
+    else:
+        file_mimetype = '%s,%s' % (mimetype, uncompressed_mimetype)
+        # store both mimetypes and return
+        return file_mimetype
