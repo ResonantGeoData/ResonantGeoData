@@ -13,7 +13,6 @@ import subprocess
 import tempfile
 import time
 from typing import Generator
-# return mime_type
 import magic
 
 from .models import Algorithm, AlgorithmJob, AlgorithmResult, ScoreAlgorithm, ScoreJob, ScoreResult
@@ -87,7 +86,6 @@ def _run_algorithm(algorithm_job):
                 'algorithm_job_%s.dat' % algorithm_job.id, open(output_path, 'rb'))
             algorithm_result.log.save(
                 'algorithm_job_%s_log.dat' % algorithm_job.id, open(stderr_path, 'rb'))
-            # find the mimetype of the file itself and its contents
             algorithm_result.data_mimetype = _get_mimetype(output_path)
             algorithm_result.save()
             shutil.rmtree(tmpdir)
@@ -252,15 +250,11 @@ def _get_mimetype(file_path):
     if mimetype == 'inode/x-empty':
         # if no mime type, it can be null(None)
         return None
-    unzipped_file = magic.Magic(mime=True, uncompress=True)
-    unzipped_file_mimetype = unzipped_file.from_file(file_path)
-    zipped_file = magic.Magic(mime=True, uncompress=False)
-    zipped_file_mimetype = zipped_file.from_file(file_path)
-    # if the file is unzipped
-    if unzipped_file_mimetype == zipped_file_mimetype:
-        return unzipped_file_mimetype
+    uncompressed_magic = magic.Magic(mime=True, uncompress=True)
+    uncompressed_mimetype = uncompressed_magic.from_file(file_path)
+    if mimetype == uncompressed_mimetype:
+        return mimetype
     else:
-        # seperate unzipped and zipped mimetype by comma
-        file_mimetype = ('%s,%s' % (unzipped_file_mimetype, zipped_file_mimetype))
+        file_mimetype = '%s,%s' % (mimetype, uncompressed_mimetype)
         # store both mimetypes and return
         return file_mimetype

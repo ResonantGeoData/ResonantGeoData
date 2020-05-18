@@ -216,15 +216,6 @@ class AlgorithmResult(models.Model):
     data = models.FileField(upload_to='results')
     log = models.FileField(upload_to='results_logs', null=True, blank=True)
     data_mimetype = models.TextField(null=True, blank=True)
-    """
-    use the magic package on the output_path and store
-    the resulting mime_type, if any, to the new field.
-    magic.from_file(<filename>, mime=True)
-    should allow the field to be null (None
-    if magic.from_file(<filename>, mime=True, uncompress=True)
-    returns a different value that without the uncompress flag.
-    either store both mimetypes (perhaps comma-separated)
-    """
 
 
 class ScoreJob(models.Model):
