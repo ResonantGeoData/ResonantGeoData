@@ -4,9 +4,11 @@ from contextlib import contextmanager
 from django.core.files import File
 from django.db.models.fields.files import FieldFile
 import docker
+import GPUtil
 import json
 import os
 from pathlib import Path, PurePath
+import shlex
 import shutil
 from storages.backends.s3boto3 import S3Boto3StorageFile
 import subprocess
@@ -63,12 +65,15 @@ def _run_algorithm(algorithm_job):
             tmpdir = tempfile.mkdtemp()
             output_path = os.path.join(tmpdir, 'output.dat')
             stderr_path = os.path.join(tmpdir, 'stderr.dat')
-
+            cmd = ['docker', 'run', '--rm', '-i', '--name',
+                   'algorithm_job_%s_%s' % (algorithm_job.id, time.time())]
+            if len(GPUtil.getAvailable()):
+                cmd += ['--gpus', 'all']
+            cmd += [str(algorithm_job.algorithm.docker_image_id)]
+            logger.info('Running %s' % (' '.join([shlex.quote(c) for c in cmd])))
             try:
                 subprocess.check_call(
-                    ['docker', 'run', '--rm', '-i', '--name',
-                     'algorithm_job_%s_%s' % (algorithm_job.id, time.time()),
-                     str(algorithm_job.algorithm.docker_image_id)],
+                    cmd,
                     stdin=open(dataset_path, 'rb'),
                     stdout=open(output_path, 'wb'),
                     stderr=open(stderr_path, 'wb'))
