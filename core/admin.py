@@ -4,7 +4,6 @@ from django.utils.safestring import mark_safe
 from django.utils.html import escape
 from django.template.defaultfilters import linebreaksbr
 from django.db.models import FileField
-# override the default textarea
 from django.forms import TextInput
 
 import os
@@ -43,16 +42,6 @@ def _text_preview(log_file: FileField):
                 return 'Log is empty'
     else:
         return 'No log file to display'
-
-# def formfield_for_dbfield(self, db_field, **kwargs):
-#     formfield = super().formfield_for_dbfield(db_field, **kwargs)
-#     if db_field.name == 'fail_reason':
-#         # check if return object value is empty
-#         if kwargs['fail_reason'] == None:
-#             return formfield
-#         else:
-#             # if not empty do not override
-#             return
 
 
 @admin_display(short_description='Run algorithm')
@@ -176,7 +165,6 @@ class ScoreAlgorithmAdmin(admin.ModelAdmin):
 
     data_link.allow_tags = True
 
-    # overrride default textfield model
     def formfield_for_dbfield(self, db_field, **kwargs):
         formfield = super().formfield_for_dbfield(db_field, **kwargs)
         if db_field.name == 'docker_image_id':
