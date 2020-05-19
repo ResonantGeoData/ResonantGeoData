@@ -153,17 +153,9 @@ class GroundtruthAdmin(admin.ModelAdmin):
 
 
 @admin.register(models.ScoreAlgorithm)
+# subclassing AlgorithmAdmin to avoid duplicate codes
 class ScoreAlgorithmAdmin(AlgorithmAdmin):
     list_display = ('__str__', 'task', 'creator', 'created', 'active', 'data_link')
-    readonly_fields = ('data_link',)
-
-    def data_link(self, obj):
-        if obj.data:
-            return mark_safe('<a href="%s" download>Download</a>' % (obj.data.url,))
-        else:
-            return 'No attachment'
-
-    data_link.allow_tags = True
 
 
 @admin.register(models.ScoreJob)
