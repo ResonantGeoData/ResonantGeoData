@@ -74,7 +74,7 @@ class AlgorithmAdmin(admin.ModelAdmin):
         formfield = super().formfield_for_dbfield(db_field, **kwargs)
         if db_field.name == 'docker_image_id':
             formfield.widget = TextInput(attrs=formfield.widget.attrs)
-            return formfield
+        return formfield
 
 
 @admin.register(models.AlgorithmJob)
@@ -153,7 +153,7 @@ class GroundtruthAdmin(admin.ModelAdmin):
 
 
 @admin.register(models.ScoreAlgorithm)
-class ScoreAlgorithmAdmin(admin.ModelAdmin):
+class ScoreAlgorithmAdmin(AlgorithmAdmin):
     list_display = ('__str__', 'task', 'creator', 'created', 'active', 'data_link')
     readonly_fields = ('data_link',)
 
@@ -164,12 +164,6 @@ class ScoreAlgorithmAdmin(admin.ModelAdmin):
             return 'No attachment'
 
     data_link.allow_tags = True
-
-    def formfield_for_dbfield(self, db_field, **kwargs):
-        formfield = super().formfield_for_dbfield(db_field, **kwargs)
-        if db_field.name == 'docker_image_id':
-            formfield.widget = TextInput(attrs=formfield.widget.attrs)
-        return formfield
 
 
 @admin.register(models.ScoreJob)
