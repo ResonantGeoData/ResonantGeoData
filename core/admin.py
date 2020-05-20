@@ -4,6 +4,7 @@ from django.utils.safestring import mark_safe
 from django.utils.html import escape
 from django.template.defaultfilters import linebreaksbr
 from django.db.models import FileField
+from django.forms import TextInput
 
 import os
 
@@ -68,6 +69,13 @@ class AlgorithmAdmin(admin.ModelAdmin):
 
     data_link.allow_tags = True
 
+    # overrride default textfield model
+    def formfield_for_dbfield(self, db_field, **kwargs):
+        formfield = super().formfield_for_dbfield(db_field, **kwargs)
+        if db_field.name == 'docker_image_id':
+            formfield.widget = TextInput(attrs=formfield.widget.attrs)
+        return formfield
+
 
 @admin.register(models.AlgorithmJob)
 class AlgorithmJobAdmin(admin.ModelAdmin):
@@ -105,6 +113,13 @@ class AlgorithmResultAdmin(admin.ModelAdmin):
     def log_preview(self, obj):
         return _text_preview(obj.log)
 
+    # overrride default textfield model from textarea to text input
+    def formfield_for_dbfield(self, db_field, **kwargs):
+        formfield = super().formfield_for_dbfield(db_field, **kwargs)
+        if db_field.name == 'data_mimetype':
+            formfield.widget = TextInput(attrs=formfield.widget.attrs)
+        return formfield
+
 
 @admin.register(models.Dataset)
 class DatasetAdmin(admin.ModelAdmin):
@@ -138,17 +153,9 @@ class GroundtruthAdmin(admin.ModelAdmin):
 
 
 @admin.register(models.ScoreAlgorithm)
-class ScoreAlgorithmAdmin(admin.ModelAdmin):
+# subclassing AlgorithmAdmin to avoid duplicate codes
+class ScoreAlgorithmAdmin(AlgorithmAdmin):
     list_display = ('__str__', 'task', 'creator', 'created', 'active', 'data_link')
-    readonly_fields = ('data_link',)
-
-    def data_link(self, obj):
-        if obj.data:
-            return mark_safe('<a href="%s" download>Download</a>' % (obj.data.url,))
-        else:
-            return 'No attachment'
-
-    data_link.allow_tags = True
 
 
 @admin.register(models.ScoreJob)
