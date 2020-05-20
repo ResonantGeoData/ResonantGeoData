@@ -7,7 +7,7 @@ services:
     command: ["./manage.py", "runserver", "0.0.0.0:8000"]
     env_file: ./dev/.env.docker-compose
     volumes:
-      - .:/opt/resonantgeodata-challenge
+      - .:/opt/resonantgeodata
     ports:
       - 8000:8000
     depends_on:
@@ -23,7 +23,7 @@ services:
     command: ["celery", "worker", "--app", "rgd.celery", "--loglevel", "info", "--without-heartbeat"]
     env_file: ./dev/.env.docker-compose
     volumes:
-      - .:/opt/resonantgeodata-challenge
+      - .:/opt/resonantgeodata
     depends_on:
       - db
       - rabbitmq

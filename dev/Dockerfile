@@ -11,7 +11,7 @@ RUN apt-get update && \
 ENV PYTHONDONTWRITEBYTECODE 1
 ENV PYTHONUNBUFFERED 1
 
-COPY ./setup.py /opt/resonantgeodata-challenge/setup.py
-RUN pip install --editable /opt/resonantgeodata-challenge
+COPY ./setup.py /opt/resonantgeodata/setup.py
+RUN pip install --editable /opt/resonantgeodata
 
-WORKDIR /opt/resonantgeodata-challenge
+WORKDIR /opt/resonantgeodata
