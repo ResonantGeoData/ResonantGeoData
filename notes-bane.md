@@ -2,20 +2,6 @@
 
 For when we come back to this down the road
 
-## Running Locally
-
-Some additional notes from Bane for running locally:
-
-- Make sure Docker is running
-- Make sure RabbitMQ is launched
-
-Launch site in background then launch celery worker:
-
-```bash
-python manage.py runserver 0.0.0.0:8081 &
-python -m celery worker --app rgd.celery --loglevel info --without-heartbeat
-```
-
 ## Perusing the Code
 
 `rgd` is the main site

@@ -1,11 +1,18 @@
 #!/usr/bin/env python
-"""Django's command-line utility for administrative tasks."""
 import os
 import sys
 
+import configurations.importer
+
 
 def main():
-    os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'rgd.settings.development')
+    os.environ['DJANGO_SETTINGS_MODULE'] = 'rgd.settings'
+    # Production usage runs manage.py for tasks like collectstatic,
+    # so DJANGO_CONFIGURATION should always be explicitly set in production
+    os.environ.setdefault('DJANGO_CONFIGURATION', 'DevelopmentConfiguration')
+    # No need for check_options, users should always set DJANGO_CONFIGURATION
+    configurations.importer.install(check_options=False)
+
     try:
         from django.core.management import execute_from_command_line
     except ImportError as exc:

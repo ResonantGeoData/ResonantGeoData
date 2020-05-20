@@ -1,0 +1,27 @@
+version: '3'
+services:
+  db:
+    image: postgres
+    environment:
+      POSTGRES_DB: rgd
+      POSTGRES_PASSWORD: postgres
+    volumes:
+      - /var/lib/postgresql/data
+    ports:
+      - 5432:5432
+
+  rabbitmq:
+    image: rabbitmq:latest
+    ports:
+      - 5672:5672
+
+  minio:
+    image: minio/minio
+    command: server /data
+    environment:
+      MINIO_ACCESS_KEY: minioAdminAccessKey
+      MINIO_SECRET_KEY: minioAdminSecretKey
+    volumes:
+      - /data
+    ports:
+      - 9000:9000

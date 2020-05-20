@@ -1,8 +1,20 @@
 import os
 
 from celery import Celery
+import configurations.importer
 
-os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'rgd.settings.development')
+os.environ['DJANGO_SETTINGS_MODULE'] = 'rgd.settings'
+if not os.environ.get('DJANGO_CONFIGURATION'):
+    raise ValueError('The environment variable "DJANGO_CONFIGURATION" must be set.')
+configurations.importer.install()
 
-app = Celery('rgd', config_source='django.conf:settings', namespace='CELERY')
+# Using a string config_source means the worker doesn't have to serialize
+# the configuration object to child processes.
+app = Celery(
+    'rgd',
+    config_source='django.conf:settings',
+    namespace='CELERY'
+)
+
+# Load task modules from all registered Django app configs.
 app.autodiscover_tasks()
