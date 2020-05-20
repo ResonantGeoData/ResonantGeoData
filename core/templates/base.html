@@ -18,11 +18,11 @@
   <body class="content">
     <header class="main-header">
       <div class="container">
-        <!--
+        {% comment %}
         <div class="logo">
           <h1><a href="{% url 'index' %}"><img src="{% static 'img/isic_logo.svg' %}" alt="ISIC Challenge"></a></h1>
         </div>
-        -->
+        {% endcomment %}
         <div class="navigation">
           <ul class="navbar">
             {% if user.is_authenticated %}
@@ -55,9 +55,9 @@
         <div id="temporary-transition-banner" class="notification">
         <div class="container">
             <div class="notice-content">
-            <!--
+            {% comment %}
             <h1 class="banner-title">Welcome to the new submission platform for the ISIC Challenge!</h1>
-            -->
+            {% endcomment %}
             </div>
         </div>
         </div>
@@ -120,11 +120,11 @@
 
     </div>
 
-    <!--
+    {% comment %}
     <div class="help-container">
       <a class="help-button button is-medium is-warning" href="https://forum.isic-archive.com" target="_blank">Report an Issue</a>
     </div>
-    -->
+    {% endcomment %}
 
 
     <!-- jQuery first, then Popper.js, then Bootstrap JS -->
