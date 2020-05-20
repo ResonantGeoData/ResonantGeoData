@@ -33,3 +33,21 @@ but allows developers to run the Python code on their native system.
    1. `./manage.py runserver`
    2. `celery worker --app rgd.celery --loglevel info --without-heartbeat`
 2.  When finished, run `docker-compose stop`
+
+## Testing
+### Initial Setup
+Tox is required to execute all tests.
+It may be installed with `pip install tox`.
+
+### Running tests
+Run `tox` to launch the full test suite.
+
+Individual test environments may be selectively run.
+This also allows additional options to be be added.
+Useful sub-commands include:
+* `tox -e lint`: Run only the style checks.
+* `tox -e type`: Run only the type checks.
+* `tox -e py3`: Run only the unit tests.
+
+To automatically reformat all code to comply with
+some (but not all) of the style checks, run `tox -e format`.
