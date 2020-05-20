@@ -14,11 +14,23 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='scoreresult',
             name='overall_score',
-            field=models.FloatField(blank=True, null=True, validators=[django.core.validators.MaxValueValidator(1.0), django.core.validators.MinValueValidator(0.0)]),
+            field=models.FloatField(
+                blank=True,
+                null=True,
+                validators=[
+                    django.core.validators.MaxValueValidator(1.0),
+                    django.core.validators.MinValueValidator(0.0),
+                ],
+            ),
         ),
         migrations.AddField(
             model_name='scoreresult',
             name='result_type',
-            field=models.CharField(blank=True, choices=[('simple', 'Direct value'), ('roc', 'Receiver Operating Characteristic')], max_length=10, null=True),
+            field=models.CharField(
+                blank=True,
+                choices=[('simple', 'Direct value'), ('roc', 'Receiver Operating Characteristic')],
+                max_length=10,
+                null=True,
+            ),
         ),
     ]

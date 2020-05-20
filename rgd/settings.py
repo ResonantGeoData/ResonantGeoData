@@ -117,18 +117,10 @@ class DjangoConfig(Config):
     # Password validation
     # https://docs.djangoproject.com/en/3.0/ref/settings/#auth-password-validators
     AUTH_PASSWORD_VALIDATORS = [
-        {
-            'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator',
-        },
-        {
-            'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator',
-        },
-        {
-            'NAME': 'django.contrib.auth.password_validation.CommonPasswordValidator',
-        },
-        {
-            'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator',
-        },
+        {'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator'},
+        {'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator'},
+        {'NAME': 'django.contrib.auth.password_validation.CommonPasswordValidator'},
+        {'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator'},
     ]
 
     # Sites framework
@@ -152,9 +144,11 @@ class LoggingConfig(Config):
             # Based on https://stackoverflow.com/a/20983546
             # TODO: Do we like this format?
             'verbose': {
-                'format': ('%(asctime)s [%(process)d] [%(levelname)s] '
-                           'pathname=%(pathname)s lineno=%(lineno)s '
-                           'funcname=%(funcName)s %(message)s'),
+                'format': (
+                    '%(asctime)s [%(process)d] [%(levelname)s] '
+                    'pathname=%(pathname)s lineno=%(lineno)s '
+                    'funcname=%(funcName)s %(message)s'
+                ),
                 'datefmt': '%Y-%m-%d %H:%M:%S',
             },
         },
@@ -169,7 +163,7 @@ class LoggingConfig(Config):
             'mail_admins': {
                 # Disable Django's default "mail_admins" handler
                 'class': 'logging.NullHandler',
-            }
+            },
         },
     }
 
@@ -183,7 +177,9 @@ class StaticFileConfig(Config):
     """
 
     STATIC_URL = '/static/'
-    STATIC_ROOT = values.PathValue(os.path.join(BASE_DIR, 'staticfiles'), environ=False, check_exists=False)
+    STATIC_ROOT = values.PathValue(
+        os.path.join(BASE_DIR, 'staticfiles'), environ=False, check_exists=False
+    )
 
     @staticmethod
     def before_binding(configuration: Type[ComposedConfiguration]):
@@ -202,8 +198,12 @@ class WhitenoiseStaticFileConfig(StaticFileConfig):
         configuration.INSTALLED_APPS.insert(staticfiles_index, 'whitenoise.runserver_nostatic')
 
         # Insert immediately after SecurityMiddleware
-        security_index = configuration.MIDDLEWARE.index('django.middleware.security.SecurityMiddleware')
-        configuration.MIDDLEWARE.insert(security_index + 1, 'whitenoise.middleware.WhiteNoiseMiddleware')
+        security_index = configuration.MIDDLEWARE.index(
+            'django.middleware.security.SecurityMiddleware'
+        )
+        configuration.MIDDLEWARE.insert(
+            security_index + 1, 'whitenoise.middleware.WhiteNoiseMiddleware'
+        )
 
     STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
@@ -212,7 +212,9 @@ class AllauthConfig(Config):
     @staticmethod
     def before_binding(configuration: Type[ComposedConfiguration]):
         # `allauth` specific authentication methods, such as login by e-mail
-        configuration.AUTHENTICATION_BACKENDS += ['allauth.account.auth_backends.AuthenticationBackend']
+        configuration.AUTHENTICATION_BACKENDS += [
+            'allauth.account.auth_backends.AuthenticationBackend'
+        ]
 
         configuration.INSTALLED_APPS += [
             'allauth',
@@ -255,7 +257,9 @@ class CorsConfig(Config):
         # Accordingly, CorsConfig must be loaded after WhitenoiseStaticFileConfig, so it can
         # find the existing entry and insert accordingly.
         try:
-            whitenoise_index = configuration.MIDDLEWARE.index('whitenoise.middleware.WhiteNoiseMiddleware')
+            whitenoise_index = configuration.MIDDLEWARE.index(
+                'whitenoise.middleware.WhiteNoiseMiddleware'
+            )
         except ValueError:
             raise Exception('CorsConfig must be loaded after WhitenoiseStaticFileConfig.')
         configuration.MIDDLEWARE.insert(whitenoise_index, 'corsheaders.middleware.CorsMiddleware')
@@ -270,9 +274,7 @@ class RestFrameworkConfig(Config):
         configuration.INSTALLED_APPS += ['rest_framework', 'rest_framework.authtoken']
 
     REST_FRAMEWORK = {
-        'DEFAULT_AUTHENTICATION_CLASSES': [
-            'rest_framework.authentication.TokenAuthentication',
-        ]
+        'DEFAULT_AUTHENTICATION_CLASSES': ['rest_framework.authentication.TokenAuthentication']
     }
 
 
@@ -284,10 +286,13 @@ class DatabaseConfig(Config):
     # This cannot have a default value, since the password and database name are always
     # set by the service admin
     DATABASES = values.DatabaseURLValue(
-        environ_name='DATABASE_URL', environ_prefix='DJANGO', environ_required=True,
+        environ_name='DATABASE_URL',
+        environ_prefix='DJANGO',
+        environ_required=True,
         # Additional kwargs to DatabaseURLValue are passed to dj-database-url
         engine='django.db.backends.postgresql',
-        conn_max_age=600)
+        conn_max_age=600,
+    )
 
 
 class CeleryConfig(Config):
@@ -318,8 +323,8 @@ class MinioStorageConfig(StorageConfig):
     MINIO_STORAGE_ENDPOINT = values.Value('localhost:9000')
     MINIO_STORAGE_USE_HTTPS = False
     MINIO_STORAGE_MEDIA_BUCKET_NAME = values.Value(
-        environ_name='STORAGE_BUCKET_NAME',
-        environ_required=True)
+        environ_name='STORAGE_BUCKET_NAME', environ_required=True
+    )
     MINIO_STORAGE_ACCESS_KEY = values.SecretValue()
     MINIO_STORAGE_SECRET_KEY = values.SecretValue()
     MINIO_STORAGE_MEDIA_USE_PRESIGNED = True
@@ -330,10 +335,11 @@ class S3StorageConfig(StorageConfig):
     DEFAULT_FILE_STORAGE = 'storages.backends.s3boto3.S3Boto3Storage'
     # This exact environ_name is important, as direct use of Boto will also use it
     AWS_S3_REGION_NAME = values.Value(
-        environ_prefix=None, environ_name='AWS_DEFAULT_REGION', environ_required=True)  # TODO: this is also used by Boto directly
+        environ_prefix=None, environ_name='AWS_DEFAULT_REGION', environ_required=True
+    )  # TODO: this is also used by Boto directly
     AWS_STORAGE_BUCKET_NAME = values.Value(
-        environ_name='STORAGE_BUCKET_NAME',
-        environ_required=True)
+        environ_name='STORAGE_BUCKET_NAME', environ_required=True
+    )
     AWS_S3_MAX_MEMORY_SIZE = 5 * 1024 * 1024
     AWS_S3_FILE_OVERWRITE = False
     AWS_AUTO_CREATE_BUCKET = False
@@ -401,22 +407,20 @@ class BaseConfiguration(
     WhitenoiseStaticFileConfig,
     LoggingConfig,
     DjangoConfig,
-    ComposedConfiguration
+    ComposedConfiguration,
 ):
     # Does not include a StorageConfig, since that varies
     # significantly from development to production
     pass
 
 
-class DevelopmentConfiguration(
-    DebugToolbarConfig,
-    MinioStorageConfig,
-    BaseConfiguration
-):
+class DevelopmentConfiguration(DebugToolbarConfig, MinioStorageConfig, BaseConfiguration):
     DEBUG = True
     SECRET_KEY = 'insecuresecret'
     ALLOWED_HOSTS = values.ListValue(['localhost', '127.0.0.1'])
-    CORS_ORIGIN_REGEX_WHITELIST = values.ListValue([r'http://localhost:\d+', r'http://127\.0\.0\.1:\d+'])
+    CORS_ORIGIN_REGEX_WHITELIST = values.ListValue(
+        [r'http://localhost:\d+', r'http://127\.0\.0\.1:\d+']
+    )
 
     # INTERNAL_IPS does not work properly when this is run within Docker, since the bridge
     # sends requests from the host machine via a dedicated IP address
@@ -435,7 +439,13 @@ class ProductionConfiguration(S3StorageConfig, BaseConfiguration):
 class HerokuProductionConfiguration(ProductionConfiguration):
     # Use different env var names (with no DJANGO_ prefix) for services that Heroku auto-injects
     DATABASES = values.DatabaseURLValue(
-        environ_name='DATABASE_URL', environ_prefix=None, environ_required=True,
+        environ_name='DATABASE_URL',
+        environ_prefix=None,
+        environ_required=True,
         engine='django.db.backends.postgresql',
-        conn_max_age=600, ssl_require=True)
-    CELERY_BROKER_URL = values.Value(environ_name='CLOUDAMQP_URL', environ_prefix=None, environ_required=True)
+        conn_max_age=600,
+        ssl_require=True,
+    )
+    CELERY_BROKER_URL = values.Value(
+        environ_name='CLOUDAMQP_URL', environ_prefix=None, environ_required=True
+    )

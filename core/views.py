@@ -1,10 +1,11 @@
-from django.contrib.auth.decorators import login_required
-from django.shortcuts import get_object_or_404, render
-from django.views.decorators.http import require_http_methods
-from django.utils import timezone
-from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
-from django.views.generic import DetailView, CreateView, DeleteView
 import logging
+
+from django.contrib.auth.decorators import login_required
+from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
+from django.shortcuts import get_object_or_404, render
+from django.utils import timezone
+from django.views.decorators.http import require_http_methods
+from django.views.generic import CreateView, DeleteView, DetailView
 
 from .models import Algorithm, AlgorithmJob, ScoreJob, Task
 
@@ -104,7 +105,10 @@ class AlgorithmCreateView(LoginRequiredMixin, CreateView):
 
 class JobCreateView(LoginRequiredMixin, CreateView):
     model = AlgorithmJob
-    fields = ['algorithm', 'dataset', ]
+    fields = [
+        'algorithm',
+        'dataset',
+    ]
 
     def form_valid(self, form):
         form.instance.creator = self.request.user

@@ -1,21 +1,22 @@
-from celery import shared_task
-from celery.utils.log import get_task_logger
 from contextlib import contextmanager
-from django.core.files import File
-from django.db.models.fields.files import FieldFile
-import docker
-import GPUtil
 import json
 import os
 from pathlib import Path, PurePath
 import shlex
 import shutil
-from storages.backends.s3boto3 import S3Boto3StorageFile
 import subprocess
 import tempfile
 import time
 from typing import Generator
+
+from celery import shared_task
+from celery.utils.log import get_task_logger
+from django.core.files import File
+from django.db.models.fields.files import FieldFile
+import docker
+import GPUtil
 import magic
+from storages.backends.s3boto3 import S3Boto3StorageFile
 
 from .models import Algorithm, AlgorithmJob, AlgorithmResult, ScoreAlgorithm, ScoreJob, ScoreResult
 
@@ -42,14 +43,17 @@ def _run_algorithm(algorithm_job):
     algorithm_file: FieldFile = algorithm_job.algorithm.data
     dataset_file: FieldFile = algorithm_job.dataset.data
     try:
-        with _field_file_to_local_path(algorithm_file) as algorithm_path, \
-                _field_file_to_local_path(dataset_file) as dataset_path:
+        with _field_file_to_local_path(algorithm_file) as algorithm_path, _field_file_to_local_path(
+            dataset_file
+        ) as dataset_path:
             client = docker.from_env(version='auto', timeout=3600)
             image = None
             if algorithm_job.algorithm.docker_image_id:
                 try:
                     image = client.images.get(algorithm_job.algorithm.docker_image_id)
-                    logger.info('Loaded existing docker image %r' % algorithm_job.algorithm.docker_image_id)
+                    logger.info(
+                        'Loaded existing docker image %r' % algorithm_job.algorithm.docker_image_id
+                    )
                 except docker.errors.ImageNotFound:
                     pass
             if not image:
@@ -65,8 +69,14 @@ def _run_algorithm(algorithm_job):
             tmpdir = tempfile.mkdtemp()
             output_path = os.path.join(tmpdir, 'output.dat')
             stderr_path = os.path.join(tmpdir, 'stderr.dat')
-            cmd = ['docker', 'run', '--rm', '-i', '--name',
-                   'algorithm_job_%s_%s' % (algorithm_job.id, time.time())]
+            cmd = [
+                'docker',
+                'run',
+                '--rm',
+                '-i',
+                '--name',
+                'algorithm_job_%s_%s' % (algorithm_job.id, time.time()),
+            ]
             if len(GPUtil.getAvailable()):
                 cmd += ['--gpus', 'all']
             cmd += [str(algorithm_job.algorithm.docker_image_id)]
@@ -76,7 +86,8 @@ def _run_algorithm(algorithm_job):
                     cmd,
                     stdin=open(dataset_path, 'rb'),
                     stdout=open(output_path, 'wb'),
-                    stderr=open(stderr_path, 'wb'))
+                    stderr=open(stderr_path, 'wb'),
+                )
                 result = 0
                 algorithm_job.fail_reason = None
             except subprocess.CalledProcessError as exc:
@@ -85,16 +96,19 @@ def _run_algorithm(algorithm_job):
                 algorithm_job.fail_reason = 'Return code: %s\nException:\n%r' % (result, exc)
             logger.info('Finished running image with result %r' % result)
             # Store result
-            algorithm_result = AlgorithmResult(
-                algorithm_job=algorithm_job)
+            algorithm_result = AlgorithmResult(algorithm_job=algorithm_job)
             algorithm_result.data.save(
-                'algorithm_job_%s.dat' % algorithm_job.id, open(output_path, 'rb'))
+                'algorithm_job_%s.dat' % algorithm_job.id, open(output_path, 'rb')
+            )
             algorithm_result.log.save(
-                'algorithm_job_%s_log.dat' % algorithm_job.id, open(stderr_path, 'rb'))
+                'algorithm_job_%s_log.dat' % algorithm_job.id, open(stderr_path, 'rb')
+            )
             algorithm_result.data_mimetype = _get_mimetype(output_path)
             algorithm_result.save()
             shutil.rmtree(tmpdir)
-            algorithm_job.status = AlgorithmJob.Status.SUCCEEDED if not result else AlgorithmJob.Status.FAILED
+            algorithm_job.status = (
+                AlgorithmJob.Status.SUCCEEDED if not result else AlgorithmJob.Status.FAILED
+            )
     except Exception as exc:
         logger.exception(f'Internal error run algorithm {algorithm_job.id}: {exc}')
         algorithm_job.status = AlgorithmJob.Status.INTERNAL_FAILURE
@@ -122,15 +136,22 @@ def _run_scoring(score_job):
     algorithm_result_file: FieldFile = score_job.algorithm_result.data
     groundtruth_file: FieldFile = score_job.groundtruth.data
     try:
-        with _field_file_to_local_path(score_algorithm_file) as score_algorithm_path, \
-                _field_file_to_local_path(algorithm_result_file) as algorithm_result_path, \
-                _field_file_to_local_path(groundtruth_file) as groundtruth_path:
+        with _field_file_to_local_path(
+            score_algorithm_file
+        ) as score_algorithm_path, _field_file_to_local_path(
+            algorithm_result_file
+        ) as algorithm_result_path, _field_file_to_local_path(
+            groundtruth_file
+        ) as groundtruth_path:
             client = docker.from_env(version='auto', timeout=3600)
             image = None
             if score_job.score_algorithm.docker_image_id:
                 try:
                     image = client.images.get(score_job.score_algorithm.docker_image_id)
-                    logger.info('Loaded existing docker image %r' % score_job.score_algorithm.docker_image_id)
+                    logger.info(
+                        'Loaded existing docker image %r'
+                        % score_job.score_algorithm.docker_image_id
+                    )
                 except docker.errors.ImageNotFound:
                     pass
             if not image:
@@ -142,34 +163,45 @@ def _run_scoring(score_job):
                 score_job.score_algorithm.docker_image_id = image.attrs['Id']
                 score_job.score_algorithm.save(update_fields=['docker_image_id'])
                 logger.info('Loaded docker image %r' % score_job.score_algorithm.docker_image_id)
-            logger.info('Running image %s with groundtruth %s and results %s' % (
-                score_algorithm_path, groundtruth_path, algorithm_result_path))
+            logger.info(
+                'Running image %s with groundtruth %s and results %s'
+                % (score_algorithm_path, groundtruth_path, algorithm_result_path)
+            )
             tmpdir = tempfile.mkdtemp()
             output_path = os.path.join(tmpdir, 'output.dat')
             stderr_path = os.path.join(tmpdir, 'stderr.dat')
             try:
                 subprocess.check_call(
-                    ['docker', 'run', '--rm', '-i', '--name',
-                     'score_job_%s_%s' % (score_job.id, time.time()),
-                     '-v', '%s:%s:ro' % (groundtruth_path, '/groundtruth.dat'),
-                     str(score_job.score_algorithm.docker_image_id)],
+                    [
+                        'docker',
+                        'run',
+                        '--rm',
+                        '-i',
+                        '--name',
+                        'score_job_%s_%s' % (score_job.id, time.time()),
+                        '-v',
+                        '%s:%s:ro' % (groundtruth_path, '/groundtruth.dat'),
+                        str(score_job.score_algorithm.docker_image_id),
+                    ],
                     stdin=open(algorithm_result_path, 'rb'),
                     stdout=open(output_path, 'wb'),
-                    stderr=open(stderr_path, 'wb'))
+                    stderr=open(stderr_path, 'wb'),
+                )
                 result = 0
                 score_job.fail_reason = None
             except subprocess.CalledProcessError as exc:
                 result = exc.returncode
-                logger.info('Failed to successfully run image %s (%r)' % (score_algorithm_path, exc))
+                logger.info(
+                    'Failed to successfully run image %s (%r)' % (score_algorithm_path, exc)
+                )
                 score_job.fail_reason = 'Return code: %s\nException:\n%r' % (result, exc)
             logger.info('Finished running image with result %r' % result)
-            score_result = ScoreResult(
-                score_job=score_job)
-            score_result.data.save(
-                'score_job_%s.dat' % score_job.id, open(output_path, 'rb'))
-            score_result.log.save(
-                'score_job_%s_log.dat' % score_job.id, open(stderr_path, 'rb'))
-            score_result.overall_score, score_result.result_type = _overall_score_and_result_type(score_result.data)
+            score_result = ScoreResult(score_job=score_job)
+            score_result.data.save('score_job_%s.dat' % score_job.id, open(output_path, 'rb'))
+            score_result.log.save('score_job_%s_log.dat' % score_job.id, open(stderr_path, 'rb'))
+            score_result.overall_score, score_result.result_type = _overall_score_and_result_type(
+                score_result.data
+            )
             score_result.save()
             shutil.rmtree(tmpdir)
             score_job.status = ScoreJob.Status.SUCCEEDED if not result else ScoreJob.Status.FAILED
@@ -213,8 +245,7 @@ def validate_algorithm(algorithm_id):
     algorithm.docker_image_id = results.get('docker_image_id')
     algorithm.docker_attrs = results.get('docker_attrs')
     algorithm.docker_validation_failure = results.get('failed')
-    algorithm.save(update_fields=[
-        'docker_image_id', 'docker_attrs', 'docker_validation_failure'])
+    algorithm.save(update_fields=['docker_image_id', 'docker_attrs', 'docker_validation_failure'])
 
 
 @shared_task(time_limit=86400)
@@ -225,8 +256,9 @@ def validate_scoring(score_algorithm_id):
     score_algorithm.docker_image_id = results.get('docker_image_id')
     score_algorithm.docker_attrs = results.get('docker_attrs')
     score_algorithm.docker_validation_failure = results.get('failed')
-    score_algorithm.save(update_fields=[
-        'docker_image_id', 'docker_attrs', 'docker_validation_failure'])
+    score_algorithm.save(
+        update_fields=['docker_image_id', 'docker_attrs', 'docker_validation_failure']
+    )
 
 
 @shared_task(time_limit=86400)

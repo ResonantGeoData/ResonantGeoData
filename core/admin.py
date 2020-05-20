@@ -1,12 +1,12 @@
+import os
+
 from django.contrib import admin
-from django_admin_display import admin_display
-from django.utils.safestring import mark_safe
-from django.utils.html import escape
-from django.template.defaultfilters import linebreaksbr
 from django.db.models import FileField
 from django.forms import TextInput
-
-import os
+from django.template.defaultfilters import linebreaksbr
+from django.utils.html import escape
+from django.utils.safestring import mark_safe
+from django_admin_display import admin_display
 
 from . import models
 from . import tasks
@@ -85,7 +85,15 @@ class AlgorithmJobAdmin(admin.ModelAdmin):
 
 @admin.register(models.AlgorithmResult)
 class AlgorithmResultAdmin(admin.ModelAdmin):
-    list_display = ('__str__', 'created', 'algorithm_job', 'algorithm', 'dataset', 'data_link', 'log_link')
+    list_display = (
+        '__str__',
+        'created',
+        'algorithm_job',
+        'algorithm',
+        'dataset',
+        'data_link',
+        'log_link',
+    )
     readonly_fields = ('data_link', 'algorithm', 'dataset', 'log_link', 'log_preview')
 
     def data_link(self, obj):
@@ -160,18 +168,46 @@ class ScoreAlgorithmAdmin(AlgorithmAdmin):
 
 @admin.register(models.ScoreJob)
 class ScoreJobAdmin(admin.ModelAdmin):
-    list_display = ('__str__', 'creator', 'created', 'score_algorithm', 'algorithm_result', 'groundtruth', 'status')
+    list_display = (
+        '__str__',
+        'creator',
+        'created',
+        'score_algorithm',
+        'algorithm_result',
+        'groundtruth',
+        'status',
+    )
     actions = [run_scoring]
 
 
 @admin.register(models.ScoreResult)
 class ScoreResultAdmin(admin.ModelAdmin):
     list_display = (
-        '__str__', 'created', 'score_job', 'algorithm', 'dataset', 'algorithm_result',
-        'score_algorithm', 'groundtruth', 'data_link', 'log_link', 'overall_score', 'result_type')
+        '__str__',
+        'created',
+        'score_job',
+        'algorithm',
+        'dataset',
+        'algorithm_result',
+        'score_algorithm',
+        'groundtruth',
+        'data_link',
+        'log_link',
+        'overall_score',
+        'result_type',
+    )
     readonly_fields = (
-        'data_link', 'log_link', 'algorithm', 'dataset', 'algorithm_result',
-        'score_algorithm', 'groundtruth', 'overall_score', 'result_type', 'log_preview')
+        'data_link',
+        'log_link',
+        'algorithm',
+        'dataset',
+        'algorithm_result',
+        'score_algorithm',
+        'groundtruth',
+        'overall_score',
+        'result_type',
+        'log_preview',
+    )
 
     def data_link(self, obj):
         if obj.data:

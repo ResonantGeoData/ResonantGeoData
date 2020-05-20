@@ -11,8 +11,6 @@ class Migration(migrations.Migration):
 
     operations = [
         migrations.AddField(
-            model_name='dataset',
-            name='tasks',
-            field=models.ManyToManyField(to='core.Task'),
+            model_name='dataset', name='tasks', field=models.ManyToManyField(to='core.Task'),
         ),
     ]
