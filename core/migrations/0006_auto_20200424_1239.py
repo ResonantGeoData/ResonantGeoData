@@ -11,22 +11,18 @@ class Migration(migrations.Migration):
     ]
 
     operations = [
-        migrations.RemoveField(
-            model_name='algorithmjob',
-            name='algorithm_result',
-        ),
-        migrations.RemoveField(
-            model_name='algorithmresult',
-            name='algorithm',
-        ),
-        migrations.RemoveField(
-            model_name='algorithmresult',
-            name='dataset',
-        ),
+        migrations.RemoveField(model_name='algorithmjob', name='algorithm_result',),
+        migrations.RemoveField(model_name='algorithmresult', name='algorithm',),
+        migrations.RemoveField(model_name='algorithmresult', name='dataset',),
         migrations.AddField(
             model_name='algorithmresult',
             name='algorithm_job',
-            field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.CASCADE, to='core.AlgorithmJob'),
+            field=models.ForeignKey(
+                blank=True,
+                null=True,
+                on_delete=django.db.models.deletion.CASCADE,
+                to='core.AlgorithmJob',
+            ),
         ),
         migrations.AddField(
             model_name='algorithmresult',

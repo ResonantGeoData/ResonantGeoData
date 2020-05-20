@@ -1,15 +1,15 @@
 from django.contrib.auth import get_user_model
+from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
 from django.db import transaction
-from django.dispatch import receiver
 from django.db.models.signals import post_save
+from django.dispatch import receiver
 from django.urls import reverse
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
 
 from . import validators
-# max and min validator for float
-from django.core.validators import MaxValueValidator, MinValueValidator
+
 # We may want to have some sort of access permissions on Task, Dataset,
 # Groundtruth, etc.
 
@@ -93,9 +93,9 @@ class Algorithm(models.Model):
     active = models.BooleanField(default=True)
     # TODO: If we try to edit data and this has been referenced anywhere, we
     # need to make a new model and mark this one as inactive
-    data = models.FileField(upload_to='algorithm', validators=[
-        validators.MimetypeValidator(['application/x-tar'])
-    ])
+    data = models.FileField(
+        upload_to='algorithm', validators=[validators.MimetypeValidator(['application/x-tar'])]
+    )
     docker_image_id = models.TextField(null=True, blank=True)
     docker_attrs = models.TextField(null=True, blank=True)
     docker_validation_failure = models.TextField(null=True, blank=True)
@@ -110,7 +110,11 @@ class Algorithm(models.Model):
         tasks.validate_algorithm.delay(self.id)
 
     def _post_save(self, created, *args, **kwargs):
-        if not created and kwargs.get('update_fields') and 'data' not in kwargs.get('update_fields'):
+        if (
+            not created
+            and kwargs.get('update_fields')
+            and 'data' not in kwargs.get('update_fields')
+        ):
             return
         self.validate_algorithm()
 
@@ -135,9 +139,10 @@ class ScoreAlgorithm(models.Model):
     active = models.BooleanField(default=True)
     # TODO: If we try to edit data and this has been referenced anywhere, we
     # need to make a new model and mark this one as inactive
-    data = models.FileField(upload_to='score_algorithm', validators=[
-        validators.MimetypeValidator(['application/x-tar'])
-    ])
+    data = models.FileField(
+        upload_to='score_algorithm',
+        validators=[validators.MimetypeValidator(['application/x-tar'])],
+    )
     docker_image_id = models.TextField(null=True, blank=True)
     docker_attrs = models.TextField(null=True, blank=True)
     docker_validation_failure = models.TextField(null=True, blank=True)
@@ -149,7 +154,11 @@ class ScoreAlgorithm(models.Model):
         tasks.validate_scoring.delay(self.id)
 
     def _post_save(self, created, *args, **kwargs):
-        if not created and kwargs.get('update_fields') and 'data' not in kwargs.get('update_fields'):
+        if (
+            not created
+            and kwargs.get('update_fields')
+            and 'data' not in kwargs.get('update_fields')
+        ):
             return
         self.validate_score_algorithm()
 
@@ -196,7 +205,11 @@ class AlgorithmJob(models.Model):
         tasks.run_algorithm.delay(self.id)
 
     def _post_save(self, created, *args, **kwargs):
-        if not created and kwargs.get('update_fields') and 'status' not in kwargs.get('update_fields'):
+        if (
+            not created
+            and kwargs.get('update_fields')
+            and 'status' not in kwargs.get('update_fields')
+        ):
             return
         if self.status == self.Status.QUEUED:
             self.run_algorithm()
@@ -244,11 +257,16 @@ class ScoreJob(models.Model):
         """Run the job asynchronously."""
         from . import tasks
         import sys
+
         sys.stderr.write('SCORE JOB %r\n' % [self.id])
         tasks.run_scoring.delay(self.id)
 
     def _post_save(self, created, *args, **kwargs):
-        if not created and kwargs.get('update_fields') and 'status' not in kwargs.get('update_fields'):
+        if (
+            not created
+            and kwargs.get('update_fields')
+            and 'status' not in kwargs.get('update_fields')
+        ):
             return
         if self.status == self.Status.QUEUED:
             self.run_scoring()
@@ -265,9 +283,14 @@ class ScoreResult(models.Model):
     created = models.DateTimeField(default=timezone.now)
     data = models.FileField(upload_to='scores')
     log = models.FileField(upload_to='scores_logs', null=True, blank=True)
-    overall_score = models.FloatField(null=True, blank=True, validators=[MaxValueValidator(1.0), MinValueValidator(0.0)])
+    overall_score = models.FloatField(
+        null=True, blank=True, validators=[MaxValueValidator(1.0), MinValueValidator(0.0)]
+    )
 
     class ResultTypes(models.TextChoices):
         SIMPLE = 'simple', _('Direct value')
         ROC = 'roc', _('Receiver Operating Characteristic')
-    result_type = models.CharField(max_length=10, choices=ResultTypes.choices, null=True, blank=True)
+
+    result_type = models.CharField(
+        max_length=10, choices=ResultTypes.choices, null=True, blank=True
+    )

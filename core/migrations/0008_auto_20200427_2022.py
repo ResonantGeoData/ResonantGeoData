@@ -14,18 +14,9 @@ class Migration(migrations.Migration):
     ]
 
     operations = [
-        migrations.RemoveField(
-            model_name='scoreresult',
-            name='algorithmresult',
-        ),
-        migrations.RemoveField(
-            model_name='scoreresult',
-            name='groundtruth',
-        ),
-        migrations.RemoveField(
-            model_name='scoreresult',
-            name='scorealgorithm',
-        ),
+        migrations.RemoveField(model_name='scoreresult', name='algorithmresult',),
+        migrations.RemoveField(model_name='scoreresult', name='groundtruth',),
+        migrations.RemoveField(model_name='scoreresult', name='scorealgorithm',),
         migrations.AddField(
             model_name='scoreresult',
             name='log',
@@ -39,19 +30,62 @@ class Migration(migrations.Migration):
         migrations.CreateModel(
             name='ScoreJob',
             fields=[
-                ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
+                (
+                    'id',
+                    models.AutoField(
+                        auto_created=True, primary_key=True, serialize=False, verbose_name='ID'
+                    ),
+                ),
                 ('created', models.DateTimeField(default=django.utils.timezone.now)),
-                ('status', models.CharField(choices=[('queued', 'Queued for processing'), ('running', 'Processing'), ('internal_failure', 'Internal failure'), ('failed', 'Failed'), ('success', 'Succeeded')], default='queued', max_length=20)),
+                (
+                    'status',
+                    models.CharField(
+                        choices=[
+                            ('queued', 'Queued for processing'),
+                            ('running', 'Processing'),
+                            ('internal_failure', 'Internal failure'),
+                            ('failed', 'Failed'),
+                            ('success', 'Succeeded'),
+                        ],
+                        default='queued',
+                        max_length=20,
+                    ),
+                ),
                 ('fail_reason', models.TextField(blank=True)),
-                ('algorithm_results', models.ForeignKey(on_delete=django.db.models.deletion.DO_NOTHING, to='core.AlgorithmResult')),
-                ('creator', models.ForeignKey(on_delete=django.db.models.deletion.DO_NOTHING, to=settings.AUTH_USER_MODEL)),
-                ('groundtruth', models.ForeignKey(on_delete=django.db.models.deletion.DO_NOTHING, to='core.Groundtruth')),
-                ('score_algorithm', models.ForeignKey(on_delete=django.db.models.deletion.DO_NOTHING, to='core.ScoreAlgorithm')),
+                (
+                    'algorithm_results',
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.DO_NOTHING, to='core.AlgorithmResult'
+                    ),
+                ),
+                (
+                    'creator',
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.DO_NOTHING, to=settings.AUTH_USER_MODEL
+                    ),
+                ),
+                (
+                    'groundtruth',
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.DO_NOTHING, to='core.Groundtruth'
+                    ),
+                ),
+                (
+                    'score_algorithm',
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.DO_NOTHING, to='core.ScoreAlgorithm'
+                    ),
+                ),
             ],
         ),
         migrations.AddField(
             model_name='scoreresult',
             name='score_job',
-            field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.CASCADE, to='core.ScoreJob'),
+            field=models.ForeignKey(
+                blank=True,
+                null=True,
+                on_delete=django.db.models.deletion.CASCADE,
+                to='core.ScoreJob',
+            ),
         ),
     ]
