@@ -1,7 +1,7 @@
 from setuptools import setup
 
 setup(
-    name='resonantgeodata-challenge',
+    name='resonantgeodata',
     version='0.1',
     python_requires='>=3.8.0',
     install_requires=[
