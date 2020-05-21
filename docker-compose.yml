@@ -6,10 +6,12 @@ services:
       POSTGRES_DB: rgd
       POSTGRES_PASSWORD: postgres
     volumes:
-      - /var/lib/postgresql/data
+      - "dbdata:/var/lib/postgresql/data"
 
   rabbitmq:
     image: rabbitmq:latest
+    volumes:
+      - mqdata:/var/lib/rabbitmq
 
   minio:
     image: minio/minio
@@ -18,4 +20,9 @@ services:
       MINIO_ACCESS_KEY: minioAdminAccessKey
       MINIO_SECRET_KEY: minioAdminSecretKey
     volumes:
-      - /data
+      - fsdata:/data
+
+volumes:
+  dbdata:
+  fsdata:
+  mqdata:
