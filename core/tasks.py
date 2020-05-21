@@ -28,7 +28,7 @@ def _field_file_to_local_path(field_file: FieldFile) -> Generator[Path, None, No
     with field_file.open('rb'):
         file_obj: File = field_file.file
 
-        if isinstance(file_obj, S3Boto3StorageFile):
+        if not Path(file_obj.name).exists() or isinstance(file_obj, S3Boto3StorageFile):
             field_file_basename = PurePath(field_file.name).name
             with tempfile.NamedTemporaryFile('wb', suffix=field_file_basename) as dest_stream:
                 shutil.copyfileobj(file_obj, dest_stream)

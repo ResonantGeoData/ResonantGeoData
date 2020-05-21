@@ -7,13 +7,9 @@ services:
       POSTGRES_PASSWORD: postgres
     volumes:
       - /var/lib/postgresql/data
-    ports:
-      - 5432:5432
 
   rabbitmq:
     image: rabbitmq:latest
-    ports:
-      - 5672:5672
 
   minio:
     image: minio/minio
@@ -23,5 +19,3 @@ services:
       MINIO_SECRET_KEY: minioAdminSecretKey
     volumes:
       - /data
-    ports:
-      - 9000:9000
