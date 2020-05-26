@@ -8,6 +8,7 @@ from django.utils.html import escape
 from django.utils.safestring import mark_safe
 from django_admin_display import admin_display
 
+
 from . import models
 from . import tasks
 
@@ -42,6 +43,55 @@ def _text_preview(log_file: FileField):
                 return 'Log is empty'
     else:
         return 'No log file to display'
+
+
+def _result_preview(data_file: FileField, mimetype):
+    mimetype_check = False
+    # check number of / to determine how to parse the mimetype
+    mimetype_number = mimetype.count('/')
+    if mimetype_number == 1:
+        # check if 'text' is the file type
+        mimetype = mimetype.split('/')
+        mimetype_first_part = mimetype[0]
+        if mimetype_first_part == 'text':
+            mimetype_check = True
+    else:
+        # if there are 2 mimestypes
+        mimetype = mimetype.split(',')
+        mimetype_compressed_part = mimetype[0]
+        mimetype_uncompressed_part = mimetype[1]
+        mimetype_first_part = mimetype_compressed_part.split('/')[0]
+        mimetype_second_part = mimetype_uncompressed_part.split('/')[0]
+        if mimetype_first_part == 'text' or mimetype_second_part == 'text':
+            mimetype_check = True
+    # show 10kb
+    maxlen = 10000
+    if mimetype_check and data_file:
+        with data_file.open('rb') as datafile:
+            if len(datafile) > 0:
+                try:
+                    # from the beginning to the maxlen
+                    datafile.seek(maxlen, os.SEEK_SET)
+                except OSError as exc:
+                    # EINVAL 22: 'Invalid argument'
+                    if exc.errno != 22:
+                        # reraise exceptions except for trying to seek before the beginning
+                        raise
+                message = datafile.read().decode(errors='replace')
+                if len(data_file) < maxlen:
+                    return mark_safe('<PRE>' + escape(message) + '</PRE>')
+                else:
+                    prefix_message = f"""The output is too large to display in the browser.
+                Only the first {maxlen} characters are displayed.
+                """
+                    prefix_message = linebreaksbr(prefix_message)
+                    return mark_safe(prefix_message + '<PRE>' + escape(message) + '</PRE>')
+            else:
+                # return 'Do not show this column'
+                return False
+    else:
+        # return 'Not text mimetype and do not show this column'
+        return False
 
 
 @admin_display(short_description='Run algorithm')
@@ -94,7 +144,17 @@ class AlgorithmResultAdmin(admin.ModelAdmin):
         'data_link',
         'log_link',
     )
-    readonly_fields = ('data_link', 'algorithm', 'dataset', 'log_link', 'log_preview')
+
+    def result_preview(self, obj):
+        # not show if it's None?? how to hide the column?
+        return _result_preview(obj.data, obj.data_mimetype)
+
+    # readonly_fields = ('data_link', 'algorithm', 'dataset', 'log_link', 'log_preview', 'result_preview',)
+    # not show if it's None?? how to hide the column?
+    if result_preview is False:
+        readonly_fields = ('data_link', 'algorithm', 'dataset', 'log_link', 'log_preview')
+    else:
+        readonly_fields = ('data_link', 'algorithm', 'dataset', 'log_link', 'log_preview', 'result_preview')
 
     def data_link(self, obj):
         if obj.data:
@@ -120,6 +180,10 @@ class AlgorithmResultAdmin(admin.ModelAdmin):
 
     def log_preview(self, obj):
         return _text_preview(obj.log)
+
+    # def result_preview(self, obj):
+    #     # not show if it's None?? how to hide the column?
+    #     return _result_preview(obj.data, obj.data_mimetype)
 
     # overrride default textfield model from textarea to text input
     def formfield_for_dbfield(self, db_field, **kwargs):
