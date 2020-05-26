@@ -44,16 +44,13 @@ def _text_preview(log_file: FileField):
         return 'No log file to display'
 
 
-@admin_display(short_description='Run algorithm')
-def run_algorithm(modeladmin, request, queryset):
-    for algorithm_job in queryset:
-        tasks.run_algorithm.delay(algorithm_job.id)
-
-
-@admin_display(short_description='Run scoring')
-def run_scoring(modeladmin, request, queryset):
-    for score_job in queryset:
-        tasks.run_scoring.delay(score_job.id)
+def _link_url(name, obj, field):
+    if not getattr(obj, field, None):
+        return 'No attachment'
+    url = getattr(obj, field).url
+    if '//minio:' in url:
+        url = '/api/download/%s/%s/%s' % (name, obj.id, field)
+    return mark_safe('<a href="%s" download>Download</a>' % (url,))
 
 
 @admin.register(models.Algorithm)
@@ -62,10 +59,7 @@ class AlgorithmAdmin(admin.ModelAdmin):
     readonly_fields = ('data_link',)
 
     def data_link(self, obj):
-        if obj.data:
-            return mark_safe('<a href="%s" download>Download</a>' % (obj.data.url,))
-        else:
-            return 'No attachment'
+        return _link_url('algorithm', obj, 'data')
 
     data_link.allow_tags = True
 
@@ -79,6 +73,11 @@ class AlgorithmAdmin(admin.ModelAdmin):
 
 @admin.register(models.AlgorithmJob)
 class AlgorithmJobAdmin(admin.ModelAdmin):
+    @admin_display(short_description='Run algorithm')
+    def run_algorithm(self, request, queryset):
+        for algorithm_job in queryset:
+            tasks.run_algorithm.delay(algorithm_job.id)
+
     list_display = ('__str__', 'creator', 'created', 'algorithm', 'dataset', 'status')
     actions = [run_algorithm]
 
@@ -97,18 +96,12 @@ class AlgorithmResultAdmin(admin.ModelAdmin):
     readonly_fields = ('data_link', 'algorithm', 'dataset', 'log_link', 'log_preview')
 
     def data_link(self, obj):
-        if obj.data:
-            return mark_safe('<a href="%s" download>Download</a>' % (obj.data.url,))
-        else:
-            return 'No attachment'
+        return _link_url('algorithm_result', obj, 'data')
 
     data_link.allow_tags = True
 
     def log_link(self, obj):
-        if obj.log:
-            return mark_safe('<a href="%s" download>Download</a>' % (obj.log.url,))
-        else:
-            return 'No attachment'
+        return _link_url('algorithm_result', obj, 'log')
 
     log_link.allow_tags = True
 
@@ -135,10 +128,7 @@ class DatasetAdmin(admin.ModelAdmin):
     readonly_fields = ('data_link', 'task_list')
 
     def data_link(self, obj):
-        if obj.data:
-            return mark_safe('<a href="%s" download>Download</a>' % (obj.data.url,))
-        else:
-            return 'No attachment'
+        return _link_url('dataset', obj, 'data')
 
     data_link.allow_tags = True
 
@@ -152,10 +142,7 @@ class GroundtruthAdmin(admin.ModelAdmin):
     readonly_fields = ('data_link',)
 
     def data_link(self, obj):
-        if obj.data:
-            return mark_safe('<a href="%s" download>Download</a>' % (obj.data.url,))
-        else:
-            return 'No attachment'
+        return _link_url('groundtruth', obj, 'data')
 
     data_link.allow_tags = True
 
@@ -168,6 +155,11 @@ class ScoreAlgorithmAdmin(AlgorithmAdmin):
 
 @admin.register(models.ScoreJob)
 class ScoreJobAdmin(admin.ModelAdmin):
+    @admin_display(short_description='Run scoring')
+    def run_scoring(self, request, queryset):
+        for score_job in queryset:
+            tasks.run_scoring.delay(score_job.id)
+
     list_display = (
         '__str__',
         'creator',
@@ -210,18 +202,12 @@ class ScoreResultAdmin(admin.ModelAdmin):
     )
 
     def data_link(self, obj):
-        if obj.data:
-            return mark_safe('<a href="%s" download>Download</a>' % (obj.data.url,))
-        else:
-            return 'No attachment'
+        return _link_url('score_result', obj, 'data')
 
     data_link.allow_tags = True
 
     def log_link(self, obj):
-        if obj.log:
-            return mark_safe('<a href="%s" download>Download</a>' % (obj.log.url,))
-        else:
-            return 'No attachment'
+        return _link_url('score_result', obj, 'log')
 
     log_link.allow_tags = True
 
