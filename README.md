@@ -19,7 +19,7 @@ but allows developers to run the Python code on their native system.
 
 ### Initial Setup
 1. Run `./dev/init-minio.sh`
-2. Run `docker-compose -f ./docker-compose.yml up -d`
+2. Run `docker-compose -f ./docker-compose.yml -f ./docker-compose.native.yml up -d`
 3. Install Python 3.8
 4. Install [`psycopg2` build prerequisites](https://www.psycopg.org/docs/install.html#build-prerequisites)
 5. Create and activate a new Python virtualenv
