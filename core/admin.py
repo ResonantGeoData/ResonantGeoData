@@ -1,5 +1,3 @@
-import os
-
 from django.contrib import admin
 from django.db.models import FileField
 from django.forms import TextInput
@@ -12,36 +10,46 @@ from . import models
 from . import tasks
 
 
-def _text_preview(log_file: FileField):
+def _text_preview(target_file: FileField, mimetype=None, show_end=True):
     """
-    Return the text of a file if it is short or the last portion of it if it is long.
+    Return the text of a file if it is short or a portion of it if it is long.
 
-    :params: log_file A FileField to read text from.
+    params:
+        target_file: A FileField to read text from. (log or data file)
+        mimetype: A string default to be 'None' for log (data file have a mimetype)
+        show_end: A bool default to be True determines first/last portion for preview
     """
+    # show log file preview while data file needs to be checked
+    mimetype_check = mimetype is None or (mimetype is not None and mimetype.startswith('text/'))
+    # if mimetype_check fails, no need to read files
+    if not mimetype_check:
+        return None
     # max file size for display, currently 10kb
     maxlen = 10000
-    if log_file:
-        with log_file.open('rb') as datafile:
+    if target_file:
+        with target_file.open('rb') as datafile:
             if len(datafile) > 0:
-                try:
-                    datafile.seek(-maxlen, os.SEEK_END)
-                except OSError as exc:
-                    if exc.errno != 22:
-                        # reraise exceptions except for trying to seek before the beginning
-                        raise
-                message = datafile.read().decode(errors='replace')
-                if len(log_file) < maxlen:
+                if show_end:
+                    # read and only display from the end for log filess
+                    display_message = 'last'
+                    # seek reference
+                    datafile.seek(max(0, len(target_file) - maxlen))
+                else:
+                    # no need for seek reference if start with the beginning
+                    display_message = 'first'
+                message = datafile.read(maxlen).decode(errors='replace')
+                if len(target_file) < maxlen:
                     return mark_safe('<PRE>' + escape(message) + '</PRE>')
                 else:
                     prefix_message = f"""The output is too large to display in the browser.
-                Only the last {maxlen} characters are displayed.
+                Only the {display_message} {maxlen} characters are displayed.
                 """
                     prefix_message = linebreaksbr(prefix_message)
                     return mark_safe(prefix_message + '<PRE>' + escape(message) + '</PRE>')
             else:
-                return 'Log is empty'
+                return 'File is empty'
     else:
-        return 'No log file to display'
+        return 'No file provided'
 
 
 @admin_display(short_description='Run algorithm')
@@ -96,6 +104,22 @@ class AlgorithmResultAdmin(admin.ModelAdmin):
     )
     readonly_fields = ('data_link', 'algorithm', 'dataset', 'log_link', 'log_preview')
 
+    # override readonly_fields to hide result_preview if no result or mimetype not 'text'
+    def get_readonly_fields(self, request, obj):
+        result = _text_preview(obj.data, obj.data_mimetype, False)
+        if result is None:
+            readonly_fields = ('data_link', 'algorithm', 'dataset', 'log_link', 'log_preview')
+        else:
+            readonly_fields = (
+                'data_link',
+                'algorithm',
+                'dataset',
+                'log_link',
+                'log_preview',
+                'result_preview',
+            )
+        return readonly_fields
+
     def data_link(self, obj):
         if obj.data:
             return mark_safe('<a href="%s" download>Download</a>' % (obj.data.url,))
@@ -120,6 +144,9 @@ class AlgorithmResultAdmin(admin.ModelAdmin):
 
     def log_preview(self, obj):
         return _text_preview(obj.log)
+
+    def result_preview(self, obj):
+        return _text_preview(obj.data, obj.data_mimetype, False)
 
     # overrride default textfield model from textarea to text input
     def formfield_for_dbfield(self, db_field, **kwargs):
