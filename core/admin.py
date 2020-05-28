@@ -1,5 +1,3 @@
-import os
-
 from django.contrib import admin
 from django.db.models import FileField
 from django.forms import TextInput
@@ -12,34 +10,34 @@ from . import models
 from . import tasks
 
 
-def _text_preview(target_file: FileField, mimetype, show_end):
+def _text_preview(target_file: FileField, mimetype=None, show_end=True):
     """
-    Return the text of a file if it is short or the last portion of it if it is long.
+    Return the text of a file if it is short or a portion of it if it is long.
 
-    params: target_file A FileField to read text from.
-            mimetype Log or Data's mimetype, score result don't have one
-            show_end Determine if showing the first/last portion for preview
+    params:
+        target_file: A FileField to read text from. (log or data file)
+        mimetype: A string default to be 'None' for log (data file have a mimetype)
+        show_end: A bool default to be True determines first/last portion for preview
     """
-    mimetype_check = mimetype.startswith('text/')
+    # show log file preview while data file needs to be checked
+    mimetype_check = mimetype is None or (mimetype is not None and mimetype.startswith('text/'))
+    # if mimetype_check fails, no need to read files
+    if not mimetype_check:
+        return None
     # max file size for display, currently 10kb
     maxlen = 10000
     if target_file:
         with target_file.open('rb') as datafile:
             if len(datafile) > 0:
                 if show_end:
-                    # read and only display from the end for log filess                    display_message = 'last'
-                    datafile.seek(-maxlen, os.SEEK_END)
-                    message = datafile.read().decode(errors='replace')
+                    # read and only display from the end for log filess
+                    display_message = 'last'
+                    # seek reference
+                    datafile.seek(max(0, len(target_file) - maxlen))
                 else:
-                    # only show message if it's log or mime type is text
-                    if mimetype is None or mimetype_check:
-                        display_message = 'first'
-                        datafile.seek(max(0, len(datafile) - maxlen))
-                        message = datafile.read(maxlen).decode(errors='replace')
-                    else:
-                        # no need to show result preview column
-                        return None
-                # display corresponding text preview and format preview
+                    # no need for seek reference if start with the beginning
+                    display_message = 'first'
+                message = datafile.read(maxlen).decode(errors='replace')
                 if len(target_file) < maxlen:
                     return mark_safe('<PRE>' + escape(message) + '</PRE>')
                 else:
@@ -145,7 +143,7 @@ class AlgorithmResultAdmin(admin.ModelAdmin):
         return obj.algorithm_job.dataset
 
     def log_preview(self, obj):
-        return _text_preview(obj.log, obj.data_mimetype, True)
+        return _text_preview(obj.log)
 
     def result_preview(self, obj):
         return _text_preview(obj.data, obj.data_mimetype, False)
@@ -276,7 +274,7 @@ class ScoreResultAdmin(admin.ModelAdmin):
         return obj.score_job.result_type
 
     def log_preview(self, obj):
-        return _text_preview(obj.log, obj.data_mimetype, True)
+        return _text_preview(obj.log)
 
 
 @admin.register(models.Task)
