@@ -51,3 +51,9 @@ Useful sub-commands include:
 
 To automatically reformat all code to comply with
 some (but not all) of the style checks, run `tox -e format`.
+
+## Sample Algorithms
+
+There are a few sample algorithms on <https://data.kitware.com> in the ResonantGeoData collection.
+
+
