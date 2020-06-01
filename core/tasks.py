@@ -43,20 +43,18 @@ def _run_algorithm(algorithm_job):
     algorithm_file: FieldFile = algorithm_job.algorithm.data
     dataset_file: FieldFile = algorithm_job.dataset.data
     try:
-        with _field_file_to_local_path(algorithm_file) as algorithm_path, _field_file_to_local_path(
-            dataset_file
-        ) as dataset_path:
-            client = docker.from_env(version='auto', timeout=3600)
-            image = None
-            if algorithm_job.algorithm.docker_image_id:
-                try:
-                    image = client.images.get(algorithm_job.algorithm.docker_image_id)
-                    logger.info(
-                        'Loaded existing docker image %r' % algorithm_job.algorithm.docker_image_id
-                    )
-                except docker.errors.ImageNotFound:
-                    pass
-            if not image:
+        client = docker.from_env(version='auto', timeout=3600)
+        image = None
+        if algorithm_job.algorithm.docker_image_id:
+            try:
+                image = client.images.get(algorithm_job.algorithm.docker_image_id)
+                logger.info(
+                    'Loaded existing docker image %r' % algorithm_job.algorithm.docker_image_id
+                )
+            except docker.errors.ImageNotFound:
+                pass
+        if not image:
+            with _field_file_to_local_path(algorithm_file) as algorithm_path:
                 logger.info('Loading docker image %s' % algorithm_path)
                 image = client.images.load(open(algorithm_path, 'rb'))
                 if len(image) != 1:
@@ -65,7 +63,11 @@ def _run_algorithm(algorithm_job):
                 algorithm_job.algorithm.docker_image_id = image.attrs['Id']
                 algorithm_job.algorithm.save(update_fields=['docker_image_id'])
                 logger.info('Loaded docker image %r' % algorithm_job.algorithm.docker_image_id)
-            logger.info('Running image %s with data %s' % (algorithm_path, dataset_path))
+        with _field_file_to_local_path(dataset_file) as dataset_path:
+            logger.info(
+                'Running image %s with data %s'
+                % (algorithm_job.algorithm.docker_image_id, dataset_path)
+            )
             tmpdir = tempfile.mkdtemp()
             output_path = os.path.join(tmpdir, 'output.dat')
             stderr_path = os.path.join(tmpdir, 'stderr.dat')
@@ -80,7 +82,15 @@ def _run_algorithm(algorithm_job):
             if len(GPUtil.getAvailable()):
                 cmd += ['--gpus', 'all']
             cmd += [str(algorithm_job.algorithm.docker_image_id)]
-            logger.info('Running %s' % (' '.join([shlex.quote(c) for c in cmd])))
+            logger.info(
+                'Running %s <%s >%s 2>%s'
+                % (
+                    ' '.join([shlex.quote(c) for c in cmd]),
+                    shlex.quote(str(dataset_path)),
+                    shlex.quote(output_path),
+                    shlex.quote(stderr_path),
+                )
+            )
             try:
                 subprocess.check_call(
                     cmd,
@@ -136,25 +146,18 @@ def _run_scoring(score_job):
     algorithm_result_file: FieldFile = score_job.algorithm_result.data
     groundtruth_file: FieldFile = score_job.groundtruth.data
     try:
-        with _field_file_to_local_path(
-            score_algorithm_file
-        ) as score_algorithm_path, _field_file_to_local_path(
-            algorithm_result_file
-        ) as algorithm_result_path, _field_file_to_local_path(
-            groundtruth_file
-        ) as groundtruth_path:
-            client = docker.from_env(version='auto', timeout=3600)
-            image = None
-            if score_job.score_algorithm.docker_image_id:
-                try:
-                    image = client.images.get(score_job.score_algorithm.docker_image_id)
-                    logger.info(
-                        'Loaded existing docker image %r'
-                        % score_job.score_algorithm.docker_image_id
-                    )
-                except docker.errors.ImageNotFound:
-                    pass
-            if not image:
+        client = docker.from_env(version='auto', timeout=3600)
+        image = None
+        if score_job.score_algorithm.docker_image_id:
+            try:
+                image = client.images.get(score_job.score_algorithm.docker_image_id)
+                logger.info(
+                    'Loaded existing docker image %r' % score_job.score_algorithm.docker_image_id
+                )
+            except docker.errors.ImageNotFound:
+                pass
+        if not image:
+            with _field_file_to_local_path(score_algorithm_file) as score_algorithm_path:
                 logger.info('Loading docker image %s' % score_algorithm_path)
                 image = client.images.load(open(score_algorithm_path, 'rb'))
                 if len(image) != 1:
@@ -163,26 +166,43 @@ def _run_scoring(score_job):
                 score_job.score_algorithm.docker_image_id = image.attrs['Id']
                 score_job.score_algorithm.save(update_fields=['docker_image_id'])
                 logger.info('Loaded docker image %r' % score_job.score_algorithm.docker_image_id)
+        with _field_file_to_local_path(
+            algorithm_result_file
+        ) as algorithm_result_path, _field_file_to_local_path(groundtruth_file) as groundtruth_path:
             logger.info(
                 'Running image %s with groundtruth %s and results %s'
-                % (score_algorithm_path, groundtruth_path, algorithm_result_path)
+                % (
+                    score_job.score_algorithm.docker_image_id,
+                    groundtruth_path,
+                    algorithm_result_path,
+                )
             )
             tmpdir = tempfile.mkdtemp()
             output_path = os.path.join(tmpdir, 'output.dat')
             stderr_path = os.path.join(tmpdir, 'stderr.dat')
+            cmd = [
+                'docker',
+                'run',
+                '--rm',
+                '-i',
+                '--name',
+                'score_job_%s_%s' % (score_job.id, time.time()),
+                '-v',
+                '%s:%s:ro' % (groundtruth_path, '/groundtruth.dat'),
+                str(score_job.score_algorithm.docker_image_id),
+            ]
+            logger.info(
+                'Running %s <%s >%s 2>%s'
+                % (
+                    ' '.join([shlex.quote(c) for c in cmd]),
+                    shlex.quote(str(algorithm_result_path)),
+                    shlex.quote(output_path),
+                    shlex.quote(stderr_path),
+                )
+            )
             try:
                 subprocess.check_call(
-                    [
-                        'docker',
-                        'run',
-                        '--rm',
-                        '-i',
-                        '--name',
-                        'score_job_%s_%s' % (score_job.id, time.time()),
-                        '-v',
-                        '%s:%s:ro' % (groundtruth_path, '/groundtruth.dat'),
-                        str(score_job.score_algorithm.docker_image_id),
-                    ],
+                    cmd,
                     stdin=open(algorithm_result_path, 'rb'),
                     stdout=open(output_path, 'wb'),
                     stderr=open(stderr_path, 'wb'),
@@ -275,8 +295,11 @@ def run_scoring(score_job_id, dry_run=False):
 
 def _overall_score_and_result_type(datafile):
     # In the future, inspect the data to determine the result type.  For now, just extract a float from the data file
-    result_type = ScoreResult.ResultTypes.SIMPLE
-    overall_score = float(datafile.readline())
+    try:
+        overall_score = float(datafile.readline())
+        result_type = ScoreResult.ResultTypes.SIMPLE
+    except ValueError:
+        return None, None
     return overall_score, result_type
 
 

@@ -22,10 +22,13 @@ services:
       dockerfile: ./dev/Dockerfile
     command: ["celery", "worker", "--app", "rgd.celery", "--loglevel", "info", "--without-heartbeat"]
     env_file: ./dev/.env.docker-compose
+    environment:
+      - TMPDIR=/tmp/rgd_worker
     volumes:
       - .:/opt/resonantgeodata
       - /var/run/docker.sock:/var/run/docker.sock
       - /usr/bin/docker:/usr/bin/docker
+      - /tmp/rgd_worker:/tmp/rgd_worker
     depends_on:
       - db
       - rabbitmq
