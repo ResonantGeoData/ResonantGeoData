@@ -21,6 +21,7 @@ urlpatterns = [
     path('jobs/<str:creator>/<int:pk>/', views.JobDetailView.as_view(), name='job-detail'),
     path('tasks/', views.tasks, name='tasks'),
     path('task/<int:pk>-<str:name>/', views.TaskDetailView.as_view(), name='task-detail'),
+    path('api/download/<model>/<int:id>/<field>', views.download_file, name='download-file'),
 ]
 
 handler500 = views.handler500
