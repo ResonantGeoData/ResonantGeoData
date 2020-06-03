@@ -6,7 +6,7 @@ setup(
     python_requires='>=3.8.0',
     install_requires=[
         'boto3',
-        'celery',
+        'celery!=4.4.4',
         'django',
         'django-admin-display',
         'django-allauth',
