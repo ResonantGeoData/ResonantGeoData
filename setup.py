@@ -30,5 +30,8 @@ setup(
         # Development-only
         'django-debug-toolbar',
         'django-minio-storage',
+        'rasterio',
+        'fiona',
+        'shapely',
     ],
 )

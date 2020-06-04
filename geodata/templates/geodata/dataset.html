@@ -1,0 +1,18 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8">
+        <title>Rasters</title>
+    </head>
+<body>
+    {% if rasters %}
+    <ul>
+    {% for raster in rasters %}
+        <li>
+        {{ raster.id }}: {{raster.name}}
+        </li>
+    {% endfor %}
+    </ul>
+    {% endif %}
+</body>
+</html>
