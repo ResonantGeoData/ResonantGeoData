@@ -5,12 +5,6 @@ echo "Initializing the Minio container and making it ready for Django use:"
 # Recreate the "minio" container and run it in the background
 docker-compose up --force-recreate --detach minio
 
-echo -n "Waiting for Minio to start ..."
-"$( dirname "${BASH_SOURCE[0]}" )/wait-for/wait-for" localhost:9000
-# The port binds slightly before the service is ready for connections
-sleep 5
-echo " done"
-
 # Use the MinIO Client (mc) tool to:
 # * Connect to the running Minio server
 # * Make a bucket
@@ -21,7 +15,7 @@ echo " done"
 # Run "mc" once with no output to suppress confusing mc initialization
 docker run --rm -t --network resonantgeodata_default --entrypoint /bin/sh minio/mc -c '
 /usr/bin/mc > /dev/null \
-&& /usr/bin/mc config host add minio http://minio:9000 minioAdminAccessKey minioAdminSecretKey \
+&& for i in $(seq 60); do /usr/bin/mc config host add minio http://minio:9000 minioAdminAccessKey minioAdminSecretKey && break || s=$? && sleep 1; done; (exit $s) \
 && /usr/bin/mc mb -ignore-existing minio/resonantgeodata \
 && /usr/bin/mc admin user add minio djangoAccessKey djangoSecretKey \
 && /usr/bin/mc admin policy set minio readwrite user=djangoAccessKey'
