@@ -1,19 +1,18 @@
-"""Meta classes that list out useful info stored by GeoDjango to make those
-data more accessible.
-"""
-from django.contrib.gis.geos import GEOSGeometry, GeometryCollection
+"""Meta classes that list out useful info stored by GeoDjango."""
+from django.contrib.gis.geos import GeometryCollection
 
 
 class GeometryCollectionMeta:
     """A meta class to point to ``GeometryCollection`` properties.
 
     ``django.contrib.gis.geos.GeometryCollection``
+
     """
 
     def __init__(self, collection):
         if not isinstance(collection, GeometryCollection):
             raise TypeError(
-                "`GeometryCollectionMeta` only supports `GeometryCollection`. `{}` not supported.".format(
+                '`GeometryCollectionMeta` only supports `GeometryCollection`. `{}` not supported.'.format(
                     type(collection)
                 )
             )

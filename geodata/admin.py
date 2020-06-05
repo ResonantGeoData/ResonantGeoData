@@ -2,8 +2,8 @@ from django.contrib import admin
 from django.contrib.gis.admin import OSMGeoAdmin
 
 from .models.dataset import Dataset
+from .models.geometry.base import GeometryArchive, GeometryEntry
 from .models.raster.base import RasterEntry, RasterFile
-from .models.geometry.base import GeometryEntry, GeometryArchive
 
 SPATIAL_ENTRY_FILTERS = (
     'acquisition_date',
@@ -28,7 +28,7 @@ class RasterEntryAdmin(OSMGeoAdmin):
     readonly_fields = (
         'resolution',
         'n_bands',
-    )  #'thumbnail')
+    )  # 'thumbnail')
     exclude = ('raster',)
     list_filter = SPATIAL_ENTRY_FILTERS + ('instrumentation',)
 

@@ -1,14 +1,11 @@
-"""Helper methods for creating a ``GDALRaster`` entry from a raster file.
-"""
-import os
-
+"""Helper methods for creating a ``GDALRaster`` entry from a raster file."""
 from celery.utils.log import get_task_logger
-from django.contrib.gis.gdal import GDALRaster, OGRGeometry
-from django.core.files.base import ContentFile
+from django.contrib.gis.gdal import GDALRaster
+import rasterio
 
+# from django.core.files.base import ContentFile
 # import io
 # from PIL import Image
-import rasterio
 
 from .base import RasterEntry, RasterFile
 from ..common import _ReaderRoutine
@@ -17,7 +14,9 @@ logger = get_task_logger(__name__)
 
 
 class RasterEntryReader(_ReaderRoutine):
-    """This helper class will open a raster file and create the ``GDALRaster``
+    """Raster injestion routine.
+
+    This helper class will open a raster file and create the ``GDALRaster``
     for the ``RasterEntry``'s raster property.
 
     """
@@ -33,9 +32,12 @@ class RasterEntryReader(_ReaderRoutine):
     #     return ContentFile(byte_im)
 
     def _read_files(self):
-        """TODO: this function will need to handle a lot of scenarios for how
+        """Load raster data files and creaet a ``GDALRaster``.
+
+        TODO: this function will need to handle a lot of scenarios for how
         the raster file is passed and where it is stored. In most cases, a
         local copy will need to be created...
+
         """
         # Fetch the raster file this Layer corresponds to
         self.rfe = RasterFile.objects.get(id=self.model_id)
@@ -46,7 +48,7 @@ class RasterEntryReader(_ReaderRoutine):
         #     local_file.write(chunk)
         # local_file.close()
 
-        logger.info(f"The raster file path: {file_path}")
+        logger.info(f'The raster file path: {file_path}')
 
         # TODO: make sure CRS matched SRID in DB
         if self.rfe.raster_entry is None:
@@ -62,8 +64,7 @@ class RasterEntryReader(_ReaderRoutine):
         return True
 
     def _save_entries(self):
-        """This will populate the ``RasterField`` property of the layer.
-        """
+        """Populate the ``RasterField`` property of the layer."""
         # Now actually save the raster entry!
         self.rfe.raster_entry.save()
         self.rfe.save(update_fields=['raster_entry'])

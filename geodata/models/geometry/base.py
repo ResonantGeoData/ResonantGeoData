@@ -1,11 +1,9 @@
 from django.contrib.gis.db import models
-from django.contrib.postgres import fields
-from django.contrib.gis.gdal import OGRGeometry
 from django.db import transaction
-from django.dispatch import receiver
 from django.db.models.signals import post_save
+from django.dispatch import receiver
 
-from ..common import SpatialEntry, ModifiableEntry, PostSaveEventModel
+from ..common import ModifiableEntry, PostSaveEventModel, SpatialEntry
 from ..constants import DB_SRID
 
 
@@ -29,14 +27,16 @@ class GeometryEntry(SpatialEntry):
 
 
 class GeometryArchive(ModifiableEntry, PostSaveEventModel):
-    """When this model is created, it loads data from an archive into
+    """Container for ``zip`` archives of a shapefile.
+
+    When this model is created, it loads data from an archive into
     a single ``GeometryEntry`` that is then associated with this entry.
     """
 
     task_name = 'validate_geometry_archive'
     archive_file = models.FileField(
         upload_to='geometry_files',
-        validators=[validate_zip_extension,],
+        validators=[validate_zip_extension],
         help_text='This must be an archive (`.zip`) of a single shape (`.shp`, `.dbf`, `.shx`, etc.).',
     )
 

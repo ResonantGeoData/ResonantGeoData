@@ -1,6 +1,4 @@
-"""Meta classes that list out useful info stored by GeoDjango to make those
-data more accessible.
-"""
+"""Meta classes that list out useful info stored by GeoDjango."""
 from django.contrib.gis.gdal.raster.source import GDALBand, GDALRaster
 
 
@@ -8,12 +6,13 @@ class RasterMeta:
     """A meta class to point to ``GDALRaster`` properties.
 
     ``django.contrib.gis.gdal.raster.source.GDALRaster``
+
     """
 
     def __init__(self, raster):
         if not isinstance(raster, GDALRaster):
             raise TypeError(
-                "`RasterMeta` only supports `GDALRaster`. `{}` not supported.".format(type(raster))
+                '`RasterMeta` only supports `GDALRaster`. `{}` not supported.'.format(type(raster))
             )
         self._raster = raster
 
@@ -62,12 +61,13 @@ class BandMeta:
     """A meta class to point to ``GDALBand`` properties.
 
     ``django.contrib.gis.gdal.raster.band.GDALBand``
+
     """
 
     def __init__(self, band):
-        if not isinstance(raster, GDALBand):
+        if not isinstance(band, GDALBand):
             raise TypeError(
-                "`BandMeta` only supports `GDALBand`. `{}` not supported.".format(type(raster))
+                '`BandMeta` only supports `GDALBand`. `{}` not supported.'.format(type(band))
             )
         self._band = band
 

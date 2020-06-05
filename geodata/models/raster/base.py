@@ -2,10 +2,10 @@
 from django.contrib.gis.db import models
 from django.contrib.postgres import fields
 from django.db import transaction
-from django.dispatch import receiver
 from django.db.models.signals import post_save
+from django.dispatch import receiver
 
-from ..common import SpatialEntry, DeferredFieldsManager, ModifiableEntry, PostSaveEventModel
+from ..common import DeferredFieldsManager, ModifiableEntry, PostSaveEventModel, SpatialEntry
 from ..constants import DB_SRID
 
 
@@ -22,6 +22,7 @@ class RasterEntry(SpatialEntry):
 
     The ``raster`` property/field is read only to the user and a custom task
     loads the given ``raster_file`` to create the ``raster``.
+
     """
 
     instrumentation = models.CharField(
@@ -31,7 +32,7 @@ class RasterEntry(SpatialEntry):
         help_text='The instrumentation used to acquire these data.',
     )
 
-    #### READ ONLY ATTRIBUTES ####
+    # READ ONLY ATTRIBUTES
     # i.e. these are populated programatically
     raster = models.RasterField(srid=DB_SRID)
 
@@ -46,8 +47,10 @@ class RasterEntry(SpatialEntry):
 
 
 class RasterFile(ModifiableEntry, PostSaveEventModel):
-    """This is a standalone DB entry for raster files which will automatically
-    generate a ``RasterEntry``.
+    """This is a standalone DB entry for raster files.
+
+    This which will automatically generate a ``RasterEntry``.
+
     """
 
     task_name = 'validate_raster'

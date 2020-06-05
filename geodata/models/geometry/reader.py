@@ -1,32 +1,29 @@
-"""Helper methods for creating a geometry entries from uploaded files.
-"""
-import os
+"""Helper methods for creating a geometry entries from uploaded files."""
 from glob import glob
+import os
 import zipfile
 
 from celery.utils.log import get_task_logger
-from django.contrib.gis.gdal import GDALRaster, OGRGeometry
-from django.contrib.gis.geos import GEOSGeometry, GeometryCollection
-from django.core.files.base import ContentFile
+from django.contrib.gis.geos import GeometryCollection, GEOSGeometry
 from django.core.exceptions import ValidationError
-
 import fiona
 from shapely.geometry import shape
 from shapely.wkb import dumps
 
-from .base import GeometryEntry, GeometryArchive
-from ..constants import DB_SRID
+from .base import GeometryArchive, GeometryEntry
 from ..common import _ReaderRoutine
+from ..constants import DB_SRID
 
 logger = get_task_logger(__name__)
 
 
 class GeometryArchiveReader(_ReaderRoutine):
-    """
-    """
+    """Shapefile geometry injestion routine."""
 
     def _read_files(self):
-        """This will load zipped archives of shape files and create entries
+        """Read ``zip`` archive of a single shapefile (and associated) files.
+
+        This will load zipped archives of shape files and create entries
         for a single shapefile (basename of files).
 
         A single shapefile will consist of a collection of one or many features
@@ -38,10 +35,11 @@ class GeometryArchiveReader(_ReaderRoutine):
         added a single shape file or provide a more explicit upload interface
         where they upload the ``shp``, ``dbf``, etc. files individually and
         we assert that they match.
+
         """
         self.archive = GeometryArchive.objects.get(id=self.model_id)
         file_path = self.archive.archive_file.name
-        logger.info(f"The geometry archive: {file_path}")
+        logger.info(f'The geometry archive: {file_path}')
 
         # Unzip the contents to the working dir
         with zipfile.ZipFile(file_path, 'r') as zip_ref:
@@ -70,7 +68,5 @@ class GeometryArchiveReader(_ReaderRoutine):
 
     def _save_entries(self):
         self.archive.geometry_entry.save()
-        self.archive.save(
-            update_fields=['geometry_entry',]
-        )
+        self.archive.save(update_fields=['geometry_entry'])
         return

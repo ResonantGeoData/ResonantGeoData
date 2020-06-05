@@ -1,8 +1,8 @@
 import tempfile
 
+from django.conf import settings
 from django.contrib.gis.db import models
 from django.utils import timezone
-from django.conf import settings
 
 
 class DeferredFieldsManager(models.Manager):
@@ -17,8 +17,8 @@ class DeferredFieldsManager(models.Manager):
 class ModifiableEntry(models.Model):
     """A base class for models that need to track modified datetimes."""
 
-    modified = models.DateTimeField(editable=False, help_text="The last time this entry was saved.")
-    created = models.DateTimeField(editable=False, help_text="When this was added to the database.")
+    modified = models.DateTimeField(editable=False, help_text='The last time this entry was saved.')
+    created = models.DateTimeField(editable=False, help_text='When this was added to the database.')
 
     class Meta:
         abstract = True
@@ -45,7 +45,7 @@ class PostSaveEventModel(models.Model):
     def _run_post_save_task(self):
         """Validate the raster asynchronously."""
         if not isinstance(self.task_name, str):
-            raise RuntimeError("Task name must be set!")
+            raise RuntimeError('Task name must be set!')
         from .. import tasks
 
         task = getattr(tasks, self.task_name)
@@ -78,16 +78,18 @@ class SpatialEntry(ModifiableEntry):
 
 
 class _ReaderRoutine(object):
-    """A base class for defining reader routines that parse file(s) and
-    generate new model entries.
+    """A base class for defining reader routines.
+
+    Subclasses will parse file(s) and generate new model entries.
+
     """
 
     def __init__(self, model_id):
         self.model_id = model_id
 
         # TODO: add a setting like this:
-        GEODATA_WORKDIR = getattr(settings, 'GEODATA_WORKDIR', None)
-        self.tmpdir = tempfile.mkdtemp(dir=GEODATA_WORKDIR)
+        workdir = getattr(settings, 'GEODATA_WORKDIR', None)
+        self.tmpdir = tempfile.mkdtemp(dir=workdir)
 
     def _read_files(self):
         """Must return True for success."""
