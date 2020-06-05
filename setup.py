@@ -30,6 +30,7 @@ setup(
         # Development-only
         'django-debug-toolbar',
         'django-minio-storage',
+        # GeoData
         'rasterio',
         'fiona',
         'shapely',
