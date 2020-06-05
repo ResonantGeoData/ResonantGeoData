@@ -271,10 +271,10 @@ class CorsConfig(Config):
 class RestFrameworkConfig(Config):
     @staticmethod
     def before_binding(configuration: Type[ComposedConfiguration]):
-        configuration.INSTALLED_APPS += ['rest_framework', 'rest_framework.authtoken']
+        configuration.INSTALLED_APPS += ['rest_framework', 'rest_framework.authtoken', 'drf_yasg']
 
     REST_FRAMEWORK = {
-        'DEFAULT_AUTHENTICATION_CLASSES': ['rest_framework.authentication.TokenAuthentication']
+        'DEFAULT_AUTHENTICATION_CLASSES': ['rest_framework.authentication.TokenAuthentication'],
     }
 
 
@@ -308,6 +308,13 @@ class CeleryConfig(Config):
     CELERY_EVENT_QUEUE_EXPIRES = 60
     CELERY_WORKER_PREFETCH_MULTIPLIER = 1
     # CELERY_WORKER_CONCURRENCY can be set if workers have resource constraints
+
+
+class SwaggerConfig(Config):
+    REFETCH_SCHEMA_WITH_AUTH = True
+    REFETCH_SCHEMA_ON_LOGOUT = True
+    OPERATIONS_SORTER = 'alpha'
+    DEEP_LINKING = True
 
 
 class StorageConfig(Config):
@@ -408,6 +415,7 @@ class BaseConfiguration(
     LoggingConfig,
     DjangoConfig,
     ComposedConfiguration,
+    SwaggerConfig,
 ):
     # Does not include a StorageConfig, since that varies
     # significantly from development to production
