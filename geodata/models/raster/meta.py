@@ -3,14 +3,18 @@ data more accessible.
 """
 from django.contrib.gis.gdal.raster.source import GDALBand, GDALRaster
 
+
 class RasterMeta:
     """A meta class to point to ``GDALRaster`` properties.
 
     ``django.contrib.gis.gdal.raster.source.GDALRaster``
     """
+
     def __init__(self, raster):
         if not isinstance(raster, GDALRaster):
-            raise TypeError("`RasterMeta` only supports `GDALRaster`. `{}` not supported.".format(type(raster)))
+            raise TypeError(
+                "`RasterMeta` only supports `GDALRaster`. `{}` not supported.".format(type(raster))
+            )
         self._raster = raster
 
     @property
@@ -54,15 +58,17 @@ class RasterMeta:
         return self._raster.info
 
 
-
 class BandMeta:
     """A meta class to point to ``GDALBand`` properties.
 
     ``django.contrib.gis.gdal.raster.band.GDALBand``
     """
+
     def __init__(self, band):
         if not isinstance(raster, GDALBand):
-            raise TypeError("`BandMeta` only supports `GDALBand`. `{}` not supported.".format(type(raster)))
+            raise TypeError(
+                "`BandMeta` only supports `GDALBand`. `{}` not supported.".format(type(raster))
+            )
         self._band = band
 
     @property

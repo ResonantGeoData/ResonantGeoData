@@ -16,6 +16,7 @@ class DeferredFieldsManager(models.Manager):
 
 class ModifiableEntry(models.Model):
     """A base class for models that need to track modified datetimes."""
+
     modified = models.DateTimeField(editable=False, help_text="The last time this entry was saved.")
     created = models.DateTimeField(editable=False, help_text="When this was added to the database.")
 
@@ -36,6 +37,7 @@ class PostSaveEventModel(models.Model):
 
     NOTE: you still need to register the post save event.
     """
+
     task_name = None
     """A string name of the task in the `tasks` module. Use string to avoid
     recursive imports."""
@@ -45,17 +47,23 @@ class PostSaveEventModel(models.Model):
         if not isinstance(self.task_name, str):
             raise RuntimeError("Task name must be set!")
         from .. import tasks
+
         task = getattr(tasks, self.task_name)
         task.delay(self.id)
 
     def _post_save(self, created, *args, **kwargs):
-        if not created and kwargs.get('update_fields') and 'data' not in kwargs.get('update_fields'):
+        if (
+            not created
+            and kwargs.get('update_fields')
+            and 'data' not in kwargs.get('update_fields')
+        ):
             return
         self._run_post_save_task()
 
 
 class SpatialEntry(ModifiableEntry):
     """Common model to all geospatial data entries."""
+
     name = models.CharField(max_length=100, blank=True, null=True)
     # An optional description field in case the user needs to add context
     description = models.TextField(blank=True, null=True)
@@ -73,6 +81,7 @@ class _ReaderRoutine(object):
     """A base class for defining reader routines that parse file(s) and
     generate new model entries.
     """
+
     def __init__(self, model_id):
         self.model_id = model_id
 

@@ -66,7 +66,5 @@ class RasterEntryReader(_ReaderRoutine):
         """
         # Now actually save the raster entry!
         self.rfe.raster_entry.save()
-        self.rfe.save(update_fields=[
-            'raster_entry'
-        ])
+        self.rfe.save(update_fields=['raster_entry'])
         return

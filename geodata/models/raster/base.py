@@ -24,7 +24,12 @@ class RasterEntry(SpatialEntry):
     loads the given ``raster_file`` to create the ``raster``.
     """
 
-    instrumentation = models.CharField(max_length=100, null=True, blank=True, help_text='The instrumentation used to acquire these data.')
+    instrumentation = models.CharField(
+        max_length=100,
+        null=True,
+        blank=True,
+        help_text='The instrumentation used to acquire these data.',
+    )
 
     #### READ ONLY ATTRIBUTES ####
     # i.e. these are populated programatically
@@ -40,11 +45,11 @@ class RasterEntry(SpatialEntry):
     objects = DeferredFieldsManager('raster')
 
 
-
 class RasterFile(ModifiableEntry, PostSaveEventModel):
     """This is a standalone DB entry for raster files which will automatically
     generate a ``RasterEntry``.
     """
+
     task_name = 'validate_raster'
     raster_file = models.FileField(upload_to='rasters')
     raster_entry = models.OneToOneField(RasterEntry, null=True, on_delete=models.DO_NOTHING)

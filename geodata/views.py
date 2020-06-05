@@ -3,6 +3,7 @@ from django.views import generic
 
 from .models.dataset import Dataset
 
+
 class DatasetsView(generic.ListView):
     model = Dataset
     context_object_name = 'datasets'

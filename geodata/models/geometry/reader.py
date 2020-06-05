@@ -58,11 +58,11 @@ class GeometryArchiveReader(_ReaderRoutine):
         if self.archive.geometry_entry is None:
             self.archive.geometry_entry = GeometryEntry()
 
-        shapes.meta # TODO: dump this JSON into the model entry
+        shapes.meta  # TODO: dump this JSON into the model entry
 
         collection = []
         for item in shapes:
-            geom = shape(item['geometry']) # not optimal?
+            geom = shape(item['geometry'])  # not optimal?
             collection.append(GEOSGeometry(memoryview(dumps(geom, srid=DB_SRID))))
         self.archive.geometry_entry.data = GeometryCollection(*collection)
 
@@ -70,7 +70,7 @@ class GeometryArchiveReader(_ReaderRoutine):
 
     def _save_entries(self):
         self.archive.geometry_entry.save()
-        self.archive.save(update_fields=[
-            'geometry_entry',
-            ])
+        self.archive.save(
+            update_fields=['geometry_entry',]
+        )
         return

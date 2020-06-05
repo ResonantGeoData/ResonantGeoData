@@ -15,6 +15,7 @@ class Dataset(models.Model):
 
     All geospatial info is contained in those data's respective entries.
     """
+
     name = models.CharField(max_length=100)
     description = models.TextField(blank=True, null=True)
 

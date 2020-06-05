@@ -9,9 +9,14 @@ class GeometryCollectionMeta:
 
     ``django.contrib.gis.geos.GeometryCollection``
     """
+
     def __init__(self, collection):
         if not isinstance(collection, GeometryCollection):
-            raise TypeError("`GeometryCollectionMeta` only supports `GeometryCollection`. `{}` not supported.".format(type(collection)))
+            raise TypeError(
+                "`GeometryCollectionMeta` only supports `GeometryCollection`. `{}` not supported.".format(
+                    type(collection)
+                )
+            )
         self._collection = collection
 
     @property
