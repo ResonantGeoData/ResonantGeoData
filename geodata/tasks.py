@@ -26,7 +26,6 @@ def validate_geometry_archive(archive_id):
     from .models.geometry.reader import GeometryArchive, GeometryArchiveReader
 
     try:
-        print('!!!!running the `GeometryArchiveReader`!!!!')
         reader = GeometryArchiveReader(archive_id)
         reader.run()
     except Exception as exc:
