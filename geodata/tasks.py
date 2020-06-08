@@ -1,14 +1,15 @@
 from celery import shared_task
 from celery.utils.log import get_task_logger
 
-from .models.geometry.reader import GeometryArchiveReader
-from .models.raster.reader import RasterEntryReader
+# NOTE: do not import `models` to avoid recursive imports
 
 logger = get_task_logger(__name__)
 
 
 @shared_task(time_limit=86400)
 def validate_raster(layer_id):
+    from .models.raster.reader import RasterEntryReader
+
     try:
         reader = RasterEntryReader(layer_id)
         reader.run()
@@ -20,6 +21,8 @@ def validate_raster(layer_id):
 
 @shared_task(time_limit=86400)
 def validate_geometry_archive(archive_id):
+    from .models.geometry.reader import GeometryArchiveReader
+
     try:
         print('!!!!running the `GeometryArchiveReader`!!!!')
         reader = GeometryArchiveReader(archive_id)

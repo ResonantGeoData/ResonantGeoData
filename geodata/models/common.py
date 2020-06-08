@@ -38,18 +38,14 @@ class PostSaveEventModel(models.Model):
     NOTE: you still need to register the post save event.
     """
 
-    task_name = None
-    """A string name of the task in the `tasks` module. Use string to avoid
-    recursive imports."""
+    task_func = None
+    """The task function."""
 
     def _run_post_save_task(self):
         """Validate the raster asynchronously."""
-        if not isinstance(self.task_name, str):
-            raise RuntimeError('Task name must be set!')
-        from .. import tasks
-
-        task = getattr(tasks, self.task_name)
-        task.delay(self.id)
+        if not callable(self.task_func):
+            raise RuntimeError('Task function must be set to a callable.')
+        self.task_func.delay(self.id)
 
     def _post_save(self, created, *args, **kwargs):
         if (

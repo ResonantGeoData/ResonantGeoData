@@ -5,6 +5,7 @@ from django.dispatch import receiver
 
 from ..common import ModifiableEntry, PostSaveEventModel, SpatialEntry
 from ..constants import DB_SRID
+from ... import tasks
 
 
 def validate_zip_extension(value):
@@ -33,7 +34,7 @@ class GeometryArchive(ModifiableEntry, PostSaveEventModel):
     a single ``GeometryEntry`` that is then associated with this entry.
     """
 
-    task_name = 'validate_geometry_archive'
+    task_func = tasks.validate_geometry_archive
     archive_file = models.FileField(
         upload_to='geometry_files',
         validators=[validate_zip_extension],

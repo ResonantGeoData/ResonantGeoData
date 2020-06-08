@@ -7,6 +7,7 @@ from django.dispatch import receiver
 
 from ..common import DeferredFieldsManager, ModifiableEntry, PostSaveEventModel, SpatialEntry
 from ..constants import DB_SRID
+from ... import tasks
 
 
 class RasterEntry(SpatialEntry):
@@ -53,7 +54,7 @@ class RasterFile(ModifiableEntry, PostSaveEventModel):
 
     """
 
-    task_name = 'validate_raster'
+    task_func = tasks.validate_raster
     raster_file = models.FileField(upload_to='rasters')
     raster_entry = models.OneToOneField(RasterEntry, null=True, on_delete=models.DO_NOTHING)
 
