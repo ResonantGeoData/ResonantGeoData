@@ -1,11 +1,11 @@
 # from django.shortcuts import render
 from django.views import generic
 
-from .models.dataset import Dataset
+from .models.raster.base import RasterEntry
 
 
-class DatasetsView(generic.ListView):
-    model = Dataset
-    context_object_name = 'datasets'
-    queryset = Dataset.objects.all()
-    template_name = 'geodata/dataset.html'
+class RasterEntriesListView(generic.ListView):
+    model = RasterEntry
+    context_object_name = 'rasters'
+    queryset = RasterEntry.objects.all()
+    template_name = 'geodata/raster_entries.html'

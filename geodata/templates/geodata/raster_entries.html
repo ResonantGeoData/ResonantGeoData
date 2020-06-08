@@ -1,0 +1,33 @@
+{% extends "base.html" %}
+{% block content %}
+
+
+  <h1 class="article-title">
+    <span>Rasters</span>
+  </h1>
+  <hr/>
+
+
+  <table class="table">
+    <thead class="thead-dark">
+      <tr>
+        <th>Name (ID)</th>
+        <th>instrumentation</th>
+        <th>n_bands</th>
+        <th>resolution</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for raster in rasters %}
+        <tr>
+          <td>{{ raster.name }} ({{ raster.id }})</td>
+          <td>{{ raster.instrumentation }}</td>
+          <td>{{ raster.n_bands }}</td>
+          <td>{{ raster.resolution }}</td>
+        </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+
+
+{% endblock content %}
