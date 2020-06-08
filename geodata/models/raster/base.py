@@ -57,6 +57,7 @@ class RasterFile(ModifiableEntry, PostSaveEventModel):
     task_func = tasks.validate_raster
     raster_file = models.FileField(upload_to='rasters')
     raster_entry = models.OneToOneField(RasterEntry, null=True, on_delete=models.DO_NOTHING)
+    failure_reason = models.TextField(null=True, blank=True)
 
 
 @receiver(post_save, sender=RasterFile)

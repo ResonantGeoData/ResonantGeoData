@@ -42,6 +42,7 @@ class GeometryArchive(ModifiableEntry, PostSaveEventModel):
     )
 
     geometry_entry = models.OneToOneField(GeometryEntry, null=True, on_delete=models.DO_NOTHING)
+    failure_reason = models.TextField(null=True, blank=True)
 
 
 @receiver(post_save, sender=GeometryArchive)

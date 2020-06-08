@@ -39,7 +39,10 @@ class RasterFileAdmin(OSMGeoAdmin):
         '__str__',
         'modified',
     )
-    readonly_fields = ('raster_entry',)
+    readonly_fields = (
+        'raster_entry',
+        'failure_reason',
+    )
 
 
 @admin.register(GeometryEntry)
@@ -57,4 +60,7 @@ class GeometryArchiveAdmin(OSMGeoAdmin):
         '__str__',
         'modified',
     )
-    readonly_fields = ('geometry_entry',)
+    readonly_fields = (
+        'geometry_entry',
+        'failure_reason',
+    )
