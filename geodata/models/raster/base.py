@@ -37,7 +37,8 @@ class RasterEntry(SpatialEntry):
     # i.e. these are populated programatically
     raster = models.RasterField(srid=DB_SRID)
 
-    n_bands = models.PositiveIntegerField()
+    # TODO: Change to something more self documenting
+    number_of_bands = models.PositiveIntegerField()
 
     resolution = fields.ArrayField(models.FloatField())
 

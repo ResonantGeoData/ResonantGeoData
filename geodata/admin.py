@@ -27,7 +27,7 @@ class RasterEntryAdmin(OSMGeoAdmin):
     )
     readonly_fields = (
         'resolution',
-        'n_bands',
+        'number_of_bands',
     )  # 'thumbnail')
     exclude = ('raster',)
     list_filter = SPATIAL_ENTRY_FILTERS + ('instrumentation',)

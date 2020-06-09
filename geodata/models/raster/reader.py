@@ -57,7 +57,7 @@ class RasterEntryReader(_ReaderRoutine):
 
         with rasterio.open(file_path) as src:
             self.rfe.raster_entry.resolution = src.res[0], src.res[1]
-            self.rfe.raster_entry.n_bands = src.count
+            self.rfe.raster_entry.number_of_bands = src.count
             # thumbnail = RasterEntryReader.create_thumbnail(src)
             # self.rfe.raster_entry.thumbnail.save('thumbnail.jpg', thumbnail, save=True)
 

@@ -13,7 +13,7 @@
       <tr>
         <th>Name (ID)</th>
         <th>instrumentation</th>
-        <th>n_bands</th>
+        <th>numbe of bands</th>
         <th>resolution</th>
       </tr>
     </thead>
@@ -22,7 +22,7 @@
         <tr>
           <td><a href="{% url 'raster-entry-detail' raster.pk %}">{{ raster.name }} ({{ raster.id }})</a></td>
           <td>{{ raster.instrumentation }}</td>
-          <td>{{ raster.n_bands }}</td>
+          <td>{{ raster.number_of_bands }}</td>
           <td>{{ raster.resolution }}</td>
         </tr>
       {% endfor %}
