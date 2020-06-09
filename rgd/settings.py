@@ -225,7 +225,7 @@ class AllauthConfig(Config):
     ACCOUNT_AUTHENTICATION_METHOD = 'email'
     ACCOUNT_USERNAME_REQUIRED = False
     ACCOUNT_EMAIL_REQUIRED = True
-    ACCOUNT_EMAIL_VERIFICATION = 'mandatory'
+    ACCOUNT_EMAIL_VERIFICATION = 'optional'
 
     # This improves lookup performance, but makes the username no longer match the email
     # TODO: Do we want this?
