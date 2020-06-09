@@ -20,7 +20,7 @@
     <tbody>
       {% for raster in rasters %}
         <tr>
-          <td>{{ raster.name }} ({{ raster.id }})</td>
+          <td><a href="{% url 'raster-entry-detail' raster.pk %}">{{ raster.name }} ({{ raster.id }})</a></td>
           <td>{{ raster.instrumentation }}</td>
           <td>{{ raster.n_bands }}</td>
           <td>{{ raster.resolution }}</td>

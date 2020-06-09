@@ -1,0 +1,41 @@
+{% extends "base.html" %}
+{% block content %}
+  <article class="media content-section">
+    <div class="media-body">
+      <div class="article-metadata">
+        <small class="text-muted">Created: {{ object.created }}</small>
+        <p/>
+        <small class="text-muted">Modified: {{ object.modified }}</small>
+      </div>
+
+      <h2 class="article-title">
+        <span>{{ object.name }} ({{object.pk}})</span>
+      </h2>
+      <hr/>
+
+      {% comment %}
+      The fields on the model
+      {% endcomment %}
+      <p class="article-content">Instrumentation: {{ object.instrumentation }}</p>
+      <p class="article-content">N bands: {{ object.n_bands }}</p>
+      <p class="article-content">Resolution: {{ object.resolution }}</p>
+
+      {% comment %}
+      Additional fields managed by GeoDjango
+      {% endcomment %}
+      <h3><span>Raster Metadata</span></h3>
+      <p class="article-content">Height, Width: {{ object.raster.height }}, {{ object.raster.width }}</p>
+      <p class="article-content">Origin: {{ object.raster.origin }}</p>
+      <p class="article-content">Extent: {{ object.raster.extent }}</p>
+      <p class="article-content">Scale: {{ object.raster.scale }}</p>
+      <p class="article-content">Skew: {{ object.raster.skew }}</p>
+
+      <p class="article-content">SRID: {{ object.raster.srid }}</p>
+      <p class="article-content">GDAL Driver: {{ object.raster.driver }}</p>
+      <p class="article-content">Additional Metadata: {{ object.raster.metadata }}</p>
+      <p class="article-content">Info: {{ object.raster.info }}</p>
+
+
+    </div>
+  </article>
+{% endblock content %}
