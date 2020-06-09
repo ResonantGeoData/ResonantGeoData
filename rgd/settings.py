@@ -136,6 +136,12 @@ class DjangoConfig(Config):
     USE_L10N = True  # TODO: why?
 
 
+class GeoDjangoConfig(Config):
+    @staticmethod
+    def before_binding(configuration: Type[ComposedConfiguration]):
+        configuration.INSTALLED_APPS += ['django.contrib.gis']
+
+
 class LoggingConfig(Config):
     LOGGING = {
         'version': 1,
@@ -290,7 +296,7 @@ class DatabaseConfig(Config):
         environ_prefix='DJANGO',
         environ_required=True,
         # Additional kwargs to DatabaseURLValue are passed to dj-database-url
-        engine='django.db.backends.postgresql',
+        engine='django.contrib.gis.db.backends.postgis',
         conn_max_age=600,
     )
 
@@ -407,6 +413,7 @@ class BaseConfiguration(
     WhitenoiseStaticFileConfig,
     LoggingConfig,
     DjangoConfig,
+    GeoDjangoConfig,
     ComposedConfiguration,
 ):
     # Does not include a StorageConfig, since that varies
@@ -442,7 +449,7 @@ class HerokuProductionConfiguration(ProductionConfiguration):
         environ_name='DATABASE_URL',
         environ_prefix=None,
         environ_required=True,
-        engine='django.db.backends.postgresql',
+        engine='django.contrib.gis.db.backends.postgis',
         conn_max_age=600,
         ssl_require=True,
     )
