@@ -4,8 +4,16 @@ FROM python:3.8-slim
 # * python-magic
 RUN apt-get update && \
     apt-get install --no-install-recommends --yes \
-        libpq-dev gcc libc6-dev \
-        libmagic1 && \
+        libpq-dev \
+        gcc \
+        libc6-dev \
+        libmagic1 \
+        libgdal-dev \
+        python3-gdal \
+        binutils \
+        libproj-dev \
+        gdal-bin \
+        && \
     rm -rf /var/lib/apt/lists/*
 
 ENV PYTHONDONTWRITEBYTECODE 1

@@ -1,7 +1,7 @@
 version: '3'
 services:
   db:
-    image: postgres
+    image: postgis/postgis
     environment:
       POSTGRES_DB: rgd
       POSTGRES_PASSWORD: postgres
