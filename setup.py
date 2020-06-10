@@ -18,6 +18,7 @@ setup(
         'django-storages',
         'djangorestframework',
         'docker',
+        'drf-yasg',
         'gputil',
         'psycopg2',
         'python-magic',
