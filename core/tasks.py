@@ -102,7 +102,10 @@ def _run_algorithm(algorithm_job):
                 algorithm_job.fail_reason = None
             except subprocess.CalledProcessError as exc:
                 result = exc.returncode
-                logger.info('Failed to successfully run image %s (%r)' % (algorithm_path, exc))
+                logger.info(
+                    'Failed to successfully run image %s (%r)'
+                    % (algorithm_job.algorithm.docker_image_id, exc)
+                )
                 algorithm_job.fail_reason = 'Return code: %s\nException:\n%r' % (result, exc)
             logger.info('Finished running image with result %r' % result)
             # Store result
