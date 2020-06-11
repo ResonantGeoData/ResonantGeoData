@@ -70,8 +70,8 @@ class RasterEntryReader(_ReaderRoutine):
                 (src.bounds.right, src.bounds.top),
                 (src.bounds.right, src.bounds.bottom),
                 (src.bounds.left, src.bounds.bottom),
-                (src.bounds.left, src.bounds.top),
-            )  # Close the loop
+                (src.bounds.left, src.bounds.top),  # Close the loop
+            )
 
             self.raster_entry.footprint = Polygon(coords, srid=spatial_ref.srid)
 
