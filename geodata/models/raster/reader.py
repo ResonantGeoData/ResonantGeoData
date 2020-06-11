@@ -1,6 +1,7 @@
 """Helper methods for creating a ``GDALRaster`` entry from a raster file."""
 from celery.utils.log import get_task_logger
-from django.contrib.gis.gdal import GDALRaster
+from django.contrib.gis.gdal import GDALRaster, SpatialReference
+from django.contrib.gis.geos import Polygon
 import rasterio
 
 # from django.core.files.base import ContentFile
@@ -35,37 +36,49 @@ class RasterEntryReader(_ReaderRoutine):
         """Load raster data files and creaet a ``GDALRaster``.
 
         TODO: this function will need to handle a lot of scenarios for how
-        the raster file is passed and where it is stored. In most cases, a
-        local copy will need to be created...
+        the raster file is passed and where it is stored.
 
         """
         # Fetch the raster file this Layer corresponds to
         self.rfe = RasterFile.objects.get(id=self.model_id)
         file_path = self.rfe.raster_file.name
-        # file_path = os.path.join(self.tmpdir, os.path.basename(self.rfe.raster_file.name))
-        # local_file = open(file_path, 'wb')
-        # for chunk in self.rfe.raster_file.chunks():
-        #     local_file.write(chunk)
-        # local_file.close()
 
         logger.info(f'The raster file path: {file_path}')
 
-        # TODO: make sure CRS matched SRID in DB
-        if self.rfe.raster_entry is None:
-            self.rfe.raster_entry = RasterEntry()
-        self.rfe.raster_entry.raster = GDALRaster(file_path, write=True)
+        self.raster_entry = RasterEntry()
+        self.raster_entry.raster_file = self.rfe
 
         with rasterio.open(file_path) as src:
-            self.rfe.raster_entry.resolution = src.res[0], src.res[1]
-            self.rfe.raster_entry.number_of_bands = src.count
+            self.raster_entry.number_of_bands = src.count
+            self.raster_entry.driver = src.driver
             # thumbnail = RasterEntryReader.create_thumbnail(src)
-            # self.rfe.raster_entry.thumbnail.save('thumbnail.jpg', thumbnail, save=True)
+            # self.raster_entry.thumbnail.save('thumbnail.jpg', thumbnail, save=True)
+
+            spatial_ref = SpatialReference(src.crs.to_wkt())
+            raster_dict = {
+                # 'name': '', # file path,
+                'srid': spatial_ref.srid,
+                'width': src.width,
+                'height': src.height,
+                # 'origin': [src.bounds.left, src.bounds.top],
+                # 'scale': src.res,
+            }
+            self.raster_entry.raster = GDALRaster(raster_dict)
+
+            coords = (
+                (src.bounds.left, src.bounds.top),
+                (src.bounds.right, src.bounds.top),
+                (src.bounds.right, src.bounds.bottom),
+                (src.bounds.left, src.bounds.bottom),
+                (src.bounds.left, src.bounds.top),
+            )  # Close the loop
+
+            self.raster_entry.footprint = Polygon(coords, srid=spatial_ref.srid)
 
         return True
 
     def _save_entries(self):
-        """Populate the ``RasterField`` property of the layer."""
+        """Save entries."""
         # Now actually save the raster entry!
-        self.rfe.raster_entry.save()
-        self.rfe.save(update_fields=['raster_entry'])
+        self.raster_entry.save()
         return

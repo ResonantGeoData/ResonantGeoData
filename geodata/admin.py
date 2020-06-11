@@ -3,7 +3,7 @@ from django.contrib.gis.admin import OSMGeoAdmin
 
 from .models.dataset import Dataset
 from .models.geometry.base import GeometryArchive, GeometryEntry
-from .models.raster.base import RasterEntry, RasterFile
+from .models.raster.base import ConvertedRasterFile, RasterEntry, RasterFile
 
 SPATIAL_ENTRY_FILTERS = (
     'acquisition_date',
@@ -26,8 +26,9 @@ class RasterEntryAdmin(OSMGeoAdmin):
         'modified',
     )
     readonly_fields = (
-        'resolution',
         'number_of_bands',
+        'footprint',
+        'raster_file',
     )  # 'thumbnail')
     exclude = ('raster',)
     list_filter = SPATIAL_ENTRY_FILTERS + ('instrumentation',)
@@ -39,9 +40,19 @@ class RasterFileAdmin(OSMGeoAdmin):
         '__str__',
         'modified',
     )
+    readonly_fields = ('failure_reason',)
+
+
+@admin.register(ConvertedRasterFile)
+class ConvertedRasterFileAdmin(OSMGeoAdmin):
+    list_display = (
+        '__str__',
+        'modified',
+        'source_raster',
+    )
     readonly_fields = (
-        'raster_entry',
         'failure_reason',
+        'converted_file',
     )
 
 
