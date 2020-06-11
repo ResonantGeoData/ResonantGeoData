@@ -60,8 +60,8 @@ class RasterEntryReader(_ReaderRoutine):
                 'srid': spatial_ref.srid,
                 'width': src.width,
                 'height': src.height,
-                # 'origin': [src.bounds.left, src.bounds.top],
-                # 'scale': src.res,
+                'origin': [src.bounds.left, src.bounds.top],
+                'scale': src.res,
             }
             self.raster_entry.raster = GDALRaster(raster_dict)
 
