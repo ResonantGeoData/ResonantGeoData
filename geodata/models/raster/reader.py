@@ -1,6 +1,6 @@
 """Helper methods for creating a ``GDALRaster`` entry from a raster file."""
 from celery.utils.log import get_task_logger
-from django.contrib.gis.gdal import GDALRaster, SpatialReference
+from django.contrib.gis.gdal import SpatialReference
 from django.contrib.gis.geos import Polygon
 import rasterio
 
@@ -10,6 +10,7 @@ import rasterio
 
 from .base import RasterEntry, RasterFile
 from ..common import _ReaderRoutine
+from ..constants import DB_SRID
 
 logger = get_task_logger(__name__)
 
@@ -33,9 +34,9 @@ class RasterEntryReader(_ReaderRoutine):
     #     return ContentFile(byte_im)
 
     def _read_files(self):
-        """Load raster data files and creaet a ``GDALRaster``.
+        """Load raster data files and create a ``RasterEntry``.
 
-        TODO: this function will need to handle a lot of scenarios for how
+        This function will need to handle a lot of scenarios for how
         the raster file is passed and where it is stored.
 
         """
@@ -51,19 +52,23 @@ class RasterEntryReader(_ReaderRoutine):
         with rasterio.open(file_path) as src:
             self.raster_entry.number_of_bands = src.count
             self.raster_entry.driver = src.driver
+            self.raster_entry.crs = src.crs.to_proj4()
+            self.raster_entry.origin = [src.bounds.left, src.bounds.top]
+            self.raster_entry.extent = [
+                src.bounds.left,
+                src.bounds.bottom,
+                src.bounds.right,
+                src.bounds.top,
+            ]
+            self.raster_entry.resolution = src.res
+            self.raster_entry.height = src.shape[0]
+            self.raster_entry.width = src.shape[1]
+            self.raster_entry.transform = src.transform.to_gdal()  # TODO: check this
+            # A catch-all metadata feild:
+            # TODO: self.raster_entry.metadata =
+
             # thumbnail = RasterEntryReader.create_thumbnail(src)
             # self.raster_entry.thumbnail.save('thumbnail.jpg', thumbnail, save=True)
-
-            spatial_ref = SpatialReference(src.crs.to_wkt())
-            raster_dict = {
-                # 'name': '', # file path,
-                'srid': spatial_ref.srid,
-                'width': src.width,
-                'height': src.height,
-                'origin': [src.bounds.left, src.bounds.top],
-                'scale': src.res,
-            }
-            self.raster_entry.raster = GDALRaster(raster_dict)
 
             coords = (
                 (src.bounds.left, src.bounds.top),
@@ -73,12 +78,15 @@ class RasterEntryReader(_ReaderRoutine):
                 (src.bounds.left, src.bounds.top),  # Close the loop
             )
 
+            spatial_ref = SpatialReference(src.crs.to_wkt())
             self.raster_entry.footprint = Polygon(coords, srid=spatial_ref.srid)
+
+            # TODO: now create a `BandMeta` entry for each band
+            #       this will collect statistics on the bands
 
         return True
 
     def _save_entries(self):
         """Save entries."""
-        # Now actually save the raster entry!
         self.raster_entry.save()
         return

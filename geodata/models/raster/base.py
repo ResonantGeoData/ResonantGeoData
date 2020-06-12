@@ -1,10 +1,11 @@
 """Base classes for raster dataset entries."""
 from django.contrib.gis.db import models
+from django.contrib.postgres import fields
 from django.db import transaction
 from django.db.models.signals import post_save
 from django.dispatch import receiver
 
-from ..common import DeferredFieldsManager, ModifiableEntry, PostSaveEventModel, SpatialEntry
+from ..common import ModifiableEntry, PostSaveEventModel, SpatialEntry
 from ..constants import DB_SRID
 from ... import tasks
 
@@ -29,11 +30,8 @@ class RasterFile(ModifiableEntry, PostSaveEventModel):
 class RasterEntry(SpatialEntry):
     """This class is a container for the metadata of a raster.
 
-    This model contains a ``GDALRaster`` which does not hold any raster data,
-    only the metadata.
-
-    The ``raster`` property/field is read only to the user and a custom task
-    loads the given ``raster_file`` to create the ``raster``.
+    This model does not hold any raster data, only the metadata, and points
+    to a raster file in its original location.
 
     """
 
@@ -45,17 +43,38 @@ class RasterEntry(SpatialEntry):
     )
 
     # READ ONLY ATTRIBUTES
-    # i.e. these are populated programatically
+    # i.e. these are populated programatically by the ETL routine
+
     raster_file = models.OneToOneField(RasterFile, null=True, on_delete=models.CASCADE)
-    raster = models.RasterField(srid=DB_SRID)
     # thumbnail = models.ImageField(blank=True, upload_to='thumbnails')
-    # Make sure we do not load the raster each time the model is accessed
-    objects = DeferredFieldsManager('raster')  # TODO: does this still need to be deferred?
-    footprint = models.PolygonField()
+
+    # This can be used with GeoDjango's geographic database functions for spatial indexing
+    footprint = models.PolygonField(srid=DB_SRID)
 
     # Raster fields
+    crs = models.CharField(max_length=100)  # TODO: proj4 strings can get verbose... is 100 enough
+    origin = fields.ArrayField(models.FloatField(), size=2)
+    extent = fields.ArrayField(models.FloatField(), size=4)
+    resolution = fields.ArrayField(models.FloatField(), size=2)  # AKA scale
+    height = models.PositiveIntegerField()
+    width = models.PositiveIntegerField()
     number_of_bands = models.PositiveIntegerField()
-    driver = models.CharField(max_length=100, null=True, blank=True,)
+    driver = models.CharField(max_length=100)
+    metadata = fields.JSONField(null=True)
+    # TODO: skew/tramsform
+    transform = fields.ArrayField(models.FloatField(), size=6)
+
+
+class BandMeta(ModifiableEntry):
+    """A basic container to keep track of useful band info inside the DB."""
+
+    description = models.TextField(null=True, blank=True,)
+    max = models.FloatField(null=True)
+    min = models.FloatField(null=True)
+    mean = models.FloatField(null=True)
+    std = models.FloatField(null=True)
+    nodata_value = models.FloatField(null=True)
+    parent_raster = models.ForeignKey(RasterEntry, on_delete=models.CASCADE)
 
 
 class ConvertedRasterFile(ModifiableEntry):

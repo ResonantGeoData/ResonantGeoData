@@ -3,7 +3,7 @@ from django.contrib.gis.admin import OSMGeoAdmin
 
 from .models.dataset import Dataset
 from .models.geometry.base import GeometryArchive, GeometryEntry
-from .models.raster.base import ConvertedRasterFile, RasterEntry, RasterFile
+from .models.raster.base import BandMeta, ConvertedRasterFile, RasterEntry, RasterFile
 
 SPATIAL_ENTRY_FILTERS = (
     'acquisition_date',
@@ -29,9 +29,38 @@ class RasterEntryAdmin(OSMGeoAdmin):
         'number_of_bands',
         'footprint',
         'raster_file',
+        'crs',
+        'origin',
+        'extent',
+        'resolution',
+        'height',
+        'width',
+        'driver',
+        'metadata',
+        'transform',
+        'modified',
+        'created',
     )  # 'thumbnail')
-    exclude = ('raster',)
-    list_filter = SPATIAL_ENTRY_FILTERS + ('instrumentation',)
+    list_filter = SPATIAL_ENTRY_FILTERS + ('instrumentation', 'number_of_bands', 'driver', 'crs')
+
+
+@admin.register(BandMeta)
+class BandMetaAdmin(OSMGeoAdmin):
+    list_display = (
+        '__str__',
+        'modified',
+        'parent_raster',
+    )
+    readonly_fields = (
+        'mean',
+        'max',
+        'min',
+        'modified',
+        'created',
+        'parent_raster',
+        'std',
+        'nodata_value',
+    )
 
 
 @admin.register(RasterFile)
@@ -40,7 +69,11 @@ class RasterFileAdmin(OSMGeoAdmin):
         '__str__',
         'modified',
     )
-    readonly_fields = ('failure_reason',)
+    readonly_fields = (
+        'failure_reason',
+        'modified',
+        'created',
+    )
 
 
 @admin.register(ConvertedRasterFile)
@@ -63,6 +96,10 @@ class GeometryEntryAdmin(OSMGeoAdmin):
         'modified',
     )
     list_filter = SPATIAL_ENTRY_FILTERS
+    readonly_fields = (
+        'modified',
+        'created',
+    )
 
 
 @admin.register(GeometryArchive)
@@ -74,4 +111,9 @@ class GeometryArchiveAdmin(OSMGeoAdmin):
     readonly_fields = (
         'geometry_entry',
         'failure_reason',
+    )
+    readonly_fields = (
+        'failure_reason',
+        'modified',
+        'created',
     )
