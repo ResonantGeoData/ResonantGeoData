@@ -3,9 +3,10 @@ from django.db import transaction
 from django.db.models.signals import post_save
 from django.dispatch import receiver
 
-from ..common import ModifiableEntry, PostSaveEventModel, SpatialEntry
+from ..common import ModifiableEntry, SpatialEntry
 from ..constants import DB_SRID
 from ... import tasks
+from ...mixins import PostSaveEventModel
 
 
 def validate_zip_extension(value):
