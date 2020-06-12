@@ -45,7 +45,15 @@ class RasterEntryReader(_ReaderRoutine):
 
         logger.info(f'The raster file path: {file_path}')
 
-        self.raster_entry = RasterEntry()
+        querry = RasterEntry.objects.filter(raster_file=self.rfe)
+        if len(querry) < 1:
+            self.raster_entry = RasterEntry()
+        elif len(querry) == 1:
+            self.raster_entry = querry.first()
+        else:
+            # This should never happen because its a foreign key
+            raise RuntimeError("multiple raster entries found for this file.")
+
         self.raster_entry.raster_file = self.rfe
 
         with rasterio.open(file_path) as src:
