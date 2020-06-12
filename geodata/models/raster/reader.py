@@ -10,7 +10,6 @@ import rasterio
 
 from .base import RasterEntry, RasterFile
 from ..common import _ReaderRoutine
-from ..constants import DB_SRID
 
 logger = get_task_logger(__name__)
 
