@@ -7,8 +7,8 @@ from django.dispatch import receiver
 
 from ..common import ModifiableEntry, SpatialEntry
 from ..constants import DB_SRID
+from ..mixins import PostSaveEventModel
 from ... import tasks
-from ...mixins import PostSaveEventModel
 
 
 class RasterFile(ModifiableEntry, PostSaveEventModel):
