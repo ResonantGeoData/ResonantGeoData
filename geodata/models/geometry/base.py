@@ -5,7 +5,7 @@ from django.dispatch import receiver
 
 from ..common import ModifiableEntry, SpatialEntry
 from ..constants import DB_SRID
-from ..mixins import PostSaveEventModel
+from ..mixins import PostSaveEventMixin
 from ... import tasks
 
 
@@ -28,7 +28,7 @@ class GeometryEntry(SpatialEntry):
     # The actual collection is iterable so access is super easy
 
 
-class GeometryArchive(ModifiableEntry, PostSaveEventModel):
+class GeometryArchive(ModifiableEntry, PostSaveEventMixin):
     """Container for ``zip`` archives of a shapefile.
 
     When this model is created, it loads data from an archive into

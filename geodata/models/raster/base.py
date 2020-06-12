@@ -7,11 +7,11 @@ from django.dispatch import receiver
 
 from ..common import ModifiableEntry, SpatialEntry
 from ..constants import DB_SRID
-from ..mixins import PostSaveEventModel
+from ..mixins import PostSaveEventMixin
 from ... import tasks
 
 
-class RasterFile(ModifiableEntry, PostSaveEventModel):
+class RasterFile(ModifiableEntry, PostSaveEventMixin):
     """This is a standalone DB entry for raster files.
 
     This will automatically generate a ``RasterEntry`` on the post_save event.

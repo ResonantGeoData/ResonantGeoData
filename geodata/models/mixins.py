@@ -1,7 +1,7 @@
 """Mixin helper classes."""
 
 
-class PostSaveEventModel(object):
+class PostSaveEventMixin(object):
     """A base class for models that must call a post-save task.
 
     The task must be assigned as a class attribute.
