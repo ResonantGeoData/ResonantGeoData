@@ -69,7 +69,12 @@ class RasterEntry(SpatialEntry):
 class BandMetaEntry(ModifiableEntry):
     """A basic container to keep track of useful band info inside the DB."""
 
-    description = models.TextField(null=True, blank=True,)
+    description = models.TextField(
+        null=True,
+        blank=True,
+        help_text='Automatically retreived from raster but can be overwritten.',
+    )
+    dtype = models.CharField(max_length=10)
     max = models.FloatField(null=True)
     min = models.FloatField(null=True)
     mean = models.FloatField(null=True)

@@ -60,6 +60,7 @@ class BandMetaEntryAdmin(OSMGeoAdmin):
         'parent_raster',
         'std',
         'nodata_value',
+        'dtype',
     )
 
 
@@ -110,9 +111,6 @@ class GeometryArchiveAdmin(OSMGeoAdmin):
     )
     readonly_fields = (
         'geometry_entry',
-        'failure_reason',
-    )
-    readonly_fields = (
         'failure_reason',
         'modified',
         'created',

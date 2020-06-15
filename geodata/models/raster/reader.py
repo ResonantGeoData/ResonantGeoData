@@ -8,7 +8,7 @@ import rasterio
 # import io
 # from PIL import Image
 
-from .base import RasterEntry, RasterFile
+from .base import BandMetaEntry, ConvertedRasterFile, RasterEntry, RasterFile
 from ..common import _ReaderRoutine
 
 logger = get_task_logger(__name__)
@@ -51,7 +51,7 @@ class RasterEntryReader(_ReaderRoutine):
         elif len(raster_querry) == 1:
             self.raster_entry = raster_querry.first()
             # Clear out associated entries because they could be invalid
-            RasterBand.objects.filter(parent_raster=self.raster_entry).delete()
+            BandMetaEntry.objects.filter(parent_raster=self.raster_entry).delete()
             ConvertedRasterFile.objects.filter(source_raster=self.raster_entry).delete()
         else:
             # This should never happen because it is a foreign key
@@ -89,14 +89,40 @@ class RasterEntryReader(_ReaderRoutine):
             )
 
             spatial_ref = SpatialReference(src.crs.to_wkt())
+            logger.info(f'Raster footprint SRID: {spatial_ref.srid}')
+            # This will convert the Polygon to the DB's SRID
             self.raster_entry.footprint = Polygon(coords, srid=spatial_ref.srid)
 
             # TODO: now create a `BandMetaEntry` entry for each band
             #       this will collect statistics on the bands
+            self.band_entries = []
+            for i in range(src.count):
+                band_meta = BandMetaEntry()
+                band_meta.parent_raster = self.raster_entry
+                try:
+                    band_meta.description = src.descriptions[i]
+                except IndexError:
+                    pass
+                try:
+                    band_meta.nodata_value = src.nodatavals[i]
+                except IndexError:
+                    pass
+                try:
+                    band_meta.dtype = src.dtypes[i]
+                except IndexError:
+                    pass
+                # TODO: Compute statistics: min, max, mean, std
+                #       We'd have to load the bands into memroy...
+                #       might not be good.
+
+                # Keep track
+                self.band_entries.append(band_meta)
 
         return True
 
     def _save_entries(self):
         """Save entries."""
         self.raster_entry.save()
+        for band in self.band_entries:
+            band.save()
         return
