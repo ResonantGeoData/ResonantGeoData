@@ -45,14 +45,17 @@ class RasterEntryReader(_ReaderRoutine):
 
         logger.info(f'The raster file path: {file_path}')
 
-        querry = RasterEntry.objects.filter(raster_file=self.rfe)
-        if len(querry) < 1:
+        raster_querry = RasterEntry.objects.filter(raster_file=self.rfe)
+        if len(raster_querry) < 1:
             self.raster_entry = RasterEntry()
-        elif len(querry) == 1:
-            self.raster_entry = querry.first()
+        elif len(raster_querry) == 1:
+            self.raster_entry = raster_querry.first()
+            # Clear out associated entries because they could be invalid
+            RasterBand.objects.filter(parent_raster=self.raster_entry).delete()
+            ConvertedRasterFile.objects.filter(source_raster=self.raster_entry).delete()
         else:
-            # This should never happen because its a foreign key
-            raise RuntimeError("multiple raster entries found for this file.")
+            # This should never happen because it is a foreign key
+            raise RuntimeError('multiple raster entries found for this file.')
 
         self.raster_entry.raster_file = self.rfe
 
@@ -88,7 +91,7 @@ class RasterEntryReader(_ReaderRoutine):
             spatial_ref = SpatialReference(src.crs.to_wkt())
             self.raster_entry.footprint = Polygon(coords, srid=spatial_ref.srid)
 
-            # TODO: now create a `BandMeta` entry for each band
+            # TODO: now create a `BandMetaEntry` entry for each band
             #       this will collect statistics on the bands
 
         return True

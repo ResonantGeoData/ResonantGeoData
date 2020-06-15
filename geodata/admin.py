@@ -3,7 +3,7 @@ from django.contrib.gis.admin import OSMGeoAdmin
 
 from .models.dataset import Dataset
 from .models.geometry.base import GeometryArchive, GeometryEntry
-from .models.raster.base import BandMeta, ConvertedRasterFile, RasterEntry, RasterFile
+from .models.raster.base import BandMetaEntry, ConvertedRasterFile, RasterEntry, RasterFile
 
 SPATIAL_ENTRY_FILTERS = (
     'acquisition_date',
@@ -44,8 +44,8 @@ class RasterEntryAdmin(OSMGeoAdmin):
     list_filter = SPATIAL_ENTRY_FILTERS + ('instrumentation', 'number_of_bands', 'driver', 'crs')
 
 
-@admin.register(BandMeta)
-class BandMetaAdmin(OSMGeoAdmin):
+@admin.register(BandMetaEntry)
+class BandMetaEntryAdmin(OSMGeoAdmin):
     list_display = (
         '__str__',
         'modified',

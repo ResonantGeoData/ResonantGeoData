@@ -66,7 +66,7 @@ class RasterEntry(SpatialEntry):
     transform = fields.ArrayField(models.FloatField(), size=6)
 
 
-class BandMeta(ModifiableEntry):
+class BandMetaEntry(ModifiableEntry):
     """A basic container to keep track of useful band info inside the DB."""
 
     description = models.TextField(null=True, blank=True,)
