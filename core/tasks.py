@@ -1,42 +1,23 @@
-from contextlib import contextmanager
 import json
 import os
-from pathlib import Path, PurePath
 import shlex
 import shutil
 import subprocess
 import tempfile
 import time
-from typing import Generator
 
 from celery import shared_task
 from celery.utils.log import get_task_logger
-from django.core.files import File
 from django.db.models.fields.files import FieldFile
 import docker
 import GPUtil
 import magic
-from storages.backends.s3boto3 import S3Boto3StorageFile
+
+from rgd.utility import _field_file_to_local_path
 
 from .models import Algorithm, AlgorithmJob, AlgorithmResult, ScoreAlgorithm, ScoreJob, ScoreResult
 
 logger = get_task_logger(__name__)
-
-
-@contextmanager
-def _field_file_to_local_path(field_file: FieldFile) -> Generator[Path, None, None]:
-    with field_file.open('rb'):
-        file_obj: File = field_file.file
-
-        if not Path(file_obj.name).exists() or isinstance(file_obj, S3Boto3StorageFile):
-            field_file_basename = PurePath(field_file.name).name
-            with tempfile.NamedTemporaryFile('wb', suffix=field_file_basename) as dest_stream:
-                shutil.copyfileobj(file_obj, dest_stream)
-                dest_stream.flush()
-
-                yield Path(dest_stream.name)
-        else:
-            yield Path(file_obj.name)
 
 
 def _run_algorithm(algorithm_job):
