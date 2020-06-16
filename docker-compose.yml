@@ -9,7 +9,7 @@ services:
       - "dbdata:/var/lib/postgresql/data"
 
   rabbitmq:
-    image: rabbitmq:latest
+    image: rabbitmq:management
     volumes:
       - mqdata:/var/lib/rabbitmq
 
