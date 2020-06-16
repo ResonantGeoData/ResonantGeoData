@@ -388,6 +388,7 @@ class RgdConfig(Config):
             allauth_index = configuration.INSTALLED_APPS.index('allauth')
         except ValueError:
             raise Exception('RgdConfig must be loaded after AllauthConfig.')
+        configuration.INSTALLED_APPS.insert(allauth_index, 'geodata')
         configuration.INSTALLED_APPS.insert(allauth_index, 'core')
 
     # Additional settings for the RGD app can be placed here
