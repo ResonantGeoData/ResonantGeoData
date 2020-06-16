@@ -331,6 +331,7 @@ class CeleryConfig(Config):
     CELERY_EVENT_QUEUE_EXPIRES = 60
     CELERY_WORKER_PREFETCH_MULTIPLIER = 1
     # CELERY_WORKER_CONCURRENCY can be set if workers have resource constraints
+    CELERY_WORKER_SEND_TASK_EVENTS = True
 
 
 class SwaggerConfig(Config):

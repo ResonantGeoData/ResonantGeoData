@@ -28,6 +28,7 @@ setup(
         'whitenoise[brotli]',
         # Production-only
         'django-storages',
+        'flower',
         'gunicorn',
         # Development-only
         'django-debug-toolbar',
