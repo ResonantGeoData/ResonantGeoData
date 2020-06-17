@@ -4,6 +4,20 @@ from djproxy.urls import generate_routes
 
 from . import views
 
+from django.conf.urls import include
+from rest_framework.routers import SimpleRouter
+
+router = SimpleRouter()
+router.register('algorithms_api', views.AlgorithmViewSet)
+router.register('tasks_api', views.TaskViewSet)
+router.register('dataset_api', views.DatasetViewSet)
+router.register('groundtruth_api', views.GroundtruthViewSet)
+router.register('score_algorithm_api', views.ScoreAlgorithmViewSet)
+router.register('algorithm_job_api', views.AlgorithmJobViewSet)
+router.register('algorithm_result_api', views.AlgorithmResultViewSet)
+router.register('score_job_api', views.ScoreJobViewSet)
+router.register('score_result_api', views.ScoreResultViewSet)
+
 
 admin.site.index_template = 'admin/add_flower.html'
 urlpatterns = [
@@ -26,6 +40,8 @@ urlpatterns = [
     path('tasks/', views.tasks, name='tasks'),
     path('task/<int:pk>-<str:name>/', views.TaskDetailView.as_view(), name='task-detail'),
     path('api/download/<model>/<int:id>/<field>', views.download_file, name='download-file'),
+    # path('', algorithm_list, name='algorithm_list'),
+    path('', include(router.urls)),
 ] + generate_routes({'flower-proxy': {'base_url': 'http://flower:5555/', 'prefix': '/flower/'}})
 
 handler500 = views.handler500

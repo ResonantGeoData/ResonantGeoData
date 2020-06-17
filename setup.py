@@ -17,6 +17,7 @@ setup(
         'django-extensions',
         'django-storages',
         'djangorestframework',
+        'django-filter',
         'djproxy',
         'docker',
         'drf-yasg',
