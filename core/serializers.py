@@ -4,7 +4,6 @@ from . import models
 
 
 class AlgorithmSerializer(serializers.ModelSerializer):
-    file = serializers.FileField
     class Meta:
         model = models.Algorithm
         fields = '__all__'
