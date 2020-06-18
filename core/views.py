@@ -14,6 +14,7 @@ from django.views.generic import CreateView, DeleteView, DetailView
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import viewsets
 from rest_framework.decorators import api_view
+from rest_framework.parsers import MultiPartParser
 
 from . import models
 from . import serializers
@@ -161,12 +162,13 @@ def get_filter_fields(model):
     fields = []
     for field in model_fields:
         res = str(field).split('.')
-        if res[1] == model.__name__ and not isinstance(field, (FileField, AutoField)):
+        if res[1] == model.__name__ and not isinstance(field, (AutoField, FileField)):
             fields.append(field.name)
     return fields
 
 
 class AlgorithmViewSet(viewsets.ModelViewSet):
+    parser_classes = (MultiPartParser, )
     queryset = Algorithm.objects.all()
     serializer_class = serializers.AlgorithmSerializer
     filter_backends = [DjangoFilterBackend]

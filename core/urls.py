@@ -1,23 +1,32 @@
+import inspect
+
 from django.conf.urls import include
 from django.contrib import admin
 from django.urls import path
+from django_filters.rest_framework import DjangoFilterBackend
 from djproxy.urls import generate_routes
+from rest_framework import viewsets
 from rest_framework.routers import SimpleRouter
+from rest_framework.parsers import MultiPartParser, JSONParser
 
 from . import views
+from . import serializers
 
 
 router = SimpleRouter()
-router.register('api/algorithms', views.AlgorithmViewSet)
-router.register('api/tasks', views.TaskViewSet)
-router.register('api/dataset', views.DatasetViewSet)
-router.register('api/groundtruth', views.GroundtruthViewSet)
-router.register('api/score_algorithm', views.ScoreAlgorithmViewSet)
-router.register('api/algorithm_job', views.AlgorithmJobViewSet)
-router.register('api/algorithm_result', views.AlgorithmResultViewSet)
-router.register('api/score_job', views.ScoreJobViewSet)
-router.register('api/score_result', views.ScoreResultViewSet)
-
+for name, ser in inspect.getmembers(serializers):
+    if inspect.isclass(ser):
+        model = ser.Meta.model
+        model_name = model.__name__
+        viewsetClass = type(model_name + 'ViewSet', (viewsets.ModelViewSet, ), {
+            'parser_classes': (MultiPartParser,),
+            'queryset': model.objects.all(),
+            'serializer_class': ser,
+            'filter_backends': [DjangoFilterBackend],
+            'filterset_fields': views.get_filter_fields(model),
+        })
+        router.register('api/%s' % (model_name.lower()), viewsetClass)
+router.register('api/algorithm', views.AlgorithmViewSet)
 
 admin.site.index_template = 'admin/add_flower.html'
 urlpatterns = [
