@@ -46,11 +46,11 @@ class RasterEntryReader(_ReaderRoutine):
 
             logger.info(f'The raster file path: {file_path}')
 
-            raster_querry = RasterEntry.objects.filter(raster_file=self.rfe)
-            if len(raster_querry) < 1:
+            raster_query = RasterEntry.objects.filter(raster_file=self.rfe)
+            if len(raster_query) < 1:
                 self.raster_entry = RasterEntry()
-            elif len(raster_querry) == 1:
-                self.raster_entry = raster_querry.first()
+            elif len(raster_query) == 1:
+                self.raster_entry = raster_query.first()
                 # Clear out associated entries because they could be invalid
                 BandMetaEntry.objects.filter(parent_raster=self.raster_entry).delete()
                 ConvertedRasterFile.objects.filter(source_raster=self.raster_entry).delete()
