@@ -14,7 +14,6 @@ import GPUtil
 import magic
 
 from rgd.utility import _field_file_to_local_path
-
 from .models import Algorithm, AlgorithmJob, AlgorithmResult, ScoreAlgorithm, ScoreJob, ScoreResult
 
 logger = get_task_logger(__name__)
