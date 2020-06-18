@@ -1,7 +1,9 @@
 from django.contrib.gis.db import models
+from django.core.exceptions import ValidationError
 from django.db import transaction
 from django.db.models.signals import post_save
 from django.dispatch import receiver
+import magic
 
 from ..common import ModifiableEntry, SpatialEntry
 from ..constants import DB_SRID
@@ -9,16 +11,14 @@ from ..mixins import PostSaveEventMixin
 from ... import tasks
 
 
-def validate_zip_extension(value):
-    import os
-    from django.core.exceptions import ValidationError
+def validate_archive(value):
+    """Validate file is a zip or tar archive."""
+    acceptable = ['application/zip', 'application/gzip']
 
-    ext = os.path.splitext(value.name)[1]  # [0] returns path+filename
-    valid_extensions = [
-        '.zip',
-    ]
-    if not ext.lower() in valid_extensions:
-        raise ValidationError('Unsupported file extension.')
+    mimetype = magic.from_file(value, mime=True)
+
+    if mimetype not in acceptable:
+        raise ValidationError('Unsupported file archive.')
 
 
 class GeometryEntry(SpatialEntry):
@@ -38,8 +38,8 @@ class GeometryArchive(ModifiableEntry, PostSaveEventMixin):
     task_func = tasks.validate_geometry_archive
     archive_file = models.FileField(
         upload_to='geometry_files',
-        validators=[validate_zip_extension],
-        help_text='This must be an archive (`.zip`) of a single shape (`.shp`, `.dbf`, `.shx`, etc.).',
+        validators=[validate_archive],
+        help_text='This must be an archive (`.zip` or `.tar`) of a single shape (`.shp`, `.dbf`, `.shx`, etc.).',
     )
 
     geometry_entry = models.OneToOneField(GeometryEntry, null=True, on_delete=models.DO_NOTHING)
