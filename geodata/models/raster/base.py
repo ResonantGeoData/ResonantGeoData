@@ -53,7 +53,7 @@ class RasterEntry(SpatialEntry):
     footprint = models.PolygonField(srid=DB_SRID)
 
     # Raster fields
-    crs = models.CharField(max_length=100)  # TODO: proj4 strings can get verbose... is 100 enough
+    crs = models.TextField(help_text="PROJ string") # PROJ String
     origin = fields.ArrayField(models.FloatField(), size=2)
     extent = fields.ArrayField(models.FloatField(), size=4)
     resolution = fields.ArrayField(models.FloatField(), size=2)  # AKA scale
