@@ -1,6 +1,7 @@
 import tempfile
 
 from django.conf import settings
+from django.contrib.auth import get_user_model
 from django.contrib.gis.db import models
 from django.utils import timezone
 
@@ -15,15 +16,17 @@ class DeferredFieldsManager(models.Manager):
 
 
 class ModifiableEntry(models.Model):
-    """A base class for models that need to track modified datetimes."""
+    """A base class for models that need to track modified datetimes and users."""
 
     modified = models.DateTimeField(editable=False, help_text='The last time this entry was saved.')
     created = models.DateTimeField(editable=False, help_text='When this was added to the database.')
-
-    class Meta:
-        abstract = True
+    creator = models.ForeignKey(get_user_model(), on_delete=models.DO_NOTHING, related_name='creator')
+    modifier = models.ForeignKey(get_user_model(), on_delete=models.DO_NOTHING, related_name='modifier')
 
     def save(self, *args, **kwargs):
+        # TODO: reimplement with https://stackoverflow.com/a/10993961
+        #       I don't think the request is passed to `save`, so we do not
+        #       know who the current user is
         if not self.id:
             self.created = timezone.now()
         self.modified = timezone.now()
