@@ -2,6 +2,7 @@
 from celery.utils.log import get_task_logger
 from django.contrib.gis.gdal import SpatialReference
 from django.contrib.gis.geos import Polygon
+from osgeo import gdal
 import rasterio
 
 from rgd.utility import _field_file_to_local_path
@@ -91,27 +92,26 @@ class RasterEntryReader(_ReaderRoutine):
                 # This will convert the Polygon to the DB's SRID
                 self.raster_entry.footprint = Polygon(coords, srid=spatial_ref.srid)
 
-                # TODO: now create a `BandMetaEntry` entry for each band
-                #       this will collect statistics on the bands
+                dtypes = src.dtypes
+
+            # Rasterio is no longer open... using gdal directly:
+            with gdal.Open(file_path) as src:
                 self.band_entries = []
                 for i in range(src.count):
+                    gdal_band = src.GetRasterBand(i + 1)  # off by 1 indexing
                     band_meta = BandMetaEntry()
                     band_meta.parent_raster = self.raster_entry
+                    band_meta.description = gdal_band.GetDescription()
+                    band_meta.nodata_value = gdal_band.GetNoDataValue()
                     try:
-                        band_meta.description = src.descriptions[i]
+                        band_meta.dtype = dtypes[i]
                     except IndexError:
                         pass
-                    try:
-                        band_meta.nodata_value = src.nodatavals[i]
-                    except IndexError:
-                        pass
-                    try:
-                        band_meta.dtype = src.dtypes[i]
-                    except IndexError:
-                        pass
-                    # TODO: Compute statistics: min, max, mean, std
-                    #       We'd have to load the bands into memroy...
-                    #       might not be good.
+                    bmin, bmax, mean, std = gdal_band.GetStatistics(True, True)
+                    band_meta.min = bmin
+                    band_meta.max = bmax
+                    band_meta.mean = mean
+                    band_meta.std = std
 
                     # Keep track
                     self.band_entries.append(band_meta)
