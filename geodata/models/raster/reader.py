@@ -92,7 +92,9 @@ class RasterEntryReader(_ReaderRoutine):
                 # This will convert the Polygon to the DB's SRID
                 self.raster_entry.footprint = Polygon(coords, srid=spatial_ref.srid)
 
+                # These are things I couldn't figure out how to get with gdal directly
                 dtypes = src.dtypes
+                interps = src.colorinterp
 
             # Rasterio is no longer open... using gdal directly:
             with gdal.Open(file_path) as src:
@@ -112,6 +114,11 @@ class RasterEntryReader(_ReaderRoutine):
                     band_meta.max = bmax
                     band_meta.mean = mean
                     band_meta.std = std
+
+                    try:
+                        band_meta.interpretation = interps[i].name
+                    except IndexError:
+                        pass
 
                     # Keep track
                     self.band_entries.append(band_meta)

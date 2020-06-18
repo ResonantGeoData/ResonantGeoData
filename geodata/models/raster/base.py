@@ -82,6 +82,7 @@ class BandMetaEntry(ModifiableEntry):
     std = models.FloatField(null=True)
     nodata_value = models.FloatField(null=True)
     parent_raster = models.ForeignKey(RasterEntry, on_delete=models.CASCADE)
+    interpretation = models.TextField(null=True, blank=True)
 
 
 class ConvertedRasterFile(ModifiableEntry):
