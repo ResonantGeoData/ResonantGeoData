@@ -136,6 +136,29 @@ class DjangoConfig(Config):
     USE_L10N = True  # TODO: why?
 
 
+class GeoDjangoConfig(Config):
+    @staticmethod
+    def before_binding(configuration: Type[ComposedConfiguration]):
+        configuration.INSTALLED_APPS += ['django.contrib.gis']
+
+        try:
+            import osgeo
+            import re
+
+            libsdir = os.path.join(
+                os.path.dirname(os.path.dirname(osgeo._gdal.__file__)), 'GDAL.libs'
+            )
+            libs = {
+                re.split(r'-|\.', name)[0]: os.path.join(libsdir, name)
+                for name in os.listdir(libsdir)
+            }
+            configuration.GDAL_LIBRARY_PATH = libs['libgdal']
+            configuration.GEOS_LIBRARY_PATH = libs['libgeos_c']
+        except Exception:
+            # TODO: Log that we aren't using the expected GDAL wheel?
+            pass
+
+
 class LoggingConfig(Config):
     LOGGING = {
         'version': 1,
@@ -225,7 +248,7 @@ class AllauthConfig(Config):
     ACCOUNT_AUTHENTICATION_METHOD = 'email'
     ACCOUNT_USERNAME_REQUIRED = False
     ACCOUNT_EMAIL_REQUIRED = True
-    ACCOUNT_EMAIL_VERIFICATION = 'mandatory'
+    ACCOUNT_EMAIL_VERIFICATION = 'optional'
 
     # This improves lookup performance, but makes the username no longer match the email
     # TODO: Do we want this?
@@ -271,10 +294,15 @@ class CorsConfig(Config):
 class RestFrameworkConfig(Config):
     @staticmethod
     def before_binding(configuration: Type[ComposedConfiguration]):
-        configuration.INSTALLED_APPS += ['rest_framework', 'rest_framework.authtoken']
+        configuration.INSTALLED_APPS += [
+            'rest_framework',
+            'rest_framework.authtoken',
+            'drf_yasg',
+            'django_filters',
+        ]
 
     REST_FRAMEWORK = {
-        'DEFAULT_AUTHENTICATION_CLASSES': ['rest_framework.authentication.TokenAuthentication']
+        'DEFAULT_AUTHENTICATION_CLASSES': ['rest_framework.authentication.TokenAuthentication'],
     }
 
 
@@ -290,7 +318,7 @@ class DatabaseConfig(Config):
         environ_prefix='DJANGO',
         environ_required=True,
         # Additional kwargs to DatabaseURLValue are passed to dj-database-url
-        engine='django.db.backends.postgresql',
+        engine='django.contrib.gis.db.backends.postgis',
         conn_max_age=600,
     )
 
@@ -308,6 +336,14 @@ class CeleryConfig(Config):
     CELERY_EVENT_QUEUE_EXPIRES = 60
     CELERY_WORKER_PREFETCH_MULTIPLIER = 1
     # CELERY_WORKER_CONCURRENCY can be set if workers have resource constraints
+    CELERY_WORKER_SEND_TASK_EVENTS = True
+
+
+class SwaggerConfig(Config):
+    REFETCH_SCHEMA_WITH_AUTH = True
+    REFETCH_SCHEMA_ON_LOGOUT = True
+    OPERATIONS_SORTER = 'alpha'
+    DEEP_LINKING = True
 
 
 class StorageConfig(Config):
@@ -408,7 +444,9 @@ class BaseConfiguration(
     WhitenoiseStaticFileConfig,
     LoggingConfig,
     DjangoConfig,
+    GeoDjangoConfig,
     ComposedConfiguration,
+    SwaggerConfig,
 ):
     # Does not include a StorageConfig, since that varies
     # significantly from development to production
@@ -443,7 +481,7 @@ class HerokuProductionConfiguration(ProductionConfiguration):
         environ_name='DATABASE_URL',
         environ_prefix=None,
         environ_required=True,
-        engine='django.db.backends.postgresql',
+        engine='django.contrib.gis.db.backends.postgis',
         conn_max_age=600,
         ssl_require=True,
     )

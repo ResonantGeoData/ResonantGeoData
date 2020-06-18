@@ -33,3 +33,7 @@ services:
       - db
       - rabbitmq
       - minio
+
+  flower:
+    image: mher/flower
+    command: ["--broker=amqp://rabbitmq:5672/", "--url_prefix=flower"]

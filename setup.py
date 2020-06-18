@@ -17,7 +17,10 @@ setup(
         'django-extensions',
         'django-storages',
         'djangorestframework',
+        'django-filter',
+        'djproxy',
         'docker',
+        'drf-yasg',
         'gputil',
         'psycopg2',
         'python-magic',
@@ -26,6 +29,7 @@ setup(
         'whitenoise[brotli]',
         # Production-only
         'django-storages',
+        'flower',
         'gunicorn',
         # Development-only
         'django-debug-toolbar',
