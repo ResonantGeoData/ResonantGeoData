@@ -3,12 +3,8 @@ from celery.utils.log import get_task_logger
 from django.contrib.gis.gdal import SpatialReference
 from django.contrib.gis.geos import Polygon
 import rasterio
+
 from rgd.utility import _field_file_to_local_path
-
-# from django.core.files.base import ContentFile
-# import io
-# from PIL import Image
-
 from .base import BandMetaEntry, ConvertedRasterFile, RasterEntry, RasterFile
 from ..common import _ReaderRoutine
 
