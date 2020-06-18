@@ -49,6 +49,7 @@ class RasterEntryReader(_ReaderRoutine):
             raster_query = RasterEntry.objects.filter(raster_file=self.rfe)
             if len(raster_query) < 1:
                 self.raster_entry = RasterEntry()
+                self.raster_entry.name = self.rfe.name
             elif len(raster_query) == 1:
                 self.raster_entry = raster_query.first()
                 # Clear out associated entries because they could be invalid
