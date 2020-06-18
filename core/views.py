@@ -3,16 +3,20 @@ import os
 
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
-from django.db.models.fields.files import FieldFile
+from django.db.models.fields import AutoField
+from django.db.models.fields.files import FieldFile, FileField
 from django.http import HttpResponse
 from django.shortcuts import get_object_or_404, render
 from django.utils import timezone
 from django.utils.encoding import smart_str
 from django.views.decorators.http import require_http_methods
 from django.views.generic import CreateView, DeleteView, DetailView
+from django_filters.rest_framework import DjangoFilterBackend
+from rest_framework import viewsets
 from rest_framework.decorators import api_view
 
 from . import models
+from . import serializers
 from .models import Algorithm, AlgorithmJob, ScoreJob, Task
 
 
@@ -144,3 +148,82 @@ def download_file(request, model, id, field):
     if len(file) is not None:
         response['Content-Length'] = len(file)
     return response
+
+
+def get_filter_fields(model):
+    """
+    Return a list of all filterable fields of Model.
+
+    -Takes: Model type
+    -Returns: A list of fields as string (excluding ID and file uploading)
+    """
+    model_fields = model._meta.get_fields()
+    fields = []
+    for field in model_fields:
+        res = str(field).split('.')
+        if res[1] == model.__name__ and not isinstance(field, (FileField, AutoField)):
+            fields.append(field.name)
+    return fields
+
+
+class AlgorithmViewSet(viewsets.ModelViewSet):
+    queryset = Algorithm.objects.all()
+    serializer_class = serializers.AlgorithmSerializer
+    filter_backends = [DjangoFilterBackend]
+    filterset_fields = get_filter_fields(Algorithm)
+
+
+class TaskViewSet(viewsets.ModelViewSet):
+    queryset = Task.objects.all()
+    serializer_class = serializers.TaskSerializer
+    filter_backends = [DjangoFilterBackend]
+    filterset_fields = get_filter_fields(Task)
+
+
+class DatasetViewSet(viewsets.ModelViewSet):
+    queryset = models.Dataset.objects.all()
+    serializer_class = serializers.DatasetSerializer
+    filter_backends = [DjangoFilterBackend]
+    filterset_fields = get_filter_fields(models.Dataset)
+
+
+class GroundtruthViewSet(viewsets.ModelViewSet):
+    queryset = models.Groundtruth.objects.all()
+    serializer_class = serializers.GroundtruthSerializer
+    filter_backends = [DjangoFilterBackend]
+    filterset_fields = get_filter_fields(models.Groundtruth)
+
+
+class ScoreAlgorithmViewSet(viewsets.ModelViewSet):
+    queryset = models.ScoreAlgorithm.objects.all()
+    serializer_class = serializers.ScoreAlgorithmSerializer
+    filter_backends = [DjangoFilterBackend]
+    filterset_fields = get_filter_fields(models.ScoreAlgorithm)
+
+
+class AlgorithmJobViewSet(viewsets.ModelViewSet):
+    queryset = models.AlgorithmJob.objects.all()
+    serializer_class = serializers.AlgorithmJobSerializer
+    filter_backends = [DjangoFilterBackend]
+    filterset_fields = get_filter_fields(models.AlgorithmJob)
+
+
+class AlgorithmResultViewSet(viewsets.ModelViewSet):
+    queryset = models.AlgorithmResult.objects.all()
+    serializer_class = serializers.AlgorithmResultSerializer
+    filter_backends = [DjangoFilterBackend]
+    filterset_fields = get_filter_fields(models.AlgorithmResult)
+
+
+class ScoreJobViewSet(viewsets.ModelViewSet):
+    queryset = models.ScoreJob.objects.all()
+    serializer_class = serializers.ScoreJobSerializer
+    filter_backends = [DjangoFilterBackend]
+    filterset_fields = get_filter_fields(models.ScoreJob)
+
+
+class ScoreResultViewSet(viewsets.ModelViewSet):
+    queryset = models.ScoreResult.objects.all()
+    serializer_class = serializers.ScoreResultSerializer
+    filter_backends = [DjangoFilterBackend]
+    filterset_fields = get_filter_fields(models.ScoreResult)
