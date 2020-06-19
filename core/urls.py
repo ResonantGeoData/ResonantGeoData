@@ -31,7 +31,7 @@ for _, ser in inspect.getmembers(serializers):
         )
         router.register('api/%s' % (model_name.lower()), viewsetClass)
 
-admin.site.index_template = 'admin/add_flower.html'
+admin.site.index_template = 'admin/add_links.html'
 urlpatterns = [
     path('', views.index, name='index'),
     path('algorithms/', views.algorithms, name='algorithms'),
