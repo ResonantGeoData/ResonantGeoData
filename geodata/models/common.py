@@ -21,10 +21,10 @@ class ModifiableEntry(models.Model):
     modified = models.DateTimeField(editable=False, help_text='The last time this entry was saved.')
     created = models.DateTimeField(editable=False, help_text='When this was added to the database.')
     creator = models.ForeignKey(
-        get_user_model(), on_delete=models.DO_NOTHING, related_name='creator'
+        get_user_model(), null=True, on_delete=models.DO_NOTHING, related_name='creator'
     )
     modifier = models.ForeignKey(
-        get_user_model(), on_delete=models.DO_NOTHING, related_name='modifier'
+        get_user_model(), null=True, on_delete=models.DO_NOTHING, related_name='modifier'
     )
 
     def save(self, *args, **kwargs):
