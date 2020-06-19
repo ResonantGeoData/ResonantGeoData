@@ -97,31 +97,35 @@ class RasterEntryReader(_ReaderRoutine):
                 interps = src.colorinterp
 
             # Rasterio is no longer open... using gdal directly:
-            with gdal.Open(file_path) as src:
-                self.band_entries = []
-                for i in range(src.count):
-                    gdal_band = src.GetRasterBand(i + 1)  # off by 1 indexing
-                    band_meta = BandMetaEntry()
-                    band_meta.parent_raster = self.raster_entry
-                    band_meta.description = gdal_band.GetDescription()
-                    band_meta.nodata_value = gdal_band.GetNoDataValue()
-                    try:
-                        band_meta.dtype = dtypes[i]
-                    except IndexError:
-                        pass
-                    bmin, bmax, mean, std = gdal_band.GetStatistics(True, True)
-                    band_meta.min = bmin
-                    band_meta.max = bmax
-                    band_meta.mean = mean
-                    band_meta.std = std
+            gsrc = gdal.Open(str(file_path))  # Have to cast Path to str
+            self.band_entries = []
+            n = gsrc.RasterCount
+            if n != self.raster_entry.number_of_bands:
+                # Sanity check
+                self.raster_entry.number_of_bands
+            for i in range(n):
+                gdal_band = gsrc.GetRasterBand(i + 1)  # off by 1 indexing
+                band_meta = BandMetaEntry()
+                band_meta.parent_raster = self.raster_entry
+                band_meta.description = gdal_band.GetDescription()
+                band_meta.nodata_value = gdal_band.GetNoDataValue()
+                try:
+                    band_meta.dtype = dtypes[i]
+                except IndexError:
+                    pass
+                bmin, bmax, mean, std = gdal_band.GetStatistics(True, True)
+                band_meta.min = bmin
+                band_meta.max = bmax
+                band_meta.mean = mean
+                band_meta.std = std
 
-                    try:
-                        band_meta.interpretation = interps[i].name
-                    except IndexError:
-                        pass
+                try:
+                    band_meta.interpretation = interps[i].name
+                except IndexError:
+                    pass
 
-                    # Keep track
-                    self.band_entries.append(band_meta)
+                # Keep track
+                self.band_entries.append(band_meta)
 
         return True
 
