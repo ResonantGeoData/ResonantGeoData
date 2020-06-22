@@ -21,7 +21,7 @@ class GeometryArchiveReader(_ReaderRoutine):
     """Shapefile geometry injestion routine."""
 
     def _read_files(self):
-        """Read ``zip`` archive of a single shapefile (and associated) files.
+        """Read an archive of a single shapefile (and associated) files.
 
         This will load zipped archives of shape files and create entries
         for a single shapefile (basename of files).

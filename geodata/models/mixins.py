@@ -2,7 +2,7 @@
 
 
 class PostSaveEventMixin(object):
-    """A base class for models that must call a post-save task.
+    """A mixin for models that must call a post-save task.
 
     The task must be assigned as a class attribute.
 

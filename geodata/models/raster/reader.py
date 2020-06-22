@@ -13,10 +13,10 @@ logger = get_task_logger(__name__)
 
 
 class RasterEntryReader(_ReaderRoutine):
-    """Raster injestion routine.
+    """Raster ingestion routine.
 
-    This helper class will open a raster file and create the ``GDALRaster``
-    for the ``RasterEntry``'s raster property.
+    This helper class will open a raster file from ``RasterFile`` and create a
+    ``RasterEntry`` and collection of ``BandMetaEntry`` entries.
 
     """
 

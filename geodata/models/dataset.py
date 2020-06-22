@@ -5,12 +5,12 @@ from .raster.base import RasterEntry
 
 
 class Dataset(models.Model):
-    """A general dataset container for spatial entries together.
+    """A general dataset container for grouping spatial entries together.
 
     Think of this like a collection of data entries for a given project/task.
 
-    Down the road, this model can be subclassed as needed for specific dataset
-    types.
+    Down the road, this model can be subclassed as needed for specific
+    project needs.
 
     All geospatial info is contained in those data's respective entries.
     """

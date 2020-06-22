@@ -14,8 +14,9 @@ from ... import tasks
 class RasterFile(ModifiableEntry, PostSaveEventMixin):
     """This is a standalone DB entry for raster files.
 
-    This will automatically generate a ``RasterEntry`` on the post_save event.
-    This points to data in its original location.
+    This will automatically generate a ``RasterEntry`` on the ``post_save``
+    event. This points to data in its original location and the generated
+    ``RasterEntry`` points to this.
 
     TODO: support file collections (e.g. one Landsat 8 entry may need to point
     to a file for each band).
@@ -33,7 +34,7 @@ class RasterEntry(SpatialEntry):
     """This class is a container for the metadata of a raster.
 
     This model does not hold any raster data, only the metadata, and points
-    to a raster file in its original location.
+    to a ``RasterFile`` in which keeps track of the actual data.
 
     """
 
@@ -63,12 +64,12 @@ class RasterEntry(SpatialEntry):
     number_of_bands = models.PositiveIntegerField()
     driver = models.CharField(max_length=100)
     metadata = fields.JSONField(null=True)
-    # TODO: skew/tramsform
+    # TODO: skew/transform
     transform = fields.ArrayField(models.FloatField(), size=6)
 
 
 class BandMetaEntry(ModifiableEntry):
-    """A basic container to keep track of useful band info inside the DB."""
+    """A basic container to keep track of useful band info."""
 
     description = models.TextField(
         null=True,
