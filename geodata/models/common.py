@@ -41,7 +41,7 @@ class SpatialEntry(ModifiableEntry):
     # An optional description field in case the user needs to add context
     description = models.TextField(blank=True, null=True)
     # Datetime of creation for the dataset
-    acquisition_date = models.DateTimeField(null=True, default=None)
+    acquisition_date = models.DateTimeField(null=True, default=None, blank=True)
 
     class Meta:
         abstract = True
