@@ -11,11 +11,11 @@ from ..mixins import PostSaveEventMixin
 from ... import tasks
 
 
-def validate_archive(value):
+def validate_archive(field_file):
     """Validate file is a zip or tar archive."""
     acceptable = ['application/zip', 'application/gzip']
 
-    mimetype = magic.from_file(value, mime=True)
+    mimetype = magic.from_file(field_file.name, mime=True)
 
     if mimetype not in acceptable:
         raise ValidationError('Unsupported file archive.')
