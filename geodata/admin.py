@@ -49,7 +49,7 @@ class BandMetaEntryAdmin(OSMGeoAdmin):
     list_display = (
         '__str__',
         'modified',
-        'parent_raster',
+        # 'parent_raster',  # TODO: this prevents the list view from working
     )
     readonly_fields = (
         'mean',
@@ -62,6 +62,7 @@ class BandMetaEntryAdmin(OSMGeoAdmin):
         'nodata_value',
         'dtype',
     )
+    list_filter = ('parent_raster', 'interpretation', 'dtype',)
 
 
 @admin.register(RasterFile)
