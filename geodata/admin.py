@@ -62,7 +62,11 @@ class BandMetaEntryAdmin(OSMGeoAdmin):
         'nodata_value',
         'dtype',
     )
-    list_filter = ('parent_raster', 'interpretation', 'dtype',)
+    list_filter = (
+        'parent_raster',
+        'interpretation',
+        'dtype',
+    )
 
 
 @admin.register(RasterFile)
