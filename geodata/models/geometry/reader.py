@@ -10,6 +10,7 @@ import fiona
 from shapely.geometry import shape
 from shapely.wkb import dumps
 
+from rgd.utility import _field_file_to_local_path
 from .base import GeometryArchive, GeometryEntry
 from ..common import _ReaderRoutine
 from ..constants import DB_SRID
@@ -38,12 +39,13 @@ class GeometryArchiveReader(_ReaderRoutine):
 
         """
         self.archive = GeometryArchive.objects.get(id=self.model_id)
-        file_path = self.archive.archive_file.name
-        logger.info(f'The geometry archive: {file_path}')
+        with _field_file_to_local_path(self.archive.archive_file) as file_path:
+            logger.info(f'The geometry archive: {file_path}')
 
-        # Unzip the contents to the working dir
-        with zipfile.ZipFile(file_path, 'r') as zip_ref:
-            zip_ref.extractall(self.tmpdir)
+            # Unzip the contents to the working dir
+            with zipfile.ZipFile(file_path, 'r') as zip_ref:
+                zip_ref.extractall(self.tmpdir)
+
         shape_files = glob(os.path.join(self.tmpdir, '*.shp'))
         if len(shape_files) != 1:
             raise ValidationError('There must be one and only one shapefile in the archive.')
