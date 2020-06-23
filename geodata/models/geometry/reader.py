@@ -55,6 +55,8 @@ class GeometryArchiveReader(_ReaderRoutine):
         # create a model entry for that shapefile
         if self.archive.geometry_entry is None:
             self.archive.geometry_entry = GeometryEntry()
+            self.archive.geometry_entry.creator = self.archive.creator
+        self.archive.geometry_entry.modifier = self.archive.modifier
 
         shapes.meta  # TODO: dump this JSON into the model entry
 

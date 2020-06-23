@@ -21,16 +21,13 @@ class ModifiableEntry(models.Model):
     modified = models.DateTimeField(editable=False, help_text='The last time this entry was saved.')
     created = models.DateTimeField(editable=False, help_text='When this was added to the database.')
     creator = models.ForeignKey(
-        get_user_model(), null=True, on_delete=models.DO_NOTHING, related_name='creator'
+        get_user_model(), on_delete=models.DO_NOTHING, related_name='creator'
     )
     modifier = models.ForeignKey(
-        get_user_model(), null=True, on_delete=models.DO_NOTHING, related_name='modifier'
+        get_user_model(), on_delete=models.DO_NOTHING, related_name='modifier'
     )
 
     def save(self, *args, **kwargs):
-        # TODO: reimplement with https://stackoverflow.com/a/10993961
-        #       I don't think the request is passed to `save`, so we do not
-        #       know who the current user is
         if not self.id:
             self.created = timezone.now()
         self.modified = timezone.now()

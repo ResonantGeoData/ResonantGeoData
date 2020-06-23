@@ -57,6 +57,8 @@ class RasterEntryReader(_ReaderRoutine):
                 raise RuntimeError('multiple raster entries found for this file.')
 
             self.raster_entry.raster_file = self.rfe
+            self.raster_entry.creator = self.rfe.creator
+            self.raster_entry.modifier = self.rfe.modifier
 
             with rasterio.open(file_path) as src:
                 self.raster_entry.number_of_bands = src.count
