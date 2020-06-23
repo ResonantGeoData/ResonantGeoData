@@ -26,7 +26,7 @@ class RasterFile(ModifiableEntry, PostSaveEventMixin):
     task_func = tasks.validate_raster
     name = models.CharField(max_length=100, blank=True, null=True)
     # TODO: does `raster_file` handle all our use cases?
-    raster_file = models.FileField(upload_to='rasters')
+    raster_file = models.FileField(upload_to='files/rasters')
     failure_reason = models.TextField(null=True, blank=True)
 
 
