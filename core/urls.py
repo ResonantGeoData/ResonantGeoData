@@ -5,12 +5,44 @@ from django.contrib import admin
 from django.urls import path
 from django_filters.rest_framework import DjangoFilterBackend
 from djproxy.urls import generate_routes
-from rest_framework import viewsets
+from rest_framework import viewsets, parsers
 from rest_framework.parsers import MultiPartParser
 from rest_framework.routers import SimpleRouter
 
 from . import serializers
 from . import views
+
+from django.http import QueryDict
+
+class MultiPartJsonParser(MultiPartParser):
+
+    def parse(self, stream, media_type=None, parser_context=None):
+        result = super().parse(
+            stream,
+            media_type=media_type,
+            parser_context=parser_context
+        )
+
+        data = {}
+        tasks = []
+        arrays = {}
+        for key, value in result.data.items():
+            if '"' in value:
+                vals = value.replace('"', '')
+                arrays[key] = [int(x) if x.isnumeric() else x for x in vals.split(',')]
+            else:
+                data[key] = value
+
+        print(data)
+        print(arrays)
+        qdict = QueryDict('', mutable=True)
+        qdict.update(data)
+
+        for key in arrays:
+            for val in arrays[key]:
+                qdict.update({key: val})
+
+        return parsers.DataAndFiles(qdict, result.files)
 
 
 router = SimpleRouter()
@@ -22,7 +54,7 @@ for _, ser in inspect.getmembers(serializers):
             model_name + 'ViewSet',
             (viewsets.ModelViewSet,),
             {
-                'parser_classes': (MultiPartParser,),
+                'parser_classes': (MultiPartJsonParser,),
                 'queryset': model.objects.all(),
                 'serializer_class': ser,
                 'filter_backends': [DjangoFilterBackend],
