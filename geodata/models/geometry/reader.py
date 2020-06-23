@@ -3,8 +3,12 @@ from glob import glob
 import os
 import zipfile
 
+# Import rgd to figure out where gdal is located
+import rgd  # noqa: I100
+
 from celery.utils.log import get_task_logger
 from django.contrib.gis.geos import GeometryCollection, GEOSGeometry
+from django.contrib.gis.gdal import SpatialReference
 from django.core.exceptions import ValidationError
 import fiona
 from shapely.geometry import shape
@@ -62,10 +66,16 @@ class GeometryArchiveReader(_ReaderRoutine):
 
         shapes.meta  # TODO: dump this JSON into the model entry
 
+        crs_wkt = shapes.meta['crs_wkt']
+        logger.info(f'Geometry crs_wkt: {crs_wkt}')
+        spatial_ref = SpatialReference(crs_wkt)
+        logger.info(f'Geometry SRID: {spatial_ref.srid}')
+
         collection = []
         for item in shapes:
             geom = shape(item['geometry'])  # not optimal?
-            collection.append(GEOSGeometry(memoryview(dumps(geom, srid=DB_SRID))))
+            # TODO: check this
+            collection.append(GEOSGeometry(memoryview(dumps(geom, srid=spatial_ref.srid)), srid=srid))
         self.archive.geometry_entry.data = GeometryCollection(*collection)
 
         return True
