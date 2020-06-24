@@ -3,12 +3,9 @@ from glob import glob
 import os
 import zipfile
 
-# Import rgd to figure out where gdal is located
-import rgd  # noqa: I100
-
 from celery.utils.log import get_task_logger
-from django.contrib.gis.geos import GeometryCollection, GEOSGeometry
 from django.contrib.gis.gdal import SpatialReference
+from django.contrib.gis.geos import GeometryCollection, GEOSGeometry
 from django.core.exceptions import ValidationError
 import fiona
 from shapely.geometry import shape
@@ -17,7 +14,7 @@ from shapely.wkb import dumps
 from rgd.utility import _field_file_to_local_path
 from .base import GeometryArchive, GeometryEntry
 from ..common import _ReaderRoutine
-from ..constants import DB_SRID
+
 
 logger = get_task_logger(__name__)
 
