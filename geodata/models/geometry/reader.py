@@ -75,7 +75,9 @@ class GeometryArchiveReader(_ReaderRoutine):
         for item in shapes:
             geom = shape(item['geometry'])  # not optimal?
             # TODO: check this
-            collection.append(GEOSGeometry(memoryview(dumps(geom, srid=spatial_ref.srid)), srid=srid))
+            collection.append(
+                GEOSGeometry(memoryview(dumps(geom, srid=spatial_ref.srid)), srid=srid)
+            )
         self.archive.geometry_entry.data = GeometryCollection(*collection)
 
         return True
