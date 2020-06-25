@@ -10,6 +10,7 @@ import uritemplate  # noqa: F401
 
 urlpatterns = [
     path('', include('core.urls')),
+    path('', include('geodata.urls')),
     path('admin/', admin.site.urls),
     path('accounts/', include('allauth.urls')),
 ]

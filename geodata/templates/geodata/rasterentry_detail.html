@@ -1,0 +1,34 @@
+{% extends "base.html" %}
+{% block content %}
+  <article class="media content-section">
+    <div class="media-body">
+      <div class="article-metadata">
+        <small class="text-muted">Created: {{ object.created }}</small>
+        <p/>
+        <small class="text-muted">Modified: {{ object.modified }}</small>
+      </div>
+
+      <h2 class="article-title">
+        <span>{{ object.name }} ({{object.pk}})</span>
+      </h2>
+      <hr/>
+
+      <p class="article-content">Instrumentation: {{ object.instrumentation }}</p>
+      <p class="article-content">Number of bands: {{ object.number_of_bands }}</p>
+
+      <h3><span>Raster Metadata</span></h3>
+      <p class="article-content">Resolution: {{ object.resolution }}</p>
+      <p class="article-content">Height, Width: {{ object.height }}, {{ object.width }}</p>
+      <p class="article-content">Origin: {{ object.origin }}</p>
+      <p class="article-content">Extent: {{ object.extent }}</p>
+      <p class="article-content">Transform: {{ object.transform }}</p>
+
+      <p class="article-content">PROJ4 String: {{ object.crs }}</p>
+      <p class="article-content">GDAL Driver: {{ object.driver }}</p>
+      <p class="article-content">Additional Metadata: {{ object.metadata }}</p>
+      <p class="article-content">Meta: {{ object.metadata }}</p>
+
+
+    </div>
+  </article>
+{% endblock content %}

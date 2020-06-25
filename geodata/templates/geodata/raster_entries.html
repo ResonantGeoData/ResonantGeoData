@@ -1,0 +1,33 @@
+{% extends "base.html" %}
+{% block content %}
+
+
+  <h1 class="article-title">
+    <span>Rasters</span>
+  </h1>
+  <hr/>
+
+
+  <table class="table">
+    <thead class="thead-dark">
+      <tr>
+        <th>Name (ID)</th>
+        <th>instrumentation</th>
+        <th>numbe of bands</th>
+        <th>resolution</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for raster in rasters %}
+        <tr>
+          <td><a href="{% url 'raster-entry-detail' raster.pk %}">{{ raster.name }} ({{ raster.id }})</a></td>
+          <td>{{ raster.instrumentation }}</td>
+          <td>{{ raster.number_of_bands }}</td>
+          <td>{{ raster.resolution }}</td>
+        </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+
+
+{% endblock content %}
