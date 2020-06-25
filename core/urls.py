@@ -2,6 +2,7 @@ import inspect
 
 from django.conf.urls import include
 from django.contrib import admin
+from django.db.models import fields
 from django.urls import path
 from django_filters.rest_framework import DjangoFilterBackend
 from djproxy.urls import generate_routes
@@ -24,12 +25,20 @@ class MultiPartJsonParser(MultiPartParser):
         )
 
         data = {}
-        tasks = []
         arrays = {}
+
+        model = None
+        if parser_context and 'view' in parser_context:
+            model = parser_context['view'].get_serializer_class().Meta.model
         for key, value in result.data.items():
-            if '"' in value:
+            ''' 
+                Handle ManytoMany field data, parses lists of comma-separated integers that might be quoted. 
+                eg. "1,2"
+            '''
+            if hasattr(model, key) and isinstance(getattr(model, key), fields.related_descriptors.ManyToManyDescriptor):
+                print(value)
                 vals = value.replace('"', '')
-                arrays[key] = [int(x) if x.isnumeric() else x for x in vals.split(',')]
+                arrays[key] = [x for x in vals.split(',')]
             else:
                 data[key] = value
 
