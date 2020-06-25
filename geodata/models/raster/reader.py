@@ -111,6 +111,8 @@ class RasterEntryReader(_ReaderRoutine):
                 band_meta.parent_raster = self.raster_entry
                 band_meta.description = gdal_band.GetDescription()
                 band_meta.nodata_value = gdal_band.GetNoDataValue()
+                band_meta.creator = self.rfe.creator
+                band_meta.modifier = self.rfe.modifier
                 try:
                     band_meta.dtype = dtypes[i]
                 except IndexError:
@@ -136,4 +138,3 @@ class RasterEntryReader(_ReaderRoutine):
         self.raster_entry.save()
         for band in self.band_entries:
             band.save()
-        return

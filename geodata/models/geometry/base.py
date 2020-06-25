@@ -15,14 +15,10 @@ def validate_archive(field_file):
     """Validate file is a zip or tar archive."""
     acceptable = ['application/zip', 'application/gzip']
 
-    from rgd.utility import _field_file_to_local_path
+    mimetype = magic.from_buffer(field_file.read(16384), mime=True)
 
-    with _field_file_to_local_path(field_file) as file_path:
-
-        mimetype = magic.from_file(str(file_path), mime=True)
-
-        if mimetype not in acceptable:
-            raise ValidationError('Unsupported file archive.')
+    if mimetype not in acceptable:
+        raise ValidationError('Unsupported file archive.')
 
 
 class GeometryEntry(SpatialEntry):
