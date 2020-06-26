@@ -7,6 +7,7 @@ from django.dispatch import receiver
 from django.urls import reverse
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
+from s3_file_field import S3FileField
 
 from . import validators
 
@@ -50,7 +51,7 @@ class Dataset(models.Model):
     tasks = models.ManyToManyField(Task)
     # TODO: If we try to edit data and this has been referenced anywhere, we
     # need to make a new model and mark this one as inactive
-    data = models.FileField(upload_to='dataset')
+    data = S3FileField(upload_to='dataset')
 
 
 class Groundtruth(models.Model):
@@ -75,7 +76,7 @@ class Groundtruth(models.Model):
     public = models.BooleanField(default=False)
     # TODO: If we try to edit data and this has been referenced anywhere, we
     # need to make a new model and mark this one as inactive
-    data = models.FileField(upload_to='groundtruth')
+    data = S3FileField(upload_to='groundtruth')
 
 
 class Algorithm(models.Model):
@@ -93,7 +94,7 @@ class Algorithm(models.Model):
     active = models.BooleanField(default=True)
     # TODO: If we try to edit data and this has been referenced anywhere, we
     # need to make a new model and mark this one as inactive
-    data = models.FileField(
+    data = S3FileField(
         upload_to='algorithm', validators=[validators.MimetypeValidator(['application/x-tar'])]
     )
     docker_image_id = models.TextField(null=True, blank=True)
@@ -139,7 +140,7 @@ class ScoreAlgorithm(models.Model):
     active = models.BooleanField(default=True)
     # TODO: If we try to edit data and this has been referenced anywhere, we
     # need to make a new model and mark this one as inactive
-    data = models.FileField(
+    data = S3FileField(
         upload_to='score_algorithm',
         validators=[validators.MimetypeValidator(['application/x-tar'])],
     )
@@ -226,8 +227,8 @@ class AlgorithmResult(models.Model):
 
     algorithm_job = models.ForeignKey(AlgorithmJob, on_delete=models.CASCADE, blank=True, null=True)
     created = models.DateTimeField(default=timezone.now)
-    data = models.FileField(upload_to='results')
-    log = models.FileField(upload_to='results_logs', null=True, blank=True)
+    data = S3FileField(upload_to='results')
+    log = S3FileField(upload_to='results_logs', null=True, blank=True)
     data_mimetype = models.TextField(null=True, blank=True)
 
 
@@ -285,8 +286,8 @@ class ScoreResult(models.Model):
 
     score_job = models.ForeignKey(ScoreJob, on_delete=models.CASCADE, blank=True, null=True)
     created = models.DateTimeField(default=timezone.now)
-    data = models.FileField(upload_to='scores')
-    log = models.FileField(upload_to='scores_logs', null=True, blank=True)
+    data = S3FileField(upload_to='scores')
+    log = S3FileField(upload_to='scores_logs', null=True, blank=True)
     overall_score = models.FloatField(
         null=True, blank=True, validators=[MaxValueValidator(1.0), MinValueValidator(0.0)]
     )
