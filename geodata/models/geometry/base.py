@@ -37,6 +37,7 @@ class GeometryArchive(ModifiableEntry, PostSaveEventMixin):
     """
 
     task_func = tasks.validate_geometry_archive
+    name = models.CharField(max_length=100, blank=True, null=True)
     archive_file = S3FileField(
         upload_to='files/geometry_files',
         validators=[validate_archive],
@@ -45,6 +46,11 @@ class GeometryArchive(ModifiableEntry, PostSaveEventMixin):
 
     geometry_entry = models.OneToOneField(GeometryEntry, null=True, on_delete=models.DO_NOTHING)
     failure_reason = models.TextField(null=True, blank=True)
+
+    def save(self, *args, **kwargs):
+        if self.name is None or len(self.name) < 1:
+            self.name = self.archive_file.name
+        super(GeometryArchive, self).save(*args, **kwargs)
 
 
 @receiver(post_save, sender=GeometryArchive)
