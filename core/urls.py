@@ -3,26 +3,21 @@ import inspect
 from django.conf.urls import include
 from django.contrib import admin
 from django.db.models import fields
+from django.http import QueryDict
 from django.urls import path
 from django_filters.rest_framework import DjangoFilterBackend
 from djproxy.urls import generate_routes
-from rest_framework import viewsets, parsers
+from rest_framework import parsers, viewsets
 from rest_framework.parsers import MultiPartParser
 from rest_framework.routers import SimpleRouter
 
 from . import serializers
 from . import views
 
-from django.http import QueryDict
 
 class MultiPartJsonParser(MultiPartParser):
-
     def parse(self, stream, media_type=None, parser_context=None):
-        result = super().parse(
-            stream,
-            media_type=media_type,
-            parser_context=parser_context
-        )
+        result = super().parse(stream, media_type=media_type, parser_context=parser_context)
 
         data = {}
         arrays = {}
@@ -31,11 +26,13 @@ class MultiPartJsonParser(MultiPartParser):
         if parser_context and 'view' in parser_context:
             model = parser_context['view'].get_serializer_class().Meta.model
         for key, value in result.data.items():
-            ''' 
-                Handle ManytoMany field data, parses lists of comma-separated integers that might be quoted. 
+            """
+                Handle ManytoMany field data, parses lists of comma-separated integers that might be quoted.
                 eg. "1,2"
-            '''
-            if hasattr(model, key) and isinstance(getattr(model, key), fields.related_descriptors.ManyToManyDescriptor):
+            """
+            if hasattr(model, key) and isinstance(
+                getattr(model, key), fields.related_descriptors.ManyToManyDescriptor
+            ):
                 print(value)
                 vals = value.replace('"', '')
                 arrays[key] = [x for x in vals.split(',')]
@@ -59,7 +56,7 @@ for _, ser in inspect.getmembers(serializers):
     if inspect.isclass(ser):
         model = ser.Meta.model
         model_name = model.__name__
-        viewsetClass = type(
+        viewset_class = type(
             model_name + 'ViewSet',
             (viewsets.ModelViewSet,),
             {
@@ -70,7 +67,7 @@ for _, ser in inspect.getmembers(serializers):
                 'filterset_fields': views.get_filter_fields(model),
             },
         )
-        router.register('api/%s' % (model_name.lower()), viewsetClass)
+        router.register('api/%s' % (model_name.lower()), viewset_class)
 
 admin.site.index_template = 'admin/add_links.html'
 urlpatterns = [
