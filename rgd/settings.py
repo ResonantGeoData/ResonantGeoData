@@ -431,6 +431,33 @@ class RgdConfig(Config):
     pass
 
 
+class S3FileFieldConfig(Config):
+    S3FF_UPLOAD_STS_ARN = ''
+
+    @staticmethod
+    def before_binding(configuration: Type[ComposedConfiguration]):
+        configuration.INSTALLED_APPS += ['s3_file_field']
+
+
+class DisableS3FileFieldUploadsConfig(Config):
+    # When minio is in a docker container, there is no sensible route to reach
+    # it without setting up a reverse proxy or abusing the hosts file on every
+    # client machine.  Rather, disable direct uploads from s3-file-field.  This
+    # has to be be done after configuration, as importing s3_file_field has
+    # side effects that don't work until other configuration is in place.
+    @staticmethod
+    def after_binding(configuration: Type[ComposedConfiguration]):
+        import s3_file_field.configuration
+
+        s3_file_field.configuration.get_storage_provider = (
+            lambda: s3_file_field.configuration.StorageProvider.UNSUPPORTED
+        )
+        s3_file_field.settings._S3FF_STORAGE_PROVIDER = (
+            s3_file_field.configuration.StorageProvider.UNSUPPORTED
+        )
+        s3_file_field.settings._S3FF_ENDPOINT = None
+
+
 class BaseConfiguration(
     RgdConfig,
     CleanupConfig,
@@ -445,15 +472,18 @@ class BaseConfiguration(
     LoggingConfig,
     DjangoConfig,
     GeoDjangoConfig,
-    ComposedConfiguration,
     SwaggerConfig,
+    S3FileFieldConfig,
+    ComposedConfiguration,
 ):
     # Does not include a StorageConfig, since that varies
     # significantly from development to production
     pass
 
 
-class DevelopmentConfiguration(DebugToolbarConfig, MinioStorageConfig, BaseConfiguration):
+class DevelopmentConfiguration(
+    DebugToolbarConfig, MinioStorageConfig, BaseConfiguration, DisableS3FileFieldUploadsConfig
+):
     DEBUG = True
     SECRET_KEY = 'insecuresecret'
     ALLOWED_HOSTS = values.ListValue(['localhost', '127.0.0.1'])

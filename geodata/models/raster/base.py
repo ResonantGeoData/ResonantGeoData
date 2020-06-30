@@ -4,6 +4,7 @@ from django.contrib.postgres import fields
 from django.db import transaction
 from django.db.models.signals import post_save
 from django.dispatch import receiver
+from s3_file_field import S3FileField
 
 from ..common import ModifiableEntry, SpatialEntry
 from ..constants import DB_SRID
@@ -26,7 +27,7 @@ class RasterFile(ModifiableEntry, PostSaveEventMixin):
     task_func = tasks.validate_raster
     name = models.CharField(max_length=100, blank=True, null=True)
     # TODO: does `raster_file` handle all our use cases?
-    raster_file = models.FileField(upload_to='files/rasters')
+    raster_file = S3FileField(upload_to='files/rasters')
     failure_reason = models.TextField(null=True, blank=True)
 
 
@@ -89,7 +90,7 @@ class BandMetaEntry(ModifiableEntry):
 class ConvertedRasterFile(ModifiableEntry):
     """A model to store converted versions of a raster entry."""
 
-    converted_file = models.FileField()  # TODO: is this correct?
+    converted_file = S3FileField()  # TODO: is this correct?
     failure_reason = models.TextField(null=True, blank=True)
     source_raster = models.ForeignKey(RasterEntry, on_delete=models.CASCADE)
 

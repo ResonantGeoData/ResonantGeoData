@@ -13,6 +13,7 @@ urlpatterns = [
     path('', include('geodata.urls')),
     path('admin/', admin.site.urls),
     path('accounts/', include('allauth.urls')),
+    path('api/s3-upload/', include('s3_file_field.urls')),
 ]
 
 schema_view = get_schema_view(

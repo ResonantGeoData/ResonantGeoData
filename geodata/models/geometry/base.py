@@ -4,6 +4,7 @@ from django.db import transaction
 from django.db.models.signals import post_save
 from django.dispatch import receiver
 import magic
+from s3_file_field import S3FileField
 
 from ..common import ModifiableEntry, SpatialEntry
 from ..constants import DB_SRID
@@ -36,7 +37,7 @@ class GeometryArchive(ModifiableEntry, PostSaveEventMixin):
     """
 
     task_func = tasks.validate_geometry_archive
-    archive_file = models.FileField(
+    archive_file = S3FileField(
         upload_to='files/geometry_files',
         validators=[validate_archive],
         help_text='This must be an archive (`.zip` or `.tar`) of a single shape (`.shp`, `.dbf`, `.shx`, etc.).',
