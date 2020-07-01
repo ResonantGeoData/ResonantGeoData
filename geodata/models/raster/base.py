@@ -31,7 +31,7 @@ class RasterFile(ModifiableEntry, PostSaveEventMixin):
     failure_reason = models.TextField(null=True, blank=True)
 
     def save(self, *args, **kwargs):
-        if self.name is None or len(self.name) < 1:
+        if not self.name:
             self.name = self.raster_file.name
         super(RasterFile, self).save(*args, **kwargs)
 

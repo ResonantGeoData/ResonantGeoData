@@ -48,7 +48,7 @@ class GeometryArchive(ModifiableEntry, PostSaveEventMixin):
     failure_reason = models.TextField(null=True, blank=True)
 
     def save(self, *args, **kwargs):
-        if self.name is None or len(self.name) < 1:
+        if not self.name:
             self.name = self.archive_file.name
         super(GeometryArchive, self).save(*args, **kwargs)
 
