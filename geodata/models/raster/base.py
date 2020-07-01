@@ -30,6 +30,11 @@ class RasterFile(ModifiableEntry, PostSaveEventMixin):
     raster_file = S3FileField(upload_to='files/rasters')
     failure_reason = models.TextField(null=True, blank=True)
 
+    def save(self, *args, **kwargs):
+        if not self.name:
+            self.name = self.raster_file.name
+        super(RasterFile, self).save(*args, **kwargs)
+
 
 class RasterEntry(SpatialEntry):
     """This class is a container for the metadata of a raster.
