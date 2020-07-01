@@ -19,16 +19,13 @@ class MultiPartJsonParser(MultiPartParser):
     def parse(self, stream, media_type=None, parser_context=None):
         result = super().parse(stream, media_type=media_type, parser_context=parser_context)
 
-        data = {}
-        arrays = {}
-
         model = None
         qdict = QueryDict('', mutable=True)
         if parser_context and 'view' in parser_context:
             model = parser_context['view'].get_serializer_class().Meta.model
         for key, value in result.data.items():
-            #Handle ManytoMany field data, parses lists of comma-separated integers that might be quoted. eg. "1,2"
-            if isinstance(getattr(model, key, None), fields.related_descriptors.ManyToManyDescriptor):
+            # Handle ManytoMany field data, parses lists of comma-separated integers that might be quoted. eg. "1,2"
+            if isinstance(getattr(model, key), fields.related_descriptors.ManyToManyDescriptor):
                 for val in value.split(','):
                     qdict.update({key: val.strip('"')})
             else:
