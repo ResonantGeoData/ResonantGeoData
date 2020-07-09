@@ -29,6 +29,7 @@ class RasterFile(ModifiableEntry, PostSaveEventMixin):
     # TODO: does `raster_file` handle all our use cases?
     raster_file = S3FileField(upload_to='files/rasters')
     failure_reason = models.TextField(null=True, blank=True)
+    checksum = models.TextField(null=True, blank=True)
 
     def save(self, *args, **kwargs):
         if not self.name:
@@ -59,6 +60,9 @@ class RasterEntry(SpatialEntry):
 
     # This can be used with GeoDjango's geographic database functions for spatial indexing
     footprint = models.PolygonField(srid=DB_SRID)
+
+    # Outline of where there are non-null pixels
+    data_mask = models.PolygonField(srid=DB_SRID, null=True)
 
     # Raster fields
     crs = models.TextField(help_text='PROJ string')  # PROJ String
