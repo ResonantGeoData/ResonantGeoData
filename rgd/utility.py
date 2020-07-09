@@ -1,4 +1,5 @@
 from contextlib import contextmanager
+import hashlib
 from pathlib import Path, PurePath
 import shutil
 import tempfile
@@ -23,3 +24,11 @@ def _field_file_to_local_path(field_file: FieldFile) -> Generator[Path, None, No
                 yield Path(dest_stream.name)
         else:
             yield Path(file_obj.name)
+
+
+def compute_checksum(file_path, chunk_num_blocks=128):
+    md5 = hashlib.md5()
+    with open(file_path, 'rb') as f:
+        while chunk := f.read(chunk_num_blocks * md5.block_size):
+            md5.update(chunk)
+    return md5.hexdigest()

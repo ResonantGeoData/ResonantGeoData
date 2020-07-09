@@ -79,6 +79,7 @@ class RasterFileAdmin(OSMGeoAdmin):
         'failure_reason',
         'modified',
         'created',
+        'checksum'
     )
 
 

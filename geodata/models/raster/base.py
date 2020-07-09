@@ -6,6 +6,7 @@ from django.db.models.signals import post_save
 from django.dispatch import receiver
 from s3_file_field import S3FileField
 
+from rgd.utility import _field_file_to_local_path, compute_checksum
 from ..common import ModifiableEntry, SpatialEntry
 from ..constants import DB_SRID
 from ..mixins import PostSaveEventMixin
@@ -29,11 +30,16 @@ class RasterFile(ModifiableEntry, PostSaveEventMixin):
     # TODO: does `raster_file` handle all our use cases?
     raster_file = S3FileField(upload_to='files/rasters')
     failure_reason = models.TextField(null=True, blank=True)
-    checksum = models.TextField(null=True, blank=True)
+    checksum = models.CharField(max_length=32, blank=True, null=True)
+    compute_checksum = models.BooleanField(default=False)  # a flag to recomput the checksum on save
 
     def save(self, *args, **kwargs):
         if not self.name:
             self.name = self.raster_file.name
+        if self.compute_checksum:
+            with _field_file_to_local_path(self.raster_file) as file_path:
+                self.checksum = compute_checksum(file_path)
+            self.compute_checksum = False
         super(RasterFile, self).save(*args, **kwargs)
 
 
