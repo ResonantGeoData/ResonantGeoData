@@ -75,12 +75,7 @@ class RasterFileAdmin(OSMGeoAdmin):
         '__str__',
         'modified',
     )
-    readonly_fields = (
-        'failure_reason',
-        'modified',
-        'created',
-        'checksum'
-    )
+    readonly_fields = ('failure_reason', 'modified', 'created', 'checksum')
 
 
 @admin.register(ConvertedRasterFile)
