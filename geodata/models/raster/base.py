@@ -30,7 +30,7 @@ class RasterFile(ModifiableEntry, PostSaveEventMixin):
     # TODO: does `raster_file` handle all our use cases?
     raster_file = S3FileField(upload_to='files/rasters')
     failure_reason = models.TextField(null=True, blank=True)
-    checksum = models.CharField(max_length=32, blank=True, null=True)
+    checksum = models.CharField(max_length=64, blank=True, null=True)
     compute_checksum = models.BooleanField(default=False)  # a flag to recomput the checksum on save
 
     def save(self, *args, **kwargs):
