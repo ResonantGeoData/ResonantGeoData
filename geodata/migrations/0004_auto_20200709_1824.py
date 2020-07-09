@@ -17,8 +17,6 @@ class Migration(migrations.Migration):
             field=django.contrib.gis.db.models.fields.PolygonField(null=True, srid=4326),
         ),
         migrations.AddField(
-            model_name='rasterfile',
-            name='checksum',
-            field=models.TextField(blank=True, null=True),
+            model_name='rasterfile', name='checksum', field=models.TextField(blank=True, null=True),
         ),
     ]

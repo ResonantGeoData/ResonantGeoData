@@ -12,6 +12,7 @@ from ..constants import DB_SRID
 
 class Annotation(ModifiableEntry):
     """Image annotation/label for RasterEntry."""
+
     raster = models.ForeignKey(RasterEntry, on_delete=models.CASCADE)
 
     caption = models.CharField(max_length=100, blank=True, null=True)
