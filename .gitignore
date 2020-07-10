@@ -57,3 +57,6 @@ files/
 
 #vscode
 .vscode
+
+# Ignore a local config file
+docker-compose.local.yml
