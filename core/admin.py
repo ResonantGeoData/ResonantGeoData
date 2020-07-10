@@ -6,6 +6,7 @@ from django.utils.html import escape
 from django.utils.safestring import mark_safe
 from django_admin_display import admin_display
 
+from rgd.utility import _link_url
 from . import models
 from . import tasks
 
@@ -52,22 +53,13 @@ def _text_preview(target_file: FileField, mimetype=None, show_end=True):
         return 'No file provided'
 
 
-def _link_url(name, obj, field):
-    if not getattr(obj, field, None):
-        return 'No attachment'
-    url = getattr(obj, field).url
-    if '//minio:' in url:
-        url = '/api/download/%s/%s/%s' % (name, obj.id, field)
-    return mark_safe('<a href="%s" download>Download</a>' % (url,))
-
-
 @admin.register(models.Algorithm)
 class AlgorithmAdmin(admin.ModelAdmin):
     list_display = ('__str__', 'creator', 'created', 'active', 'data_link')
     readonly_fields = ('data_link',)
 
     def data_link(self, obj):
-        return _link_url('algorithm', obj, 'data')
+        return _link_url('core', 'algorithm', obj, 'data')
 
     data_link.allow_tags = True
 
@@ -120,12 +112,12 @@ class AlgorithmResultAdmin(admin.ModelAdmin):
         return readonly_fields
 
     def data_link(self, obj):
-        return _link_url('algorithm_result', obj, 'data')
+        return _link_url('core', 'algorithm_result', obj, 'data')
 
     data_link.allow_tags = True
 
     def log_link(self, obj):
-        return _link_url('algorithm_result', obj, 'log')
+        return _link_url('core', 'algorithm_result', obj, 'log')
 
     log_link.allow_tags = True
 
@@ -155,7 +147,7 @@ class DatasetAdmin(admin.ModelAdmin):
     readonly_fields = ('data_link', 'task_list')
 
     def data_link(self, obj):
-        return _link_url('dataset', obj, 'data')
+        return _link_url('core', 'dataset', obj, 'data')
 
     data_link.allow_tags = True
 
@@ -169,7 +161,7 @@ class GroundtruthAdmin(admin.ModelAdmin):
     readonly_fields = ('data_link',)
 
     def data_link(self, obj):
-        return _link_url('groundtruth', obj, 'data')
+        return _link_url('core', 'groundtruth', obj, 'data')
 
     data_link.allow_tags = True
 
@@ -229,12 +221,12 @@ class ScoreResultAdmin(admin.ModelAdmin):
     )
 
     def data_link(self, obj):
-        return _link_url('score_result', obj, 'data')
+        return _link_url('core', 'score_result', obj, 'data')
 
     data_link.allow_tags = True
 
     def log_link(self, obj):
-        return _link_url('score_result', obj, 'log')
+        return _link_url('core', 'score_result', obj, 'log')
 
     log_link.allow_tags = True
 

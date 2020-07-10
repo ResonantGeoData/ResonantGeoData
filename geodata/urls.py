@@ -9,4 +9,7 @@ urlpatterns = [
         views.RasterEntryDetailView.as_view(),
         name='raster-entry-detail',
     ),
+    path(
+        'api/geodata/download/<model>/<int:id>/<field>', views.download_file, name='download-file'
+    ),
 ]
