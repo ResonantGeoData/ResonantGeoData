@@ -3,7 +3,9 @@ from django.contrib.gis.admin import OSMGeoAdmin
 
 from .models.dataset import Dataset
 from .models.geometry.base import GeometryArchive, GeometryEntry
-from .models.raster.base import BandMetaEntry, ConvertedRasterFile, RasterEntry, RasterFile
+from .models.raster.base import BandMetaEntry, ConvertedRasterFile, RasterEntry
+from .models.raster.ifiles import RasterFile
+
 
 SPATIAL_ENTRY_FILTERS = (
     'acquisition_date',

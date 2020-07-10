@@ -6,7 +6,8 @@ from osgeo import gdal
 import rasterio
 
 from rgd.utility import _field_file_to_local_path
-from .base import BandMetaEntry, ConvertedRasterFile, RasterEntry, RasterFile
+from .base import BandMetaEntry, ConvertedRasterFile, RasterEntry
+from .ifiles import RasterFile
 from ..common import _ReaderRoutine
 
 logger = get_task_logger(__name__)
