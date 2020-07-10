@@ -15,7 +15,7 @@ docker-compose up --force-recreate --detach minio
 # Run "mc" once with no output to suppress confusing mc initialization
 docker run --rm -t --network resonantgeodata_default --entrypoint /bin/sh minio/mc -c '
 /usr/bin/mc > /dev/null \
-&& for i in $(seq 60); do /usr/bin/mc config host add minio http://minio:9000 minioAdminAccessKey minioAdminSecretKey && break || s=$? && sleep 1; done; (exit $s) \
+; for i in $(seq 60); do /usr/bin/mc config host add minio http://minio:9000 minioAdminAccessKey minioAdminSecretKey && break || s=$? && sleep 1; done; (exit $s) \
 && /usr/bin/mc mb -ignore-existing minio/resonantgeodata \
 && /usr/bin/mc admin user add minio djangoAccessKey djangoSecretKey \
 && /usr/bin/mc admin policy set minio readwrite user=djangoAccessKey'
