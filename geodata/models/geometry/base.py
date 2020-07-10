@@ -6,7 +6,7 @@ from django.dispatch import receiver
 import magic
 from s3_file_field import S3FileField
 
-from ..common import ModifiableEntry, SpatialEntry
+from ..common import ChecksumFile, SpatialEntry
 from ..constants import DB_SRID
 from ..mixins import PostSaveEventMixin
 from ... import tasks
@@ -29,7 +29,7 @@ class GeometryEntry(SpatialEntry):
     # The actual collection is iterable so access is super easy
 
 
-class GeometryArchive(ModifiableEntry, PostSaveEventMixin):
+class GeometryArchive(ChecksumFile, PostSaveEventMixin):
     """Container for ``zip`` archives of a shapefile.
 
     When this model is created, it loads data from an archive into
@@ -37,8 +37,7 @@ class GeometryArchive(ModifiableEntry, PostSaveEventMixin):
     """
 
     task_func = tasks.validate_geometry_archive
-    name = models.CharField(max_length=100, blank=True, null=True)
-    archive_file = S3FileField(
+    file = S3FileField(
         upload_to='files/geometry_files',
         validators=[validate_archive],
         help_text='This must be an archive (`.zip` or `.tar`) of a single shape (`.shp`, `.dbf`, `.shx`, etc.).',
@@ -49,7 +48,7 @@ class GeometryArchive(ModifiableEntry, PostSaveEventMixin):
 
     def save(self, *args, **kwargs):
         if not self.name:
-            self.name = self.archive_file.name
+            self.name = self.file.name
         super(GeometryArchive, self).save(*args, **kwargs)
 
 

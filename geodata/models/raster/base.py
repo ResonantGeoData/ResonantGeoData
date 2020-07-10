@@ -4,7 +4,7 @@ from django.contrib.postgres import fields
 from s3_file_field import S3FileField
 
 from .ifiles import RasterFile
-from ..common import ModifiableEntry, SpatialEntry
+from ..common import ChecksumFile, ModifiableEntry, SpatialEntry
 from ..constants import DB_SRID
 
 
@@ -67,9 +67,9 @@ class BandMetaEntry(ModifiableEntry):
     interpretation = models.TextField(null=True, blank=True)
 
 
-class ConvertedRasterFile(ModifiableEntry):
+class ConvertedRasterFile(ChecksumFile):
     """A model to store converted versions of a raster entry."""
 
-    converted_file = S3FileField()  # TODO: is this correct?
+    file = S3FileField()
     failure_reason = models.TextField(null=True, blank=True)
     source_raster = models.ForeignKey(RasterEntry, on_delete=models.CASCADE)

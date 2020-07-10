@@ -40,7 +40,7 @@ class GeometryArchiveReader(_ReaderRoutine):
 
         """
         self.archive = GeometryArchive.objects.get(id=self.model_id)
-        with _field_file_to_local_path(self.archive.archive_file) as file_path:
+        with _field_file_to_local_path(self.archive.file) as file_path:
             logger.info(f'The geometry archive: {file_path}')
 
             # Unzip the contents to the working dir

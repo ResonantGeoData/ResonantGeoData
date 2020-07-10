@@ -40,7 +40,7 @@ class RasterEntryReader(_ReaderRoutine):
         """
         # Fetch the raster file this Layer corresponds to
         self.rfe = RasterFile.objects.get(id=self.model_id)
-        with _field_file_to_local_path(self.rfe.raster_file) as file_path:
+        with _field_file_to_local_path(self.rfe.file) as file_path:
 
             logger.info(f'The raster file path: {file_path}')
 
