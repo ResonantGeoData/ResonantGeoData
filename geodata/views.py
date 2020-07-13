@@ -25,9 +25,7 @@ class RasterEntryDetailView(DetailView):
 
 @api_view(['GET'])
 def download_file(request, model, id, field):
-    print('------------A', model, id, field)
     model_class = ''.join([part[:1].upper() + part[1:] for part in model.split('_')])
-    print('------------B', model_class)
     if not hasattr(models, model_class):
         raise Exception('No such model (%s)' % model)
     model_inst = get_object_or_404(getattr(models, model_class), pk=id)
