@@ -10,7 +10,7 @@ from rest_framework import serializers as rfserializers
 from rest_framework.decorators import api_view
 
 from . import serializers
-from .models import SpatialEntry, RasterEntry, GeometryEntry
+from .models import GeometryEntry, RasterEntry, SpatialEntry
 
 
 class NearPointSerializer(rfserializers.Serializer):
