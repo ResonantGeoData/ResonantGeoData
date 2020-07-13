@@ -10,14 +10,14 @@ from rest_framework import serializers as rfserializers
 from rest_framework.decorators import api_view
 
 from . import serializers
-from .models.raster.base import SpatialEntry
+from .models import SpatialEntry, RasterEntry, GeometryEntry
 
 
 class NearPointSerializer(rfserializers.Serializer):
+    longitude = rfserializers.FloatField(required=False)
     latitude = rfserializers.FloatField(
         required=False, validators=[MinValueValidator(-90), MaxValueValidator(90)]
     )
-    longitude = rfserializers.FloatField(required=False)
     radius = rfserializers.FloatField(
         required=False, default=0, validators=[MinValueValidator(0)], help_text='Radius in meters'
     )
@@ -38,14 +38,14 @@ class NearPointSerializer(rfserializers.Serializer):
     )
 
 
-@swagger_auto_schema(
-    method='GET',
-    operation_description='List geospatial datasets near a specific latitude and longitude',
-    query_serializer=NearPointSerializer,
-)
-@api_view(['GET'])
-def search_near_point(request, *args, **kwargs):
-    params = request.query_params
+def search_near_point_filter(params):
+    """
+    Get a filter object that can be used when searching SpatialEntry models.
+
+    :param params: a dictionary of parameters, optionally including
+        latitude, longitude, radius, time, timespan, and timefield.
+    :returns: a Django query (Q) object.
+    """
     query = Q()
     if params.get('latitude') is not None and params.get('longitude') is not None:
         geom = Point(float(params['longitude']), float(params['latitude']))
@@ -78,8 +78,40 @@ def search_near_point(request, *args, **kwargs):
             for subq in subquery[1:]:
                 subquery[0].add(subq, Q.OR)
             query.add(subquery[0], Q.AND)
-    # results = RasterEntry.objects.filter(query)
-    results = SpatialEntry.objects.filter(query)
+    return query
 
-    # return JsonResponse(serializers.RasterEntrySerializer(results, many=True).data, safe=False)
+
+@swagger_auto_schema(
+    method='GET',
+    operation_description='List geospatial datasets near a specific latitude and longitude',
+    query_serializer=NearPointSerializer,
+)
+@api_view(['GET'])
+def search_near_point(request, *args, **kwargs):
+    params = request.query_params
+    results = SpatialEntry.objects.filter(search_near_point_filter(params))
     return JsonResponse(serializers.SpatialEntrySerializer(results, many=True).data, safe=False)
+
+
+@swagger_auto_schema(
+    method='GET',
+    operation_description='List geospatial raster datasets near a specific latitude and longitude',
+    query_serializer=NearPointSerializer,
+)
+@api_view(['GET'])
+def search_near_point_raster(request, *args, **kwargs):
+    params = request.query_params
+    results = RasterEntry.objects.filter(search_near_point_filter(params))
+    return JsonResponse(serializers.RasterEntrySerializer(results, many=True).data, safe=False)
+
+
+@swagger_auto_schema(
+    method='GET',
+    operation_description='List geospatial geometry datasets near a specific latitude and longitude',
+    query_serializer=NearPointSerializer,
+)
+@api_view(['GET'])
+def search_near_point_geometry(request, *args, **kwargs):
+    params = request.query_params
+    results = GeometryEntry.objects.filter(search_near_point_filter(params))
+    return JsonResponse(serializers.GeometryEntrySerializer(results, many=True).data, safe=False)

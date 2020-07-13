@@ -14,4 +14,6 @@ urlpatterns = [
         'api/geodata/download/<model>/<int:id>/<field>', views.download_file, name='download-file'
     ),
     path('api/geodata/near_point', search.search_near_point),
+    path('api/geodata/raster/near_point', search.search_near_point_raster),
+    path('api/geodata/geometry/near_point', search.search_near_point_geometry),
 ]
