@@ -7,7 +7,6 @@ from django.dispatch import receiver
 from s3_file_field import S3FileField
 
 from ..common import ModifiableEntry, SpatialEntry
-from ..constants import DB_SRID
 from ..mixins import PostSaveEventMixin
 from ... import tasks
 
@@ -56,9 +55,6 @@ class RasterEntry(SpatialEntry):
 
     raster_file = models.OneToOneField(RasterFile, null=True, on_delete=models.CASCADE)
     # thumbnail = models.ImageField(blank=True, upload_to='thumbnails')
-
-    # This can be used with GeoDjango's geographic database functions for spatial indexing
-    footprint = models.PolygonField(srid=DB_SRID)
 
     # Raster fields
     crs = models.TextField(help_text='PROJ string')  # PROJ String

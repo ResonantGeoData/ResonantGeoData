@@ -4,6 +4,9 @@ from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.contrib.gis.db import models
 from django.utils import timezone
+from model_utils.managers import InheritanceManager
+
+from .constants import DB_SRID
 
 
 class DeferredFieldsManager(models.Manager):
@@ -43,8 +46,10 @@ class SpatialEntry(ModifiableEntry):
     # Datetime of creation for the dataset
     acquisition_date = models.DateTimeField(null=True, default=None, blank=True)
 
-    class Meta:
-        abstract = True
+    # This can be used with GeoDjango's geographic database functions for spatial indexing
+    footprint = models.PolygonField(srid=DB_SRID)
+
+    objects = InheritanceManager()
 
     def __str__(self):
         return '{} {} (type: {})'.format(self.id, self.name, type(self))

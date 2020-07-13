@@ -75,7 +75,9 @@ class GeometryArchiveReader(_ReaderRoutine):
             collection.append(
                 GEOSGeometry(memoryview(dumps(geom, srid=spatial_ref.srid)), srid=spatial_ref.srid)
             )
+
         self.archive.geometry_entry.data = GeometryCollection(*collection)
+        self.archive.geometry_entry.footprint = self.archive.geometry_entry.data.convex_hull
 
         return True
 
