@@ -12,11 +12,11 @@ def switch_to_nonabstract(apps, schema_editor):
     For each RasterEntry and each GeometryEntry, create a new SpatialEntry
     that contains the relevant information.
     """
-    SpatialEntry = apps.get_model('geodata', 'SpatialEntry')
-    RasterEntry = apps.get_model('geodata', 'RasterEntry')
-    GeometryEntry = apps.get_model('geodata', 'GeometryEntry')
-    for entry in RasterEntry.objects.all():
-        entry.spatialentry_ptr_id = SpatialEntry.objects.create(
+    spatial_entry = apps.get_model('geodata', 'SpatialEntry')
+    raster_entry = apps.get_model('geodata', 'RasterEntry')
+    geometry_entry = apps.get_model('geodata', 'GeometryEntry')
+    for entry in raster_entry.objects.all():
+        entry.spatialentry_ptr_id = spatial_entry.objects.create(
             modified=entry.modified,
             modifier=entry.modifier,
             creator=entry.creator,
@@ -27,8 +27,8 @@ def switch_to_nonabstract(apps, schema_editor):
             footprint=entry.footprint,
         ).id
         entry.save()
-    for entry in GeometryEntry.objects.all():
-        entry.spatialentry_ptr_id = SpatialEntry.objects.create(
+    for entry in geometry_entry.objects.all():
+        entry.spatialentry_ptr_id = spatial_entry.objects.create(
             modified=entry.modified,
             modifier=entry.modifier,
             creator=entry.creator,

@@ -10,8 +10,6 @@ from rest_framework import serializers as rfserializers
 from rest_framework.decorators import api_view
 
 from . import serializers
-
-# from .models.raster.base import RasterEntry
 from .models.raster.base import SpatialEntry
 
 
