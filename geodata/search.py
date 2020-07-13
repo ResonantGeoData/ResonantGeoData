@@ -10,7 +10,9 @@ from rest_framework import serializers as rfserializers
 from rest_framework.decorators import api_view
 
 from . import serializers
-from .models.raster.base import RasterEntry
+
+# from .models.raster.base import RasterEntry
+from .models.raster.base import SpatialEntry
 
 
 class NearPointSerializer(rfserializers.Serializer):
@@ -78,6 +80,8 @@ def search_near_point(request, *args, **kwargs):
             for subq in subquery[1:]:
                 subquery[0].add(subq, Q.OR)
             query.add(subquery[0], Q.AND)
-    results = RasterEntry.objects.filter(query)
+    # results = RasterEntry.objects.filter(query)
+    results = SpatialEntry.objects.filter(query)
 
-    return JsonResponse(serializers.RasterEntrySerializer(results, many=True).data, safe=False)
+    # return JsonResponse(serializers.RasterEntrySerializer(results, many=True).data, safe=False)
+    return JsonResponse(serializers.SpatialEntrySerializer(results, many=True).data, safe=False)
