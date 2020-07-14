@@ -12,20 +12,12 @@ class Migration(migrations.Migration):
 
     operations = [
         migrations.RenameField(
-            model_name='convertedrasterfile',
-            old_name='converted_file',
-            new_name='file',
+            model_name='convertedrasterfile', old_name='converted_file', new_name='file',
         ),
         migrations.RenameField(
-            model_name='geometryarchive',
-            old_name='archive_file',
-            new_name='file',
+            model_name='geometryarchive', old_name='archive_file', new_name='file',
         ),
-        migrations.RenameField(
-            model_name='rasterfile',
-            old_name='raster_file',
-            new_name='file',
-        ),
+        migrations.RenameField(model_name='rasterfile', old_name='raster_file', new_name='file',),
         migrations.AddField(
             model_name='convertedrasterfile',
             name='checksum',

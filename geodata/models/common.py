@@ -6,9 +6,8 @@ from django.contrib.gis.db import models
 from django.utils import timezone
 from model_utils.managers import InheritanceManager
 
-from .constants import DB_SRID
-
 from rgd.utility import _field_file_to_local_path, compute_checksum
+from .constants import DB_SRID
 
 
 class ModifiableEntry(models.Model):

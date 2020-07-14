@@ -8,7 +8,6 @@ from .models.raster.base import BandMetaEntry, ConvertedRasterFile, RasterEntry
 from .models.raster.ifiles import RasterFile
 
 
-
 SPATIAL_ENTRY_FILTERS = (
     'acquisition_date',
     'modified',
