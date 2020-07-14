@@ -7,6 +7,7 @@ from typing import Generator
 
 from django.core.files import File
 from django.db.models.fields.files import FieldFile
+from django.utils.safestring import mark_safe
 from storages.backends.s3boto3 import S3Boto3StorageFile
 
 
@@ -32,3 +33,12 @@ def compute_checksum(file_path, chunk_num_blocks=128):
         while chunk := f.read(chunk_num_blocks * sha256.block_size):
             sha256.update(chunk)
     return sha256.hexdigest()
+
+
+def _link_url(root, name, obj, field):
+    if not getattr(obj, field, None):
+        return 'No attachment'
+    url = getattr(obj, field).url
+    if '//minio:' in url:
+        url = '/api/%s/download/%s/%s/%s' % (root, name, obj.id, field)
+    return mark_safe('<a href="%s" download>Download</a>' % (url,))

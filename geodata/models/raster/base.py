@@ -29,9 +29,6 @@ class RasterEntry(SpatialEntry):
     raster_file = models.OneToOneField(RasterFile, null=True, on_delete=models.CASCADE)
     # thumbnail = models.ImageField(blank=True, upload_to='thumbnails')
 
-    # This can be used with GeoDjango's geographic database functions for spatial indexing
-    footprint = models.PolygonField(srid=DB_SRID)
-
     # Outline of where there are non-null pixels
     data_mask = models.PolygonField(srid=DB_SRID, null=True)
 

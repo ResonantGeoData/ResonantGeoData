@@ -59,6 +59,7 @@ class GeometryArchiveReader(_ReaderRoutine):
         if self.archive.geometry_entry is None:
             self.archive.geometry_entry = GeometryEntry()
             self.archive.geometry_entry.creator = self.archive.creator
+            self.archive.geometry_entry.name = self.archive.name
         self.archive.geometry_entry.modifier = self.archive.modifier
 
         shapes.meta  # TODO: dump this JSON into the model entry
@@ -75,7 +76,9 @@ class GeometryArchiveReader(_ReaderRoutine):
             collection.append(
                 GEOSGeometry(memoryview(dumps(geom, srid=spatial_ref.srid)), srid=spatial_ref.srid)
             )
+
         self.archive.geometry_entry.data = GeometryCollection(*collection)
+        self.archive.geometry_entry.footprint = self.archive.geometry_entry.data.convex_hull
 
         return True
 

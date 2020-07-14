@@ -9,9 +9,9 @@
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css" integrity="sha384-Vkoo8x4CGsO3+Hhxv8T/Q5PaXtkKtu6ug5TOeNV6gBiFeWPGFN9MuhOf23Q9Ifjh" crossorigin="anonymous">
 
     {% if title %}
-      <title>ResonantGeoData Challenge - {{ title }}</title>
+      <title>ResonantGeoData - {{ title }}</title>
     {% else %}
-      <title>ResonantGeoData Challenge</title>
+      <title>ResonantGeoData</title>
     {% endif %}
 
   </head>
@@ -110,6 +110,9 @@
                 </li>
                 <li class="list-group-item list-group-item-dark">
                   <a class="mr-2" href="{% url 'jobs' %}">My Jobs</a>
+                </li>
+                <li class="list-group-item list-group-item-dark">
+                  <a class="mr-2" href="{% url 'rasters' %}">Raster Entries</a>
                 </li>
               </ul>
             </p>

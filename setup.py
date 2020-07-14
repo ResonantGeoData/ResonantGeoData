@@ -16,6 +16,7 @@ setup(
         'django-crispy-forms',
         'django-extensions',
         'django-filter',
+        'django-model-utils',
         'django-s3-file-field',
         'django-storages',
         'djangorestframework',
