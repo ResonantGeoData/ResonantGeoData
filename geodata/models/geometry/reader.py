@@ -85,12 +85,12 @@ class GeometryArchiveReader(_ReaderRoutine):
                 GEOSGeometry(memoryview(dumps(geom, srid=spatial_ref.srid)), srid=spatial_ref.srid)
             )
 
-        self.geometry_query.data = GeometryCollection(*collection)
-        self.geometry_query.footprint = self.geometry_query.data.convex_hull
+        self.geometry_entry.data = GeometryCollection(*collection)
+        self.geometry_entry.footprint = self.geometry_entry.data.convex_hull
 
         return True
 
     def _save_entries(self):
-        self.geometry_query.save()
+        self.geometry_entry.save()
         self.archive.save(update_fields=['geometry_entry'])
         return
