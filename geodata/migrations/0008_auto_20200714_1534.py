@@ -11,13 +11,12 @@ class Migration(migrations.Migration):
     ]
 
     operations = [
-        migrations.RemoveField(
-            model_name='geometryarchive',
-            name='geometry_entry',
-        ),
+        migrations.RemoveField(model_name='geometryarchive', name='geometry_entry',),
         migrations.AddField(
             model_name='geometryentry',
             name='geometry_archive',
-            field=models.OneToOneField(null=True, on_delete=django.db.models.deletion.CASCADE, to='geodata.GeometryArchive'),
+            field=models.OneToOneField(
+                null=True, on_delete=django.db.models.deletion.CASCADE, to='geodata.GeometryArchive'
+            ),
         ),
     ]
