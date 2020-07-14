@@ -22,13 +22,6 @@ def validate_archive(field_file):
         raise ValidationError('Unsupported file archive.')
 
 
-class GeometryEntry(SpatialEntry):
-    """A holder for geometry vector data."""
-
-    data = models.GeometryCollectionField(srid=DB_SRID)  # Can be one or many features
-    # The actual collection is iterable so access is super easy
-
-
 class GeometryArchive(ChecksumFile, PostSaveEventMixin):
     """Container for ``zip`` archives of a shapefile.
 
@@ -43,13 +36,21 @@ class GeometryArchive(ChecksumFile, PostSaveEventMixin):
         help_text='This must be an archive (`.zip` or `.tar`) of a single shape (`.shp`, `.dbf`, `.shx`, etc.).',
     )
 
-    geometry_entry = models.OneToOneField(GeometryEntry, null=True, on_delete=models.DO_NOTHING)
     failure_reason = models.TextField(null=True, blank=True)
 
     def save(self, *args, **kwargs):
         if not self.name:
             self.name = self.file.name
         super(GeometryArchive, self).save(*args, **kwargs)
+
+
+class GeometryEntry(SpatialEntry):
+    """A holder for geometry vector data."""
+
+    data = models.GeometryCollectionField(srid=DB_SRID)  # Can be one or many features
+    # The actual collection is iterable so access is super easy
+
+    geometry_archive = models.OneToOneField(GeometryArchive, null=True, on_delete=models.CASCADE)
 
 
 @receiver(post_save, sender=GeometryArchive)

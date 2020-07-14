@@ -110,6 +110,7 @@ class GeometryEntryAdmin(OSMGeoAdmin):
     readonly_fields = (
         'modified',
         'created',
+        'geometry_archive',
     )
 
 
@@ -121,7 +122,6 @@ class GeometryArchiveAdmin(OSMGeoAdmin):
         'data_link',
     )
     readonly_fields = (
-        'geometry_entry',
         'failure_reason',
         'modified',
         'created',
