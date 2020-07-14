@@ -92,5 +92,4 @@ class GeometryArchiveReader(_ReaderRoutine):
 
     def _save_entries(self):
         self.geometry_entry.save()
-        self.archive.save(update_fields=['geometry_entry'])
         return
