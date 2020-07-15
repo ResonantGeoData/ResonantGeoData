@@ -4,9 +4,7 @@ from django.contrib.gis.admin import OSMGeoAdmin
 from rgd.utility import _link_url
 from .models.dataset import Dataset
 from .models.geometry.base import GeometryArchive, GeometryEntry
-from .models.raster.annotation import Annotation
-from .models.raster.base import BandMetaEntry, ConvertedRasterFile, RasterEntry
-from .models.raster.ifiles import RasterFile
+from .models.raster.base import BandMetaEntry, ConvertedRasterFile, RasterEntry, RasterFile
 
 
 SPATIAL_ENTRY_FILTERS = (
@@ -73,14 +71,6 @@ class BandMetaEntryAdmin(OSMGeoAdmin):
     )
 
 
-@admin.register(Annotation)
-class AnnotationAdmin(OSMGeoAdmin):
-    list_display = (
-        'id',
-        'caption',
-    )
-
-
 @admin.register(RasterFile)
 class RasterFileAdmin(OSMGeoAdmin):
     list_display = (
@@ -88,7 +78,11 @@ class RasterFileAdmin(OSMGeoAdmin):
         'modified',
         'data_link',
     )
-    readonly_fields = ('failure_reason', 'modified', 'created', 'checksum', 'last_validation')
+    readonly_fields = (
+        'failure_reason',
+        'modified',
+        'created',
+    )
 
     def data_link(self, obj):
         return _link_url('geodata', 'raster_file', obj, 'raster_file')
@@ -105,7 +99,7 @@ class ConvertedRasterFileAdmin(OSMGeoAdmin):
     )
     readonly_fields = (
         'failure_reason',
-        'file',
+        'converted_file',
     )
 
 
@@ -119,7 +113,6 @@ class GeometryEntryAdmin(OSMGeoAdmin):
     readonly_fields = (
         'modified',
         'created',
-        'geometry_archive',
     )
 
 
@@ -131,11 +124,10 @@ class GeometryArchiveAdmin(OSMGeoAdmin):
         'data_link',
     )
     readonly_fields = (
+        'geometry_entry',
         'failure_reason',
         'modified',
         'created',
-        'last_validation',
-        'checksum',
     )
 
     def data_link(self, obj):
