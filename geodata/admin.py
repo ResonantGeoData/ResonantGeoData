@@ -4,6 +4,7 @@ from django.contrib.gis.admin import OSMGeoAdmin
 from rgd.utility import _link_url
 from .models.dataset import Dataset
 from .models.geometry.base import GeometryArchive, GeometryEntry
+from .models.raster.annotation import Annotation
 from .models.raster.base import BandMetaEntry, ConvertedRasterFile, RasterEntry
 from .models.raster.ifiles import RasterFile
 
@@ -69,6 +70,14 @@ class BandMetaEntryAdmin(OSMGeoAdmin):
         'parent_raster',
         'interpretation',
         'dtype',
+    )
+
+
+@admin.register(Annotation)
+class AnnotationAdmin(OSMGeoAdmin):
+    list_display = (
+        'id',
+        'caption',
     )
 
 
