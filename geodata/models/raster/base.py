@@ -30,7 +30,7 @@ class RasterEntry(SpatialEntry):
     # thumbnail = models.ImageField(blank=True, upload_to='thumbnails')
 
     # Outline of where there are non-null pixels
-    data_mask = models.PolygonField(srid=DB_SRID, null=True)
+    outline = models.PolygonField(srid=DB_SRID, null=True)
 
     # Raster fields
     crs = models.TextField(help_text='PROJ string')  # PROJ String

@@ -93,7 +93,8 @@ class RasterEntryReader(_ReaderRoutine):
                 spatial_ref = SpatialReference(src.crs.to_wkt())
                 logger.info(f'Raster footprint SRID: {spatial_ref.srid}')
                 # This will convert the Polygon to the DB's SRID
-                self.raster_entry.footprint = Polygon(coords, srid=spatial_ref.srid)
+                self.raster_entry.outline = Polygon(coords, srid=spatial_ref.srid)
+                self.raster_entry.footprint = self.raster_entry.outline
 
                 # These are things I couldn't figure out how to get with gdal directly
                 dtypes = src.dtypes
