@@ -32,6 +32,7 @@ class RasterEntryAdmin(OSMGeoAdmin):
     readonly_fields = (
         'number_of_bands',
         'footprint',
+        'outline',
         'raster_file',
         'crs',
         'origin',
