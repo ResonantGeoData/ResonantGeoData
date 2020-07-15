@@ -40,7 +40,7 @@ class GeometryArchiveReader(_ReaderRoutine):
 
         """
         self.archive = GeometryArchive.objects.get(id=self.model_id)
-        with _field_file_to_local_path(self.archive.file) as file_path:
+        with _field_file_to_local_path(self.archive.archive_file) as file_path:
             logger.info(f'The geometry archive: {file_path}')
 
             # Unzip the contents to the working dir
@@ -56,19 +56,11 @@ class GeometryArchiveReader(_ReaderRoutine):
         shapes = fiona.open(shape_file)
 
         # create a model entry for that shapefile
-        geometry_query = GeometryEntry.objects.filter(geometry_archive=self.archive)
-        if len(geometry_query) < 1:
-            self.geometry_entry = GeometryEntry()
-            self.geometry_entry.creator = self.archive.creator
-            self.geometry_entry.name = self.archive.name
-            self.geometry_entry.geometry_archive = self.archive
-        elif len(geometry_query) == 1:
-            self.geometry_entry = geometry_query.first()
-        else:
-            # This should never happen because it is a foreign key
-            raise RuntimeError('multiple geometry entries found for this file.')
-
-        self.geometry_entry.modifier = self.archive.modifier
+        if self.archive.geometry_entry is None:
+            self.archive.geometry_entry = GeometryEntry()
+            self.archive.geometry_entry.creator = self.archive.creator
+            self.archive.geometry_entry.name = self.archive.name
+        self.archive.geometry_entry.modifier = self.archive.modifier
 
         shapes.meta  # TODO: dump this JSON into the model entry
 
@@ -85,11 +77,12 @@ class GeometryArchiveReader(_ReaderRoutine):
                 GEOSGeometry(memoryview(dumps(geom, srid=spatial_ref.srid)), srid=spatial_ref.srid)
             )
 
-        self.geometry_entry.data = GeometryCollection(*collection)
-        self.geometry_entry.footprint = self.geometry_entry.data.convex_hull
+        self.archive.geometry_entry.data = GeometryCollection(*collection)
+        self.archive.geometry_entry.footprint = self.archive.geometry_entry.data.convex_hull
 
         return True
 
     def _save_entries(self):
-        self.geometry_entry.save()
+        self.archive.geometry_entry.save()
+        self.archive.save(update_fields=['geometry_entry'])
         return

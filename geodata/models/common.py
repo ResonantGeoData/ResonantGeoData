@@ -6,8 +6,16 @@ from django.contrib.gis.db import models
 from django.utils import timezone
 from model_utils.managers import InheritanceManager
 
-from rgd.utility import _field_file_to_local_path, compute_checksum
 from .constants import DB_SRID
+
+
+class DeferredFieldsManager(models.Manager):
+    def __init__(self, *deferred_fields):
+        self.deferred_fields = deferred_fields
+        super().__init__()
+
+    def get_queryset(self):
+        return super().get_queryset().defer(*self.deferred_fields)
 
 
 class ModifiableEntry(models.Model):
@@ -45,58 +53,6 @@ class SpatialEntry(ModifiableEntry):
 
     def __str__(self):
         return '{} {} (type: {})'.format(self.id, self.name, type(self))
-
-
-class ChecksumFile(ModifiableEntry):
-    """A base class for tracking files.
-
-    Child class must implement a file field called ``file``! This ensures the
-    field is initialized with coorect options like uplaod location and
-    validators.
-
-    """
-
-    name = models.CharField(max_length=100, blank=True, null=True)
-    checksum = models.CharField(max_length=64, blank=True, null=True)
-    compute_checksum = models.BooleanField(
-        default=False
-    )  # a flag to recompute the checksum on save
-    validate_checksum = models.BooleanField(
-        default=False
-    )  # a flag to validate the checksum against the saved checksum
-    last_validation = models.BooleanField(default=False)
-
-    class Meta:
-        abstract = True
-
-    def save(self, *args, **kwargs):
-        # TODO: is there a cleaner way to enforce child class has `file` field?
-        if not hasattr(self, 'file'):
-            raise AttributeError('Child class of `ChecksumFile` must have a `file` field.')
-        if not self.name:
-            self.name = self.file.name
-        # Must save the model with the file before accessing it for the checksum
-        super(ChecksumFile, self).save(*args, **kwargs)
-        # Checksum is additional step after saving everything else - simply update these fields.
-        if self.compute_checksum or self.validate_checksum:
-            previous = self.checksum
-            with _field_file_to_local_path(self.file) as file_path:
-                self.checksum = compute_checksum(file_path)
-            if self.validate_checksum:
-                self.last_validation = self.checksum == previous
-            # Reset the user flags
-            self.compute_checksum = False
-            self.validate_checksum = False
-            # Simple update save - not full save
-            super(ChecksumFile, self).save(
-                update_fields=[
-                    'checksum',
-                    'compute_checksum',
-                    'last_validation',
-                    'validate_checksum',
-                ]
-            )
-        return
 
 
 class _ReaderRoutine(object):
