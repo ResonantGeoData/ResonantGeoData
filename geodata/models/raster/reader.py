@@ -6,7 +6,8 @@ from osgeo import gdal
 import rasterio
 
 from rgd.utility import _field_file_to_local_path
-from .base import BandMetaEntry, ConvertedRasterFile, RasterEntry, RasterFile
+from .base import BandMetaEntry, ConvertedRasterFile, RasterEntry
+from .ifiles import RasterFile
 from ..common import _ReaderRoutine
 
 logger = get_task_logger(__name__)
@@ -39,7 +40,7 @@ class RasterEntryReader(_ReaderRoutine):
         """
         # Fetch the raster file this Layer corresponds to
         self.rfe = RasterFile.objects.get(id=self.model_id)
-        with _field_file_to_local_path(self.rfe.raster_file) as file_path:
+        with _field_file_to_local_path(self.rfe.file) as file_path:
 
             logger.info(f'The raster file path: {file_path}')
 
@@ -92,7 +93,8 @@ class RasterEntryReader(_ReaderRoutine):
                 spatial_ref = SpatialReference(src.crs.to_wkt())
                 logger.info(f'Raster footprint SRID: {spatial_ref.srid}')
                 # This will convert the Polygon to the DB's SRID
-                self.raster_entry.footprint = Polygon(coords, srid=spatial_ref.srid)
+                self.raster_entry.outline = Polygon(coords, srid=spatial_ref.srid)
+                self.raster_entry.footprint = self.raster_entry.outline
 
                 # These are things I couldn't figure out how to get with gdal directly
                 dtypes = src.dtypes
