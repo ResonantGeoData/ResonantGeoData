@@ -2,55 +2,24 @@ import inspect
 
 from django.conf.urls import include
 from django.contrib import admin
-from django.db.models import fields
-from django.http import QueryDict
+from django.contrib.gis.db import models as base_models
 from django.urls import path
-from django_filters.rest_framework import DjangoFilterBackend
 from djproxy.urls import generate_routes
-from rest_framework import parsers, viewsets
-from rest_framework.parsers import MultiPartParser
 from rest_framework.routers import SimpleRouter
 
-from . import serializers
+from . import models
 from . import views
-
-
-class MultiPartJsonParser(MultiPartParser):
-    def parse(self, stream, media_type=None, parser_context=None):
-        result = super().parse(stream, media_type=media_type, parser_context=parser_context)
-
-        model = None
-        qdict = QueryDict('', mutable=True)
-        if parser_context and 'view' in parser_context:
-            model = parser_context['view'].get_serializer_class().Meta.model
-        for key, value in result.data.items():
-            # Handle ManytoMany field data, parses lists of comma-separated integers that might be quoted. eg. "1,2"
-            if isinstance(getattr(model, key), fields.related_descriptors.ManyToManyDescriptor):
-                for val in value.split(','):
-                    qdict.update({key: val.strip('"')})
-            else:
-                qdict.update({key: value})
-
-        return parsers.DataAndFiles(qdict, result.files)
+from rgd import utility
 
 
 router = SimpleRouter()
-for _, ser in inspect.getmembers(serializers):
-    if inspect.isclass(ser):
-        model = ser.Meta.model
-        model_name = model.__name__
-        viewset_class = type(
-            model_name + 'ViewSet',
-            (viewsets.ModelViewSet,),
-            {
-                'parser_classes': (MultiPartJsonParser,),
-                'queryset': model.objects.all(),
-                'serializer_class': ser,
-                'filter_backends': [DjangoFilterBackend],
-                'filterset_fields': views.get_filter_fields(model),
-            },
-        )
-        router.register('api/%s' % (model_name.lower()), viewset_class)
+for model_name, model in inspect.getmembers(models):
+    if inspect.isclass(model):
+        if (model.__bases__[0] == base_models.Model):
+            serializer_class = utility.create_serializer(model)
+            viewset_class = utility.create_viewset(serializer_class)
+            router.register('api/%s' % (model_name.lower()), viewset_class)
+
 
 admin.site.index_template = 'admin/add_links.html'
 urlpatterns = [

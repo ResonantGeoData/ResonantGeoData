@@ -9,9 +9,8 @@ from drf_yasg.utils import swagger_auto_schema
 from rest_framework import serializers as rfserializers
 from rest_framework.decorators import api_view
 
-from . import serializers
 from .models import GeometryEntry, RasterEntry, SpatialEntry
-
+from rgd import utility
 
 class NearPointSerializer(rfserializers.Serializer):
     longitude = rfserializers.FloatField(required=False)
@@ -90,7 +89,8 @@ def search_near_point_filter(params):
 def search_near_point(request, *args, **kwargs):
     params = request.query_params
     results = SpatialEntry.objects.filter(search_near_point_filter(params))
-    return JsonResponse(serializers.SpatialEntrySerializer(results, many=True).data, safe=False)
+    serializer = utility.create_serializer(SpatialEntry)
+    return JsonResponse(serializer(results, many=True).data, safe=False)
 
 
 @swagger_auto_schema(
@@ -102,7 +102,8 @@ def search_near_point(request, *args, **kwargs):
 def search_near_point_raster(request, *args, **kwargs):
     params = request.query_params
     results = RasterEntry.objects.filter(search_near_point_filter(params))
-    return JsonResponse(serializers.RasterEntrySerializer(results, many=True).data, safe=False)
+    serializer = utility.create_serializer(RasterEntry)
+    return JsonResponse(serializer(results, many=True).data, safe=False)
 
 
 @swagger_auto_schema(
@@ -114,4 +115,5 @@ def search_near_point_raster(request, *args, **kwargs):
 def search_near_point_geometry(request, *args, **kwargs):
     params = request.query_params
     results = GeometryEntry.objects.filter(search_near_point_filter(params))
-    return JsonResponse(serializers.GeometryEntrySerializer(results, many=True).data, safe=False)
+    serializer = utility.create_serializer(GeometryEntry)
+    return JsonResponse(serializer(results, many=True).data, safe=False)
