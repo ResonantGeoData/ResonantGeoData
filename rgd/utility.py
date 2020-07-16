@@ -1,3 +1,5 @@
+import inspect
+
 from contextlib import contextmanager
 import hashlib
 from pathlib import Path, PurePath
@@ -5,6 +7,7 @@ import shutil
 import tempfile
 from typing import Generator
 
+from django.contrib.gis.db import models as base_models
 from django.core.files import File
 from django.db.models import fields
 from django.db.models.fields import AutoField
@@ -68,13 +71,14 @@ class MultiPartJsonParser(parsers.MultiPartParser):
         return parsers.DataAndFiles(qdict, result.files)
 
 
-def create_serializer(model, fields={}):
+def create_serializer(model, fields=None):
     if not fields:
         fields = '__all__'
 
     meta_class = type('Meta', (), {'model': model, 'fields': fields})
+    serializer_name = model.__name__ + "Serializer"
     serializer_class = type(
-        model.__name__ + 'Serializer',
+        serializer_name,
         (serializers.ModelSerializer,),
         {
             'Meta': meta_class
@@ -83,7 +87,7 @@ def create_serializer(model, fields={}):
     return serializer_class
 
 
-def create_serializers(models_file, fields={}):
+def create_serializers(models_file, fields=None):
     serializers = []
     for model_name, model in inspect.getmembers(models_file):
         if inspect.isclass(model):
