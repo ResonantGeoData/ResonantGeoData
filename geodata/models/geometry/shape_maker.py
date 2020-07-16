@@ -7,6 +7,7 @@ from ..constants import DB_SRID
 
 
 def transform_geometry(geometry, source_wkt):
+    """Transform geometry into the database's spatial reference system."""
     g = ogr.Geometry(wkt=geometry.wkt)
     source = SpatRef2(source_wkt)
     dest = SpatRef2(SpatialReference(DB_SRID).wkt)
