@@ -7,15 +7,15 @@ from django.urls import path
 from djproxy.urls import generate_routes
 from rest_framework.routers import SimpleRouter
 
+from rgd import utility
 from . import models
 from . import views
-from rgd import utility
 
 
 router = SimpleRouter()
 for model_name, model in inspect.getmembers(models):
     if inspect.isclass(model):
-        if (model.__bases__[0] == base_models.Model):
+        if model.__bases__[0] == base_models.Model:
             serializer_class = utility.create_serializer(model)
             viewset_class = utility.create_viewset(serializer_class)
             router.register('api/%s' % (model_name.lower()), viewset_class)

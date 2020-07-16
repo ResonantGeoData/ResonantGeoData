@@ -82,6 +82,7 @@ def create_serializer(model, fields={}):
     )
     return serializer_class
 
+
 def create_serializers(models_file, fields={}):
     serializers = []
     for model_name, model in inspect.getmembers(models_file):

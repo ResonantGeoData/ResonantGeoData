@@ -3,8 +3,7 @@ import os
 
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
-from django.db.models.fields import AutoField
-from django.db.models.fields.files import FieldFile, FileField
+from django.db.models.fields.files import FieldFile
 from django.http import HttpResponse
 from django.shortcuts import get_object_or_404, render
 from django.utils import timezone

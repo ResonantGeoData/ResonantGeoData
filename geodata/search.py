@@ -9,8 +9,9 @@ from drf_yasg.utils import swagger_auto_schema
 from rest_framework import serializers as rfserializers
 from rest_framework.decorators import api_view
 
-from .models import GeometryEntry, RasterEntry, SpatialEntry
 from rgd import utility
+from .models import GeometryEntry, RasterEntry, SpatialEntry
+
 
 class NearPointSerializer(rfserializers.Serializer):
     longitude = rfserializers.FloatField(required=False)
