@@ -40,5 +40,6 @@ setup(
         'rasterio',
         'fiona',
         'shapely',
+        'scipy',
     ],
 )
