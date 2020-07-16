@@ -1,7 +1,6 @@
-import inspect
-
 from contextlib import contextmanager
 import hashlib
+import inspect
 from pathlib import Path, PurePath
 import shutil
 import tempfile
@@ -72,26 +71,22 @@ class MultiPartJsonParser(parsers.MultiPartParser):
 
 
 def create_serializer(model, fields=None):
+    """Dynamically generate serializer class from model class."""
     if not fields:
         fields = '__all__'
 
     meta_class = type('Meta', (), {'model': model, 'fields': fields})
-    serializer_name = model.__name__ + "Serializer"
-    serializer_class = type(
-        serializer_name,
-        (serializers.ModelSerializer,),
-        {
-            'Meta': meta_class
-        }
-    )
+    serializer_name = model.__name__ + 'Serializer'
+    serializer_class = type(serializer_name, (serializers.ModelSerializer,), {'Meta': meta_class})
     return serializer_class
 
 
 def create_serializers(models_file, fields=None):
+    """Return list of serializer classes from all of the models in the given file."""
     serializers = []
     for model_name, model in inspect.getmembers(models_file):
         if inspect.isclass(model):
-            if (model.__bases__[0] == base_models.Model):
+            if model.__bases__[0] == base_models.Model:
                 model_fields = {}
                 if model_name in fields:
                     model_fields = fields[model_name]
@@ -116,6 +111,7 @@ def get_filter_fields(model):
 
 
 def create_viewset(serializer, parsers=(MultiPartJsonParser,)):
+    """Dynamically create viewset for API router."""
     model = serializer.Meta.model
     model_name = model.__name__
     viewset_class = type(
