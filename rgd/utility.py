@@ -126,3 +126,20 @@ def create_viewset(serializer, parsers=(MultiPartJsonParser,)):
         },
     )
     return viewset_class
+
+
+def make_serializers(globe, models):
+    for _model_name, model in inspect.getmembers(models):
+        if not inspect.isclass(model):
+            continue
+        parent = model
+        while len(parent.__bases__):
+            if base_models.Model in parent.__bases__:
+                break
+            parent = parent.__bases__[0]
+        if base_models.Model in parent.__bases__:
+            model_fields = {}
+            serializer_class = create_serializer(model, model_fields)
+            serializer_name = serializer_class.__name__
+            if serializer_name not in globe:
+                globe[serializer_name] = serializer_class

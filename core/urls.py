@@ -2,24 +2,34 @@ import inspect
 
 from django.conf.urls import include
 from django.contrib import admin
-from django.contrib.gis.db import models as base_models
 from django.urls import path
+from django_filters.rest_framework import DjangoFilterBackend
 from djproxy.urls import generate_routes
+from rest_framework import viewsets
 from rest_framework.routers import SimpleRouter
 
 from rgd import utility
-from . import models
+from . import serializers
 from . import views
 
 
 router = SimpleRouter()
-for model_name, model in inspect.getmembers(models):
-    if inspect.isclass(model):
-        if model.__bases__[0] == base_models.Model:
-            serializer_class = utility.create_serializer(model)
-            viewset_class = utility.create_viewset(serializer_class)
-            router.register('api/%s' % (model_name.lower()), viewset_class)
-
+for _, ser in inspect.getmembers(serializers):
+    if inspect.isclass(ser):
+        model = ser.Meta.model
+        model_name = model.__name__
+        viewset_class = type(
+            model_name + 'ViewSet',
+            (viewsets.ModelViewSet,),
+            {
+                'parser_classes': (utility.MultiPartJsonParser,),
+                'queryset': model.objects.all(),
+                'serializer_class': ser,
+                'filter_backends': [DjangoFilterBackend],
+                'filterset_fields': utility.get_filter_fields(model),
+            },
+        )
+        router.register('api/%s' % (model_name.lower()), viewset_class)
 
 admin.site.index_template = 'admin/add_links.html'
 urlpatterns = [
