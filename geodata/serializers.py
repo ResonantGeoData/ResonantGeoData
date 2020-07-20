@@ -2,7 +2,8 @@ import json
 
 from rest_framework import serializers
 
-from .models import GeometryEntry, RasterEntry, SpatialEntry
+from rgd import utility
+from . import models
 
 
 class SpatialEntrySerializer(serializers.ModelSerializer):
@@ -12,17 +13,14 @@ class SpatialEntrySerializer(serializers.ModelSerializer):
         return ret
 
     class Meta:
-        model = SpatialEntry
+        model = models.SpatialEntry
         fields = '__all__'
 
 
 class GeometryEntrySerializer(SpatialEntrySerializer):
     class Meta:
-        model = GeometryEntry
+        model = models.GeometryEntry
         exclude = ['data']
 
 
-class RasterEntrySerializer(SpatialEntrySerializer):
-    class Meta:
-        model = RasterEntry
-        fields = '__all__'
+utility.make_serializers(globals(), models)

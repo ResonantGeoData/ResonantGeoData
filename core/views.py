@@ -3,8 +3,7 @@ import os
 
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
-from django.db.models.fields import AutoField
-from django.db.models.fields.files import FieldFile, FileField
+from django.db.models.fields.files import FieldFile
 from django.http import HttpResponse
 from django.shortcuts import get_object_or_404, render
 from django.utils import timezone
@@ -145,19 +144,3 @@ def download_file(request, model, id, field):
     if len(file) is not None:
         response['Content-Length'] = len(file)
     return response
-
-
-def get_filter_fields(model):
-    """
-    Return a list of all filterable fields of Model.
-
-    -Takes: Model type
-    -Returns: A list of fields as string (excluding ID and file uploading)
-    """
-    model_fields = model._meta.get_fields()
-    fields = []
-    for field in model_fields:
-        res = str(field).split('.')
-        if res[1] == model.__name__ and not isinstance(field, (AutoField, FileField)):
-            fields.append(field.name)
-    return fields
