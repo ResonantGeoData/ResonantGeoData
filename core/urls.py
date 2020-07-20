@@ -13,24 +13,7 @@ from . import serializers
 from . import views
 
 
-router = SimpleRouter()
-for _, ser in inspect.getmembers(serializers):
-    if inspect.isclass(ser):
-        model = ser.Meta.model
-        model_name = model.__name__
-        viewset_class = type(
-            model_name + 'ViewSet',
-            (viewsets.ModelViewSet,),
-            {
-                'parser_classes': (utility.MultiPartJsonParser,),
-                'queryset': model.objects.all(),
-                'serializer_class': ser,
-                'filter_backends': [DjangoFilterBackend],
-                'filterset_fields': utility.get_filter_fields(model),
-            },
-        )
-        viewset_class.__doc__ = model.__doc__
-        router.register('api/%s' % (model_name.lower()), viewset_class)
+router = utility.make_viewsets(serializers)
 
 admin.site.index_template = 'admin/add_links.html'
 urlpatterns = [

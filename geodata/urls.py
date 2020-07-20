@@ -1,7 +1,12 @@
+from django.conf.urls import include
 from django.urls import path
 
+from rgd import utility
 from . import search
+from . import serializers
 from . import views
+
+router = utility.make_viewsets(serializers)
 
 urlpatterns = [
     path('geodata/rasters/', views.RasterEntriesListView.as_view(), name='rasters'),
@@ -19,4 +24,5 @@ urlpatterns = [
     path('api/geodata/near_point/extent', search.search_near_point_extent),
     path('api/geodata/raster/near_point/extent', search.search_near_point_extent_raster),
     path('api/geodata/geometry/near_point/extent', search.search_near_point_extent_geometry),
+    path('', include(router.urls))
 ]
