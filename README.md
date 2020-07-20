@@ -5,34 +5,62 @@
 
 This is the simplest configuration for developers to start with.
 ### Initial Setup
-1. Run `./dev/init-minio.sh`
-2. Run `docker-compose run web ./manage.py migrate`
-3. Run `docker-compose run web ./manage.py createsuperuser` and follow the prompts to create your own user
+1. Run `docker-compose run --rm django ./manage.py migrate`
+2. Run `docker-compose run --rm django ./manage.py createsuperuser` 
+   and follow the prompts to create your own user
 
 ### Run Application
 1. Run `docker-compose up`
-2. When finished, use `Ctrl+C`
+2. Access the site, starting at http://localhost:8000/admin/
+3. When finished, use `Ctrl+C`
 
-## Develop natively (advanced)
+### Application Maintenance
+Occasionally, new package dependencies or schema changes will necessitate
+maintenance. To non-destructively update your development stack at any time:
+1. Run `docker-compose pull`
+2. Run `docker-compose build`
+3. Run `docker-compose run --rm django ./manage.py migrate`
+
+## Develop Natively (advanced)
 This configuration still uses Docker to run attached services in the background,
 but allows developers to run the Python code on their native system.
 
 ### Initial Setup
-1. Run `./dev/init-minio.sh`
-2. Run `docker-compose -f ./docker-compose.yml -f ./docker-compose.override.native.yml up -d`
-3. Install Python 3.8
-4. Install [`psycopg2` build prerequisites](https://www.psycopg.org/docs/install.html#build-prerequisites)
-5. Create and activate a new Python virtualenv
-6. Run `pip install -e .`
-7. Run `source ./dev/.env.docker-compose-native.sh`
-8. Run `./manage.py migrate`
-9. Run `./manage.py createsuperuser` and follow the prompts to create your own user
+1. Run `docker-compose -f ./docker-compose.yml up -d`
+2. Install Python 3.8
+3. Install
+   [`psycopg2` build prerequisites](https://www.psycopg.org/docs/install.html#build-prerequisites)
+4. Create and activate a new Python virtualenv
+5. Run `pip install -e .`
+6. Run `source ./dev/source-native-env.sh`
+7. Run `./manage.py migrate`
+8. Run `./manage.py createsuperuser` and follow the prompts to create your own user
 
 ### Run Application
 1. Run (in separate windows) both:
    1. `./manage.py runserver`
-   2. `celery worker --app rgd.celery --loglevel info --without-heartbeat`
-2.  When finished, run `docker-compose stop`
+   2. `celery worker --app {{ cookiecutter.pkg_name }}.celery --loglevel info --without-heartbeat`
+2. When finished, run `docker-compose stop`
+
+## Remap Service Ports (optional)
+Attached services may be exposed to the host system via alternative ports. Developers who work
+on multiple software projects concurrently may find this helpful to avoid port conflicts.
+
+To do so, before running any `docker-compose` commands, set any of the environment variables:
+* `DOCKER_POSTGRES_PORT`
+* `DOCKER_RABBITMQ_PORT`
+* `DOCKER_MINIO_PORT`
+
+The Django server must be informed about the changes:
+* When running the "Develop with Docker" configuration, override the environment variables:
+  * `DJANGO_MINIO_STORAGE_MEDIA_URL`, using the port from `DOCKER_MINIO_PORT`.
+* When running the "Develop Natively" configuration, override the environment variables:
+  * `DJANGO_DATABASE_URL`, using the port from `DOCKER_POSTGRES_PORT`
+  * `DJANGO_CELERY_BROKER_URL`, using the port from `DOCKER_RABBITMQ_PORT`
+  * `DJANGO_MINIO_STORAGE_ENDPOINT`, using the port from `DOCKER_MINIO_PORT`
+
+Since most of Django's environment variables contain additional content, use the values from
+the appropriate `dev/.env.docker-compose*` file as a baseline for overrides.
 
 ## Testing
 ### Initial Setup
