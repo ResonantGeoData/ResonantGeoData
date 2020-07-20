@@ -128,7 +128,14 @@ def create_viewset(serializer, parsers=(MultiPartJsonParser,)):
     return viewset_class
 
 
-def make_serializers(globe, models):
+def make_serializers(serializer_scope, models):
+    """Make serializers for any model that doesn't already have one.
+
+    This should be called after specific serializer classes are created.  Serializers are created named <model_name>Serializer.
+
+    :param serializer_scope: the scope where serializers on the models are defined.  In a serializers.py file, this will be globals().
+    :param models: a namespace with defined models for which to create serializers.  This can be a models module.
+    """
     for _model_name, model in inspect.getmembers(models):
         if not inspect.isclass(model):
             continue
@@ -141,5 +148,5 @@ def make_serializers(globe, models):
             model_fields = {}
             serializer_class = create_serializer(model, model_fields)
             serializer_name = serializer_class.__name__
-            if serializer_name not in globe:
-                globe[serializer_name] = serializer_class
+            if serializer_name not in serializer_scope:
+                serializer_scope[serializer_name] = serializer_class
