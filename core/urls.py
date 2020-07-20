@@ -1,12 +1,7 @@
-import inspect
-
 from django.conf.urls import include
 from django.contrib import admin
 from django.urls import path
-from django_filters.rest_framework import DjangoFilterBackend
 from djproxy.urls import generate_routes
-from rest_framework import viewsets
-from rest_framework.routers import SimpleRouter
 
 from rgd import utility
 from . import serializers

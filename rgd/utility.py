@@ -108,7 +108,17 @@ def get_filter_fields(model):
     for field in model_fields:
         res = str(field).split('.')
         # if res[1] == model.__name__ and not isinstance(field, (AutoField, FileField)):
-        if res[1] == model.__name__ and not isinstance(field, (AutoField, FileField, base_models.GeometryCollectionField, base_models.PolygonField, pg_fields.ArrayField, pg_fields.JSONField)):
+        if res[1] == model.__name__ and not isinstance(
+            field,
+            (
+                AutoField,
+                FileField,
+                base_models.GeometryCollectionField,
+                base_models.PolygonField,
+                pg_fields.ArrayField,
+                pg_fields.JSONField,
+            ),
+        ):
             fields.append(field.name)
     return fields
 
@@ -155,30 +165,29 @@ def make_serializers(serializer_scope, models):
                 serializer_scope[serializer_name] = serializer_class
 
 
-def make_viewsets(app_serializers, filter_backends=[]):
+def make_viewsets(app_serializers):
     """Make viewsets for app api endpoints from corresponding serializers.
 
-    This should be called when generating the urls for the app. 
+    This should be called when generating the urls for the app.
 
     :param app_serializers: the scope where serializers on the models are defined.  In a serializers.py file, this will be globals().
     """
     endpoint_prefix = 'api/%s'
-    
+
     router = SimpleRouter()
     for _, ser in inspect.getmembers(app_serializers):
         if inspect.isclass(ser):
             model = ser.Meta.model
             model_name = model.__name__
+            class_attributes = {
+                'parser_classes': (MultiPartJsonParser,),
+                'queryset': model.objects.all(),
+                'serializer_class': ser,
+                'filter_backends': [DjangoFilterBackend],
+                'filterset_fields': get_filter_fields(model),
+            }
             viewset_class = type(
-                model_name + 'ViewSet',
-                (viewsets.ModelViewSet,),
-                {
-                    'parser_classes': (MultiPartJsonParser,),
-                    'queryset': model.objects.all(),
-                    'serializer_class': ser,
-                    'filter_backends': [DjangoFilterBackend] + filter_backends,
-                    'filterset_fields': get_filter_fields(model),
-                },
+                model_name + 'ViewSet', (viewsets.ModelViewSet,), class_attributes,
             )
             router.register(endpoint_prefix % (model_name.lower()), viewset_class)
     return router

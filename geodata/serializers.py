@@ -23,4 +23,11 @@ class GeometryEntrySerializer(SpatialEntrySerializer):
         exclude = ['data']
 
 
+class DatasetSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = models.Dataset
+        ref_name = 'Geodata_Dataset'
+        fields = '__all__'
+
+
 utility.make_serializers(globals(), models)

@@ -6,6 +6,7 @@ from . import search
 from . import serializers
 from . import views
 
+
 router = utility.make_viewsets(serializers)
 
 urlpatterns = [
@@ -24,5 +25,5 @@ urlpatterns = [
     path('api/geodata/near_point/extent', search.search_near_point_extent),
     path('api/geodata/raster/near_point/extent', search.search_near_point_extent_raster),
     path('api/geodata/geometry/near_point/extent', search.search_near_point_extent_geometry),
-    path('', include(router.urls))
+    path('api/geodata/', include(router.urls)),
 ]
