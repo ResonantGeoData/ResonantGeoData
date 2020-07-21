@@ -2,7 +2,7 @@ from django.contrib.auth.models import User
 import factory.django
 from pytest_factoryboy import register
 
-from core import models
+from geodata import models
 
 
 @register
@@ -17,9 +17,16 @@ class UserFactory(factory.django.DjangoModelFactory):
 
 
 @register
-class TaskFactory(factory.django.DjangoModelFactory):
+class DatasetFactory(factory.django.DjangoModelFactory):
     class Meta:
-        model = models.Task
+        model = models.Dataset
 
     name = factory.Faker('sentence', nb_words=2)
-    creator = factory.SubFactory(UserFactory)
+    description = factory.Faker('paragraph')
+
+    # TODO: add "geometries" and "rasters"
+    # https://factoryboy.readthedocs.io/en/latest/recipes.html#simple-many-to-many-relationship
+
+
+# For generating lat-lon coords, this may be helpful:
+# https://faker.readthedocs.io/en/latest/providers/faker.providers.geo.html
