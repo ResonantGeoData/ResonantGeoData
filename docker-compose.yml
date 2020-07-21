@@ -14,8 +14,6 @@ services:
     image: rabbitmq:management
     ports:
       - ${DOCKER_RABBITMQ_PORT-5672}:5672
-    volumes:
-    - mqdata:/var/lib/rabbitmq
 
   minio:
     image: girder/minio-nonroot:latest
@@ -26,5 +24,4 @@ services:
 
 volumes:
   dbdata:
-  mqdata:
   fsdata:
