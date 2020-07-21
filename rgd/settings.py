@@ -9,6 +9,7 @@ from django_girders.configuration import (
     DevelopmentBaseConfiguration,
     HerokuProductionBaseConfiguration,
     ProductionBaseConfiguration,
+    TestingBaseConfiguration,
 )
 
 
@@ -173,6 +174,10 @@ class DevelopmentConfiguration(
     DisableS3FileFieldUploadsConfig, RgdConfig, DevelopmentBaseConfiguration
 ):
     pass
+
+
+class TestingConfiguration(RgdConfig, TestingBaseConfiguration):
+    MINIO_STORAGE_MEDIA_BUCKET_NAME = 'test-django-storage'
 
 
 class ProductionConfiguration(RgdConfig, ProductionBaseConfiguration):

@@ -21,4 +21,6 @@ ENV PYTHONUNBUFFERED 1
 COPY ./setup.py /opt/django/setup.py
 COPY ./requirements.txt /opt/django/requirements.txt
 WORKDIR /opt/django
-RUN pip install -r requirements.txt
+RUN pip install \
+    -r requirements.txt \
+    tox
