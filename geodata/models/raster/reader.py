@@ -45,8 +45,8 @@ def get_valid_data_footprint(src, band_num):
 
     msk = src.read_masks(band_num, out_shape=shape)
 
-    a = (np.arange(msk.shape[1]) * src.res[1]) + src.bounds.left
-    b = (np.arange(msk.shape[0]) * src.res[0]) + src.bounds.bottom
+    a = (np.arange(msk.shape[1]) * src.res[1]) + (src.bounds.left + (src.res[1] / 2.0))
+    b = ((np.arange(msk.shape[0]) * src.res[0]) + (src.bounds.bottom + (src.res[0] / 2.0)))[::-1]
     xx, yy = np.meshgrid(a, b[::-1])
     ids = np.argwhere(msk.ravel()).ravel()
 
