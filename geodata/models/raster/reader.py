@@ -15,6 +15,9 @@ from ..geometry.transform import transform_geometry
 logger = get_task_logger(__name__)
 
 
+MAX_LOAD_SHAPE = (4000, 4000)
+
+
 def convex_hull(points):
     from scipy.spatial import ConvexHull
 
@@ -37,7 +40,10 @@ def get_valid_data_footprint(src, band_num):
     Returns a numpy array of the bounadry points in a closed polygon.
 
     """
-    msk = src.read_masks(band_num)
+    # Determine mask resolution to prevent loading massive imagery
+    shape = tuple(np.min([src.shape, MAX_LOAD_SHAPE], axis=0))
+
+    msk = src.read_masks(band_num, out_shape=shape)
 
     a = (np.arange(msk.shape[1]) * src.res[1]) + src.bounds.left
     b = (np.arange(msk.shape[0]) * src.res[0]) + src.bounds.bottom
