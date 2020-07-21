@@ -1,36 +1,40 @@
 version: '3'
 services:
-  web:
+  django:
     build:
       context: .
-      dockerfile: ./dev/Dockerfile
+      dockerfile: ./dev/django.Dockerfile
     command: ["./manage.py", "runserver", "0.0.0.0:8000"]
     env_file: ./dev/.env.docker-compose
     volumes:
-      - .:/opt/resonantgeodata
+      - .:/opt/django
     ports:
       - 8000:8000
     depends_on:
-      # TODO: https://docs.docker.com/compose/startup-order/
-      - db
+      - postgres
       - rabbitmq
       - minio
 
-  worker:
+  celery:
     build:
       context: .
-      dockerfile: ./dev/Dockerfile
-    command: ["celery", "worker", "--app", "rgd.celery", "--loglevel", "info", "--without-heartbeat"]
+      dockerfile: ./dev/django.Dockerfile
+    command: [
+      "celery", "worker",
+      "--app", "rgd.celery",
+      "--loglevel", "info",
+      "--without-heartbeat"
+    ]
     env_file: ./dev/.env.docker-compose
     environment:
       - TMPDIR=/tmp/rgd_worker
     volumes:
-      - .:/opt/resonantgeodata
+      - .:/opt/django
       - /var/run/docker.sock:/var/run/docker.sock
       - /usr/bin/docker:/usr/bin/docker
       - /tmp/rgd_worker:/tmp/rgd_worker
     depends_on:
-      - db
+      - postgres
       - rabbitmq
       - minio
 
