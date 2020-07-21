@@ -57,13 +57,21 @@ class MultiPartJsonParser(parsers.MultiPartParser):
     def parse(self, stream, media_type=None, parser_context=None):
         result = super().parse(stream, media_type=media_type, parser_context=parser_context)
 
+        raster_arrays = ['origin', 'extent', 'resolution', 'transform']
+        
         model = None
         qdict = QueryDict('', mutable=True)
         if parser_context and 'view' in parser_context:
             model = parser_context['view'].get_serializer_class().Meta.model
         for key, value in result.data.items():
             # Handle ManytoMany field data, parses lists of comma-separated integers that might be quoted. eg. "1,2"
+            # if isinstance(getattr(model, key), pg_fields.related_descriptors.ArrayFieldDescriptor):
+            #     print(pg_fields.related_descriptors.ArrayFieldDescriptor)
             if isinstance(getattr(model, key), fields.related_descriptors.ManyToManyDescriptor):
+                print(key)
+                for val in value.split(','):
+                    qdict.update({key: val.strip('"')})
+            elif model.__name__ == 'RasterEntry' and key in raster_arrays:
                 for val in value.split(','):
                     qdict.update({key: val.strip('"')})
             else:
@@ -96,7 +104,7 @@ def create_serializers(models_file, fields=None):
     return serializers
 
 
-def get_filter_fields(model):
+def get_filter_fields(model, exclude=[]):
     """
     Return a list of all filterable fields of Model.
 
@@ -107,19 +115,9 @@ def get_filter_fields(model):
     fields = []
     for field in model_fields:
         res = str(field).split('.')
-        # if res[1] == model.__name__ and not isinstance(field, (AutoField, FileField)):
-        if res[1] == model.__name__ and not isinstance(
-            field,
-            (
-                AutoField,
-                FileField,
-                base_models.GeometryCollectionField,
-                base_models.PolygonField,
-                pg_fields.ArrayField,
-                pg_fields.JSONField,
-            ),
-        ):
-            fields.append(field.name)
+        if res[-1] not in exclude:
+            if res[1] == model.__name__ and not isinstance(field, (AutoField, FileField)):
+                fields.append(field.name)
     return fields
 
 
@@ -165,7 +163,7 @@ def make_serializers(serializer_scope, models):
                 serializer_scope[serializer_name] = serializer_class
 
 
-def make_viewsets(app_serializers):
+def make_viewsets(app_serializers, filters=None):
     """Make viewsets for app api endpoints from corresponding serializers.
 
     This should be called when generating the urls for the app.
@@ -174,18 +172,30 @@ def make_viewsets(app_serializers):
     """
     endpoint_prefix = 'api/%s'
 
+    if not filters:
+        filters = {}
+
     router = SimpleRouter()
     for _, ser in inspect.getmembers(app_serializers):
         if inspect.isclass(ser):
             model = ser.Meta.model
             model_name = model.__name__
+
+            exclude = []
+            if hasattr(ser.Meta, 'exclude'):
+                exclude = ser.Meta.exclude
+
             class_attributes = {
                 'parser_classes': (MultiPartJsonParser,),
                 'queryset': model.objects.all(),
                 'serializer_class': ser,
                 'filter_backends': [DjangoFilterBackend],
-                'filterset_fields': get_filter_fields(model),
+                'filterset_fields': get_filter_fields(model, exclude),
             }
+
+            if hasattr(filters, model_name+'Filter'):
+                class_attributes['filterset_class'] = getattr(filters, model_name+'Filter')
+
             viewset_class = type(
                 model_name + 'ViewSet', (viewsets.ModelViewSet,), class_attributes,
             )

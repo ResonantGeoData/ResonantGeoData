@@ -2,12 +2,13 @@ from django.conf.urls import include
 from django.urls import path
 
 from rgd import utility
+from . import filters
 from . import search
 from . import serializers
 from . import views
 
 
-router = utility.make_viewsets(serializers)
+router = utility.make_viewsets(serializers, filters)
 
 urlpatterns = [
     path('geodata/rasters/', views.RasterEntriesListView.as_view(), name='rasters'),
