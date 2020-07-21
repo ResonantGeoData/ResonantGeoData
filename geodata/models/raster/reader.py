@@ -45,8 +45,12 @@ def get_valid_data_footprint(src, band_num):
 
     msk = src.read_masks(band_num, out_shape=shape)
 
-    a = (np.arange(msk.shape[1]) * src.res[1]) + (src.bounds.left + (src.res[1] / 2.0))
-    b = ((np.arange(msk.shape[0]) * src.res[0]) + (src.bounds.bottom + (src.res[0] / 2.0)))[::-1]
+    # Figure out cell spacing from reduced size:
+    da = (src.bounds.right - src.bounds.left) / msk.shape[1]
+    db = (src.bounds.top - src.bounds.bottom) / msk.shape[0]
+
+    a = (np.arange(msk.shape[1]) * da) + (src.bounds.left + (da / 2.0))
+    b = (np.arange(msk.shape[0]) * db) + (src.bounds.bottom + (db / 2.0))
     xx, yy = np.meshgrid(a, b[::-1])
     ids = np.argwhere(msk.ravel()).ravel()
 
