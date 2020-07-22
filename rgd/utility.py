@@ -8,7 +8,6 @@ import tempfile
 from typing import Generator
 
 from django.contrib.gis.db import models as base_models
-from django.contrib.postgres import fields as pg_fields
 from django.core.files import File
 from django.db.models import fields
 from django.db.models.fields import AutoField
@@ -67,7 +66,6 @@ class MultiPartJsonParser(parsers.MultiPartParser):
             model = parser_context['view'].get_serializer_class().Meta.model
         for key, value in result.data.items():
             # Handle ManytoMany field data, parses lists of comma-separated integers that might be quoted. eg. "1,2"
-            # if isinstance(getattr(model, key), pg_fields.related_descriptors.ArrayFieldDescriptor):
             if isinstance(getattr(model, key), fields.related_descriptors.ManyToManyDescriptor):
                 for val in value.split(','):
                     qdict.update({key: val.strip('"')})
@@ -106,13 +104,15 @@ def create_serializers(models_file, fields=None):
     return serializers
 
 
-def get_filter_fields(model, exclude=[]):
+def get_filter_fields(model, exclude=None):
     """
     Return a list of all filterable fields of Model.
 
     -Takes: Model type
     -Returns: A list of fields as string (excluding ID and file uploading)
     """
+    if not exclude:
+        exclude = []
     model_fields = model._meta.get_fields()
     fields = []
     for field in model_fields:
@@ -195,8 +195,8 @@ def make_viewsets(app_serializers, filters=None):
                 'filterset_fields': get_filter_fields(model, exclude),
             }
 
-            if hasattr(filters, model_name+'Filter'):
-                class_attributes['filterset_class'] = getattr(filters, model_name+'Filter')
+            if hasattr(filters, model_name + 'Filter'):
+                class_attributes['filterset_class'] = getattr(filters, model_name + 'Filter')
 
             viewset_class = type(
                 model_name + 'ViewSet', (viewsets.ModelViewSet,), class_attributes,

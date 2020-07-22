@@ -20,7 +20,7 @@ setup(
         'django-s3-file-field',
         'django-storages',
         'djangorestframework',
-	'djangorestframework-gis',
+        'djangorestframework-gis',
         'djproxy',
         'docker',
         'drf-yasg',
