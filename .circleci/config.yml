@@ -1,37 +1,39 @@
 ---
 version: 2.1
 jobs:
-  build:
+  test:
     docker:
       - image: circleci/python:3.8
-      # - image: circleci/postgres:11.4-alpine-ram
-
-    working_directory: ~/ResonantGeoData
-
+      - image: circleci/postgres:12-postgis-ram
+        environment:
+          POSTGRES_DB: django
+          POSTGRES_PASSWORD: postgres
+      - image: girder/minio-nonroot:latest
     steps:
       - checkout
-
       - run:
-          name: install dependencies
-          command: |
-            sudo pip install tox
-
+          name: Install tox
+          command: sudo pip install tox
       - run:
-          name: run tests
-          command: |
-            tox
+          name: Run tests
+          command: tox
+          environment:
+            DJANGO_DATABASE_URL: postgres://postgres:postgres@localhost:5432/django
+            DJANGO_MINIO_STORAGE_ENDPOINT: localhost:9000
+            DJANGO_MINIO_STORAGE_ACCESS_KEY: minioUserAccessKey
+            DJANGO_MINIO_STORAGE_SECRET_KEY: minioUserSecretKey
 workflows:
   version: 2
   ci:
     jobs:
-      - build
-#   nightly:
-#     triggers:
-#       - schedule:
-#           cron: "0 0 * * *"
-#           filters:
-#             branches:
-#               only:
-#                 - master
-#     jobs:
-#       - build
+      - test
+  nightly:
+    triggers:
+      - schedule:
+          cron: "0 0 * * *"
+          filters:
+            branches:
+              only:
+                - master
+    jobs:
+      - test

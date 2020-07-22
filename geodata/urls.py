@@ -16,4 +16,7 @@ urlpatterns = [
     path('api/geodata/near_point', search.search_near_point),
     path('api/geodata/raster/near_point', search.search_near_point_raster),
     path('api/geodata/geometry/near_point', search.search_near_point_geometry),
+    path('api/geodata/near_point/extent', search.search_near_point_extent),
+    path('api/geodata/raser/near_point/extent', search.search_near_point_extent_raster),
+    path('api/geodata/geometry/near_point/extent', search.search_near_point_extent_geometry),
 ]

@@ -6,6 +6,7 @@ import django.contrib.postgres.fields
 import django.contrib.postgres.fields.jsonb
 from django.db import migrations, models
 import django.db.models.deletion
+
 import geodata.models.geometry.base
 import geodata.models.mixins
 

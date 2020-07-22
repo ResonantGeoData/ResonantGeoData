@@ -1,21 +1,26 @@
+import json
+
 from rest_framework import serializers
 
-from .models import GeometryEntry, RasterEntry, SpatialEntry
-
-
-class GeometryEntrySerializer(serializers.ModelSerializer):
-    class Meta:
-        model = GeometryEntry
-        fields = '__all__'
-
-
-class RasterEntrySerializer(serializers.ModelSerializer):
-    class Meta:
-        model = RasterEntry
-        fields = '__all__'
+from rgd import utility
+from . import models
 
 
 class SpatialEntrySerializer(serializers.ModelSerializer):
+    def to_representation(self, value):
+        ret = super().to_representation(value)
+        ret['footprint'] = json.loads(value.footprint.geojson)
+        return ret
+
     class Meta:
-        model = SpatialEntry
+        model = models.SpatialEntry
         fields = '__all__'
+
+
+class GeometryEntrySerializer(SpatialEntrySerializer):
+    class Meta:
+        model = models.GeometryEntry
+        exclude = ['data']
+
+
+utility.make_serializers(globals(), models)

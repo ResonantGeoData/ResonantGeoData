@@ -1,24 +1,26 @@
 version: '3'
 services:
-  db:
-    image: postgis/postgis
+  postgres:
+    image: postgis/postgis:latest
     environment:
-      POSTGRES_DB: rgd
+      POSTGRES_DB: django
       POSTGRES_PASSWORD: postgres
+    ports:
+      - ${DOCKER_POSTGRES_PORT-5432}:5432
     volumes:
-      - "dbdata:/var/lib/postgresql/data"
+      - dbdata:/var/lib/postgresql/data
 
   rabbitmq:
     image: rabbitmq:management
+    ports:
+      - ${DOCKER_RABBITMQ_PORT-5672}:5672
 
   minio:
-    image: minio/minio
-    command: server /data
-    environment:
-      MINIO_ACCESS_KEY: minioAdminAccessKey
-      MINIO_SECRET_KEY: minioAdminSecretKey
+    image: girder/minio-nonroot:latest
+    ports:
+      - ${DOCKER_MINIO_PORT-9000}:9000
     volumes:
-      - fsdata:/data
+      - fsdata:/var/lib/minio
 
 volumes:
   dbdata:
