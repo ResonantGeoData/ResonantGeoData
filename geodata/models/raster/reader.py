@@ -2,6 +2,7 @@
 from celery.utils.log import get_task_logger
 from django.contrib.gis.gdal import SpatialReference
 from django.contrib.gis.geos import Polygon
+import numpy as np
 from osgeo import gdal
 import rasterio
 
@@ -9,8 +10,55 @@ from rgd.utility import _field_file_to_local_path
 from .base import BandMetaEntry, ConvertedRasterFile, RasterEntry
 from .ifiles import RasterFile
 from ..common import _ReaderRoutine
+from ..geometry.transform import transform_geometry
 
 logger = get_task_logger(__name__)
+
+
+MAX_LOAD_SHAPE = (4000, 4000)
+
+
+def convex_hull(points):
+    from scipy.spatial import ConvexHull
+
+    hull = ConvexHull(points)
+
+    boundary = points[hull.vertices]
+    # Close the loop
+    boundary = np.append(boundary, boundary[0][None], axis=0)
+
+    return boundary
+
+
+def get_valid_data_footprint(src, band_num):
+    """Fetch points for the footprint polygon of the valid data.
+
+    Must specify band of the raster to evaluate.
+
+    src is an open dataset with rasterio
+
+    Returns a numpy array of the bounadry points in a closed polygon.
+
+    """
+    # Determine mask resolution to prevent loading massive imagery
+    shape = tuple(np.min([src.shape, MAX_LOAD_SHAPE], axis=0))
+
+    msk = src.read_masks(band_num, out_shape=shape, resampling=5)
+
+    # Figure out cell spacing from reduced size:
+    da = (src.bounds.right - src.bounds.left) / msk.shape[1]
+    db = (src.bounds.top - src.bounds.bottom) / msk.shape[0]
+
+    a = (np.arange(msk.shape[1]) * da) + (src.bounds.left + (da / 2.0))
+    b = (np.arange(msk.shape[0]) * db) + (src.bounds.bottom + (db / 2.0))
+    xx, yy = np.meshgrid(a, b[::-1])
+    ids = np.argwhere(msk.ravel()).ravel()
+
+    x = xx.ravel()[ids]
+    y = yy.ravel()[ids]
+    points = np.c_[x, y]
+
+    return convex_hull(points)
 
 
 class RasterEntryReader(_ReaderRoutine):
@@ -65,7 +113,7 @@ class RasterEntryReader(_ReaderRoutine):
                 self.raster_entry.number_of_bands = src.count
                 self.raster_entry.driver = src.driver
                 self.raster_entry.crs = src.crs.to_proj4()
-                self.raster_entry.origin = [src.bounds.left, src.bounds.top]
+                self.raster_entry.origin = [src.bounds.left, src.bounds.bottom]
                 self.raster_entry.extent = [
                     src.bounds.left,
                     src.bounds.bottom,
@@ -82,19 +130,31 @@ class RasterEntryReader(_ReaderRoutine):
                 # thumbnail = RasterEntryReader.create_thumbnail(src)
                 # self.raster_entry.thumbnail.save('thumbnail.jpg', thumbnail, save=True)
 
-                coords = (
-                    (src.bounds.left, src.bounds.top),
-                    (src.bounds.right, src.bounds.top),
-                    (src.bounds.right, src.bounds.bottom),
-                    (src.bounds.left, src.bounds.bottom),
-                    (src.bounds.left, src.bounds.top),  # Close the loop
+                coords = np.array(
+                    (
+                        (src.bounds.left, src.bounds.top),
+                        (src.bounds.right, src.bounds.top),
+                        (src.bounds.right, src.bounds.bottom),
+                        (src.bounds.left, src.bounds.bottom),
+                        (src.bounds.left, src.bounds.top),  # Close the loop
+                    )
                 )
 
                 spatial_ref = SpatialReference(src.crs.to_wkt())
                 logger.info(f'Raster footprint SRID: {spatial_ref.srid}')
                 # This will convert the Polygon to the DB's SRID
-                self.raster_entry.outline = Polygon(coords, srid=spatial_ref.srid)
-                self.raster_entry.footprint = self.raster_entry.outline
+                self.raster_entry.outline = transform_geometry(
+                    Polygon(coords, srid=spatial_ref.srid), src.crs.to_wkt()
+                )
+                try:
+                    # Only implement for first band for now
+                    vcoords = get_valid_data_footprint(src, 1)
+                    self.raster_entry.footprint = transform_geometry(
+                        Polygon(vcoords, srid=spatial_ref.srid), src.crs.to_wkt()
+                    )
+                except Exception as e:  # TODO: be more clever about this
+                    logger.info(f'Issue computing convex hull of non-null data: {e}')
+                    self.raster_entry.footprint = self.raster_entry.outline
 
                 # These are things I couldn't figure out how to get with gdal directly
                 dtypes = src.dtypes

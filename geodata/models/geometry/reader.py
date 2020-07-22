@@ -13,6 +13,7 @@ from shapely.wkb import dumps
 
 from rgd.utility import _field_file_to_local_path
 from .base import GeometryArchive, GeometryEntry
+from .transform import transform_geometry
 from ..common import _ReaderRoutine
 
 
@@ -82,7 +83,11 @@ class GeometryArchiveReader(_ReaderRoutine):
             geom = shape(item['geometry'])  # not optimal?
             # TODO: check this
             collection.append(
-                GEOSGeometry(memoryview(dumps(geom, srid=spatial_ref.srid)), srid=spatial_ref.srid)
+                transform_geometry(
+                    GEOSGeometry(
+                        memoryview(dumps(geom, srid=spatial_ref.srid)), srid=spatial_ref.srid
+                    )
+                )
             )
 
         self.geometry_entry.data = GeometryCollection(*collection)

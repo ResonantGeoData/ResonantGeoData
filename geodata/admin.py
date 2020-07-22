@@ -31,8 +31,9 @@ class RasterEntryAdmin(OSMGeoAdmin):
     )
     readonly_fields = (
         'number_of_bands',
-        'footprint',
-        'outline',
+        # NOTE: we do not want users to edit these, but the geodjango interface is really nice
+        # 'footprint',
+        # 'outline',
         'raster_file',
         'crs',
         'origin',
