@@ -43,7 +43,7 @@ def get_valid_data_footprint(src, band_num):
     # Determine mask resolution to prevent loading massive imagery
     shape = tuple(np.min([src.shape, MAX_LOAD_SHAPE], axis=0))
 
-    msk = src.read_masks(band_num, out_shape=shape)
+    msk = src.read_masks(band_num, out_shape=shape, resampling=5)
 
     # Figure out cell spacing from reduced size:
     da = (src.bounds.right - src.bounds.left) / msk.shape[1]
