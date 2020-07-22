@@ -1,6 +1,7 @@
 from contextlib import contextmanager
 import hashlib
 import inspect
+import json
 from pathlib import Path, PurePath
 import shutil
 import tempfile
@@ -58,7 +59,8 @@ class MultiPartJsonParser(parsers.MultiPartParser):
         result = super().parse(stream, media_type=media_type, parser_context=parser_context)
 
         raster_arrays = ['origin', 'extent', 'resolution', 'transform']
-        
+        raster_json = ['metadata']
+
         model = None
         qdict = QueryDict('', mutable=True)
         if parser_context and 'view' in parser_context:
@@ -66,14 +68,14 @@ class MultiPartJsonParser(parsers.MultiPartParser):
         for key, value in result.data.items():
             # Handle ManytoMany field data, parses lists of comma-separated integers that might be quoted. eg. "1,2"
             # if isinstance(getattr(model, key), pg_fields.related_descriptors.ArrayFieldDescriptor):
-            #     print(pg_fields.related_descriptors.ArrayFieldDescriptor)
             if isinstance(getattr(model, key), fields.related_descriptors.ManyToManyDescriptor):
-                print(key)
                 for val in value.split(','):
                     qdict.update({key: val.strip('"')})
             elif model.__name__ == 'RasterEntry' and key in raster_arrays:
                 for val in value.split(','):
                     qdict.update({key: val.strip('"')})
+            elif model.__name__ == 'RasterEntry' and key in raster_json:
+                qdict.update({key: json.dumps(value)})
             else:
                 qdict.update({key: value})
 

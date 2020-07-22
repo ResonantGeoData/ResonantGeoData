@@ -17,12 +17,6 @@ class SpatialEntrySerializer(serializers.ModelSerializer):
         fields = '__all__'
 
 
-class GeometryEntrySerializer(SpatialEntrySerializer):
-    class Meta:
-        model = models.GeometryEntry
-        exclude = ['data']
-
-
 class DatasetSerializer(serializers.ModelSerializer):
     class Meta:
         model = models.Dataset
