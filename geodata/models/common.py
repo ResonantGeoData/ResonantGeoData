@@ -1,6 +1,3 @@
-import tempfile
-
-from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.contrib.gis.db import models
 from django.utils import timezone
@@ -39,7 +36,8 @@ class SpatialEntry(ModifiableEntry):
     acquisition_date = models.DateTimeField(null=True, default=None, blank=True)
 
     # This can be used with GeoDjango's geographic database functions for spatial indexing
-    footprint = models.PolygonField(srid=DB_SRID)
+    footprint = models.PolygonField(srid=DB_SRID, null=True)
+    outline = models.PolygonField(srid=DB_SRID, null=True)
 
     objects = InheritanceManager()
 
@@ -97,30 +95,3 @@ class ChecksumFile(ModifiableEntry):
                 ]
             )
         return
-
-
-class _ReaderRoutine(object):
-    """A base class for defining reader routines.
-
-    Subclasses will parse file(s) and generate new model entries.
-
-    """
-
-    def __init__(self, model_id):
-        self.model_id = model_id
-
-        # TODO: add a setting like this:
-        workdir = getattr(settings, 'GEODATA_WORKDIR', None)
-        self.tmpdir = tempfile.mkdtemp(dir=workdir)
-
-    def _read_files(self):
-        """Must return True for success."""
-        raise NotImplementedError()
-
-    def _save_entries(self):
-        raise NotImplementedError()
-
-    def run(self):
-        if self._read_files():
-            # Only attempt save if the read was successful
-            self._save_entries()

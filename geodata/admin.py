@@ -4,9 +4,15 @@ from django.contrib.gis.admin import OSMGeoAdmin
 from rgd.utility import _link_url
 from .models.dataset import Dataset
 from .models.geometry.base import GeometryArchive, GeometryEntry
-from .models.raster.annotation import Annotation
-from .models.raster.base import BandMetaEntry, ConvertedRasterFile, RasterEntry
-from .models.raster.ifiles import RasterFile
+from .models.imagery.annotation import Annotation
+from .models.imagery.base import (
+    BandMetaEntry,
+    ConvertedImageFile,
+    ImageEntry,
+    ImageSet,
+    RasterEntry,
+)
+from .models.imagery.ifiles import ImageFile
 
 
 SPATIAL_ENTRY_FILTERS = (
@@ -23,6 +29,33 @@ class DatasetAdmin(OSMGeoAdmin):
     )
 
 
+@admin.register(ImageSet)
+class ImageSetAdmin(OSMGeoAdmin):
+    list_display = (
+        'id',
+        'name',
+    )
+
+
+@admin.register(ImageEntry)
+class ImageEntryAdmin(OSMGeoAdmin):
+    list_display = (
+        '__str__',
+        'modified',
+    )
+    readonly_fields = (
+        'number_of_bands',
+        'image_file',
+        'height',
+        'width',
+        'driver',
+        'metadata',
+        'modified',
+        'created',
+    )  # 'thumbnail')
+    list_filter = ('instrumentation', 'number_of_bands', 'driver')
+
+
 @admin.register(RasterEntry)
 class RasterEntryAdmin(OSMGeoAdmin):
     list_display = (
@@ -30,24 +63,18 @@ class RasterEntryAdmin(OSMGeoAdmin):
         'modified',
     )
     readonly_fields = (
-        'number_of_bands',
-        # NOTE: we do not want users to edit these, but the geodjango interface is really nice
-        # 'footprint',
-        # 'outline',
-        'raster_file',
+        'footprint',
+        'outline',
         'crs',
         'origin',
         'extent',
         'resolution',
-        'height',
-        'width',
-        'driver',
-        'metadata',
         'transform',
         'modified',
         'created',
+        'failure_reason',
     )  # 'thumbnail')
-    list_filter = SPATIAL_ENTRY_FILTERS + ('instrumentation', 'number_of_bands', 'driver', 'crs')
+    list_filter = SPATIAL_ENTRY_FILTERS + ('crs',)
 
 
 @admin.register(BandMetaEntry)
@@ -55,7 +82,7 @@ class BandMetaEntryAdmin(OSMGeoAdmin):
     list_display = (
         '__str__',
         'modified',
-        # 'parent_raster',  # TODO: this prevents the list view from working
+        # 'parent_image',  # TODO: this prevents the list view from working
     )
     readonly_fields = (
         'mean',
@@ -63,13 +90,13 @@ class BandMetaEntryAdmin(OSMGeoAdmin):
         'min',
         'modified',
         'created',
-        'parent_raster',
+        'parent_image',
         'std',
         'nodata_value',
         'dtype',
     )
     list_filter = (
-        'parent_raster',
+        'parent_image',
         'interpretation',
         'dtype',
     )
@@ -83,8 +110,8 @@ class AnnotationAdmin(OSMGeoAdmin):
     )
 
 
-@admin.register(RasterFile)
-class RasterFileAdmin(OSMGeoAdmin):
+@admin.register(ImageFile)
+class ImageFileAdmin(OSMGeoAdmin):
     list_display = (
         '__str__',
         'modified',
@@ -93,17 +120,17 @@ class RasterFileAdmin(OSMGeoAdmin):
     readonly_fields = ('failure_reason', 'modified', 'created', 'checksum', 'last_validation')
 
     def data_link(self, obj):
-        return _link_url('geodata', 'raster_file', obj, 'raster_file')
+        return _link_url('geodata', 'image_file', obj, 'image_file')
 
     data_link.allow_tags = True
 
 
-@admin.register(ConvertedRasterFile)
-class ConvertedRasterFileAdmin(OSMGeoAdmin):
+@admin.register(ConvertedImageFile)
+class ConvertedImageFileAdmin(OSMGeoAdmin):
     list_display = (
         '__str__',
         'modified',
-        'source_raster',
+        'source_image',
     )
     readonly_fields = (
         'failure_reason',

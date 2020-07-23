@@ -6,11 +6,11 @@ from django.dispatch import receiver
 from s3_file_field import S3FileField
 
 from ..common import ChecksumFile
-from ..mixins import PostSaveEventMixin
+from ..mixins import TaskEventMixin
 from ... import tasks
 
 
-class RasterFile(ChecksumFile, PostSaveEventMixin):
+class ImageFile(ChecksumFile, TaskEventMixin):
     """This is a standalone DB entry for raster files.
 
     This will automatically generate a ``RasterEntry`` on the ``post_save``
@@ -19,11 +19,11 @@ class RasterFile(ChecksumFile, PostSaveEventMixin):
 
     """
 
-    task_func = tasks.validate_raster
+    task_func = tasks.task_read_image_file
     failure_reason = models.TextField(null=True, blank=True)
     file = S3FileField(upload_to='files/rasters')
 
 
-@receiver(post_save, sender=RasterFile)
-def _post_save_algorithm(sender, instance, *args, **kwargs):
-    transaction.on_commit(lambda: instance._post_save(**kwargs))
+@receiver(post_save, sender=ImageFile)
+def _post_save_image_file(sender, instance, *args, **kwargs):
+    transaction.on_commit(lambda: instance._post_save_event_task(*args, **kwargs))
