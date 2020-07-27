@@ -52,7 +52,7 @@ def search_near_point_filter(params):
     query = Q()
     if params.get('latitude') is not None and params.get('longitude') is not None:
         geom = Point(float(params['longitude']), float(params['latitude']))
-        query.add(Q(footprint__distance_lte=(geom, float(params['radius']))), Q.AND)
+        query.add(Q(footprint__distance_lte=(geom, float(params.get('radius', 0)))), Q.AND)
     if params.get('time') is not None:
         qtime = dateutil.parser.isoparser().isoparse(params['time'])
         timespan = datetime.timedelta(0, float(params['timespan']))
@@ -122,24 +122,26 @@ def search_near_point_geometry(request, *args, **kwargs):
 
 def extant_summary(found):
     """
-    Given a query set of items, return an http response with the summary.
+    Given a query set of items, return a result dictionary with the summary.
 
     :param found: a query set with SpatialEntry results.
-    :returns: an HttpResponse.
+    :returns: a dictionary with count, collect, convex_hull, extent,
+        acquisition, acqusition_date, created, modified.  collect and
+        convex_hull are geojson objects.
     """
-    summary = found.aggregate(
-        Collect('footprint'),
-        Extent('footprint'),
-        Min('acquisition_date'),
-        Max('acquisition_date'),
-        Min('created'),
-        Max('created'),
-        Min('modified'),
-        Max('modified'),
-        acquisition__min=Min(Coalesce('acquisition_date', 'created')),
-        acquisition__max=Max(Coalesce('acquisition_date', 'created')),
-    )
-    if found.count():
+    if found and found.count():
+        summary = found.aggregate(
+            Collect('footprint'),
+            Extent('footprint'),
+            Min('acquisition_date'),
+            Max('acquisition_date'),
+            Min('created'),
+            Max('created'),
+            Min('modified'),
+            Max('modified'),
+            acquisition__min=Min(Coalesce('acquisition_date', 'created')),
+            acquisition__max=Max(Coalesce('acquisition_date', 'created')),
+        )
         results = {
             'count': found.count(),
             'collect': json.loads(summary['footprint__collect'].geojson),
@@ -170,6 +172,17 @@ def extant_summary(found):
         }
     else:
         results = {'count': 0}
+    return results
+
+
+def extant_summary_http(found):
+    """
+    Given a query set of items, return an http response with the summary.
+
+    :param found: a query set with SpatialEntry results.
+    :returns: an HttpResponse.
+    """
+    results = extant_summary(found)
     return HttpResponse(json.dumps(results), content_type='application/json')
 
 
@@ -182,7 +195,7 @@ def extant_summary(found):
 def search_near_point_extent(request, *args, **kwargs):
     params = request.query_params
     found = SpatialEntry.objects.filter(search_near_point_filter(params))
-    return extant_summary(found)
+    return extant_summary_http(found)
 
 
 @swagger_auto_schema(
@@ -194,7 +207,7 @@ def search_near_point_extent(request, *args, **kwargs):
 def search_near_point_extent_raster(request, *args, **kwargs):
     params = request.query_params
     found = RasterEntry.objects.filter(search_near_point_filter(params))
-    return extant_summary(found)
+    return extant_summary_http(found)
 
 
 @swagger_auto_schema(
@@ -206,4 +219,4 @@ def search_near_point_extent_raster(request, *args, **kwargs):
 def search_near_point_extent_geometry(request, *args, **kwargs):
     params = request.query_params
     found = GeometryEntry.objects.filter(search_near_point_filter(params))
-    return extant_summary(found)
+    return extant_summary_http(found)

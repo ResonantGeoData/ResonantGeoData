@@ -1,15 +1,17 @@
-from django.contrib.gis.gdal import SpatialReference
-from django.contrib.gis.geos import GEOSGeometry
-from osgeo import ogr
-from osgeo.osr import CoordinateTransformation, SpatialReference as SpatRef2
+from celery.utils.log import get_task_logger
+from django.contrib.gis.gdal import CoordTransform, SpatialReference
 
 from ..constants import DB_SRID
+
+logger = get_task_logger(__name__)
 
 
 def transform_geometry(geometry, source_wkt):
     """Transform geometry into the database's spatial reference system."""
-    g = ogr.Geometry(wkt=geometry.wkt)
-    source = SpatRef2(source_wkt)
-    dest = SpatRef2(SpatialReference(DB_SRID).wkt)
-    g.Transform(CoordinateTransformation(source, dest))
-    return GEOSGeometry(g.ExportToWkt())
+    logger.info('Tranforming geometry %s from %s', geometry.wkt, source_wkt)
+    source = SpatialReference(source_wkt)
+    dest = SpatialReference(DB_SRID)
+    transform = CoordTransform(source, dest)
+    geometry = geometry.transform(transform, clone=True)
+    logger.info('Transformed geometry to %s', geometry.wkt)
+    return geometry
