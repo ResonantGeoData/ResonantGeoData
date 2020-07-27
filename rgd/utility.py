@@ -8,10 +8,12 @@ import tempfile
 from typing import Generator
 
 from django.contrib.gis.db import models as base_models
+from django.contrib.postgres import fields as pg_fields
 from django.core.files import File
 from django.db.models import fields
 from django.db.models.fields import AutoField
 from django.db.models.fields.files import FieldFile, FileField
+from django.db.models.query_utils import DeferredAttribute
 from django.http import QueryDict
 from django.utils.safestring import mark_safe
 from django_filters.rest_framework import DjangoFilterBackend
@@ -57,9 +59,6 @@ class MultiPartJsonParser(parsers.MultiPartParser):
     def parse(self, stream, media_type=None, parser_context=None):
         result = super().parse(stream, media_type=media_type, parser_context=parser_context)
 
-        raster_arrays = ['origin', 'extent', 'resolution', 'transform']
-        raster_json = ['metadata']
-
         model = None
         qdict = QueryDict('', mutable=True)
         if parser_context and 'view' in parser_context:
@@ -69,10 +68,13 @@ class MultiPartJsonParser(parsers.MultiPartParser):
             if isinstance(getattr(model, key), fields.related_descriptors.ManyToManyDescriptor):
                 for val in value.split(','):
                     qdict.update({key: val.strip('"')})
-            elif model.__name__ == 'RasterEntry' and key in raster_arrays:
+            # Handle postgres Array field data, parses identical to ManytoMany
+            elif type(getattr(model, key)) == DeferredAttribute and isinstance(getattr(model, key).field, pg_fields.array.ArrayField):
+                print(key, value)
                 for val in value.split(','):
                     qdict.update({key: val.strip('"')})
-            elif model.__name__ == 'RasterEntry' and key in raster_json:
+            # Handle postgres JSON field data, dumps into JSON format
+            elif type(getattr(model, key)) == DeferredAttribute and isinstance(getattr(model, key).field, pg_fields.JSONField):
                 qdict.update({key: json.dumps(value)})
             else:
                 qdict.update({key: value})
