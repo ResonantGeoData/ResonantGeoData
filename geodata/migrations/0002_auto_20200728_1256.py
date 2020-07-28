@@ -21,8 +21,6 @@ class Migration(migrations.Migration):
             field=models.BooleanField(default=True),
         ),
         migrations.AlterField(
-            model_name='imagefile',
-            name='last_validation',
-            field=models.BooleanField(default=True),
+            model_name='imagefile', name='last_validation', field=models.BooleanField(default=True),
         ),
     ]
