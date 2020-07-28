@@ -38,6 +38,7 @@ setup(
         'django-debug-toolbar',
         'django-minio-storage',
         # GeoData
+        'GDAL',
         'rasterio',
         'fiona',
         'shapely',

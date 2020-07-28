@@ -17,7 +17,6 @@ class GeoDjangoConfig(ConfigMixin):
     @staticmethod
     def before_binding(configuration: Type[ComposedConfiguration]):
         configuration.INSTALLED_APPS += ['django.contrib.gis']
-
         try:
             import osgeo
             import re
@@ -115,11 +114,16 @@ class RgdConfig(
         # Accordingly, RgdConfig must be loaded after AllauthConfig, so it can
         # find the existing entry and insert accordingly.
         try:
-            allauth_index = configuration.INSTALLED_APPS.index('allauth')
+            insert_index = configuration.INSTALLED_APPS.index('allauth')
         except ValueError:
             raise Exception('RgdConfig must be loaded after AllauthConfig.')
-        configuration.INSTALLED_APPS.insert(allauth_index, 'geodata')
-        configuration.INSTALLED_APPS.insert(allauth_index, 'core')
+        # We also want our apps to be before any apps that we want to override
+        # the templates of
+        for key in {'drf_yasg'}:
+            if key in configuration.INSTALLED_APPS:
+                insert_index = min(insert_index, configuration.INSTALLED_APPS.index(key))
+        configuration.INSTALLED_APPS.insert(insert_index, 'geodata')
+        configuration.INSTALLED_APPS.insert(insert_index, 'core')
 
         configuration.INSTALLED_APPS += [
             'django.contrib.humanize',
