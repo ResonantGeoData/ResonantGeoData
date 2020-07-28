@@ -109,6 +109,14 @@ class RasterEntryReader(_ReaderRoutine):
             self.raster_entry.creator = self.rfe.creator
             self.raster_entry.modifier = self.rfe.modifier
 
+            # There is a potential conflict between rasterio and whatever GDAL
+            # is available.  Rastio has an older form of GDAL and conflicts
+            # with a system GDAL if the version is different.  So far, the only
+            # issue seems to be with rastio's <source>.crs.  We can work around
+            # this by using GDAL directly.
+            gsrc = gdal.Open(str(file_path))
+            spatial_ref_wkt = gsrc.GetSpatialRef().ExportToWkt()
+            spatial_ref = SpatialReference(spatial_ref_wkt)
             with rasterio.open(file_path) as src:
                 self.raster_entry.number_of_bands = src.count
                 self.raster_entry.driver = src.driver
@@ -140,17 +148,16 @@ class RasterEntryReader(_ReaderRoutine):
                     )
                 )
 
-                spatial_ref = SpatialReference(src.crs.to_wkt())
                 logger.info(f'Raster footprint SRID: {spatial_ref.srid}')
                 # This will convert the Polygon to the DB's SRID
                 self.raster_entry.outline = transform_geometry(
-                    Polygon(coords, srid=spatial_ref.srid), src.crs.to_wkt()
+                    Polygon(coords, srid=spatial_ref.srid), spatial_ref_wkt
                 )
                 try:
                     # Only implement for first band for now
                     vcoords = get_valid_data_footprint(src, 1)
                     self.raster_entry.footprint = transform_geometry(
-                        Polygon(vcoords, srid=spatial_ref.srid), src.crs.to_wkt()
+                        Polygon(vcoords, srid=spatial_ref.srid), spatial_ref_wkt
                     )
                 except Exception as e:  # TODO: be more clever about this
                     logger.info(f'Issue computing convex hull of non-null data: {e}')
@@ -160,8 +167,6 @@ class RasterEntryReader(_ReaderRoutine):
                 dtypes = src.dtypes
                 interps = src.colorinterp
 
-            # Rasterio is no longer open... using gdal directly:
-            gsrc = gdal.Open(str(file_path))  # Have to cast Path to str
             self.band_entries = []
             n = gsrc.RasterCount
             if n != self.raster_entry.number_of_bands:
