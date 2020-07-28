@@ -62,7 +62,7 @@ class ChecksumFile(ModifiableEntry):
     validate_checksum = models.BooleanField(
         default=False
     )  # a flag to validate the checksum against the saved checksum
-    last_validation = models.BooleanField(default=False)
+    last_validation = models.BooleanField(default=True)
 
     class Meta:
         abstract = True
