@@ -63,7 +63,7 @@ def read_geometry_archive(archive_id):
     geometry_query = GeometryEntry.objects.filter(geometry_archive=archive)
     if len(geometry_query) < 1:
         geometry_entry = GeometryEntry()
-        geometry_entry.creator = archive.creator
+        # geometry_entry.creator = archive.creator
         geometry_entry.name = archive.name
         geometry_entry.geometry_archive = archive
     elif len(geometry_query) == 1:
@@ -72,7 +72,7 @@ def read_geometry_archive(archive_id):
         # This should never happen because it is a foreign key
         raise RuntimeError('multiple geometry entries found for this file.')
 
-    geometry_entry.modifier = archive.modifier
+    # geometry_entry.modifier = archive.modifier
 
     shapes.meta  # TODO: dump this JSON into the model entry
 

@@ -44,7 +44,7 @@ def populate_image_entry(image_entry_id):
         if len(image_query) < 1:
             image_entry = ImageEntry()
             image_entry.name = ife.name
-            image_entry.creator = ife.creator
+            # image_entry.creator = ife.creator
         elif len(image_query) == 1:
             image_entry = image_query.first()
             # Clear out associated entries because they could be invalid
@@ -55,7 +55,7 @@ def populate_image_entry(image_entry_id):
             raise RuntimeError('multiple image entries found for this file.')
 
         image_entry.image_file = ife
-        image_entry.modifier = ife.modifier
+        # image_entry.modifier = ife.modifier
 
         with rasterio.open(file_path) as src:
             image_entry.number_of_bands = src.count
@@ -89,8 +89,8 @@ def populate_image_entry(image_entry_id):
             band_meta.parent_image = image_entry
             band_meta.description = gdal_band.GetDescription()
             band_meta.nodata_value = gdal_band.GetNoDataValue()
-            band_meta.creator = ife.creator
-            band_meta.modifier = ife.modifier
+            # band_meta.creator = ife.creator
+            # band_meta.modifier = ife.modifier
             try:
                 band_meta.dtype = dtypes[i]
             except IndexError:
@@ -245,7 +245,7 @@ def _validate_image_set_is_raster(image_set_entry):
     Returns the meta info if it checks out.
 
     """
-    images = list(ImageEntry.objects.filter(image_set=image_set_entry))
+    images = list(image_set_entry.images.all())
 
     if not images:
         raise ValueError('ImageSet returned no images.')
@@ -270,10 +270,8 @@ def populate_raster_entry(raster_id):
     """Autopopulate the fields of the raster."""
     raster_entry = RasterEntry.objects.get(id=raster_id)
 
-    image_set = raster_entry.image_set
-
     try:
-        meta = _validate_image_set_is_raster(image_set)
+        meta = _validate_image_set_is_raster(raster_entry)
     except ValueError as err:
         raster_entry.failure_reason = str(err)
         raster_entry.save(update_fields=['failure_reason'])

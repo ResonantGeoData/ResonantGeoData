@@ -6,7 +6,7 @@ from django.dispatch import receiver
 import magic
 from s3_file_field import S3FileField
 
-from ..common import ChecksumFile, SpatialEntry
+from ..common import ChecksumFile, ModifiableEntry, SpatialEntry
 from ..constants import DB_SRID
 from ..mixins import TaskEventMixin
 from ... import tasks
@@ -44,8 +44,11 @@ class GeometryArchive(ChecksumFile, TaskEventMixin):
         super(GeometryArchive, self).save(*args, **kwargs)
 
 
-class GeometryEntry(SpatialEntry):
+class GeometryEntry(ModifiableEntry, SpatialEntry):
     """A holder for geometry vector data."""
+
+    name = models.CharField(max_length=100, blank=True, null=True)
+    description = models.TextField(null=True, blank=True)
 
     data = models.GeometryCollectionField(srid=DB_SRID)  # Can be one or many features
     # The actual collection is iterable so access is super easy

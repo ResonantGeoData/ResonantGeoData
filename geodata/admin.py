@@ -2,7 +2,6 @@ from django.contrib import admin
 from django.contrib.gis.admin import OSMGeoAdmin
 
 from rgd.utility import _link_url
-from .models.dataset import Dataset
 from .models.geometry.base import GeometryArchive, GeometryEntry
 from .models.imagery.annotation import Annotation
 from .models.imagery.base import (
@@ -19,14 +18,6 @@ SPATIAL_ENTRY_FILTERS = (
     'acquisition_date',
     'modified',
 )
-
-
-@admin.register(Dataset)
-class DatasetAdmin(OSMGeoAdmin):
-    list_display = (
-        'id',
-        'name',
-    )
 
 
 @admin.register(ImageSet)

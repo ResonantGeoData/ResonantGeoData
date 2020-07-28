@@ -1,4 +1,4 @@
-from django.contrib.auth import get_user_model
+# from django.contrib.auth import get_user_model
 from django.contrib.gis.db import models
 from django.utils import timezone
 from model_utils.managers import InheritanceManager
@@ -10,14 +10,17 @@ from .constants import DB_SRID
 class ModifiableEntry(models.Model):
     """A base class for models that need to track modified datetimes and users."""
 
+    class Meta:
+        abstract = True  # cannot be abstract if user fields are enabled
+
     modified = models.DateTimeField(editable=False, help_text='The last time this entry was saved.')
     created = models.DateTimeField(editable=False, help_text='When this was added to the database.')
-    creator = models.ForeignKey(
-        get_user_model(), on_delete=models.DO_NOTHING, related_name='creator'
-    )
-    modifier = models.ForeignKey(
-        get_user_model(), on_delete=models.DO_NOTHING, related_name='modifier'
-    )
+    # creator = models.ForeignKey(
+    #     get_user_model(), on_delete=models.DO_NOTHING, related_name='creator'
+    # )
+    # modifier = models.ForeignKey(
+    #     get_user_model(), on_delete=models.DO_NOTHING, related_name='modifier'
+    # )
 
     def save(self, *args, **kwargs):
         if not self.id:
@@ -26,12 +29,15 @@ class ModifiableEntry(models.Model):
         super(ModifiableEntry, self).save(*args, **kwargs)
 
 
-class SpatialEntry(ModifiableEntry):
-    """Common model to all geospatial data entries."""
+class SpatialEntry(models.Model):
+    """Common model to all geospatial data entries.
 
-    name = models.CharField(max_length=100, blank=True, null=True)
-    # An optional description field in case the user needs to add context
-    description = models.TextField(blank=True, null=True)
+    This is intended to be used in a mixin manner.
+
+    """
+
+    spatial_id = models.AutoField(primary_key=True)
+
     # Datetime of creation for the dataset
     acquisition_date = models.DateTimeField(null=True, default=None, blank=True)
 

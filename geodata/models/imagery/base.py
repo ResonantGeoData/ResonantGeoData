@@ -12,16 +12,11 @@ from ..mixins import TaskEventMixin
 from ... import tasks
 
 
-class ImageSet(ModifiableEntry):
-    """Container for many images."""
-
-    name = models.CharField(max_length=100, blank=True, null=True)
-
-
 class ImageEntry(ModifiableEntry):
     """Single image entry, tracks the original file."""
 
     name = models.CharField(max_length=100, blank=True, null=True)
+    description = models.TextField(null=True, blank=True)
 
     instrumentation = models.CharField(
         max_length=100,
@@ -40,18 +35,23 @@ class ImageEntry(ModifiableEntry):
     number_of_bands = models.PositiveIntegerField()
     metadata = fields.JSONField(null=True)
 
-    image_set = models.ForeignKey(ImageSet, null=True, on_delete=models.DO_NOTHING)
+
+class ImageSet(ModifiableEntry):
+    """Container for many images."""
+
+    name = models.CharField(max_length=100, blank=True, null=True)
+    description = models.TextField(null=True, blank=True)
+
+    images = models.ManyToManyField(ImageEntry)
 
 
-class RasterEntry(SpatialEntry, TaskEventMixin):
+class RasterEntry(SpatialEntry, ImageSet, TaskEventMixin):
     """This class is a container for the metadata of a raster.
 
-    This model does not hold any raster data, only the metadata, and points
-    to a ``ImageFile`` in which keeps track of the actual data.
+    This model inherits from ``ImageSet`` and only adds an extra layer of
+    geospatial context to the ``ImageSet``.
 
     """
-
-    image_set = models.OneToOneField(ImageSet, on_delete=models.CASCADE)
 
     # Raster fields
     crs = models.TextField(help_text='PROJ string', null=True)  # PROJ String
