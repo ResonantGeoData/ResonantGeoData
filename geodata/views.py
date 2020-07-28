@@ -1,3 +1,4 @@
+import json
 import os
 
 from django.db.models.fields.files import FieldFile
@@ -9,14 +10,31 @@ from django.views.generic import DetailView
 from rest_framework.decorators import api_view
 
 from . import models
+from . import search
 from .models.imagery.base import RasterEntry
 
 
 class RasterEntriesListView(generic.ListView):
     model = RasterEntry
     context_object_name = 'rasters'
-    queryset = RasterEntry.objects.all()
     template_name = 'geodata/raster_entries.html'
+
+    def get_queryset(self):
+        # latitude, longitude, radius, time, timespan, and timefield
+        search_params = {}
+        for key in {'longitude', 'latitude', 'radius'}:
+            if self.request.GET.get(key):
+                try:
+                    search_params[key] = float(self.request.GET.get(key))
+                except ValueError:
+                    pass
+        return self.model.objects.filter(search.search_near_point_filter(search_params))
+
+    def get_context_data(self, *args, **kwargs):
+        # The returned query set is in self.object_list, not self.queryset
+        context = super().get_context_data(*args, **kwargs)
+        context['extents'] = json.dumps(search.extant_summary(self.object_list))
+        return context
 
 
 class RasterEntryDetailView(DetailView):
