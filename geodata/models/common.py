@@ -23,6 +23,9 @@ class ModifiableEntry(models.Model):
         if not self.id:
             self.created = timezone.now()
         self.modified = timezone.now()
+        if 'update_fields' in kwargs:
+            kwargs = kwargs.copy()
+            kwargs['update_fields'] = set(kwargs['update_fields']) | {'modified'}
         super(ModifiableEntry, self).save(*args, **kwargs)
 
 
@@ -97,4 +100,3 @@ class ChecksumFile(ModifiableEntry):
                     'validate_checksum',
                 ]
             )
-        return

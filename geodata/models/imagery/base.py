@@ -88,6 +88,9 @@ class RasterEntry(ImageSet, SpatialEntry, TaskEventMixin):
 
     """
 
+    def __str__(self):
+        return 'ID: {} {} (type: {})'.format(self.id, self.name, type(self))
+
     # Raster fields
     crs = models.TextField(help_text='PROJ string', null=True)  # PROJ String
     origin = fields.ArrayField(models.FloatField(), size=2, null=True)

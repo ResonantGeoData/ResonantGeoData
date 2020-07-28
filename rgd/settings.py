@@ -183,6 +183,8 @@ class DevelopmentConfiguration(
 class TestingConfiguration(RgdConfig, TestingBaseConfiguration):
     MINIO_STORAGE_MEDIA_BUCKET_NAME = 'test-django-storage'
     S3FF_UPLOAD_STS_ARN = None
+    CELERY_TASK_ALWAYS_EAGER = True
+    CELERY_TASK_EAGER_PROPAGATES = True
 
 
 class ProductionConfiguration(RgdConfig, ProductionBaseConfiguration):
