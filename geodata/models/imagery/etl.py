@@ -250,7 +250,8 @@ def _validate_image_set_is_raster(image_set_entry):
     if not images:
         raise ValueError('ImageSet returned no images.')
 
-    last_meta = _extract_raster_meta(images.pop().image_file)
+    base_image = images.pop()
+    last_meta = _extract_raster_meta(base_image.image_file)
     for image in images:
         meta = _extract_raster_meta(image.image_file)
         if not _compare_raster_meta(last_meta, meta):
@@ -258,7 +259,7 @@ def _validate_image_set_is_raster(image_set_entry):
         last_meta = meta
 
     # Assume these are the same... only compute once
-    outline, footprint = _extract_raster_outline_and_footprint(image.image_file)
+    outline, footprint = _extract_raster_outline_and_footprint(base_image.image_file)
     last_meta['outline'] = outline
     last_meta['footprint'] = footprint
 
