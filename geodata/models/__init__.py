@@ -2,4 +2,4 @@
 
 from .common import SpatialEntry  # noqa
 from .geometry.base import GeometryArchive, GeometryEntry  # noqa
-from .imagery.base import ImageFile, RasterEntry, ConvertedImageFile  # noqa
+from .imagery.base import ImageFile, ImageSet, RasterEntry, ConvertedImageFile  # noqa
