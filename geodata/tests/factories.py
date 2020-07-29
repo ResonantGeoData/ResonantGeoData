@@ -1,11 +1,9 @@
 from django.contrib.auth.models import User
 import factory.django
-from pytest_factoryboy import register
 
 from geodata import models
 
 
-@register
 class UserFactory(factory.django.DjangoModelFactory):
     class Meta:
         model = User
@@ -16,7 +14,6 @@ class UserFactory(factory.django.DjangoModelFactory):
     last_name = factory.Faker('last_name')
 
 
-@register
 class DatasetFactory(factory.django.DjangoModelFactory):
     class Meta:
         model = models.Dataset
