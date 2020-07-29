@@ -7,7 +7,7 @@ import zipfile
 from celery.utils.log import get_task_logger
 from django.conf import settings
 from django.contrib.gis.gdal import SpatialReference
-from django.contrib.gis.geos import GeometryCollection, GEOSGeometry
+from django.contrib.gis.geos import GeometryCollection, GEOSGeometry, Polygon
 from django.core.exceptions import ValidationError
 import fiona
 from shapely.geometry import shape
@@ -87,12 +87,22 @@ def read_geometry_archive(archive_id):
         # TODO: check this
         collection.append(
             transform_geometry(
-                GEOSGeometry(memoryview(dumps(geom, srid=spatial_ref.srid)), srid=spatial_ref.srid)
+                GEOSGeometry(memoryview(dumps(geom, srid=spatial_ref.srid)), srid=spatial_ref.srid),
+                crs_wkt,
             )
         )
 
     geometry_entry.data = GeometryCollection(*collection)
     geometry_entry.footprint = geometry_entry.data.convex_hull
+    bounds = geometry_entry.footprint.extent
+    coords = [
+        (bounds[0], bounds[3]),
+        (bounds[2], bounds[3]),
+        (bounds[2], bounds[1]),
+        (bounds[0], bounds[1]),
+        (bounds[0], bounds[3]),  # Close the loop
+    ]
+    geometry_entry.outline = Polygon(coords)
 
     geometry_entry.save()
 
