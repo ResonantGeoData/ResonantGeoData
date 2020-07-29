@@ -45,7 +45,7 @@ class ImageSet(ModifiableEntry):
     images = models.ManyToManyField(ImageEntry)
 
 
-class RasterEntry(SpatialEntry, ImageSet, TaskEventMixin):
+class RasterEntry(ImageSet, SpatialEntry, TaskEventMixin):
     """This class is a container for the metadata of a raster.
 
     This model inherits from ``ImageSet`` and only adds an extra layer of
