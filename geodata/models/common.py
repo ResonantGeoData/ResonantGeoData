@@ -42,8 +42,8 @@ class SpatialEntry(models.Model):
     acquisition_date = models.DateTimeField(null=True, default=None, blank=True)
 
     # This can be used with GeoDjango's geographic database functions for spatial indexing
-    footprint = models.PolygonField(srid=DB_SRID, null=True)
-    outline = models.PolygonField(srid=DB_SRID, null=True)
+    footprint = models.PolygonField(srid=DB_SRID, null=True, blank=True)
+    outline = models.PolygonField(srid=DB_SRID, null=True, blank=True)
 
     objects = InheritanceManager()
 

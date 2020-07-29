@@ -54,8 +54,6 @@ class RasterEntryAdmin(OSMGeoAdmin):
         'modified',
     )
     readonly_fields = (
-        'footprint',
-        'outline',
         'crs',
         'origin',
         'extent',
@@ -66,6 +64,7 @@ class RasterEntryAdmin(OSMGeoAdmin):
         'failure_reason',
     )  # 'thumbnail')
     list_filter = SPATIAL_ENTRY_FILTERS + ('crs',)
+    modifiable = False  # To still show the footprint and outline
 
 
 @admin.register(BandMetaEntry)
