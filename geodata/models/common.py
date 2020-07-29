@@ -10,9 +10,6 @@ from .constants import DB_SRID
 class ModifiableEntry(models.Model):
     """A base class for models that need to track modified datetimes and users."""
 
-    class Meta:
-        abstract = True  # cannot be abstract if user fields are enabled
-
     modified = models.DateTimeField(editable=False, help_text='The last time this entry was saved.')
     created = models.DateTimeField(editable=False, help_text='When this was added to the database.')
     # creator = models.ForeignKey(
