@@ -1,10 +1,14 @@
 import pytest
+from pytest_factoryboy import register
 from rest_framework.test import APIClient
 
-# Names must be imported into conftest, importing for side effects is not sufficient
-from .factories import *  # noqa: F401,F403
+from .factories import TaskFactory, UserFactory
 
 
 @pytest.fixture
 def api_client():
     return APIClient()
+
+
+register(TaskFactory)
+register(UserFactory)
