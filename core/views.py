@@ -10,6 +10,7 @@ from django.utils import timezone
 from django.utils.encoding import smart_str
 from django.views.decorators.http import require_http_methods
 from django.views.generic import CreateView, DeleteView, DetailView
+from drf_yasg.utils import swagger_auto_schema
 from rest_framework.decorators import api_view
 
 from . import models
@@ -122,6 +123,11 @@ class JobCreateView(LoginRequiredMixin, CreateView):
         return super().form_valid(form)
 
 
+@swagger_auto_schema(
+    method='GET',
+    operation_summary='Download a model file',
+    operation_description='Download a model file through the server instead of from the assetstore',
+)
 @api_view(['GET'])
 def download_file(request, model, id, field):
     model_class = ''.join([part[:1].upper() + part[1:] for part in model.split('_')])

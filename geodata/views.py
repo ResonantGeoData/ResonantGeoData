@@ -7,6 +7,7 @@ from django.shortcuts import get_object_or_404  # , render
 from django.utils.encoding import smart_str
 from django.views import generic
 from django.views.generic import DetailView
+from drf_yasg.utils import swagger_auto_schema
 from rest_framework.decorators import api_view
 
 from . import models
@@ -41,6 +42,11 @@ class RasterEntryDetailView(DetailView):
     model = RasterEntry
 
 
+@swagger_auto_schema(
+    method='GET',
+    operation_summary='Download a model file',
+    operation_description='Download a model file through the server instead of from the assetstore',
+)
 @api_view(['GET'])
 def download_file(request, model, id, field):
     model_class = ''.join([part[:1].upper() + part[1:] for part in model.split('_')])

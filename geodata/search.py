@@ -86,6 +86,7 @@ def search_near_point_filter(params):
 
 @swagger_auto_schema(
     method='GET',
+    operation_summary='List geospatial datasets near a point',
     operation_description='List geospatial datasets near a specific latitude and longitude',
     query_serializer=NearPointSerializer,
 )
@@ -98,6 +99,7 @@ def search_near_point(request, *args, **kwargs):
 
 @swagger_auto_schema(
     method='GET',
+    operation_summary='List raster datasets near a point',
     operation_description='List geospatial raster datasets near a specific latitude and longitude',
     query_serializer=NearPointSerializer,
 )
@@ -110,6 +112,7 @@ def search_near_point_raster(request, *args, **kwargs):
 
 @swagger_auto_schema(
     method='GET',
+    operation_summary='List geometry datasets near a point',
     operation_description='List geospatial geometry datasets near a specific latitude and longitude',
     query_serializer=NearPointSerializer,
 )
@@ -188,6 +191,7 @@ def extant_summary_http(found):
 
 @swagger_auto_schema(
     method='GET',
+    operation_summary='Extents of geospatial datasets near a point',
     operation_description='Get the convex hull and time range for geospatial datasets near a specific latitude and longitude',
     query_serializer=NearPointSerializer,
 )
@@ -200,6 +204,7 @@ def search_near_point_extent(request, *args, **kwargs):
 
 @swagger_auto_schema(
     method='GET',
+    operation_summary='Extents of raster datasets near a point',
     operation_description='Get the convex hull and time range for geospatial raster datasets near a specific latitude and longitude',
     query_serializer=NearPointSerializer,
 )
@@ -212,6 +217,7 @@ def search_near_point_extent_raster(request, *args, **kwargs):
 
 @swagger_auto_schema(
     method='GET',
+    operation_summary='Extents of geometry datasets near a point',
     operation_description='Get the convex hull and time range for geospatial geometry datasets near a specific latitude and longitude',
     query_serializer=NearPointSerializer,
 )
