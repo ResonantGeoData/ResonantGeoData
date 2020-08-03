@@ -1,11 +1,3 @@
-data "aws_iam_user" "heroku_user" {
-  user_name = "rgd-heroku"
-}
-
-data "aws_s3_bucket" "storage" {
-  bucket = "resonantgeodata-files"
-}
-
 resource "aws_iam_role" "storage_upload" {
   name                 = "rgd-storage-upload-sts"
   max_session_duration = 12 * 60 * 60 # 12 hours
@@ -17,7 +9,7 @@ data "aws_iam_policy_document" "storage_upload_assumeRolePolicy" {
     principals {
       type = "AWS"
       identifiers = [
-        data.aws_iam_user.heroku_user.arn,
+        module.django.iam_user.arn,
       ]
     }
     actions = [
@@ -38,7 +30,7 @@ data "aws_iam_policy_document" "storage_upload" {
       "s3:PutObject",
     ]
     resources = [
-      "${data.aws_s3_bucket.storage.arn}/*",
+      "${module.django.storage_bucket.arn}/*",
     ]
   }
 }
