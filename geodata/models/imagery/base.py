@@ -56,6 +56,10 @@ class ImageSet(ModifiableEntry):
     def height(self):
         return self.images.aggregate(models.Max('height'))['height__max']
 
+    @property
+    def count(self):
+        return self.images.count
+
 
 class RasterEntry(ImageSet, SpatialEntry, TaskEventMixin):
     """This class is a container for the metadata of a raster.

@@ -45,7 +45,7 @@ class SpatialEntry(models.Model):
     objects = InheritanceManager()
 
     def __str__(self):
-        return '{} {} (type: {})'.format(self.id, self.name, type(self))
+        return 'Spatial ID: {} (type: {})'.format(self.spatial_id, type(self))
 
 
 class ChecksumFile(ModifiableEntry):
