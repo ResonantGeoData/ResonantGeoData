@@ -7,32 +7,42 @@ logger = get_task_logger(__name__)
 
 
 @shared_task(time_limit=86400)
-def validate_raster(file_id):
-    from .models.raster.reader import RasterEntryReader, RasterFile
+def task_read_image_file(file_id):
+    from .models.imagery.ifiles import ImageFile
+    from .models.imagery.etl import populate_image_entry
 
-    raster_file = RasterFile.objects.get(id=file_id)
+    image_file = ImageFile.objects.get(id=file_id)
     try:
-        reader = RasterEntryReader(file_id)
-        reader.run()
-        raster_file.failure_reason = ''
+        populate_image_entry(file_id)
+        image_file.failure_reason = ''
     except Exception as exc:
-        logger.exception(f'Internal error run `RasterEntryReader`: {exc}')
-        raster_file.failure_reason = str(exc)
-    raster_file.save(update_fields=['failure_reason'])
+        logger.exception(f'Internal error run `populate_image_entry`: {exc}')
+        image_file.failure_reason = str(exc)
+    image_file.save(update_fields=['failure_reason'])
     return
 
 
 @shared_task(time_limit=86400)
-def validate_geometry_archive(archive_id):
-    from .models.geometry.reader import GeometryArchive, GeometryArchiveReader
+def task_validate_geometry_archive(archive_id):
+    from .models.geometry.etl import GeometryArchive, read_geometry_archive
 
     archive = GeometryArchive.objects.get(id=archive_id)
     try:
-        reader = GeometryArchiveReader(archive_id)
-        reader.run()
+        read_geometry_archive(archive_id)
         archive.failure_reason = ''
     except Exception as exc:
-        logger.exception(f'Internal error run `GeometryArchiveReader`: {exc}')
+        logger.exception(f'Internal error run `read_geometry_archive`: {exc}')
         archive.failure_reason = str(exc)
     archive.save(update_fields=['failure_reason'])
+    return
+
+
+@shared_task(time_limit=86400)
+def task_populate_raster_entry(raster_id):
+    from .models.imagery.etl import populate_raster_entry
+
+    try:
+        populate_raster_entry(raster_id)
+    except Exception as exc:
+        logger.exception(f'Internal error run `populate_raster_entry`: {exc}')
     return

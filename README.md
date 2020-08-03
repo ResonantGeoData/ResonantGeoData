@@ -6,13 +6,20 @@
 This is the simplest configuration for developers to start with.
 ### Initial Setup
 1. Run `docker-compose run --rm django ./manage.py migrate`
-2. Run `docker-compose run --rm django ./manage.py createsuperuser` 
+2. Run `docker-compose run --rm django ./manage.py createsuperuser`
    and follow the prompts to create your own user
 
 ### Run Application
 1. Run `docker-compose up`
 2. Access the site, starting at http://localhost:8000/admin/
 3. When finished, use `Ctrl+C`
+
+On Mac, be sure to set:
+
+```bash
+export DOCKER_SOCK=/var/run/docker.sock
+export DOCKER_CMD=/usr/local/bin/docker
+```
 
 ### Application Maintenance
 Occasionally, new package dependencies or schema changes will necessitate

@@ -11,7 +11,7 @@ from rest_framework.decorators import api_view
 
 from . import models
 from . import search
-from .models.raster.base import RasterEntry
+from .models.imagery.base import RasterEntry
 
 
 class RasterEntriesListView(generic.ListView):

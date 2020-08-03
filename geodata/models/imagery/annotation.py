@@ -1,14 +1,14 @@
 from django.contrib.gis.db import models
 
-from .base import RasterEntry
+from .base import ImageEntry
 from ..common import ModifiableEntry
 from ..constants import DB_SRID
 
 
 class Annotation(ModifiableEntry):
-    """Image annotation/label for RasterEntry."""
+    """Image annotation/label for ImageEntry."""
 
-    raster = models.ForeignKey(RasterEntry, on_delete=models.CASCADE)
+    image = models.ForeignKey(ImageEntry, on_delete=models.CASCADE)
 
     caption = models.CharField(max_length=100, blank=True, null=True)
     label = models.CharField(max_length=100, blank=True, null=True)

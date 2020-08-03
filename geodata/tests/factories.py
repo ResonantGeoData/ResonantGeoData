@@ -1,7 +1,7 @@
 from django.contrib.auth.models import User
 import factory.django
 
-from geodata import models
+# from geodata import models
 
 
 class UserFactory(factory.django.DjangoModelFactory):
@@ -14,15 +14,16 @@ class UserFactory(factory.django.DjangoModelFactory):
     last_name = factory.Faker('last_name')
 
 
-class DatasetFactory(factory.django.DjangoModelFactory):
-    class Meta:
-        model = models.Dataset
-
-    name = factory.Faker('sentence', nb_words=2)
-    description = factory.Faker('paragraph')
-
-    # TODO: add "geometries" and "rasters"
-    # https://factoryboy.readthedocs.io/en/latest/recipes.html#simple-many-to-many-relationship
+# @register
+# class DatasetFactory(factory.django.DjangoModelFactory):
+#     class Meta:
+#         model = models.Dataset
+#
+#     name = factory.Faker('sentence', nb_words=2)
+#     description = factory.Faker('paragraph')
+#
+#     # TODO: add "geometries" and "rasters"
+#     # https://factoryboy.readthedocs.io/en/latest/recipes.html#simple-many-to-many-relationship
 
 
 # For generating lat-lon coords, this may be helpful:

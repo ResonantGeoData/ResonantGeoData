@@ -1,7 +1,4 @@
-import tempfile
-
-from django.conf import settings
-from django.contrib.auth import get_user_model
+# from django.contrib.auth import get_user_model
 from django.contrib.gis.db import models
 from django.utils import timezone
 from model_utils.managers import InheritanceManager
@@ -15,12 +12,12 @@ class ModifiableEntry(models.Model):
 
     modified = models.DateTimeField(editable=False, help_text='The last time this entry was saved.')
     created = models.DateTimeField(editable=False, help_text='When this was added to the database.')
-    creator = models.ForeignKey(
-        get_user_model(), on_delete=models.DO_NOTHING, related_name='creator'
-    )
-    modifier = models.ForeignKey(
-        get_user_model(), on_delete=models.DO_NOTHING, related_name='modifier'
-    )
+    # creator = models.ForeignKey(
+    #     get_user_model(), on_delete=models.DO_NOTHING, related_name='creator'
+    # )
+    # modifier = models.ForeignKey(
+    #     get_user_model(), on_delete=models.DO_NOTHING, related_name='modifier'
+    # )
 
     def save(self, *args, **kwargs):
         if not self.id:
@@ -29,22 +26,26 @@ class ModifiableEntry(models.Model):
         super(ModifiableEntry, self).save(*args, **kwargs)
 
 
-class SpatialEntry(ModifiableEntry):
-    """Common model to all geospatial data entries."""
+class SpatialEntry(models.Model):
+    """Common model to all geospatial data entries.
 
-    name = models.CharField(max_length=100, blank=True, null=True)
-    # An optional description field in case the user needs to add context
-    description = models.TextField(blank=True, null=True)
+    This is intended to be used in a mixin manner.
+
+    """
+
+    spatial_id = models.AutoField(primary_key=True)
+
     # Datetime of creation for the dataset
     acquisition_date = models.DateTimeField(null=True, default=None, blank=True)
 
     # This can be used with GeoDjango's geographic database functions for spatial indexing
-    footprint = models.PolygonField(srid=DB_SRID)
+    footprint = models.PolygonField(srid=DB_SRID, null=True, blank=True)
+    outline = models.PolygonField(srid=DB_SRID, null=True, blank=True)
 
     objects = InheritanceManager()
 
     def __str__(self):
-        return '{} {} (type: {})'.format(self.id, self.name, type(self))
+        return 'Spatial ID: {} (type: {})'.format(self.spatial_id, type(self))
 
 
 class ChecksumFile(ModifiableEntry):
@@ -64,7 +65,7 @@ class ChecksumFile(ModifiableEntry):
     validate_checksum = models.BooleanField(
         default=False
     )  # a flag to validate the checksum against the saved checksum
-    last_validation = models.BooleanField(default=False)
+    last_validation = models.BooleanField(default=True)
 
     class Meta:
         abstract = True
@@ -97,30 +98,3 @@ class ChecksumFile(ModifiableEntry):
                 ]
             )
         return
-
-
-class _ReaderRoutine(object):
-    """A base class for defining reader routines.
-
-    Subclasses will parse file(s) and generate new model entries.
-
-    """
-
-    def __init__(self, model_id):
-        self.model_id = model_id
-
-        # TODO: add a setting like this:
-        workdir = getattr(settings, 'GEODATA_WORKDIR', None)
-        self.tmpdir = tempfile.mkdtemp(dir=workdir)
-
-    def _read_files(self):
-        """Must return True for success."""
-        raise NotImplementedError()
-
-    def _save_entries(self):
-        raise NotImplementedError()
-
-    def run(self):
-        if self._read_files():
-            # Only attempt save if the read was successful
-            self._save_entries()

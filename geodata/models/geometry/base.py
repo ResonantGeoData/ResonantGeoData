@@ -6,9 +6,9 @@ from django.dispatch import receiver
 import magic
 from s3_file_field import S3FileField
 
-from ..common import ChecksumFile, SpatialEntry
+from ..common import ChecksumFile, ModifiableEntry, SpatialEntry
 from ..constants import DB_SRID
-from ..mixins import PostSaveEventMixin
+from ..mixins import TaskEventMixin
 from ... import tasks
 
 
@@ -22,14 +22,14 @@ def validate_archive(field_file):
         raise ValidationError('Unsupported file archive.')
 
 
-class GeometryArchive(ChecksumFile, PostSaveEventMixin):
+class GeometryArchive(ChecksumFile, TaskEventMixin):
     """Container for ``zip`` archives of a shapefile.
 
     When this model is created, it loads data from an archive into
     a single ``GeometryEntry`` that is then associated with this entry.
     """
 
-    task_func = tasks.validate_geometry_archive
+    task_func = tasks.task_validate_geometry_archive
     file = S3FileField(
         upload_to='files/geometry_files',
         validators=[validate_archive],
@@ -44,8 +44,11 @@ class GeometryArchive(ChecksumFile, PostSaveEventMixin):
         super(GeometryArchive, self).save(*args, **kwargs)
 
 
-class GeometryEntry(SpatialEntry):
+class GeometryEntry(ModifiableEntry, SpatialEntry):
     """A holder for geometry vector data."""
+
+    name = models.CharField(max_length=100, blank=True, null=True)
+    description = models.TextField(null=True, blank=True)
 
     data = models.GeometryCollectionField(srid=DB_SRID)  # Can be one or many features
     # The actual collection is iterable so access is super easy
@@ -54,5 +57,5 @@ class GeometryEntry(SpatialEntry):
 
 
 @receiver(post_save, sender=GeometryArchive)
-def _post_save_algorithm(sender, instance, *args, **kwargs):
-    transaction.on_commit(lambda: instance._post_save(**kwargs))
+def _post_save_geometry_archive(sender, instance, *args, **kwargs):
+    transaction.on_commit(lambda: instance._post_save_event_task(*args, **kwargs))
