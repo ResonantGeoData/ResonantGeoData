@@ -92,7 +92,7 @@ class CrispyFormsConfig(ConfigMixin):
 
 
 class S3FileFieldConfig(ConfigMixin):
-    S3FF_UPLOAD_STS_ARN = ''
+    S3FF_UPLOAD_STS_ARN = values.Value(environ_required=True)
 
     @staticmethod
     def before_binding(configuration: Type[ComposedConfiguration]):
@@ -177,11 +177,12 @@ class DisableS3FileFieldUploadsConfig(ConfigMixin):
 class DevelopmentConfiguration(
     DisableS3FileFieldUploadsConfig, RgdConfig, DevelopmentBaseConfiguration
 ):
-    pass
+    S3FF_UPLOAD_STS_ARN = None
 
 
 class TestingConfiguration(RgdConfig, TestingBaseConfiguration):
     MINIO_STORAGE_MEDIA_BUCKET_NAME = 'test-django-storage'
+    S3FF_UPLOAD_STS_ARN = None
 
 
 class ProductionConfiguration(RgdConfig, ProductionBaseConfiguration):
