@@ -25,13 +25,16 @@ class ImageSetAdmin(OSMGeoAdmin):
     list_display = (
         'id',
         'name',
+        'count',
     )
 
 
 @admin.register(ImageEntry)
 class ImageEntryAdmin(OSMGeoAdmin):
     list_display = (
-        '__str__',
+        'id',
+        'name',
+        'image_file',
         'modified',
     )
     readonly_fields = (
@@ -50,7 +53,9 @@ class ImageEntryAdmin(OSMGeoAdmin):
 @admin.register(RasterEntry)
 class RasterEntryAdmin(OSMGeoAdmin):
     list_display = (
-        '__str__',
+        'id',
+        'name',
+        'status',
         'modified',
     )
     readonly_fields = (
@@ -66,11 +71,17 @@ class RasterEntryAdmin(OSMGeoAdmin):
     list_filter = SPATIAL_ENTRY_FILTERS + ('crs',)
     modifiable = False  # To still show the footprint and outline
 
+    def status(self, obj):
+        return not obj.failure_reason
+
+    status.boolean = True
+
 
 @admin.register(BandMetaEntry)
 class BandMetaEntryAdmin(OSMGeoAdmin):
     list_display = (
-        '__str__',
+        'id',
+        'parent_image',
         'modified',
         # 'parent_image',  # TODO: this prevents the list view from working
     )
@@ -103,35 +114,51 @@ class AnnotationAdmin(OSMGeoAdmin):
 @admin.register(ImageFile)
 class ImageFileAdmin(OSMGeoAdmin):
     list_display = (
-        '__str__',
+        'id',
+        'name',
+        'status',
         'modified',
         'data_link',
     )
     readonly_fields = ('failure_reason', 'modified', 'created', 'checksum', 'last_validation')
 
     def data_link(self, obj):
-        return _link_url('geodata', 'image_file', obj, 'image_file')
+        return _link_url('geodata', 'image_file', obj, 'file')
 
     data_link.allow_tags = True
+
+    def status(self, obj):
+        return not obj.failure_reason
+
+    status.boolean = True
 
 
 @admin.register(ConvertedImageFile)
 class ConvertedImageFileAdmin(OSMGeoAdmin):
     list_display = (
-        '__str__',
-        'modified',
+        'id',
+        'name',
         'source_image',
+        'status',
+        'modified',
     )
     readonly_fields = (
         'failure_reason',
         'file',
     )
 
+    def status(self, obj):
+        return not obj.failure_reason
+
+    status.boolean = True
+
 
 @admin.register(GeometryEntry)
 class GeometryEntryAdmin(OSMGeoAdmin):
     list_display = (
-        '__str__',
+        'id',
+        'name',
+        'geometry_archive',
         'modified',
     )
     list_filter = SPATIAL_ENTRY_FILTERS
@@ -145,7 +172,9 @@ class GeometryEntryAdmin(OSMGeoAdmin):
 @admin.register(GeometryArchive)
 class GeometryArchiveAdmin(OSMGeoAdmin):
     list_display = (
-        '__str__',
+        'id',
+        'name',
+        'status',
         'modified',
         'data_link',
     )
@@ -157,7 +186,12 @@ class GeometryArchiveAdmin(OSMGeoAdmin):
         'checksum',
     )
 
+    def status(self, obj):
+        return not obj.failure_reason
+
+    status.boolean = True
+
     def data_link(self, obj):
-        return _link_url('geodata', 'geometry_archive', obj, 'archive_file')
+        return _link_url('geodata', 'geometry_archive', obj, 'file')
 
     data_link.allow_tags = True

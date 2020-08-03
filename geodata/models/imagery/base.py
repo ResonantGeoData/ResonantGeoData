@@ -44,6 +44,10 @@ class ImageSet(ModifiableEntry):
 
     images = models.ManyToManyField(ImageEntry)
 
+    @property
+    def count(self):
+        return self.images.count
+
 
 class RasterEntry(ImageSet, SpatialEntry, TaskEventMixin):
     """This class is a container for the metadata of a raster.
