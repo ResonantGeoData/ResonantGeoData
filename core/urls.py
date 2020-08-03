@@ -29,6 +29,7 @@ for _, ser in inspect.getmembers(serializers):
                 'filterset_fields': utility.get_filter_fields(model),
             },
         )
+        viewset_class.__doc__ = model.__doc__
         router.register('api/%s' % (model_name.lower()), viewset_class)
 
 admin.site.index_template = 'admin/add_links.html'

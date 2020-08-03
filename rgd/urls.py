@@ -1,11 +1,57 @@
+import re
+
 from django.conf import settings
 from django.conf.urls import url
 from django.contrib import admin
 from django.urls import include, path
 from drf_yasg import openapi
+from drf_yasg.inspectors.view import SwaggerAutoSchema
 from drf_yasg.views import get_schema_view
 from rest_framework import permissions
 import uritemplate  # noqa: F401
+
+
+def drf_yasg_get_summary_and_description(self):
+    """Return an operation summary and description.
+
+    This is a modified form of the function in drf_yasg.
+
+    When getting descriptions from view docstrings or when there is no summary,
+    the resultant summary is prefixed with the method.  When taking
+    descriptions from docstrings, change newlines to improve how the default
+    swagger client displays them.
+    """
+    description = self.overrides.get('operation_description', None)
+    summary = self.overrides.get('operation_summary', None)
+    method = self.operation_keys[-1].replace('_', ' ').capitalize()
+    if description is None:
+        description = self._sch.get_description(self.path, self.method) or ''
+        description = description.strip().replace('\r', '')
+
+        if description and summary is None:
+            # description from docstring... do summary magic
+            summary, description = self.split_summary_from_description(description)
+            # Replace single newlines with spaces and multiple newlines with
+            # single newlines.
+            description = re.sub(
+                r'\r',
+                '\n',
+                re.sub(r'\n', ' ', re.sub(r'\n\n+', '\r', re.sub(r'\r', '', description))),
+            )
+            if summary:
+                summary = '%s %s' % (method, summary.rstrip('.'))
+            else:
+                summary = '%s %s' % (method, ' '.join(self.operation_keys[:-1]))
+    if summary is None:
+        summary = '%s %s' % (method, description)
+    summary = summary[:120]
+
+    return summary, description
+
+
+# Modify drf_yasg's method of generating summaries and descriptions to work
+# better with our views.
+SwaggerAutoSchema.get_summary_and_description = drf_yasg_get_summary_and_description
 
 
 urlpatterns = [

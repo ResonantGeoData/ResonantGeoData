@@ -25,6 +25,13 @@ class DeferredFieldsManager(models.Manager):
 
 
 class Task(models.Model):
+    """
+    Data processing task.
+
+    A task is a conceptual activity.  Datasets associated with a task, when
+    processed by appropriate algorithms, produce results.
+    """
+
     def __str__(self):
         return self.name
 
@@ -39,6 +46,12 @@ class Task(models.Model):
 
 
 class Dataset(models.Model):
+    """
+    Dataset for algorithms.
+
+    A dataset is a combined set of inputs for an algorithm.
+    """
+
     def __str__(self):
         return self.name
 
@@ -55,6 +68,13 @@ class Dataset(models.Model):
 
 
 class Groundtruth(models.Model):
+    """
+    Groundtruth.
+
+    Groundtruth is the expected output of a specific algorithm on a specific
+    dataset.
+    """
+
     # The data used by the scorer to compare the output of the algorithm
 
     def __str__(self):
@@ -80,6 +100,13 @@ class Groundtruth(models.Model):
 
 
 class Algorithm(models.Model):
+    """
+    Data processing alogorithm.
+
+    An algorithm is a docker image that takes a dataset on stdin, outputs logs
+    on stderr and results on stdout.
+    """
+
     def __str__(self):
         return self.name
 
@@ -126,6 +153,14 @@ def _post_save_algorithm(sender, instance, *args, **kwargs):
 
 
 class ScoreAlgorithm(models.Model):
+    """
+    Scoring alogorithm.
+
+    A scoring algorithm is a docker image that takes results from an algorithm
+    on stdin and groundtruth as a file at /groundtruth.dat, then outputs logs
+    on stderr and results on stdout.
+    """
+
     def __str__(self):
         return self.name
 
@@ -170,6 +205,12 @@ def _post_save_score_algorithm(sender, instance, *args, **kwargs):
 
 
 class AlgorithmJob(models.Model):
+    """
+    Algorithm job.
+
+    An algorithm job tracks running an algorithm on a specific dataset.
+    """
+
     class Meta:
         ordering = ['-created']
 
@@ -223,7 +264,12 @@ def _post_save_algorithm_job(sender, instance, *args, **kwargs):
 
 
 class AlgorithmResult(models.Model):
-    """NOTE: this is really a 'job result', not an 'algorithm result'..."""
+    """
+    Algorithm result.
+
+    When an algorithm job runs an algorithm on a dataset, it produces an
+    algorithm result.
+    """
 
     algorithm_job = models.ForeignKey(AlgorithmJob, on_delete=models.CASCADE, blank=True, null=True)
     created = models.DateTimeField(default=timezone.now)
@@ -233,6 +279,13 @@ class AlgorithmResult(models.Model):
 
 
 class ScoreJob(models.Model):
+    """
+    Score job.
+
+    A score job tracks running a scoring algorithm on algorithm results and the
+    groundtruth associated with the algorithm job's dataset.
+    """
+
     class Status(models.TextChoices):
         CREATED = 'created', _('Created but not queued')
         QUEUED = 'queued', _('Queued for processing')
