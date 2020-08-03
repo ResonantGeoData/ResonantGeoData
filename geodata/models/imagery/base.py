@@ -45,6 +45,18 @@ class ImageSet(ModifiableEntry):
     images = models.ManyToManyField(ImageEntry)
 
     @property
+    def image_bands(self):
+        return self.images.aggregate(models.Sum('number_of_bands'))['number_of_bands__sum']
+
+    @property
+    def width(self):
+        return self.images.aggregate(models.Max('width'))['width__max']
+
+    @property
+    def height(self):
+        return self.images.aggregate(models.Max('height'))['height__max']
+
+    @property
     def count(self):
         return self.images.count
 
