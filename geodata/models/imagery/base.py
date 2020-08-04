@@ -44,6 +44,9 @@ class ImageEntry(ModifiableEntry):
 class ImageSet(ModifiableEntry):
     """Container for many images."""
 
+    def __str__(self):
+        return f'{self.name} ({self.id} - {type(self)}'
+
     name = models.CharField(max_length=100, blank=True, null=True)
     description = models.TextField(null=True, blank=True)
 
@@ -84,9 +87,6 @@ class RasterEntry(ImageSet, SpatialEntry, TaskEventMixin):
     geospatial context to the ``ImageSet``.
 
     """
-
-    def __str__(self):
-        return f'{self.name} ({self.id} - {type(self)}'
 
     # Raster fields
     crs = models.TextField(help_text='PROJ string', null=True)  # PROJ String
