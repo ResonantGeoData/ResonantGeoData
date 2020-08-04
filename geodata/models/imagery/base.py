@@ -1,8 +1,10 @@
 """Base classes for raster dataset entries."""
+import os
+
 from django.contrib.gis.db import models
 from django.contrib.postgres import fields
 from django.db import transaction
-from django.db.models.signals import pre_save
+from django.db.models.signals import m2m_changed, pre_save
 from django.dispatch import receiver
 from s3_file_field import S3FileField
 
@@ -14,6 +16,9 @@ from ... import tasks
 
 class ImageEntry(ModifiableEntry):
     """Single image entry, tracks the original file."""
+
+    def __str__(self):
+        return f'{self.name} ({self.id})'
 
     name = models.CharField(max_length=100, blank=True, null=True)
     description = models.TextField(null=True, blank=True)
@@ -39,6 +44,9 @@ class ImageEntry(ModifiableEntry):
 class ImageSet(ModifiableEntry):
     """Container for many images."""
 
+    def __str__(self):
+        return f'{self.name} ({self.id} - {type(self)}'
+
     name = models.CharField(max_length=100, blank=True, null=True)
     description = models.TextField(null=True, blank=True)
 
@@ -59,6 +67,17 @@ class ImageSet(ModifiableEntry):
     @property
     def count(self):
         return self.images.count
+
+
+@receiver(m2m_changed, sender=ImageSet.images.through)
+def _m2m_changed_image_set(sender, instance, action, reverse, *args, **kwargs):
+    # If no name was specified for an ImageSet, when images are added to it,
+    # use the common base name of all images as the name of the ImageSet.
+    if action == 'post_add' and not instance.name and instance.images.count():
+        names = [image.name for image in instance.images.all() if image.name]
+        if len(names):
+            instance.name = os.path.commonprefix(names)
+            instance.save(update_fields=['name'])
 
 
 class RasterEntry(ImageSet, SpatialEntry, TaskEventMixin):
