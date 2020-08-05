@@ -44,5 +44,6 @@ module "django" {
   additional_django_vars = {
     DJANGO_S3FF_UPLOAD_STS_ARN = aws_iam_role.storage_upload.arn
   }
+  heroku_web_dyno_size = "standard-2x"
   heroku_worker_dyno_quantity = 0
 }
