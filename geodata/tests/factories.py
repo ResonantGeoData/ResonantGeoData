@@ -47,13 +47,13 @@ class RasterEntryFactory(factory.django.DjangoModelFactory):
         if extracted:
             for image in extracted:
                 self.images.add(image)
-            # Neither of these lines should be necessary.  It looks like in the
-            # test environment, the footprint is computed but then clobbered by
-            # (possibly) the complete save of the RasterEntry model that
-            # initiated the computation of the footprint.  For now, retrigger
-            # the process and refresh the model.
-            self._pre_save_event_task()
-            self.refresh_from_db()
+
+    # If we have an on_commit or post_save method that modifies the model, we
+    # need to refresh it afterwards.
+    @classmethod
+    def _after_postgeneration(cls, instance, *args, **kwargs):
+        super()._after_postgeneration(instance, *args, **kwargs)
+        instance.refresh_from_db()
 
 
 # TODO: add "geometries" and "rasters"
