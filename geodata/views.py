@@ -1,6 +1,7 @@
 import json
 import os
 
+from dateutil import parser
 from django.db.models.fields.files import FieldFile
 from django.http import HttpResponse
 from django.shortcuts import get_object_or_404  # , render
@@ -22,13 +23,31 @@ class RasterEntriesListView(generic.ListView):
 
     def get_queryset(self):
         # latitude, longitude, radius, time, timespan, and timefield
-        search_params = {}
-        for key in {'longitude', 'latitude', 'radius'}:
+        search_params = {'timespan': 0}
+        time_params = {}
+        for key in {'longitude', 'latitude', 'radius', 'starttime', 'endtime', 'timefield'}:
             if self.request.GET.get(key):
                 try:
-                    search_params[key] = float(self.request.GET.get(key))
+                    if key == 'starttime':
+                        time_params[key] = parser.parse(self.request.GET.get(key))
+                    elif key == 'endtime':
+                        time_params[key] = parser.parse(self.request.GET.get(key))
+                    elif key == 'timefield':
+                        search_params[key] = self.request.GET.get(key)
+                    else:
+                        search_params[key] = float(self.request.GET.get(key))
                 except ValueError:
                     pass
+
+        if 'starttime' in time_params and 'endtime' in time_params:
+            diff = (time_params['endtime'] - time_params['starttime']) / 2
+            search_params['time'] = (time_params['starttime'] + diff).isoformat()
+            search_params['timespan'] = diff.total_seconds()
+        elif 'starttime' in time_params:
+            search_params['time'] = time_params['starttime'].isoformat()
+        elif 'endtime' in time_params:
+            search_params['time'] = time_params['endtime'].isoformat()
+
         return self.model.objects.filter(search.search_near_point_filter(search_params))
 
     def get_context_data(self, *args, **kwargs):

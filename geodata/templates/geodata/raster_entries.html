@@ -1,7 +1,44 @@
 {% extends "base.html" %}
 {% block content %}
 
+
+<style>
+
+.enter {
+  fill: #EDCA3A;
+}
+
+.update {
+  fill: #1FBAD6;
+}
+
+.exit {
+  fill: #F25754;
+}
+
+.selected {
+  fill: #E6B0F1;
+}
+
+div.tooltip {
+  color: black;
+  position: absolute;
+  text-align: left;
+  width: auto;
+  height: auto;
+  padding: 5px;
+  font-family: Futura;
+  font: 12px sans-serif ;
+  background: #FCB8C3FF;
+  border: 0px;
+  border-radius: 8px;
+  pointer-events: none;
+}
+
+</style>
+
 <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/geojs/0.20.0/geo.min.js"></script>
+<script type="text/javascript" src="https://d3js.org/d3.v5.min.js"></script>
 
   <h1 class="article-title">
     <span>Rasters</span>
@@ -11,11 +48,27 @@
   <form method="GET">
     Longitude (deg): <input type="text" name="longitude" value="{{ request.GET.longitude }}">
     Latitude (deg): <input type="text" name="latitude" value="{{ request.GET.latitude }}">
-    <br>
+    <br><br>
     Proximity (m): <input type="text" name="radius" value="{{ request.GET.radius }}">
+    <br><br>
+    Time (timespan)
+    <br><br>
+    Timefield:
+      <select name="timefield" id="timefield" class="timefield">
+        <option value="acquisition">Acquisition</option>
+        <option value="created">Created</option>
+        <option value="modified">Modified</option>
+      </select>
+    <br><br>
+    Start Time: <input type="datetime-local" name="starttime" value="{{ request.GET.starttime }}">
+    End Time: <input type="datetime-local" name="endtime" value="{{ request.GET.endtime }}">
+    <br><br>
     <input class="button" type="submit" value="Filter">
+    <input class="button" type="reset" value="Reset">
   </form>
 
+  <div> <p></p> </div>
+  <div id="my_dataviz"></div>
   <div id="map" style="width:100%;height:300px"></div>
 
   <table class="table">
@@ -25,6 +78,9 @@
         <th>Size</th>
         <th>Number of Bands</th>
         <th>Resolution</th>
+        <th>Date</th>
+        <th>Created</th>
+        <th>Modified</th>
       </tr>
     </thead>
     <tbody>
@@ -34,11 +90,13 @@
           <td>{{ raster.width }} x {{ raster.height }}</td>
           <td>{{ raster.image_bands }}</td>
           <td>{{ raster.resolution }}</td>
+          <td>{{ raster.acquisition_date }}</td>
+          <td>{{ raster.created }}</td>
+          <td>{{ raster.modified }}</td>
         </tr>
       {% endfor %}
     </tbody>
   </table>
-
 <script>
   let extents = JSON.parse('{{ extents|escapejs }}');
   let map = geo.map({node: '#map'})
@@ -62,6 +120,193 @@
     }
     map.draw();
   });
+</script>
+
+<script>
+  var choice = document.getElementById("timefield");
+  var field = choice.options[choice.selectedIndex].value;
+
+  data = []
+  {% for raster in rasters %}
+    timefield_date = (field == 'created') ? "{{ raster.created.isoformat }}" :
+                     (field == 'modified') ? "{{ raster.modified.isoformat }}" : "{{ raster.acquisition_date.isoformat }}"
+    data.push({
+      name: "{{ raster.name }}",
+      id: "{{ raster.id }}",
+      date: new Date(timefield_date),
+      bands: "{{ raster.image_bands }}"
+    })
+  {% endfor %}
+
+  data.sort((a, b) => a.date - b.date);
+
+  var first = data[0].date;
+  var last = data[data.length - 1].date;
+
+  var diffTime = Math.abs(last - first);
+  var diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+  var delta = 1000*60*60;
+
+  if (diffTime > delta*24*7) {
+    delta = delta*24;
+  }
+  if (diffTime > delta*365) {
+    delta = delta*30
+  }
+  var start_domain = new Date(first.getTime()-delta);
+  var end_domain = new Date(last.getTime()+delta);
+
+  // set the dimensions and margins of the graph
+  var margin = {top: 10, right: 30, bottom: 30, left: 40},
+      width = 750 - margin.left - margin.right,
+      height = 400 - margin.top - margin.bottom;
+
+  // append the svg object to the body of the page
+  var svg = d3.select("#my_dataviz")
+    .append("svg")
+      .attr("width", width + margin.left + margin.right)
+      .attr("height", height + margin.top + margin.bottom)
+    .append("g")
+      .attr("transform",
+            "translate(" + margin.left + "," + margin.top + ")");
+
+  const tooltip = d3.select("#my_dataviz")
+    .append("div")
+      .attr("class", "tooltip")
+      .style("opacity", 0);
+
+  const t = d3.transition().duration(1000);
+
+  var x = d3.scaleTime()
+      .domain([start_domain, end_domain]) // x domain
+      .rangeRound([0, width]);
+
+  function update(){
+    // set the parameters for the histogram
+    var histogram = d3.histogram()
+        .value(function(d) { return d.date; })   // I need to give the vector of value
+        .domain(x.domain())  // then the domain of the graphic
+        .thresholds(60); // then the numbers of bins
+
+    // And apply this function to data to get the bins
+    const bins = histogram(data);
+
+    let binContainer = svg.selectAll(".gBin")
+      .data(bins);
+
+    binContainer.exit().remove()
+
+    let binContainerEnter = binContainer.enter()
+      .append("g")
+        .attr("class", "gBin")
+        .attr("transform", d => `translate(${x(d.x0)}, ${height})`)
+
+    //need to populate the bin containers with data the first time
+    binContainerEnter.selectAll("circle")
+        .data(d => d.map((p, i) => {
+          return {idx: i,
+                  name: p.name,
+                  value: p.value,
+                  bands: p.bands,
+                  date: p.date,
+                  radius: (x(d.x1)-x(d.x0))/2
+                }
+        }))
+      .enter()
+      .append("circle")
+        .attr("class", "enter")
+        .attr("cx", 0) //g element already at correct x pos
+        .attr("cy", function(d) {
+            return - d.idx * 2 * d.radius - d.radius; })
+        .attr("r", 0)
+        .on("mouseover", tooltipOn)
+        .on("mouseout", tooltipOff)
+        .transition()
+          .duration(500)
+          .attr("r", function(d) {
+          return (d.length==0) ? 0 : d.radius; })
+
+    binContainerEnter.merge(binContainer)
+        .attr("transform", d => `translate(${x(d.x0)}, ${height})`)
+
+    //enter/update/exit for circles, inside each container
+    let dots = binContainer.selectAll("circle")
+        .data(d => d.map((p, i) => {
+          return {idx: i,
+                  name: p.name,
+                  value: p.id,
+                  bands: p.bands,
+                  date: p.date,
+                  radius: (x(d.x1)-x(d.x0))/2
+                }
+        }))
+
+    //EXIT old elements not present in data
+    dots.exit()
+        .attr("class", "exit")
+      .transition(t)
+        .attr("r", 0)
+        .remove();
+
+    //UPDATE old elements present in new data.
+    dots.attr("class", "update");
+
+    //ENTER new elements present in new data.
+    dots.enter()
+      .append("circle")
+        .attr("class", "enter")
+        .attr("cx", 0) //g element already at correct x pos
+        .attr("cy", function(d) {
+          return - d.idx * 2 * d.radius - d.radius; })
+        .attr("r", 0)
+      .merge(dots)
+        .on("mouseover", tooltipOn)
+        .on("mouseout", tooltipOff)
+        .transition()
+          .duration(500)
+          .attr("r", function(d) {
+          return (d.length==0) ? 0 : d.radius; })
+  }
+
+  function tooltipOn(d) {
+    //x position of parent g element
+    let gParent = d3.select(this.parentElement)
+    let translateValue = gParent.attr("transform")
+
+    let gX = translateValue.split(",")[0].split("(")[1]
+    let gY = height*2 + (+d3.select(this).attr("cy"))
+
+    d3.select(this)
+      .classed("selected", true)
+    tooltip.transition()
+         .duration(200)
+         .style("opacity", .9);
+    tooltip.html(d.name + " (" + d.value + ")" + "<br/> Date: " + d.date + "<br/> Number of bands: " + d.bands)
+      .style("left", gX + "px")
+      .style("top", gY + "px");
+  }//tooltipOn
+
+  function tooltipOff(d) {
+    d3.select(this)
+        .classed("selected", false);
+      tooltip.transition()
+           .duration(500)
+           .style("opacity", 0);
+  }//tooltipOff
+  // add x axis
+  svg.append("g")
+    .attr("class", "axis axis--x")
+    .attr("transform", "translate(0," + height + ")")
+    .call(d3.axisBottom(x));
+
+  //draw everything
+  update();
+
+  //update with new data every 3sec
+  d3.interval(function() {
+    update();
+  }, 3000);
+
 </script>
 
 {% endblock content %}
