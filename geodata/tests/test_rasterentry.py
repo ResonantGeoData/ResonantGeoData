@@ -59,6 +59,8 @@ def test_multi_file_raster():
         file__filename=LandsatFiles[0], file__from_path=datastore.fetch(LandsatFiles[0]),
     )
     # Create a RasterEntry from the three band image entries
-    raster = factories.RasterEntryFactory(name='Multi File Test', images=[b1.imageentry.id, b2.imageentry.id, b3.imageentry.id])
+    raster = factories.RasterEntryFactory(
+        name='Multi File Test', images=[b1.imageentry.id, b2.imageentry.id, b3.imageentry.id]
+    )
     assert raster.count == 3
     assert raster.crs is not None
