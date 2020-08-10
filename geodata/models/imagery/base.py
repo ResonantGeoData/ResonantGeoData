@@ -66,7 +66,7 @@ class ImageSet(ModifiableEntry):
 
     @property
     def count(self):
-        return self.images.count
+        return self.images.count()
 
 
 @receiver(m2m_changed, sender=ImageSet.images.through)
