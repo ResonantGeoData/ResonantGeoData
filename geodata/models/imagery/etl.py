@@ -27,7 +27,7 @@ MAX_LOAD_SHAPE = (4000, 4000)
 #     return ContentFile(byte_im)
 
 
-def populate_image_entry(image_entry_id):
+def populate_image_entry(image_file_id):
     """Image ingestion routine.
 
     This helper will open an image file from ``ImageFile`` and create a
@@ -35,7 +35,7 @@ def populate_image_entry(image_entry_id):
 
     """
     # Fetch the raster file this Layer corresponds to
-    ife = ImageFile.objects.get(id=image_entry_id)
+    ife = ImageFile.objects.get(id=image_file_id)
     with _field_file_to_local_path(ife.file) as file_path:
 
         logger.info(f'The image file path: {file_path}')
