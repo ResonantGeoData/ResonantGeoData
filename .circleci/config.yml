@@ -22,6 +22,9 @@ jobs:
             DJANGO_MINIO_STORAGE_ENDPOINT: localhost:9000
             DJANGO_MINIO_STORAGE_ACCESS_KEY: minioUserAccessKey
             DJANGO_MINIO_STORAGE_SECRET_KEY: minioUserSecretKey
+      - run:
+          name: Upload Coverage
+          command: bash <(curl -s https://codecov.io/bash)
 workflows:
   version: 2
   ci:
