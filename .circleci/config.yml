@@ -12,8 +12,8 @@ jobs:
     steps:
       - checkout
       - run:
-          name: Install tox
-          command: sudo pip install tox
+          name: Install tox and codecov
+          command: sudo pip install tox codecov
       - run:
           name: Run tests
           command: tox
@@ -22,6 +22,9 @@ jobs:
             DJANGO_MINIO_STORAGE_ENDPOINT: localhost:9000
             DJANGO_MINIO_STORAGE_ACCESS_KEY: minioUserAccessKey
             DJANGO_MINIO_STORAGE_SECRET_KEY: minioUserSecretKey
+      - run:
+          name: Upload Coverage
+          command: codecov
 workflows:
   version: 2
   ci:
