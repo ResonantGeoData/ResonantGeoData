@@ -24,7 +24,7 @@ jobs:
             DJANGO_MINIO_STORAGE_SECRET_KEY: minioUserSecretKey
       - run:
           name: Upload Coverage
-          command: bash <(curl -s https://codecov.io/bash)
+          command: codecov
 workflows:
   version: 2
   ci:
