@@ -52,7 +52,7 @@ def populate_image_entry(image_file_id):
             ConvertedImageFile.objects.filter(source_image=image_entry).delete()
         else:
             # This should never happen because it is a foreign key
-            raise RuntimeError('multiple image entries found for this file.')
+            raise RuntimeError('multiple image entries found for this file.')  # pragma: no cover
 
         image_entry.image_file = ife
         # image_entry.modifier = ife.modifier
