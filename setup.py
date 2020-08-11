@@ -17,7 +17,7 @@ setup(
         'django-girders',
         'django-filter',
         'django-model-utils',
-        'django-s3-file-field',
+        'django-s3-file-field>=0.0.11',
         'django-storages',
         'djangorestframework',
         'djproxy',
