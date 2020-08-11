@@ -42,6 +42,60 @@ class RasterEntryDetailView(DetailView):
     model = RasterEntry
 
 
+class GeometryEntriesListView(generic.ListView):
+    model = models.GeometryEntry
+    context_object_name = 'geometries'
+    template_name = 'geodata/geometry_entries.html'
+
+    def get_queryset(self):
+        # latitude, longitude, radius, time, timespan, and timefield
+        search_params = {}
+        for key in {'longitude', 'latitude', 'radius'}:
+            if self.request.GET.get(key):
+                try:
+                    search_params[key] = float(self.request.GET.get(key))
+                except ValueError:
+                    pass
+        return self.model.objects.filter(search.search_near_point_filter(search_params))
+
+    def get_context_data(self, *args, **kwargs):
+        # The returned query set is in self.object_list, not self.queryset
+        context = super().get_context_data(*args, **kwargs)
+        context['extents'] = json.dumps(search.extant_summary(self.object_list))
+        return context
+
+
+class GeometryEntryDetailView(DetailView):
+    model = models.GeometryEntry
+
+
+class GeospatialEntriesListView(generic.ListView):
+    model = models.SpatialEntry
+    context_object_name = 'geospatials'
+    template_name = 'geodata/geospatial_entries.html'
+
+    def get_queryset(self):
+        # latitude, longitude, radius, time, timespan, and timefield
+        search_params = {}
+        for key in {'longitude', 'latitude', 'radius'}:
+            if self.request.GET.get(key):
+                try:
+                    search_params[key] = float(self.request.GET.get(key))
+                except ValueError:
+                    pass
+        return self.model.objects.filter(search.search_near_point_filter(search_params))
+
+    def get_context_data(self, *args, **kwargs):
+        # The returned query set is in self.object_list, not self.queryset
+        context = super().get_context_data(*args, **kwargs)
+        context['extents'] = json.dumps(search.extant_summary(self.object_list))
+        return context
+
+
+class GeospatialEntryDetailView(DetailView):
+    model = models.SpatialEntry
+
+
 @swagger_auto_schema(
     method='GET',
     operation_summary='Download a model file',

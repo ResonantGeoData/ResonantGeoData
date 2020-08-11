@@ -10,6 +10,18 @@ urlpatterns = [
         views.RasterEntryDetailView.as_view(),
         name='raster-entry-detail',
     ),
+    path('geodata/geometries/', views.GeometryEntriesListView.as_view(), name='geometries'),
+    path(
+        'geodata/geometries/<int:pk>/',
+        views.RasterEntryDetailView.as_view(),
+        name='geometry-entry-detail',
+    ),
+    path('geodata/geospatials/', views.GeospatialEntriesListView.as_view(), name='geospatials'),
+    path(
+        'geodata/geospatials/<int:pk>/',
+        views.RasterEntryDetailView.as_view(),
+        name='geospatials-entry-detail',
+    ),
     path(
         'api/geodata/download/<model>/<int:id>/<field>', views.download_file, name='download-file'
     ),
