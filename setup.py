@@ -44,4 +44,5 @@ setup(
         'shapely',
         'scipy',
     ],
+    extras_require={'dev': ['ipython', 'tox']},
 )
