@@ -16,7 +16,7 @@ from django_girders.configuration import (
 class GeoDjangoConfig(ConfigMixin):
     @staticmethod
     def before_binding(configuration: Type[ComposedConfiguration]):
-        configuration.INSTALLED_APPS += ['django.contrib.gis']
+        configuration.INSTALLED_APPS += ['django.contrib.gis', 'rest_framework_gis']
         try:
             import osgeo
             import re

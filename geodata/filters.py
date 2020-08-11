@@ -7,6 +7,7 @@ from . import models
 
 class SpatialEntryFilter(GeoFilterSet):
     footprint = GeometryFilter(field_name='footprint')
+    outline = GeometryFilter(field_name='outline')
 
     class Meta:
         model = models.SpatialEntry
@@ -14,7 +15,6 @@ class SpatialEntryFilter(GeoFilterSet):
 
 
 class RasterEntryFilter(SpatialEntryFilter):
-    outline = GeometryFilter(field_name='outline')
     origin = filters.NumberFilter(field_name='origin')
     extent = filters.NumberFilter(field_name='extent')
     resolution = filters.NumberFilter(field_name='resolution')
