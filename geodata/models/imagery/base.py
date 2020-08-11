@@ -38,7 +38,7 @@ class ImageEntry(ModifiableEntry):
     height = models.PositiveIntegerField()
     width = models.PositiveIntegerField()
     number_of_bands = models.PositiveIntegerField()
-    metadata = fields.JSONField(null=True)
+    metadata = models.JSONField(null=True)
 
 
 class ImageSet(ModifiableEntry):
