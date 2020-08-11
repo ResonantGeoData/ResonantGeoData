@@ -282,5 +282,4 @@ def populate_raster_entry(raster_id):
         setattr(raster_entry, k, v)
 
     raster_entry.save(update_fields=list(meta.keys()))
-
     return True

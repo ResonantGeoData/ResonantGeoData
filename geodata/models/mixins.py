@@ -6,7 +6,8 @@ class TaskEventMixin(object):
 
     The task must be assigned as a class attribute.
 
-    NOTE: you still need to register the pre/post save event.
+    NOTE: you still need to register the pre/post save event.  on_commit events
+    should be registered as post_save events, not pre_save.
     """
 
     task_func = None
@@ -23,7 +24,7 @@ class TaskEventMixin(object):
             return
         self._run_task()
 
-    def _pre_save_event_task(self, *args, **kwargs):
+    def _on_commit_event_task(self, *args, **kwargs):
         if kwargs.get('update_fields'):
             return
         self._run_task()

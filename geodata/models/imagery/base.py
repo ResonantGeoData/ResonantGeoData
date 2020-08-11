@@ -4,7 +4,7 @@ import os
 from django.contrib.gis.db import models
 from django.contrib.postgres import fields
 from django.db import transaction
-from django.db.models.signals import m2m_changed, pre_save
+from django.db.models.signals import m2m_changed, post_save
 from django.dispatch import receiver
 from s3_file_field import S3FileField
 
@@ -88,6 +88,9 @@ class RasterEntry(ImageSet, SpatialEntry, TaskEventMixin):
 
     """
 
+    def __str__(self):
+        return 'ID: {} {} (type: {})'.format(self.id, self.name, type(self))
+
     # Raster fields
     crs = models.TextField(help_text='PROJ string', null=True)  # PROJ String
     origin = fields.ArrayField(models.FloatField(), size=2, null=True)
@@ -126,6 +129,6 @@ class ConvertedImageFile(ChecksumFile):
     source_image = models.ForeignKey(ImageEntry, on_delete=models.CASCADE)
 
 
-@receiver(pre_save, sender=RasterEntry)
-def _pre_save_raster_entry(sender, instance, *args, **kwargs):
-    transaction.on_commit(lambda: instance._pre_save_event_task(*args, **kwargs))
+@receiver(post_save, sender=RasterEntry)
+def _post_save_raster_entry(sender, instance, *args, **kwargs):
+    transaction.on_commit(lambda: instance._on_commit_event_task(*args, **kwargs))
