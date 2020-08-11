@@ -16,7 +16,7 @@ class TaskEventMixin(object):
     def _run_task(self):
         """Validate the raster asynchronously."""
         if not callable(self.task_func):
-            raise RuntimeError('Task function must be set to a callable.')
+            raise RuntimeError('Task function must be set to a callable.')  # pragma: no cover
         self.task_func.delay(self.id)
 
     def _post_save_event_task(self, created, *args, **kwargs):

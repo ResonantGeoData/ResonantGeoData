@@ -6,7 +6,7 @@ setup(
     python_requires='>=3.8.0',
     install_requires=[
         'celery',
-        'django>=3.1rc1',
+        'django>=3.1',
         'django-admin-display',
         'django-allauth',
         'django-cleanup',
@@ -45,4 +45,5 @@ setup(
         'shapely',
         'scipy',
     ],
+    extras_require={'dev': ['ipython', 'tox']},
 )
