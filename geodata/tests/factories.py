@@ -15,21 +15,13 @@ class UserFactory(factory.django.DjangoModelFactory):
     last_name = factory.Faker('last_name')
 
 
-# @register
-# class DatasetFactory(factory.django.DjangoModelFactory):
-#     class Meta:
-#         model = models.Dataset
-#
-#     name = factory.Faker('sentence', nb_words=2)
-#     description = factory.Faker('paragraph')
-
-
 class ImageFileFactory(factory.django.DjangoModelFactory):
     class Meta:
         model = models.ImageFile
 
     name = factory.Faker('sentence', nb_words=2)
     file = factory.django.FileField(filename='sample.dat')
+    compute_checksum = True
     # creator = factory.SubFactory(UserFactory)
     # modifier = factory.SubFactory(UserFactory)
 
@@ -56,9 +48,15 @@ class RasterEntryFactory(factory.django.DjangoModelFactory):
         instance.refresh_from_db()
 
 
-# TODO: add "geometries" and "rasters"
+class GeometryArchiveFactory(factory.django.DjangoModelFactory):
+    class Meta:
+        model = models.GeometryArchive
+
+    name = factory.Faker('sentence', nb_words=2)
+    file = factory.django.FileField(filename='sample.dat')
+    compute_checksum = True
+
+
 # https://factoryboy.readthedocs.io/en/latest/recipes.html#simple-many-to-many-relationship
-
-
 # For generating lat-lon coords, this may be helpful:
 # https://faker.readthedocs.io/en/latest/providers/faker.providers.geo.html
