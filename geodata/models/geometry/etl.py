@@ -70,7 +70,7 @@ def read_geometry_archive(archive_id):
         geometry_entry = geometry_query.first()
     else:
         # This should never happen because it is a foreign key
-        raise RuntimeError('multiple geometry entries found for this file.')
+        raise RuntimeError('multiple geometry entries found for this file.')  # pragma: no cover
 
     # geometry_entry.modifier = archive.modifier
 

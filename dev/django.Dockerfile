@@ -23,4 +23,4 @@ COPY ./requirements.txt /opt/django/requirements.txt
 WORKDIR /opt/django
 RUN pip install \
     -r requirements.txt \
-    tox
+    -e .[dev]

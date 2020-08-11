@@ -23,7 +23,7 @@ def task_read_image_file(file_id):
 
 
 @shared_task(time_limit=86400)
-def task_validate_geometry_archive(archive_id):
+def task_read_geometry_archive(archive_id):
     from .models.geometry.etl import GeometryArchive, read_geometry_archive
 
     archive = GeometryArchive.objects.get(id=archive_id)
