@@ -61,7 +61,7 @@ class GeometryEntriesListView(generic.ListView):
     def get_context_data(self, *args, **kwargs):
         # The returned query set is in self.object_list, not self.queryset
         context = super().get_context_data(*args, **kwargs)
-        context['extents'] = json.dumps(search.extant_summary(self.object_list))
+        # context['extents'] = json.dumps(search.extant_summary(self.object_list))
         return context
 
 
@@ -73,6 +73,7 @@ class GeospatialEntriesListView(generic.ListView):
     model = models.SpatialEntry
     context_object_name = 'geospatials'
     template_name = 'geodata/geospatial_entries.html'
+    # # template_name = 'geodata/spatialentry_detail.html'
 
     def get_queryset(self):
         # latitude, longitude, radius, time, timespan, and timefield
@@ -88,7 +89,7 @@ class GeospatialEntriesListView(generic.ListView):
     def get_context_data(self, *args, **kwargs):
         # The returned query set is in self.object_list, not self.queryset
         context = super().get_context_data(*args, **kwargs)
-        context['extents'] = json.dumps(search.extant_summary(self.object_list))
+        # context['extents'] = json.dumps(search.extant_summary(self.object_list))
         return context
 
 

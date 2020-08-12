@@ -3,17 +3,16 @@
   <article class="media content-section">
     <div class="media-body">
       <div class="article-metadata">
-        <small class="text-muted">Created: {{ object.created }}</small>
+        <small class="text-muted">Acquisition: {{ object.acquisition_date }}</small>
         <p/>
-        <small class="text-muted">Modified: {{ object.modified }}</small>
-      </div>
-
       <h2 class="article-title">
-        <span>{{ object.name }} ({{object.pk}})</span>
+        <span>({{object.pk}})</span>
       </h2>
       <hr/>
 
       <h3><span>Geospatial Metadata</span></h3>
+      <p class="article-content">Footprint: {{ object.footprint }}</p>
+      <p class="article-content">Outline: {{ object.outline }}</p>
 
     </div>
   </article>
