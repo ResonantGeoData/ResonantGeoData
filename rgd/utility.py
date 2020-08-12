@@ -69,12 +69,16 @@ class MultiPartJsonParser(parsers.MultiPartParser):
                 for val in value.split(','):
                     qdict.update({key: val.strip('"')})
             # Handle postgres Array field data, parses identical to ManytoMany
-            elif type(getattr(model, key)) == DeferredAttribute and isinstance(getattr(model, key).field, pg_fields.array.ArrayField):
+            elif type(getattr(model, key)) == DeferredAttribute and isinstance(
+                getattr(model, key).field, pg_fields.array.ArrayField
+            ):
                 print(key, value)
                 for val in value.split(','):
                     qdict.update({key: val.strip('"')})
             # Handle postgres JSON field data, dumps into JSON format
-            elif type(getattr(model, key)) == DeferredAttribute and isinstance(getattr(model, key).field, pg_fields.JSONField):
+            elif type(getattr(model, key)) == DeferredAttribute and isinstance(
+                getattr(model, key).field, pg_fields.JSONField
+            ):
                 qdict.update({key: json.dumps(value)})
             else:
                 qdict.update({key: value})
