@@ -1,7 +1,7 @@
 {% extends "base.html" %}
 {% block content %}
 
-<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/geojs/0.20.0/geo.min.js"></script>
+<!-- <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/geojs/0.20.0/geo.min.js"></script> -->
 
   <h1 class="article-title">
     <span>Geospatials</span>
@@ -11,9 +11,16 @@
   <form method="GET">
     Longitude (deg): <input type="text" name="longitude" value="{{ request.GET.longitude }}">
     Latitude (deg): <input type="text" name="latitude" value="{{ request.GET.latitude }}">
-    <br>
+    <br><br>
     Proximity (m): <input type="text" name="radius" value="{{ request.GET.radius }}">
+    <br><br>
+    Time (timespan)
+    <br><br>
+    Start Time: <input type="datetime-local" name="starttime" value="{{ request.GET.starttime }}">
+    End Time: <input type="datetime-local" name="endtime" value="{{ request.GET.endtime }}">
+    <br><br>
     <input class="button" type="submit" value="Filter">
+    <input class="button" type="reset" value="Reset">
   </form>
 
   <!-- <div id="map" style="width:100%;height:300px"></div> -->
@@ -22,12 +29,14 @@
     <thead class="thead-dark">
       <tr>
         <th>Name (ID)</th>
+        <th>Date</th>
       </tr>
     </thead>
     <tbody>
       {% for geospatial in geospatials %}
         <tr>
           <td><a href="{% url 'geospatial-entry-detail' geospatial.pk %}">({{ geospatial.spatial_id }})</a></td>
+          <td>{{ geospatial.acquisition_date }}</td>
         </tr>
       {% endfor %}
     </tbody>

@@ -11,9 +11,23 @@
   <form method="GET">
     Longitude (deg): <input type="text" name="longitude" value="{{ request.GET.longitude }}">
     Latitude (deg): <input type="text" name="latitude" value="{{ request.GET.latitude }}">
-    <br>
+    <br><br>
     Proximity (m): <input type="text" name="radius" value="{{ request.GET.radius }}">
+    <br><br>
+    Time (timespan)
+    <br><br>
+    Timefield:
+      <select name="timefield" id="timefield" class="timefield">
+        <option value="acquisition">Acquisition</option>
+        <option value="created">Created</option>
+        <option value="modified">Modified</option>
+      </select>
+    <br><br>
+    Start Time: <input type="datetime-local" name="starttime" value="{{ request.GET.starttime }}">
+    End Time: <input type="datetime-local" name="endtime" value="{{ request.GET.endtime }}">
+    <br><br>
     <input class="button" type="submit" value="Filter">
+    <input class="button" type="reset" value="Reset">
   </form>
 
 
@@ -21,12 +35,18 @@
     <thead class="thead-dark">
       <tr>
         <th>Name (ID)</th>
+        <th>Date</th>
+        <th>Created</th>
+        <th>Modified</th>
       </tr>
     </thead>
     <tbody>
       {% for geometry in geometries %}
         <tr>
           <td><a href="{% url 'geometry-entry-detail' geometry.pk %}">{{ geometry.name }} ({{ geometry.id }})</a></td>
+          <td>{{ geometry.acquisition_date }}</td>
+          <td>{{ geometry.created }}</td>
+          <td>{{ geometry.modified }}</td>
         </tr>
       {% endfor %}
     </tbody>
