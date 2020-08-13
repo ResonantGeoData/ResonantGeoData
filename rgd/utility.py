@@ -6,7 +6,6 @@ import shutil
 import tempfile
 from typing import Generator
 
-from django.contrib.gis.db import models as base_models
 from django.core.files import File
 from django.db.models import fields
 from django.db.models.fields import AutoField
@@ -83,6 +82,8 @@ def create_serializer(model, fields=None):
 
 def create_serializers(models_file, fields=None):
     """Return list of serializer classes from all of the models in the given file."""
+    from django.contrib.gis.db import models as base_models
+
     serializers = []
     for model_name, model in inspect.getmembers(models_file):
         if inspect.isclass(model):
@@ -136,6 +137,8 @@ def make_serializers(serializer_scope, models):
     :param serializer_scope: the scope where serializers on the models are defined.  In a serializers.py file, this will be globals().
     :param models: a namespace with defined models for which to create serializers.  This can be a models module.
     """
+    from django.contrib.gis.db import models as base_models
+
     for _model_name, model in inspect.getmembers(models):
         if not inspect.isclass(model):
             continue
