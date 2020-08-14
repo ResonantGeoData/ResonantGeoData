@@ -163,13 +163,13 @@ class DisableS3FileFieldUploadsConfig(ConfigMixin):
     def post_setup(cls):
         super().post_setup()
 
-        import s3_file_field.configuration
+        import s3_file_field.constants
 
-        s3_file_field.configuration.get_storage_provider = (
-            lambda: s3_file_field.configuration.StorageProvider.UNSUPPORTED
+        s3_file_field.constants.get_storage_provider = (
+            lambda: s3_file_field.constants.StorageProvider.UNSUPPORTED
         )
         s3_file_field.settings._S3FF_STORAGE_PROVIDER = (
-            s3_file_field.configuration.StorageProvider.UNSUPPORTED
+            s3_file_field.constants.StorageProvider.UNSUPPORTED
         )
         s3_file_field.settings._S3FF_ENDPOINT = None
 
@@ -183,6 +183,8 @@ class DevelopmentConfiguration(
 class TestingConfiguration(RgdConfig, TestingBaseConfiguration):
     MINIO_STORAGE_MEDIA_BUCKET_NAME = 'test-django-storage'
     S3FF_UPLOAD_STS_ARN = None
+    CELERY_TASK_ALWAYS_EAGER = True
+    CELERY_TASK_EAGER_PROPAGATES = True
 
 
 class ProductionConfiguration(RgdConfig, ProductionBaseConfiguration):
