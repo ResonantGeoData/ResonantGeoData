@@ -163,13 +163,13 @@ class DisableS3FileFieldUploadsConfig(ConfigMixin):
     def post_setup(cls):
         super().post_setup()
 
-        import s3_file_field.configuration
+        import s3_file_field.constants
 
-        s3_file_field.configuration.get_storage_provider = (
-            lambda: s3_file_field.configuration.StorageProvider.UNSUPPORTED
+        s3_file_field.constants.get_storage_provider = (
+            lambda: s3_file_field.constants.StorageProvider.UNSUPPORTED
         )
         s3_file_field.settings._S3FF_STORAGE_PROVIDER = (
-            s3_file_field.configuration.StorageProvider.UNSUPPORTED
+            s3_file_field.constants.StorageProvider.UNSUPPORTED
         )
         s3_file_field.settings._S3FF_ENDPOINT = None
 
