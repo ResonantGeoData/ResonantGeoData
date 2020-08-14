@@ -43,6 +43,8 @@ setup(
         'fiona',
         'shapely',
         'scipy',
+        'kwcoco',
+        'kwimage',
     ],
     extras_require={'dev': ['ipython', 'tox']},
 )

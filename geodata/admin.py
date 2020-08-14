@@ -2,11 +2,13 @@ from django.contrib import admin
 from django.contrib.gis.admin import OSMGeoAdmin
 
 from rgd.utility import _link_url
+from .models.common import ArbitraryFile
 from .models.geometry.base import GeometryArchive, GeometryEntry
-from .models.imagery.annotation import Annotation
+from .models.imagery.annotation import Annotation, Segmentation
 from .models.imagery.base import (
     BandMetaEntry,
     ConvertedImageFile,
+    KWCOCODataset,
     ImageEntry,
     ImageSet,
     RasterEntry,
@@ -18,6 +20,22 @@ SPATIAL_ENTRY_FILTERS = (
     'acquisition_date',
     'modified',
 )
+
+
+@admin.register(ArbitraryFile)
+class ArbitraryFileAdmin(OSMGeoAdmin):
+    list_display = (
+        'id',
+        'name',
+    )
+
+
+@admin.register(KWCOCODataset)
+class KWCOCODatasetAdmin(OSMGeoAdmin):
+    list_display = (
+        'id',
+        'name',
+    )
 
 
 @admin.register(ImageSet)
@@ -101,6 +119,11 @@ class BandMetaEntryAdmin(OSMGeoAdmin):
         'interpretation',
         'dtype',
     )
+
+
+@admin.register(Segmentation)
+class SegmentationAdmin(OSMGeoAdmin):
+    list_display = ('id',)
 
 
 @admin.register(Annotation)

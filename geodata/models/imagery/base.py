@@ -9,7 +9,7 @@ from django.dispatch import receiver
 from s3_file_field import S3FileField
 
 from .ifiles import ImageFile
-from ..common import ChecksumFile, ModifiableEntry, SpatialEntry
+from ..common import ArbitraryFile, ChecksumFile, ModifiableEntry, SpatialEntry
 from ..mixins import TaskEventMixin
 from ... import tasks
 
@@ -103,6 +103,11 @@ class RasterEntry(ImageSet, SpatialEntry, TaskEventMixin):
     failure_reason = models.TextField(null=True, blank=True)
 
 
+@receiver(post_save, sender=RasterEntry)
+def _post_save_raster_entry(sender, instance, *args, **kwargs):
+    transaction.on_commit(lambda: instance._on_commit_event_task(*args, **kwargs))
+
+
 class BandMetaEntry(ModifiableEntry):
     """A basic container to keep track of useful band info."""
 
@@ -129,6 +134,34 @@ class ConvertedImageFile(ChecksumFile):
     source_image = models.ForeignKey(ImageEntry, on_delete=models.CASCADE)
 
 
-@receiver(post_save, sender=RasterEntry)
-def _post_save_raster_entry(sender, instance, *args, **kwargs):
+class KWCOCODataset(ModifiableEntry, TaskEventMixin):
+    """A container for holding imported KWCOCO datasets.
+
+    User must upload a JSON file of the KWCOCO meta info and an optional
+    archive of images - optional because images can come from URLs instead of
+    files.
+
+    """
+
+    task_func = tasks.task_load_kwcoco_dataset
+    name = models.CharField(max_length=100, blank=True, null=True)
+    failure_reason = models.TextField(null=True, blank=True)
+    spec_file = models.ForeignKey(
+        ArbitraryFile,
+        on_delete=models.CASCADE,
+        related_name='kwcoco_spec_file',
+        help_text='The JSON spec file.',
+    )
+    image_archive = models.ForeignKey(
+        ArbitraryFile,
+        null=True,
+        on_delete=models.CASCADE,
+        related_name='kwcoco_image_archive',
+        help_text='An archive (.tar or .zip) of the images referenced by the spec file (optional).',
+    )
+    # TODO: do we want a way to track the images, ImageSet, or should this be an ImageSet??
+
+
+@receiver(post_save, sender=KWCOCODataset)
+def _post_save_kwcoco_dataset(sender, instance, *args, **kwargs):
     transaction.on_commit(lambda: instance._on_commit_event_task(*args, **kwargs))
