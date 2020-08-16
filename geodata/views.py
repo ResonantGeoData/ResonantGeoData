@@ -1,3 +1,4 @@
+import datetime
 import json
 import os
 
@@ -23,14 +24,14 @@ class RasterEntriesListView(generic.ListView):
 
     def get_queryset(self):
         # latitude, longitude, radius, time, timespan, and timefield
-        search_params = {'timespan': 0}
+        search_params = {}
         time_params = {}
-        for key in {'longitude', 'latitude', 'radius', 'starttime', 'endtime', 'timefield'}:
+        for key in {'longitude', 'latitude', 'radius', 'startdate', 'enddate', 'starttime', 'endtime', 'timefield'}:
             if self.request.GET.get(key):
                 try:
-                    if key == 'starttime':
+                    if key == 'startdate' or key == 'enddate':
                         time_params[key] = parser.parse(self.request.GET.get(key))
-                    elif key == 'endtime':
+                    elif key == 'starttime' or key == 'endtime':
                         time_params[key] = parser.parse(self.request.GET.get(key))
                     elif key == 'timefield':
                         search_params[key] = self.request.GET.get(key)
@@ -39,14 +40,10 @@ class RasterEntriesListView(generic.ListView):
                 except ValueError:
                     pass
 
-        if 'starttime' in time_params and 'endtime' in time_params:
-            diff = (time_params['endtime'] - time_params['starttime']) / 2
-            search_params['time'] = (time_params['starttime'] + diff).isoformat()
-            search_params['timespan'] = diff.total_seconds()
-        elif 'starttime' in time_params:
-            search_params['time'] = time_params['starttime'].isoformat()
-        elif 'endtime' in time_params:
-            search_params['time'] = time_params['endtime'].isoformat()
+        time, diff = parse_time_params(time_params)
+        if time:
+            search_params['time'] = time
+            search_params['timespan'] = diff
 
         return self.model.objects.filter(search.search_near_point_filter(search_params))
 
@@ -88,3 +85,39 @@ def download_file(request, model, id, field):
     if len(file) is not None:
         response['Content-Length'] = len(file)
     return response
+
+
+def parse_time_params(time_params):
+    start = None
+    end = None
+    if 'startdate' in time_params:
+        start = time_params['startdate']
+    if 'starttime' in time_params:
+        if start:
+            start = start.replace(hour=time_params['starttime'].hour, minute=time_params['starttime'].minute)
+        else:
+            start = time_params['starttime']
+
+    if 'enddate' in time_params:
+        end = time_params['enddate']
+    if 'endtime' in time_params:
+        if end:
+            end = end.replace(hour=time_params['endtime'].hour, minute=time_params['endtime'].minute)
+        elif start:
+            end = start.replace(hour=time_params['endtime'].hour, minute=time_params['endtime'].minute)
+        else:
+            end = time_params['endtime']
+            
+    if start and end:
+        diff = (end - start) / 2
+        time = (start + diff).isoformat()
+    elif start:
+        next_day = datetime.datetime(start.year, start.month, start.day) + datetime.timedelta(days=1)
+        diff = (next_day - start) / 2
+        time = (start + diff).isoformat()
+    elif end:
+        past_day = datetime.datetime(end.year, end.month, end.day)
+        diff = (end - past_day) / 2
+        time = (end - diff).isoformat()
+
+    return (time, diff.total_seconds())
