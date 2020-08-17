@@ -1,4 +1,5 @@
 from contextlib import contextmanager
+import datetime
 import hashlib
 import inspect
 from pathlib import Path, PurePath
@@ -48,6 +49,56 @@ def _link_url(root, name, obj, field):
     if '//minio:' in url:
         url = '/api/%s/download/%s/%s/%s' % (root, name, obj.id, field)
     return mark_safe('<a href="%s" download>Download</a>' % (url,))
+
+
+def parse_time_params(time_params):
+    start, end = None, None
+    time, diff = None, None
+
+    if 'startdate' in time_params:
+        start = time_params['startdate']
+    if 'starttime' in time_params:
+        if start:
+            start = start.replace(
+                hour=time_params['starttime'].hour, minute=time_params['starttime'].minute
+            )
+        else:
+            # Defaults to current day if no date is given
+            start = time_params['starttime']
+
+    if 'enddate' in time_params:
+        end = time_params['enddate']
+    if 'endtime' in time_params:
+        if end:
+            end = end.replace(
+                hour=time_params['endtime'].hour, minute=time_params['endtime'].minute
+            )
+        elif start:
+            # Takes start's date if given
+            end = start.replace(
+                hour=time_params['endtime'].hour, minute=time_params['endtime'].minute
+            )
+        else:
+            # Defaults to current day if no date is given
+            end = time_params['endtime']
+
+    if start and end:
+        diff = (end - start) / 2
+        time = start + diff
+    elif start:
+        # Spans from start datetime given to end of given day
+        next_day = datetime.datetime(start.year, start.month, start.day) + datetime.timedelta(
+            days=1
+        )
+        diff = (next_day - start) / 2
+        time = start + diff
+    elif end:
+        # Spans from the start of the given day to end datetime
+        past_day = datetime.datetime(end.year, end.month, end.day)
+        diff = (end - past_day) / 2
+        time = end - diff
+
+    return (time, diff)
 
 
 class MultiPartJsonParser(parsers.MultiPartParser):

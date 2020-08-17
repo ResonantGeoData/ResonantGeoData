@@ -136,7 +136,9 @@ div.tooltip {
   };
 
   var field = getTimefield(window.location.href);
-  document.getElementById('timefield').value = field;
+  if (field != null) {
+    document.getElementById('timefield').value = field;
+  }
 
   data = []
   {% for raster in rasters %}
