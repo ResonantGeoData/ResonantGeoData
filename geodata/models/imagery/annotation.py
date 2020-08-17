@@ -38,6 +38,7 @@ class Segmentation(models.Model):
     The segmentation is stored in child class as the ``feature`` attribute.
 
     """
+
     annotation = models.OneToOneField(Annotation, on_delete=models.CASCADE)
 
     # COCO bounding box format is [top left x position, top left y position, width, height]

@@ -11,14 +11,13 @@ class Migration(migrations.Migration):
     ]
 
     operations = [
-        migrations.RemoveField(
-            model_name='annotation',
-            name='segmentation',
-        ),
+        migrations.RemoveField(model_name='annotation', name='segmentation',),
         migrations.AddField(
             model_name='segmentation',
             name='annotation',
-            field=models.OneToOneField(default=None, on_delete=django.db.models.deletion.CASCADE, to='geodata.annotation'),
+            field=models.OneToOneField(
+                default=None, on_delete=django.db.models.deletion.CASCADE, to='geodata.annotation'
+            ),
             preserve_default=False,
         ),
     ]
