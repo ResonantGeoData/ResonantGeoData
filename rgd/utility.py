@@ -99,7 +99,7 @@ def create_serializer(model, fields=None):
 def create_serializers(models_file, fields=None):
     """Return list of serializer classes from all of the models in the given file."""
     from django.contrib.gis.db import models as base_models
-    
+
     serializers = []
     for model_name, model in inspect.getmembers(models_file):
         if inspect.isclass(model):
