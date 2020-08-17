@@ -305,7 +305,7 @@ def populate_raster_entry(raster_id):
     return True
 
 
-def _fill_annotation_from_json(annotation_entry, ann_json):
+def _fill_annotation_segmentation(annotation_entry, ann_json):
     """For converting KWCOCO annotation JSON to an Annotation entry."""
     if 'keypoints' in ann_json:
         # populate keypoints - ignore 3rd value visibility
@@ -321,15 +321,15 @@ def _fill_annotation_from_json(annotation_entry, ann_json):
         logger.info(f'The line: {points}')
         annotation_entry.line = LineString(*[(pt[0], pt[1]) for pt in points], srid=0)
     # Add a segmentation
-    seg_entry = None
+    segmentation = None
     if 'segmentation' in ann_json:
         sseg = kwimage.Segmentation.coerce(ann_json['segmentation']).data
         if isinstance(sseg, kwimage.Mask):
-            seg_entry = RLESegmentation()
+            segmentation = RLESegmentation()
             mask = sseg.to_c_mask().data
             ...  # TODO: use helpers in RLESegmentation class
         else:
-            seg_entry = PolygonSegmentation()
+            segmentation = PolygonSegmentation()
             polys = []
             multipoly = sseg.to_multi_polygon()
             for poly in multipoly.data:
@@ -337,10 +337,10 @@ def _fill_annotation_from_json(annotation_entry, ann_json):
                 # Close the loop
                 poly_xys = np.append(poly_xys, poly_xys[0][None], axis=0)
                 polys.append(Polygon(poly_xys, srid=0))
-            seg_entry.feature = MultiPolygon(*polys)
+            segmentation.feature = MultiPolygon(*polys)
     if 'bbox' in ann_json:
-        if not seg_entry:
-            seg_entry = Segmentation()  # Simple outline segmentation
+        if not segmentation:
+            segmentation = Segmentation()  # Simple outline segmentation
         # defined as (x, y, width, height)
         x0, y0, w, h = np.array(ann_json['bbox'])
         points = [
@@ -350,13 +350,18 @@ def _fill_annotation_from_json(annotation_entry, ann_json):
             [x0 + w, y0],
             [x0, y0],  # close the loop
         ]
-        seg_entry.outline = Polygon(points, srid=0)
+        segmentation.outline = Polygon(points, srid=0)
+    # Save if a segmentation is used
+    if segmentation:
+        segmentation.annotation = annotation_entry
+        segmentation.save()
     return
 
 
 def load_kwcoco_dataset(kwcoco_dataset_id):
     logger.info('Starting KWCOCO ETL routine')
     ds_entry = KWCOCOArchive.objects.get(id=kwcoco_dataset_id)
+    ds_entry.failure_reason = ''
 
     # TODO: add a setting like this:
     workdir = getattr(settings, 'GEODATA_WORKDIR', None)
@@ -371,7 +376,7 @@ def load_kwcoco_dataset(kwcoco_dataset_id):
     ds_entry.image_set.name = ds_entry.name
     ds_entry.image_set.save()
     ds_entry.save(
-        update_fields=['image_set',]  # noqa: E231
+        update_fields=['image_set', 'failure_reason',]  # noqa: E231
     )
 
     img_root = None
@@ -424,11 +429,7 @@ def load_kwcoco_dataset(kwcoco_dataset_id):
                 annotation_entry.label = ds.cats[ann['category_id']]['name']
                 # annotation_entry.annotator =
                 # annotation_entry.notes =
-                _fill_annotation_from_json(annotation_entry, ann)
                 annotation_entry.save()
-    ds_entry.failure_reason = ''
-    ds_entry.save(
-        update_fields=['failure_reason',]  # noqa: E231
-    )
+                _fill_annotation_segmentation(annotation_entry, ann)
     logger.info('Done with KWCOCO ETL routine')
     return

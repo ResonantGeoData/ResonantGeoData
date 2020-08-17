@@ -8,6 +8,20 @@ from .base import ImageEntry
 from ..common import ModifiableEntry
 
 
+class Annotation(ModifiableEntry):
+    """Image annotation/label for ``ImageEntry``."""
+
+    image = models.ForeignKey(ImageEntry, on_delete=models.CASCADE)
+
+    caption = models.CharField(max_length=100, blank=True, null=True)
+    label = models.CharField(max_length=100, blank=True, null=True)
+    annotator = models.CharField(max_length=100, blank=True, null=True)
+    notes = models.TextField(null=True, blank=True)
+
+    keypoints = models.MultiPointField(null=True, srid=0)
+    line = models.LineStringField(null=True, srid=0)
+
+
 class Segmentation(models.Model):
     """A base class for segmentations as there are different kinds.
 
@@ -24,6 +38,7 @@ class Segmentation(models.Model):
     The segmentation is stored in child class as the ``feature`` attribute.
 
     """
+    annotation = models.OneToOneField(Annotation, on_delete=models.CASCADE)
 
     # COCO bounding box format is [top left x position, top left y position, width, height]
     # This should come from the COCO format rather than be autopopulated by us
@@ -93,18 +108,3 @@ class RLESegmentation(Segmentation):
                 counts.append(0)
             counts.append(len(list(elements)))
         return rle
-
-
-class Annotation(ModifiableEntry):
-    """Image annotation/label for ``ImageEntry``."""
-
-    image = models.ForeignKey(ImageEntry, on_delete=models.CASCADE)
-
-    caption = models.CharField(max_length=100, blank=True, null=True)
-    label = models.CharField(max_length=100, blank=True, null=True)
-    annotator = models.CharField(max_length=100, blank=True, null=True)
-    notes = models.TextField(null=True, blank=True)
-
-    segmentation = models.OneToOneField(Segmentation, null=True, on_delete=models.CASCADE)
-    keypoints = models.MultiPointField(null=True, srid=0)
-    line = models.LineStringField(null=True, srid=0)
