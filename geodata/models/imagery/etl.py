@@ -370,7 +370,9 @@ def load_kwcoco_dataset(kwcoco_dataset_id):
         ds_entry.image_set = ImageSet()
     ds_entry.image_set.name = ds_entry.name
     ds_entry.image_set.save()
-    ds_entry.save(update_fields=['image_set',])
+    ds_entry.save(
+        update_fields=['image_set',]  # noqa: E231
+    )
 
     img_root = None
 
@@ -425,6 +427,8 @@ def load_kwcoco_dataset(kwcoco_dataset_id):
                 _fill_annotation_from_json(annotation_entry, ann)
                 annotation_entry.save()
     ds_entry.failure_reason = ''
-    ds_entry.save(update_fields=['failure_reason',])
+    ds_entry.save(
+        update_fields=['failure_reason',]  # noqa: E231
+    )
     logger.info('Done with KWCOCO ETL routine')
     return

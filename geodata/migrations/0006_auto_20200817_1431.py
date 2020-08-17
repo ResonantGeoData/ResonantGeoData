@@ -10,8 +10,5 @@ class Migration(migrations.Migration):
     ]
 
     operations = [
-        migrations.RenameModel(
-            old_name='KWCOCODataset',
-            new_name='KWCOCOArchive',
-        ),
+        migrations.RenameModel(old_name='KWCOCODataset', new_name='KWCOCOArchive',),
     ]

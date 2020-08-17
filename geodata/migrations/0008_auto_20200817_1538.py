@@ -14,6 +14,8 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name='kwcocoarchive',
             name='image_set',
-            field=models.ForeignKey(null=True, on_delete=django.db.models.deletion.DO_NOTHING, to='geodata.imageset'),
+            field=models.ForeignKey(
+                null=True, on_delete=django.db.models.deletion.DO_NOTHING, to='geodata.imageset'
+            ),
         ),
     ]

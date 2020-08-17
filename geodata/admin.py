@@ -8,9 +8,9 @@ from .models.imagery.annotation import Annotation, Segmentation
 from .models.imagery.base import (
     BandMetaEntry,
     ConvertedImageFile,
-    KWCOCOArchive,
     ImageEntry,
     ImageSet,
+    KWCOCOArchive,
     RasterEntry,
 )
 from .models.imagery.ifiles import ImageFile
@@ -36,9 +36,7 @@ class KWCOCOArchiveAdmin(OSMGeoAdmin):
         'id',
         'name',
     )
-    readonly_fields = (
-        'image_set',
-    )
+    readonly_fields = ('image_set',)
 
 
 @admin.register(ImageSet)

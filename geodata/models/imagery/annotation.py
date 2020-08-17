@@ -1,6 +1,7 @@
+from itertools import groupby
+
 from django.contrib.gis.db import models
 from django.contrib.gis.gdal import GDALRaster
-from itertools import groupby
 import numpy as np
 
 from .base import ImageEntry
@@ -71,11 +72,11 @@ class RLESegmentation(Segmentation):
             flag = not flag
         rst = GDALRaster(
             {
-                "width": width,
-                "height": height,
-                "srid": 0,
-                "origin": [0, 0],
-                "bands": [{"data": mask, "nodata_value": 0}],
+                'width': width,
+                'height': height,
+                'srid': 0,
+                'origin': [0, 0],
+                'bands': [{'data': mask, 'nodata_value': 0}],
             }
         )
         self.feature = rst

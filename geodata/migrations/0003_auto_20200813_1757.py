@@ -39,7 +39,7 @@ class Migration(migrations.Migration):
                     s3_file_field.fields.S3FileField(max_length=2000, upload_to='files/arbitrary/'),
                 ),
             ],
-            options={'abstract': False,},
+            options={'abstract': False},
             bases=('geodata.modifiableentry',),
         ),
         migrations.CreateModel(
