@@ -64,3 +64,17 @@ def test_multi_file_raster():
     )
     assert raster.count == 3
     assert raster.crs is not None
+
+
+@pytest.mark.django_db(transaction=True)
+def test_kwcoco_demo():
+    f_image_archive = 'demodata.zip'
+    f_spec_file = 'demo.kwcoco.json'
+
+    kwds = factories.KWCOCOArchiveFactory(
+        image_archive__file__filename=f_image_archive,
+        image_archive__file__from_path=datastore.fetch(f_image_archive),
+        spec_file__file__filename=f_spec_file,
+        spec_file__file__from_path=datastore.fetch(f_spec_file),
+    )
+    assert kwds.image_set.count == 3

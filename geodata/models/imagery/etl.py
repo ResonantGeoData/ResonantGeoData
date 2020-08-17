@@ -20,7 +20,7 @@ from .base import (
     ConvertedImageFile,
     ImageEntry,
     ImageSet,
-    KWCOCODataset,
+    KWCOCOArchive,
     RasterEntry,
 )
 from .ifiles import ImageFile
@@ -356,13 +356,22 @@ def _fill_annotation_from_json(annotation_entry, ann_json):
 
 def load_kwcoco_dataset(kwcoco_dataset_id):
     logger.info('Starting KWCOCO ETL routine')
-    ds_entry = KWCOCODataset.objects.get(id=kwcoco_dataset_id)
+    ds_entry = KWCOCOArchive.objects.get(id=kwcoco_dataset_id)
 
     # TODO: add a setting like this:
     workdir = getattr(settings, 'GEODATA_WORKDIR', None)
     tmpdir = tempfile.mkdtemp(dir=workdir)
 
-    # image_set = ImageSet()
+    if ds_entry.image_set:
+        # Delete all previously existing data
+        # This should cascade to all the annotations
+        ds_entry.image_set.images.all().delete()
+    else:
+        ds_entry.image_set = ImageSet()
+    ds_entry.image_set.name = ds_entry.name
+    ds_entry.image_set.save()
+    ds_entry.save(update_fields=['image_set',])
+
     img_root = None
 
     # Unarchive the images locally so we can import them when loading the spec
@@ -402,9 +411,10 @@ def load_kwcoco_dataset(kwcoco_dataset_id):
             image_entry = ImageEntry()
             image_file_path = os.path.join(ds.img_root, img['file_name'])
             _read_image_to_entry(image_entry, image_file_path)
+            image_entry.name = os.path.basename(image_file_path)
             image_entry.save()
             # Add ImageEntry to ImageSet
-            # image_set.images.append(image_entry)
+            ds_entry.image_set.images.add(image_entry)
             # Create annotations that link to that ImageEntry
             for ann in anns:
                 annotation_entry = Annotation()
@@ -415,5 +425,6 @@ def load_kwcoco_dataset(kwcoco_dataset_id):
                 _fill_annotation_from_json(annotation_entry, ann)
                 annotation_entry.save()
     ds_entry.failure_reason = ''
+    ds_entry.save(update_fields=['failure_reason',])
     logger.info('Done with KWCOCO ETL routine')
     return

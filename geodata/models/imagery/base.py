@@ -134,7 +134,7 @@ class ConvertedImageFile(ChecksumFile):
     source_image = models.ForeignKey(ImageEntry, on_delete=models.CASCADE)
 
 
-class KWCOCODataset(ModifiableEntry, TaskEventMixin):
+class KWCOCOArchive(ModifiableEntry, TaskEventMixin):
     """A container for holding imported KWCOCO datasets.
 
     User must upload a JSON file of the KWCOCO meta info and an optional
@@ -159,9 +159,9 @@ class KWCOCODataset(ModifiableEntry, TaskEventMixin):
         related_name='kwcoco_image_archive',
         help_text='An archive (.tar or .zip) of the images referenced by the spec file (optional).',
     )
-    # TODO: do we want a way to track the images, ImageSet, or should this be an ImageSet??
+    image_set = models.ForeignKey(ImageSet, on_delete=models.DO_NOTHING, null=True)
 
 
-@receiver(post_save, sender=KWCOCODataset)
+@receiver(post_save, sender=KWCOCOArchive)
 def _post_save_kwcoco_dataset(sender, instance, *args, **kwargs):
     transaction.on_commit(lambda: instance._on_commit_event_task(*args, **kwargs))
