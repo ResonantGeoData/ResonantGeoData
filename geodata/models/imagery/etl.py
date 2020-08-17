@@ -326,7 +326,7 @@ def _fill_annotation_segmentation(annotation_entry, ann_json):
         sseg = kwimage.Segmentation.coerce(ann_json['segmentation']).data
         if isinstance(sseg, kwimage.Mask):
             segmentation = RLESegmentation()
-            # segmentation._from_rle(ann_json['segmentation'])
+            segmentation._from_rle(ann_json['segmentation'])
         else:
             segmentation = PolygonSegmentation()
             polys = []

@@ -81,18 +81,20 @@ class RLESegmentation(Segmentation):
         width, height = rle['size']
         mask = np.zeros((width, height), dtype=np.uint8).ravel()
         current = 0
-        flag = False
+        flag = int(False)
         for count in counts:
             mask[current : current + count] = flag
             current += count
-            flag = not flag
+            flag = int(not flag)
         rst = GDALRaster(
             {
                 'width': width,
                 'height': height,
                 'srid': 0,
                 'origin': [0, 0],
-                'bands': [{'data': mask, 'nodata_value': 0}],
+                # According to django docs, this should work... but it doesn't
+                # See: https://docs.djangoproject.com/en/3.1/ref/contrib/gis/gdal/#django.contrib.gis.gdal.GDALRaster
+                'bands': [{'data': mask.tolist(), 'nodata_value': 0}],
             }
         )
         self.feature = rst
