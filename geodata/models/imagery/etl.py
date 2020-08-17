@@ -326,8 +326,7 @@ def _fill_annotation_segmentation(annotation_entry, ann_json):
         sseg = kwimage.Segmentation.coerce(ann_json['segmentation']).data
         if isinstance(sseg, kwimage.Mask):
             segmentation = RLESegmentation()
-            mask = sseg.to_c_mask().data
-            ...  # TODO: use helpers in RLESegmentation class
+            # segmentation._from_rle(ann_json['segmentation'])
         else:
             segmentation = PolygonSegmentation()
             polys = []
@@ -379,8 +378,6 @@ def load_kwcoco_dataset(kwcoco_dataset_id):
         update_fields=['image_set', 'failure_reason',]  # noqa: E231
     )
 
-    img_root = None
-
     # Unarchive the images locally so we can import them when loading the spec
     # Images could come from a URL, so this is optional
     if ds_entry.image_archive:
@@ -390,13 +387,7 @@ def load_kwcoco_dataset(kwcoco_dataset_id):
             # Unzip the contents to the working dir
             with zipfile.ZipFile(file_path, 'r') as zip_ref:
                 zip_ref.extractall(tmpdir)
-            contents = os.listdir(tmpdir)
-            if len(contents) > 1:
-                raise ValueError(
-                    'The archive extracted too many subdirs - should be only one. We can fix this down the road.'
-                )
-            img_root = os.path.join(tmpdir, contents[0])
-            logger.info(f'The extracted KWCOCO image archive: {img_root}')
+            logger.info(f'The extracted KWCOCO image archive: {tmpdir}')
     else:
         pass
         # TODO: how should we download data from specified URLs?
@@ -406,8 +397,7 @@ def load_kwcoco_dataset(kwcoco_dataset_id):
         ds = kwcoco.CocoDataset(str(file_path))
         # Set the root dir to where the images were extracted / the temp dir
         # If images are coming from URL, they will download to here
-        if img_root:
-            ds.img_root = img_root
+        ds.img_root = tmpdir
         # Iterate over images and create an ImageEntry from them.
         # Any images in the archive that aren't listed in the JSON will be deleted
         for imgid in ds.imgs.keys():
