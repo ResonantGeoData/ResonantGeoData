@@ -78,3 +78,5 @@ def test_kwcoco_demo():
         spec_file__file__from_path=datastore.fetch(f_spec_file),
     )
     assert kwds.image_set.count == 3
+    annotations = [a for anns in kwds.image_set.get_all_annotations().values() for a in anns]
+    assert len(annotations) == 11

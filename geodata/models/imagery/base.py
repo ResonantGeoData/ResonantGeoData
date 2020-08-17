@@ -68,6 +68,12 @@ class ImageSet(ModifiableEntry):
     def count(self):
         return self.images.count()
 
+    def get_all_annotations(self):
+        annots = {}
+        for image in self.images.all():
+            annots[image.pk] = image.annotation_set.all()
+        return annots
+
 
 @receiver(m2m_changed, sender=ImageSet.images.through)
 def _m2m_changed_image_set(sender, instance, action, reverse, *args, **kwargs):
