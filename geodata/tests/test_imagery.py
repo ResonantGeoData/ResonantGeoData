@@ -1,5 +1,6 @@
 import pytest
 
+from geodata.models.imagery.annotation import RLESegmentation
 from geodata.models.imagery.etl import populate_image_entry
 from . import factories
 from .datastore import datastore
@@ -20,11 +21,6 @@ LandsatFiles = [
     'LC08_L1TP_034032_20200429_20200509_01_T1_sr_band1.tif',
     'LC08_L1TP_034032_20200429_20200509_01_T1_sr_band2.tif',
     'LC08_L1TP_034032_20200429_20200509_01_T1_sr_band3.tif',
-]
-
-KWCOCO_DEMOS = [
-    {'archive': 'demodata.zip', 'spec': 'demo.kwcoco.json', 'n_images': 3, 'n_annotations': 11},
-    {'archive': 'demo_rle.zip', 'spec': 'demo_rle.kwcoco.json', 'n_images': 2, 'n_annotations': 15},
 ]
 
 
@@ -71,9 +67,7 @@ def test_multi_file_raster():
     assert raster.crs is not None
 
 
-@pytest.mark.parametrize('demo', KWCOCO_DEMOS)
-@pytest.mark.django_db(transaction=True)
-def test_kwcoco_demo(demo):
+def _run_kwcoco_import(demo):
     f_image_archive = demo['archive']
     f_spec_file = demo['spec']
 
@@ -83,6 +77,48 @@ def test_kwcoco_demo(demo):
         spec_file__file__filename=f_spec_file,
         spec_file__file__from_path=datastore.fetch(f_spec_file),
     )
+    return kwds
+
+
+@pytest.mark.django_db(transaction=True)
+def test_kwcoco_basic_demo():
+    demo = {
+        'archive': 'demodata.zip',
+        'spec': 'demo.kwcoco.json',
+        'n_images': 3,
+        'n_annotations': 11,
+    }
+
+    kwds = _run_kwcoco_import(demo)
     assert kwds.image_set.count == demo['n_images']
     annotations = [a for anns in kwds.image_set.get_all_annotations().values() for a in anns]
     assert len(annotations) == demo['n_annotations']
+
+
+@pytest.mark.django_db(transaction=True)
+def test_kwcoco_rle_demo():
+    demo = {
+        'archive': 'demo_rle.zip',
+        'spec': 'demo_rle.kwcoco.json',
+        'n_images': 2,
+        'n_annotations': 15,
+    }
+
+    kwds = _run_kwcoco_import(demo)
+    assert kwds.image_set.count == demo['n_images']
+    annotations = [a for anns in kwds.image_set.get_all_annotations().values() for a in anns]
+    assert len(annotations) == demo['n_annotations']
+
+    # Test the RLESegmentation methods
+    seg = RLESegmentation.objects.all().first()
+    image = seg.annotation.image
+    assert seg.width == image.width
+    assert seg.height == image.height
+
+    rle = seg.to_rle()
+    assert 'counts' in rle
+    assert 'size' in rle
+    assert rle['size'] == [seg.height, seg.width]
+
+    mask = seg.to_mask()
+    assert mask.shape == (seg.height, seg.width)

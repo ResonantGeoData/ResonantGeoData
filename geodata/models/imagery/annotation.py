@@ -1,7 +1,7 @@
-from itertools import groupby
+import base64
+import pickle
 
 from django.contrib.gis.db import models
-from django.contrib.gis.gdal import GDALRaster
 import numpy as np
 
 from .base import ImageEntry
@@ -63,14 +63,26 @@ class RLESegmentation(Segmentation):
     """run-length-encoded (RLE) segmentation.
 
     A bit mask of the entire image to label one thing (or a crowd of that
-    thing). We will treat this as a raster overlain the image.
+    thing). The RLE array is stored as a binary blob.
 
     """
 
-    feature = models.RasterField(srid=0, null=True)
+    blob = models.BinaryField()
+    height = models.PositiveIntegerField()
+    width = models.PositiveIntegerField()
 
-    def _from_rle(self, rle):
-        """Populate the feature ``RasterField`` from an RLE array.
+    @staticmethod
+    def _array_to_blob(array):
+        if not isinstance(array, np.ndarray):
+            array = np.array(array)
+        return base64.b64encode(pickle.dumps(array))
+
+    @staticmethod
+    def _blob_to_array(blob):
+        return pickle.loads(base64.b64decode(blob))
+
+    def from_rle(self, rle):
+        """Populate the entry from an RLE JSON spec.
 
         Parameters
         ----------
@@ -78,36 +90,26 @@ class RLESegmentation(Segmentation):
             A dictionary with ``counts`` and ``size`` fields
         """
         counts = rle['counts']
-        width, height = rle['size']
-        mask = np.zeros((width, height), dtype=np.uint8).ravel()
+        height, width = rle['size']
+        self.height = height
+        self.width = width
+        self.blob = self._array_to_blob(counts)
+        return
+
+    def to_rle(self):
+        """Generate an RLE JSON spec from the entry."""
+        counts = self._blob_to_array(self.blob)
+        return {'counts': list(counts), 'size': [self.height, self.width]}
+
+    def to_mask(self):
+        """Produce a 2D array of booleans for this RLE Segmentation."""
+        counts = self._blob_to_array(self.blob)
+        shape = (self.height, self.width)
+        mask = np.zeros(shape, dtype=np.bool_).ravel()
         current = 0
-        flag = int(False)
+        flag = False
         for count in counts:
             mask[current : current + count] = flag
             current += count
-            flag = int(not flag)
-        rst = GDALRaster(
-            {
-                'width': width,
-                'height': height,
-                'srid': 0,
-                'origin': [0, 0],
-                # According to django docs, this should work... but it doesn't
-                # See: https://docs.djangoproject.com/en/3.1/ref/contrib/gis/gdal/#django.contrib.gis.gdal.GDALRaster
-                'bands': [{'data': mask.tolist(), 'nodata_value': 0}],
-            }
-        )
-        self.feature = rst
-        return
-
-    def _to_rle(self):
-        """Generate an RLE array from the ``RasterField`` feature."""
-        data = self.feature.bands[0].data  # TODO: is this correct?
-        binary_mask = np.asfortranarray(data)
-        rle = {'counts': [], 'size': list(binary_mask.shape)}
-        counts = rle.get('counts')
-        for i, (value, elements) in enumerate(groupby(binary_mask.ravel(order='F'))):
-            if i == 0 and value == 1:
-                counts.append(0)
-            counts.append(len(list(elements)))
-        return rle
+            flag = not flag
+        return mask.reshape(shape)

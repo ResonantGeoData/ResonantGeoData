@@ -326,7 +326,7 @@ def _fill_annotation_segmentation(annotation_entry, ann_json):
         sseg = kwimage.Segmentation.coerce(ann_json['segmentation']).data
         if isinstance(sseg, kwimage.Mask):
             segmentation = RLESegmentation()
-            segmentation._from_rle(ann_json['segmentation'])
+            segmentation.from_rle(ann_json['segmentation'])
         else:
             segmentation = PolygonSegmentation()
             polys = []
@@ -416,7 +416,10 @@ def load_kwcoco_dataset(kwcoco_dataset_id):
             for ann in anns:
                 annotation_entry = Annotation()
                 annotation_entry.image = image_entry
-                annotation_entry.label = ds.cats[ann['category_id']]['name']
+                try:
+                    annotation_entry.label = ds.cats[ann['category_id']]['name']
+                except KeyError:
+                    pass
                 # annotation_entry.annotator =
                 # annotation_entry.notes =
                 annotation_entry.save()

@@ -4,7 +4,12 @@ from django.contrib.gis.admin import OSMGeoAdmin
 from rgd.utility import _link_url
 from .models.common import ArbitraryFile
 from .models.geometry.base import GeometryArchive, GeometryEntry
-from .models.imagery.annotation import Annotation, Segmentation
+from .models.imagery.annotation import (
+    Annotation,
+    PolygonSegmentation,
+    RLESegmentation,
+    Segmentation,
+)
 from .models.imagery.base import (
     BandMetaEntry,
     ConvertedImageFile,
@@ -125,6 +130,22 @@ class BandMetaEntryAdmin(OSMGeoAdmin):
 @admin.register(Segmentation)
 class SegmentationAdmin(OSMGeoAdmin):
     list_display = ('id',)
+    readonly_fields = ('outline',)
+
+
+@admin.register(PolygonSegmentation)
+class PolygonSegmentationAdmin(OSMGeoAdmin):
+    list_display = ('id',)
+    readonly_fields = (
+        'outline',
+        'feature',
+    )
+
+
+@admin.register(RLESegmentation)
+class RLESegmentationAdmin(OSMGeoAdmin):
+    list_display = ('id',)
+    readonly_fields = ('outline', 'width', 'height', 'blob')
 
 
 @admin.register(Annotation)
