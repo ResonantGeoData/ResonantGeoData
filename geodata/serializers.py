@@ -3,6 +3,7 @@ import json
 from rest_framework import serializers
 
 from rgd import utility
+
 from . import models
 
 

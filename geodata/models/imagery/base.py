@@ -8,10 +8,10 @@ from django.db.models.signals import m2m_changed, post_save
 from django.dispatch import receiver
 from s3_file_field import S3FileField
 
-from .ifiles import ImageFile
+from ... import tasks
 from ..common import ChecksumFile, ModifiableEntry, SpatialEntry
 from ..mixins import TaskEventMixin
-from ... import tasks
+from .ifiles import ImageFile
 
 
 class ImageEntry(ModifiableEntry):

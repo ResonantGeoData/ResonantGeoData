@@ -7,8 +7,8 @@ from django.utils.safestring import mark_safe
 from django_admin_display import admin_display
 
 from rgd.utility import _link_url
-from . import models
-from . import tasks
+
+from . import models, tasks
 
 
 def _text_preview(target_file: FileField, mimetype=None, show_end=True):

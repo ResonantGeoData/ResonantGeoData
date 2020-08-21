@@ -309,8 +309,9 @@ class ScoreJob(models.Model):
 
     def run_scoring(self):
         """Run the job asynchronously."""
-        from . import tasks
         import sys
+
+        from . import tasks
 
         sys.stderr.write('SCORE JOB %r\n' % [self.id])
         tasks.run_scoring.delay(self.id)

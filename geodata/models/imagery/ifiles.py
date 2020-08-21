@@ -5,9 +5,9 @@ from django.db.models.signals import post_save
 from django.dispatch import receiver
 from s3_file_field import S3FileField
 
+from ... import tasks
 from ..common import ChecksumFile
 from ..mixins import TaskEventMixin
-from ... import tasks
 
 
 class ImageFile(ChecksumFile, TaskEventMixin):

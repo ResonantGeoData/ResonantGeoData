@@ -18,8 +18,9 @@ class GeoDjangoConfig(ConfigMixin):
     def before_binding(configuration: Type[ComposedConfiguration]):
         configuration.INSTALLED_APPS += ['django.contrib.gis']
         try:
-            import osgeo
             import re
+
+            import osgeo
 
             libsdir = os.path.join(
                 os.path.dirname(os.path.dirname(osgeo._gdal.__file__)), 'GDAL.libs'

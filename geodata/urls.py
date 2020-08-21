@@ -1,7 +1,6 @@
 from django.urls import path
 
-from . import search
-from . import views
+from . import search, views
 
 urlpatterns = [
     path('geodata/rasters/', views.RasterEntriesListView.as_view(), name='rasters'),

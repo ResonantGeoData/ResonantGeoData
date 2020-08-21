@@ -2,6 +2,7 @@ import pytest
 
 from geodata import models
 from geodata.models.geometry.etl import read_geometry_archive
+
 from . import factories
 from .datastore import datastore
 

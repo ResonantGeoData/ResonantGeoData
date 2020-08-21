@@ -1,8 +1,8 @@
 from django.contrib.gis.db import models
 
-from .base import ImageEntry
 from ..common import ModifiableEntry
 from ..constants import DB_SRID
+from .base import ImageEntry
 
 
 class Annotation(ModifiableEntry):
