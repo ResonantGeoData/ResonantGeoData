@@ -93,6 +93,7 @@ def test_kwcoco_basic_demo():
     assert kwds.image_set.count == demo['n_images']
     annotations = [a for anns in kwds.image_set.get_all_annotations().values() for a in anns]
     assert len(annotations) == demo['n_annotations']
+    kwds.delete()
 
 
 @pytest.mark.django_db(transaction=True)
