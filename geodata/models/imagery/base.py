@@ -4,7 +4,7 @@ import os
 from django.contrib.gis.db import models
 from django.contrib.postgres import fields
 from django.db import transaction
-from django.db.models.signals import m2m_changed, post_save
+from django.db.models.signals import m2m_changed, post_delete, post_save
 from django.dispatch import receiver
 from s3_file_field import S3FileField
 
@@ -167,7 +167,21 @@ class KWCOCOArchive(ModifiableEntry, TaskEventMixin):
     )
     image_set = models.ForeignKey(ImageSet, on_delete=models.DO_NOTHING, null=True)
 
+    def _post_delete(self, *args, **kwargs):
+        # Frist delete all the images in the image set
+        #  this will cascade to the annotations
+        images = self.image_set.images.all()
+        for image in images:
+            image.delete()
+        # Now delete the empty image set
+        self.image_set.delete()
+
 
 @receiver(post_save, sender=KWCOCOArchive)
 def _post_save_kwcoco_dataset(sender, instance, *args, **kwargs):
     transaction.on_commit(lambda: instance._on_commit_event_task(*args, **kwargs))
+
+
+@receiver(post_delete, sender=KWCOCOArchive)
+def _post_delete_kwcoco_dataset(sender, instance, *args, **kwargs):
+    transaction.on_commit(lambda: instance._post_delete(*args, **kwargs))
