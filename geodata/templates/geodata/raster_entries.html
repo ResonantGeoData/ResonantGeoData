@@ -40,6 +40,7 @@ div.tooltip {
 <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/geojs/0.20.0/geo.min.js"></script>
 <script type="text/javascript" src="https://d3js.org/d3.v5.min.js"></script>
 
+
   <h1 class="article-title">
     <span>Rasters</span>
   </h1>
@@ -67,7 +68,7 @@ div.tooltip {
 
   <div id="map" style="width:100%;height:300px"></div>
   <br></br>
-  <div id="my_dataviz"></div>
+  <div id="graph"></div>
   <br></br>
 
   <table class="table">
@@ -177,17 +178,19 @@ div.tooltip {
       width = 750 - margin.left - margin.right,
       height = 400 - margin.top - margin.bottom;
 
+  const width2 = width - margin.left;
+
   // append the svg object to the body of the page
-  var svg = d3.select("#my_dataviz")
+  var svg = d3.select("#graph")
     .append("svg")
       .attr("style", "outline: thick solid black;")
       .attr("width", width + margin.left + margin.right)
       .attr("height", height + margin.top + margin.bottom)
     .append("g")
       .attr("transform",
-            "translate(" + margin.left + "," + margin.top + ")");
+            "translate(" + margin.left + "," + margin.top + ")")
 
-  const tooltip = d3.select("#my_dataviz")
+  const tooltip = d3.select("#graph")
     .append("div")
       .attr("class", "tooltip")
       .style("opacity", 0);
@@ -197,6 +200,14 @@ div.tooltip {
   var x = d3.scaleTime()
       .domain([start_domain, end_domain]) // x domain
       .rangeRound([0, width]);
+
+  const rectBrush = d3
+    .brush()
+    .extent([[0, 0], [width2, height]])
+    .on("start brush", brushedRectBrushStartBrush);
+
+  // Add the rectangle brushing
+  svg.append("g").attr("class", "rect-brush").call(rectBrush);
 
   function update(){
     // set the parameters for the histogram
@@ -213,7 +224,7 @@ div.tooltip {
 
     binContainer.exit().remove()
 
-    let binContainerEnter = binContainer.enter()
+    binContainerEnter = binContainer.enter()
       .append("g")
         .attr("class", "gBin")
         .attr("transform", d => `translate(${x(d.x0)}, ${height})`)
@@ -223,7 +234,7 @@ div.tooltip {
         .data(d => d.map((p, i) => {
           return {idx: i,
                   name: p.name,
-                  value: p.value,
+                  id: p.id,
                   bands: p.bands,
                   date: p.date,
                   radius: (x(d.x1)-x(d.x0))/2
@@ -238,20 +249,22 @@ div.tooltip {
         .attr("r", 0)
         .on("mouseover", tooltipOn)
         .on("mouseout", tooltipOff)
+        .on("click", function(d){ window.location = d.id; })
         .transition()
           .duration(500)
           .attr("r", function(d) {
           return (d.length==0) ? 0 : d.radius; })
+        .attr("xlink:href", function(d) { return d.id })
 
     binContainerEnter.merge(binContainer)
         .attr("transform", d => `translate(${x(d.x0)}, ${height})`)
 
     //enter/update/exit for circles, inside each container
-    let dots = binContainer.selectAll("circle")
+    dots = binContainer.selectAll("circle")
         .data(d => d.map((p, i) => {
           return {idx: i,
                   name: p.name,
-                  value: p.id,
+                  id: p.id,
                   bands: p.bands,
                   date: p.date,
                   radius: (x(d.x1)-x(d.x0))/2
@@ -279,6 +292,7 @@ div.tooltip {
       .merge(dots)
         .on("mouseover", tooltipOn)
         .on("mouseout", tooltipOff)
+        .on("click", function(d){ window.location = d.id; })
         .transition()
           .duration(500)
           .attr("r", function(d) {
@@ -291,14 +305,14 @@ div.tooltip {
     let translateValue = gParent.attr("transform")
 
     let gX = translateValue.split(",")[0].split("(")[1]
-    let gY = height*2 + (+d3.select(this).attr("cy"))
+    let gY = height*3 + (+d3.select(this).attr("cy"))
 
     d3.select(this)
       .classed("selected", true)
     tooltip.transition()
          .duration(200)
-         .style("opacity", .9);
-    tooltip.html(d.name + " (" + d.value + ")" + "<br/> Date: " + d.date + "<br/> Number of bands: " + d.bands)
+         .style("opacity", .8);
+    tooltip.html(d.name + " (" + d.id + ")" + "<br/> Date: " + d.date + "<br/> Number of bands: " + d.bands)
       .style("left", gX + "px")
       .style("top", gY + "px");
   }//tooltipOn
@@ -310,6 +324,29 @@ div.tooltip {
            .duration(500)
            .style("opacity", 0);
   }//tooltipOff
+
+  // Function that is triggered when brushing is performed
+  function brushedRectBrushStartBrush() {
+    const extent = d3.event.selection;
+    // console.log(dots);
+    // TODO: Get x-y positions for histogram bins in order to use this correctly
+
+    // binContainerEnter.classed("selected", function(d) {
+    //   console.log(d[0]);
+    //   return isBrushed(extent, d[0], d[1]);
+    // });
+  }
+
+  // checks if entry is in brush area
+  function isBrushed(brush_coords, cx, cy) {
+    const x0 = brush_coords[0][0];
+    const x1 = brush_coords[1][0];
+    const y0 = brush_coords[0][1];
+    const y1 = brush_coords[1][1];
+
+    return x0 <= cx && cx <= x1 && y0 <= cy && cy <= y1;
+  }
+
   // add x axis
   svg.append("g")
     .attr("class", "axis axis--x")
