@@ -8,8 +8,8 @@ logger = get_task_logger(__name__)
 
 @shared_task(time_limit=86400)
 def task_read_image_file(file_id):
-    from .models.imagery.ifiles import ImageFile
     from .models.imagery.etl import populate_image_entry
+    from .models.imagery.ifiles import ImageFile
 
     image_file = ImageFile.objects.get(id=file_id)
     try:

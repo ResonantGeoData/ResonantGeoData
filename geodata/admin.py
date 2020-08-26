@@ -2,6 +2,7 @@ from django.contrib import admin
 from django.contrib.gis.admin import OSMGeoAdmin
 
 from rgd.utility import _link_url
+
 from .models.geometry.base import GeometryArchive, GeometryEntry
 from .models.imagery.annotation import Annotation
 from .models.imagery.base import (
@@ -12,7 +13,6 @@ from .models.imagery.base import (
     RasterEntry,
 )
 from .models.imagery.ifiles import ImageFile
-
 
 SPATIAL_ENTRY_FILTERS = (
     'acquisition_date',

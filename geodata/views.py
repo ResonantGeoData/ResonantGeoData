@@ -10,8 +10,7 @@ from django.views.generic import DetailView
 from drf_yasg.utils import swagger_auto_schema
 from rest_framework.decorators import api_view
 
-from . import models
-from . import search
+from . import models, search
 from .models.imagery.base import RasterEntry
 
 

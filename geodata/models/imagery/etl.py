@@ -7,9 +7,10 @@ from osgeo import gdal
 import rasterio
 
 from rgd.utility import _field_file_to_local_path
+
+from ..geometry.transform import transform_geometry
 from .base import BandMetaEntry, ConvertedImageFile, ImageEntry, RasterEntry
 from .ifiles import ImageFile
-from ..geometry.transform import transform_geometry
 
 logger = get_task_logger(__name__)
 
