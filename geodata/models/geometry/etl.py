@@ -14,9 +14,9 @@ from shapely.geometry import shape
 from shapely.wkb import dumps
 
 from rgd.utility import _field_file_to_local_path
+
 from .base import GeometryArchive, GeometryEntry
 from .transform import transform_geometry
-
 
 logger = get_task_logger(__name__)
 

@@ -14,6 +14,8 @@ from osgeo import gdal
 import rasterio
 
 from rgd.utility import _field_file_to_local_path
+
+from ..geometry.transform import transform_geometry
 from .annotation import Annotation, PolygonSegmentation, RLESegmentation, Segmentation
 from .base import (
     BandMetaEntry,
@@ -24,7 +26,6 @@ from .base import (
     RasterEntry,
 )
 from .ifiles import ImageFile
-from ..geometry.transform import transform_geometry
 
 logger = get_task_logger(__name__)
 
@@ -375,7 +376,10 @@ def load_kwcoco_dataset(kwcoco_dataset_id):
     ds_entry.image_set.name = ds_entry.name
     ds_entry.image_set.save()
     ds_entry.save(
-        update_fields=['image_set', 'failure_reason',]  # noqa: E231
+        update_fields=[
+            'image_set',
+            'failure_reason',
+        ]  # noqa: E231
     )
 
     # Unarchive the images locally so we can import them when loading the spec

@@ -2,9 +2,9 @@ import pytest
 
 from geodata.models.imagery.annotation import RLESegmentation
 from geodata.models.imagery.etl import populate_image_entry
+
 from . import factories
 from .datastore import datastore
-
 
 SampleFiles = [
     {'name': '20091021202517-01000100-VIS_0001.ntf', 'centroid': {'x': -84.1110, 'y': 39.781}},

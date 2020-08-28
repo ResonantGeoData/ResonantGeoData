@@ -16,7 +16,6 @@ from rest_framework.decorators import api_view
 from . import models
 from .models import Algorithm, AlgorithmJob, ScoreJob, Task
 
-
 logger = logging.getLogger(__name__)
 
 

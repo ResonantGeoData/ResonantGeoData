@@ -4,8 +4,8 @@ import pickle
 from django.contrib.gis.db import models
 import numpy as np
 
-from .base import ImageEntry
 from ..common import ModifiableEntry
+from .base import ImageEntry
 
 
 class Annotation(ModifiableEntry):

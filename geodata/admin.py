@@ -20,7 +20,6 @@ from .models.imagery.base import (
 )
 from .models.imagery.ifiles import ImageFile
 
-
 SPATIAL_ENTRY_FILTERS = (
     'acquisition_date',
     'modified',

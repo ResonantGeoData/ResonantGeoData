@@ -6,10 +6,10 @@ from django.dispatch import receiver
 import magic
 from s3_file_field import S3FileField
 
+from ... import tasks
 from ..common import ChecksumFile, ModifiableEntry, SpatialEntry
 from ..constants import DB_SRID
 from ..mixins import TaskEventMixin
-from ... import tasks
 
 
 def validate_archive(field_file):

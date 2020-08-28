@@ -9,9 +9,8 @@ from rest_framework import viewsets
 from rest_framework.routers import SimpleRouter
 
 from rgd import utility
-from . import serializers
-from . import views
 
+from . import serializers, views
 
 router = SimpleRouter()
 for _, ser in inspect.getmembers(serializers):
