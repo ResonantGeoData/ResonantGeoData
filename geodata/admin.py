@@ -2,6 +2,7 @@ from django.contrib import admin
 from django.contrib.gis.admin import OSMGeoAdmin
 
 from rgd.utility import _link_url
+
 from .models.common import ArbitraryFile
 from .models.geometry.base import GeometryArchive, GeometryEntry
 from .models.imagery.annotation import (

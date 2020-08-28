@@ -11,6 +11,8 @@ class Migration(migrations.Migration):
 
     operations = [
         migrations.AlterField(
-            model_name='imageentry', name='metadata', field=models.JSONField(null=True),
+            model_name='imageentry',
+            name='metadata',
+            field=models.JSONField(null=True),
         ),
     ]

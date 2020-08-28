@@ -59,8 +59,14 @@ class Migration(migrations.Migration):
                 ),
             ],
         ),
-        migrations.RemoveField(model_name='annotation', name='bounding_box',),
-        migrations.RemoveField(model_name='annotation', name='feature',),
+        migrations.RemoveField(
+            model_name='annotation',
+            name='bounding_box',
+        ),
+        migrations.RemoveField(
+            model_name='annotation',
+            name='feature',
+        ),
         migrations.AddField(
             model_name='annotation',
             name='keypoints',

@@ -11,9 +11,18 @@ class Migration(migrations.Migration):
     ]
 
     operations = [
-        migrations.RemoveField(model_name='algorithmjob', name='algorithm_result',),
-        migrations.RemoveField(model_name='algorithmresult', name='algorithm',),
-        migrations.RemoveField(model_name='algorithmresult', name='dataset',),
+        migrations.RemoveField(
+            model_name='algorithmjob',
+            name='algorithm_result',
+        ),
+        migrations.RemoveField(
+            model_name='algorithmresult',
+            name='algorithm',
+        ),
+        migrations.RemoveField(
+            model_name='algorithmresult',
+            name='dataset',
+        ),
         migrations.AddField(
             model_name='algorithmresult',
             name='algorithm_job',

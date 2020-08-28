@@ -11,7 +11,8 @@ from .datastore import datastore
 def test_geometry_etl():
     sample_file = 'Streams.zip'
     geom_archive = factories.GeometryArchiveFactory(
-        file__filename=sample_file, file__from_path=datastore.fetch(sample_file),
+        file__filename=sample_file,
+        file__from_path=datastore.fetch(sample_file),
     )
     entry = models.GeometryEntry.objects.filter(geometry_archive=geom_archive).first()
     assert entry.data is not None

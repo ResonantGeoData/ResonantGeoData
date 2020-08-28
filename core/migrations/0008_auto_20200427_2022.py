@@ -14,9 +14,18 @@ class Migration(migrations.Migration):
     ]
 
     operations = [
-        migrations.RemoveField(model_name='scoreresult', name='algorithmresult',),
-        migrations.RemoveField(model_name='scoreresult', name='groundtruth',),
-        migrations.RemoveField(model_name='scoreresult', name='scorealgorithm',),
+        migrations.RemoveField(
+            model_name='scoreresult',
+            name='algorithmresult',
+        ),
+        migrations.RemoveField(
+            model_name='scoreresult',
+            name='groundtruth',
+        ),
+        migrations.RemoveField(
+            model_name='scoreresult',
+            name='scorealgorithm',
+        ),
         migrations.AddField(
             model_name='scoreresult',
             name='log',
