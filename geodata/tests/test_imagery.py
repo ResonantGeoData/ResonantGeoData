@@ -27,7 +27,8 @@ LandsatFiles = [
 @pytest.mark.django_db(transaction=True)
 def test_imagefile_to_rasterentry_centroids(testfile):
     imagefile = factories.ImageFileFactory(
-        file__filename=testfile['name'], file__from_path=datastore.fetch(testfile['name']),
+        file__filename=testfile['name'],
+        file__from_path=datastore.fetch(testfile['name']),
     )
     raster = factories.RasterEntryFactory(name=testfile['name'], images=[imagefile.imageentry.id])
     centroid = raster.footprint.centroid
@@ -40,7 +41,8 @@ def test_repopulate_image_entry():
     """Only test with single image file."""
     testfile = SampleFiles[0]
     imagefile = factories.ImageFileFactory(
-        file__filename=testfile['name'], file__from_path=datastore.fetch(testfile['name']),
+        file__filename=testfile['name'],
+        file__from_path=datastore.fetch(testfile['name']),
     )
     # Testing that we can repopulate an image entry
     populate_image_entry(imagefile.id)
@@ -50,13 +52,16 @@ def test_repopulate_image_entry():
 def test_multi_file_raster():
     """Test the use case where a raster is generated from multiple files."""
     b1 = factories.ImageFileFactory(
-        file__filename=LandsatFiles[0], file__from_path=datastore.fetch(LandsatFiles[0]),
+        file__filename=LandsatFiles[0],
+        file__from_path=datastore.fetch(LandsatFiles[0]),
     )
     b2 = factories.ImageFileFactory(
-        file__filename=LandsatFiles[0], file__from_path=datastore.fetch(LandsatFiles[0]),
+        file__filename=LandsatFiles[0],
+        file__from_path=datastore.fetch(LandsatFiles[0]),
     )
     b3 = factories.ImageFileFactory(
-        file__filename=LandsatFiles[0], file__from_path=datastore.fetch(LandsatFiles[0]),
+        file__filename=LandsatFiles[0],
+        file__from_path=datastore.fetch(LandsatFiles[0]),
     )
     # Create a RasterEntry from the three band image entries
     raster = factories.RasterEntryFactory(

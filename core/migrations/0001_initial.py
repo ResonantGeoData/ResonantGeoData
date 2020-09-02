@@ -201,5 +201,8 @@ class Migration(migrations.Migration):
             name='task',
             field=models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='core.Task'),
         ),
-        migrations.AlterUniqueTogether(name='groundtruth', unique_together={('task', 'dataset')},),
+        migrations.AlterUniqueTogether(
+            name='groundtruth',
+            unique_together={('task', 'dataset')},
+        ),
     ]
