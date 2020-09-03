@@ -11,7 +11,7 @@ from s3_file_field import S3FileField
 from ... import tasks
 from ..common import ArbitraryFile, ChecksumFile, ModifiableEntry, SpatialEntry
 from ..mixins import TaskEventMixin
-from .ifiles import ImageFile
+from .ifiles import BaseImageFile
 
 
 class ImageEntry(ModifiableEntry):
@@ -30,7 +30,7 @@ class ImageEntry(ModifiableEntry):
         help_text='The instrumentation used to acquire these data.',
     )
 
-    image_file = models.OneToOneField(ImageFile, null=True, on_delete=models.CASCADE)
+    image_file = models.OneToOneField(BaseImageFile, null=True, on_delete=models.CASCADE)
     driver = models.CharField(max_length=100)
 
     # thumbnail = models.ImageField(blank=True, upload_to='thumbnails')

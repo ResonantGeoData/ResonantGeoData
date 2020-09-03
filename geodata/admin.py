@@ -19,7 +19,7 @@ from .models.imagery.base import (
     KWCOCOArchive,
     RasterEntry,
 )
-from .models.imagery.ifiles import ImageFile
+from .models.imagery.ifiles import BaseImageFile, ImageArchiveFile, ImageFile
 
 SPATIAL_ENTRY_FILTERS = (
     'acquisition_date',
@@ -156,10 +156,20 @@ class AnnotationAdmin(OSMGeoAdmin):
     )
 
 
+@admin.register(BaseImageFile)
+class BaseImageFileAdmin(OSMGeoAdmin):
+    list_display = ('image_file_id',)
+
+
+@admin.register(ImageArchiveFile)
+class ImageArchiveFileAdmin(OSMGeoAdmin):
+    list_display = ('image_file_id',)
+
+
 @admin.register(ImageFile)
 class ImageFileAdmin(OSMGeoAdmin):
     list_display = (
-        'id',
+        'image_file_id',
         'name',
         'status',
         'modified',
