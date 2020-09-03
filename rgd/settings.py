@@ -154,30 +154,7 @@ class RgdConfig(
     CELERY_WORKER_SEND_TASK_EVENTS = True
 
 
-class DisableS3FileFieldUploadsConfig(ConfigMixin):
-    # When minio is in a docker container, there is no sensible route to reach
-    # it without setting up a reverse proxy or abusing the hosts file on every
-    # client machine.  Rather, disable direct uploads from s3-file-field.  This
-    # has to be be done after configuration, as importing s3_file_field has
-    # side effects that don't work until other configuration is in place.
-    @classmethod
-    def post_setup(cls):
-        super().post_setup()
-
-        import s3_file_field.constants
-
-        s3_file_field.constants.get_storage_provider = (
-            lambda: s3_file_field.constants.StorageProvider.UNSUPPORTED
-        )
-        s3_file_field.settings._S3FF_STORAGE_PROVIDER = (
-            s3_file_field.constants.StorageProvider.UNSUPPORTED
-        )
-        s3_file_field.settings._S3FF_ENDPOINT = None
-
-
-class DevelopmentConfiguration(
-    DisableS3FileFieldUploadsConfig, RgdConfig, DevelopmentBaseConfiguration
-):
+class DevelopmentConfiguration(RgdConfig, DevelopmentBaseConfiguration):
     S3FF_UPLOAD_STS_ARN = None
 
 
