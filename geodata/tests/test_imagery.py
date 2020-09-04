@@ -31,7 +31,9 @@ def test_imagefile_to_rasterentry_centroids(testfile):
         file__filename=testfile['name'],
         file__from_path=datastore.fetch(testfile['name']),
     )
-    raster = factories.RasterEntryFactory(name=testfile['name'], images=[imagefile.imageentry.id])
+    raster = factories.RasterEntryFactory(
+        name=testfile['name'], images=[imagefile.baseimagefile_ptr.imageentry.id]
+    )
     centroid = raster.footprint.centroid
     assert centroid.x == pytest.approx(testfile['centroid']['x'], abs=2e-4)
     assert centroid.y == pytest.approx(testfile['centroid']['y'], abs=2e-4)
@@ -66,7 +68,12 @@ def test_multi_file_raster():
     )
     # Create a RasterEntry from the three band image entries
     raster = factories.RasterEntryFactory(
-        name='Multi File Test', images=[b1.imageentry.id, b2.imageentry.id, b3.imageentry.id]
+        name='Multi File Test',
+        images=[
+            b1.baseimagefile_ptr.imageentry.id,
+            b2.baseimagefile_ptr.imageentry.id,
+            b3.baseimagefile_ptr.imageentry.id,
+        ],
     )
     assert raster.count == 3
     assert raster.crs is not None

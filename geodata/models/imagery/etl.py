@@ -272,15 +272,15 @@ def _validate_image_set_is_raster(image_set_entry):
         raise ValueError('ImageSet returned no images.')
 
     base_image = images.pop()
-    last_meta = _extract_raster_meta(base_image.image_file)
+    last_meta = _extract_raster_meta(base_image.image_file.imagefile)
     for image in images:
-        meta = _extract_raster_meta(image.image_file)
+        meta = _extract_raster_meta(image.image_file.imagefile)
         if not _compare_raster_meta(last_meta, meta):
             raise ValueError('Raster meta mismatch at image: {}'.format(image))
         last_meta = meta
 
     # Assume these are the same... only compute once
-    outline, footprint = _extract_raster_outline_and_footprint(base_image.image_file)
+    outline, footprint = _extract_raster_outline_and_footprint(base_image.image_file.imagefile)
     last_meta['outline'] = outline
     last_meta['footprint'] = footprint
 
