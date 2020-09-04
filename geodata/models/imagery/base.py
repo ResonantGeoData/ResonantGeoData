@@ -172,7 +172,7 @@ class KWCOCOArchive(ModifiableEntry, TaskEventMixin):
         #  this will cascade to the annotations
         images = self.image_set.images.all()
         for image in images:
-            image.delete()
+            image.image_file.delete()
         # Now delete the empty image set
         self.image_set.delete()
 
