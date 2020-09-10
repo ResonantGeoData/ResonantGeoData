@@ -15,7 +15,6 @@ from .models.imagery.base import RasterEntry
 
 
 class _BasicListView(generic.ListView):
-
     def get_queryset(self):
         # latitude, longitude, radius, time, timespan, and timefield
         self.search_params = {}
