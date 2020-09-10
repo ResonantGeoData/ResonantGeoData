@@ -6,7 +6,6 @@ from django.contrib.gis.db.models import Collect, Extent
 from django.contrib.gis.geos import Point
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db.models import Max, Min, Q
-from django.db.models.functions import Coalesce
 from django.http import HttpResponse, JsonResponse
 from drf_yasg.utils import swagger_auto_schema
 from rest_framework import serializers as rfserializers
