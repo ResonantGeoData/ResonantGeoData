@@ -29,7 +29,7 @@ class _BasicListView(generic.ListView):
     def get_context_data(self, *args, **kwargs):
         # The returned query set is in self.object_list, not self.queryset
         context = super().get_context_data(*args, **kwargs)
-        context['extents'] = json.dumps(search.extant_summary(self.object_list))
+        context['extents'] = json.dumps(search.extent_summary(self.object_list))
         context['search_params'] = json.dumps(self.search_params)
         return context
 

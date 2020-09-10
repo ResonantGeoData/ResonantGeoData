@@ -123,7 +123,7 @@ def search_near_point_geometry(request, *args, **kwargs):
     return JsonResponse(serializers.GeometryEntrySerializer(results, many=True).data, safe=False)
 
 
-def extant_summary(found):
+def extent_summary(found):
     """
     Given a query set of items, return a result dictionary with the summary.
 
@@ -178,14 +178,14 @@ def extant_summary(found):
     return results
 
 
-def extant_summary_http(found):
+def extent_summary_http(found):
     """
     Given a query set of items, return an http response with the summary.
 
     :param found: a query set with SpatialEntry results.
     :returns: an HttpResponse.
     """
-    results = extant_summary(found)
+    results = extent_summary(found)
     return HttpResponse(json.dumps(results), content_type='application/json')
 
 
@@ -199,7 +199,7 @@ def extant_summary_http(found):
 def search_near_point_extent(request, *args, **kwargs):
     params = request.query_params
     found = SpatialEntry.objects.filter(search_near_point_filter(params))
-    return extant_summary_http(found)
+    return extent_summary_http(found)
 
 
 @swagger_auto_schema(
@@ -212,7 +212,7 @@ def search_near_point_extent(request, *args, **kwargs):
 def search_near_point_extent_raster(request, *args, **kwargs):
     params = request.query_params
     found = RasterEntry.objects.filter(search_near_point_filter(params))
-    return extant_summary_http(found)
+    return extent_summary_http(found)
 
 
 @swagger_auto_schema(
@@ -225,4 +225,4 @@ def search_near_point_extent_raster(request, *args, **kwargs):
 def search_near_point_extent_geometry(request, *args, **kwargs):
     params = request.query_params
     found = GeometryEntry.objects.filter(search_near_point_filter(params))
-    return extant_summary_http(found)
+    return extent_summary_http(found)
