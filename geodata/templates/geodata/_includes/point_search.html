@@ -1,0 +1,73 @@
+{% block content %}
+  <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/geojs/0.20.0/geo.min.js"></script>
+
+  <form method="GET">
+    Longitude (deg): <input type="text" name="longitude" value="{{ request.GET.longitude }}">
+    Latitude (deg): <input type="text" name="latitude" value="{{ request.GET.latitude }}">
+    <br>
+    Proximity (m): <input type="text" name="radius" value="{{ request.GET.radius }}">
+    <input class="button" type="submit" value="Filter">
+  </form>
+
+  <div id="map" style="width:100%;height:600px"></div>
+
+  <script>
+    let extents = JSON.parse('{{ extents|escapejs }}');
+    let search_params = JSON.parse('{{ search_params|escapejs }}');
+    console.log(search_params)
+    let map = geo.map({
+      node: '#map'
+    })
+    map.createLayer('osm', {
+      source: 'osm'
+    }); // stamen-terrain
+    let layer = map.createLayer('feature', {
+      features: ['polygon']
+    });
+    // Add collected data to map
+    let reader = geo.createFileReader('geojsonReader', {
+      'layer': layer
+    });
+    reader.read(extents.collect, (features) => {
+      // reader.read(extents.convex_hull, (features) => {
+      let range = {}
+      if (features[0].polygonCoordinates) {
+        features[0].polygonCoordinates().forEach(p => {
+          console.log('doing it')
+          range.left = range.left === undefined || p.range.min.x < range.left ? p.range.min.x : range.left;
+          range.right = range.right === undefined || p.range.max.x > range.right ? p.range.max.x : range.right;
+          range.bottom = range.bottom === undefined || p.range.min.y < range.bottom ? p.range.min.y : range.bottom;
+          range.top = range.top === undefined || p.range.max.y > range.top ? p.range.max.y : range.top;
+        });
+      }
+      if (range.left !== undefined) {
+        map.bounds(range);
+        map.zoom(map.zoom() - 0.25);
+      }
+      map.draw();
+    });
+    // Add marker to map to show search location
+    if (search_params.longitude != undefined && search_params.latitude != undefined) {
+      var data = [{
+        lon: search_params.longitude,
+        lat: search_params.latitude
+      }, ]
+      console.log(data)
+      var feature = layer.createFeature('marker')
+        .data(data)
+        .position(function(marker) {
+          return {
+            x: marker.lon,
+            y: marker.lat
+          };
+        })
+        .draw();
+      map.center({
+        x: search_params.longitude,
+        y: search_params.latitude
+      })
+      map.zoom(13)
+    }
+  </script>
+
+{% endblock %}

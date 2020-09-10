@@ -14,27 +14,31 @@ from . import models, search
 from .models.imagery.base import RasterEntry
 
 
-class RasterEntriesListView(generic.ListView):
-    model = RasterEntry
-    context_object_name = 'rasters'
-    template_name = 'geodata/raster_entries.html'
+class _BasicListView(generic.ListView):
 
     def get_queryset(self):
         # latitude, longitude, radius, time, timespan, and timefield
-        search_params = {}
+        self.search_params = {}
         for key in {'longitude', 'latitude', 'radius'}:
             if self.request.GET.get(key):
                 try:
-                    search_params[key] = float(self.request.GET.get(key))
+                    self.search_params[key] = float(self.request.GET.get(key))
                 except ValueError:
                     pass
-        return self.model.objects.filter(search.search_near_point_filter(search_params))
+        return self.model.objects.filter(search.search_near_point_filter(self.search_params))
 
     def get_context_data(self, *args, **kwargs):
         # The returned query set is in self.object_list, not self.queryset
         context = super().get_context_data(*args, **kwargs)
         context['extents'] = json.dumps(search.extant_summary(self.object_list))
+        context['search_params'] = json.dumps(self.search_params)
         return context
+
+
+class RasterEntriesListView(_BasicListView):
+    model = RasterEntry
+    context_object_name = 'rasters'
+    template_name = 'geodata/raster_entries.html'
 
 
 class RasterEntryDetailView(DetailView):
