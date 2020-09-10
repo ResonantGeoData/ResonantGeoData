@@ -11,10 +11,11 @@ from drf_yasg.utils import swagger_auto_schema
 from rest_framework.decorators import api_view
 
 from . import models, search
+from .models.common import SpatialEntry
 from .models.imagery.base import RasterEntry
 
 
-class _BasicListView(generic.ListView):
+class _SpatialListView(generic.ListView):
     def get_queryset(self):
         # latitude, longitude, radius, time, timespan, and timefield
         self.search_params = {}
@@ -29,15 +30,21 @@ class _BasicListView(generic.ListView):
     def get_context_data(self, *args, **kwargs):
         # The returned query set is in self.object_list, not self.queryset
         context = super().get_context_data(*args, **kwargs)
-        context['extents'] = json.dumps(search.extent_summary(self.object_list))
+        context['extents'] = json.dumps(search.extent_summary_spatial(self.object_list))
         context['search_params'] = json.dumps(self.search_params)
         return context
 
 
-class RasterEntriesListView(_BasicListView):
+class RasterEntriesListView(_SpatialListView):
     model = RasterEntry
     context_object_name = 'rasters'
     template_name = 'geodata/raster_entries.html'
+
+
+class SpatialEntriesListView(_SpatialListView):
+    model = SpatialEntry
+    context_object_name = 'spatial_entries'
+    template_name = 'geodata/spatial_entries.html'
 
 
 class RasterEntryDetailView(DetailView):

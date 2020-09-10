@@ -123,14 +123,14 @@ def search_near_point_geometry(request, *args, **kwargs):
     return JsonResponse(serializers.GeometryEntrySerializer(results, many=True).data, safe=False)
 
 
-def extent_summary(found):
+def extent_summary_spatial(found):
     """
-    Given a query set of items, return a result dictionary with the summary.
+    Given a query set of SpatialEntry, return a result dictionary with the summary.
 
     :param found: a query set with SpatialEntry results.
     :returns: a dictionary with count, collect, convex_hull, extent,
-        acquisition, acqusition_date, created, modified.  collect and
-        convex_hull are geojson objects.
+        acquisition, acqusition_date.  collect and convex_hull are geojson
+        objects.
     """
     if found and found.count():
         summary = found.aggregate(
@@ -138,12 +138,6 @@ def extent_summary(found):
             Extent('footprint'),
             Min('acquisition_date'),
             Max('acquisition_date'),
-            Min('created'),
-            Max('created'),
-            Min('modified'),
-            Max('modified'),
-            acquisition__min=Min(Coalesce('acquisition_date', 'created')),
-            acquisition__max=Max(Coalesce('acquisition_date', 'created')),
         )
         results = {
             'count': found.count(),
@@ -155,10 +149,6 @@ def extent_summary(found):
                 'xmax': summary['footprint__extent'][2],
                 'ymax': summary['footprint__extent'][3],
             },
-            'acquisition': [
-                summary['acquisition__min'].isoformat(),
-                summary['acquisition__max'].isoformat(),
-            ],
             'acquisition_date': [
                 summary['acquisition_date__min'].isoformat()
                 if summary['acquisition_date__min'] is not None
@@ -167,6 +157,30 @@ def extent_summary(found):
                 if summary['acquisition_date__max'] is not None
                 else None,
             ],
+        }
+    else:
+        results = {'count': 0}
+    return results
+
+
+def extent_summary_modifiable(found):
+    """
+    Given a query set of ModifiableEntry, return a result dictionary with the summary.
+
+    :param found: a query set with SpatialEntry results.
+    :returns: a dictionary with count, collect, convex_hull, extent,
+        acquisition, acqusition_date, created, modified.  collect and
+        convex_hull are geojson objects.
+    """
+    if found and found.count():
+        summary = found.aggregate(
+            Min('created'),
+            Max('created'),
+            Min('modified'),
+            Max('modified'),
+        )
+        results = {
+            'count': found.count(),
             'created': [summary['created__min'].isoformat(), summary['created__max'].isoformat()],
             'modified': [
                 summary['modified__min'].isoformat(),
@@ -175,6 +189,12 @@ def extent_summary(found):
         }
     else:
         results = {'count': 0}
+    return results
+
+
+def extent_summary(found):
+    results = extent_summary_modifiable(found)
+    results.update(extent_summary_spatial(found))
     return results
 
 

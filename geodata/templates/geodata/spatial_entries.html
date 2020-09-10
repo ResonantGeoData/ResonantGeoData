@@ -1,0 +1,32 @@
+{% extends "base.html" %}
+{% block content %}
+
+<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/geojs/0.20.0/geo.min.js"></script>
+
+  <h1 class="article-title">
+    <span>Spatial Entries</span>
+  </h1>
+  <hr/>
+
+  {% include 'geodata/_includes/viewer.html' %}
+
+  <table class="table">
+    <thead class="thead-dark">
+      <tr>
+        <th>Name (ID)</th>
+        <th>Acquisition Date</th>
+        <th>Area</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for entry in spatial_entries %}
+        <tr>
+          <td>({{ entry.spatial_id }})</td>
+          <td>{{ entry.acquisition_date }}</td>
+          <td>{{ entry.footprint.area }}</td>
+        </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+
+{% endblock content %}
