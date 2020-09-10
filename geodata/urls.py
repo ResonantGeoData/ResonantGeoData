@@ -3,7 +3,9 @@ from django.urls import path
 from . import search, views
 
 urlpatterns = [
-    path('geodata/spatial_entries/', views.SpatialEntriesListView.as_view(), name='spatial_entries'),
+    path(
+        'geodata/spatial_entries/', views.SpatialEntriesListView.as_view(), name='spatial_entries'
+    ),
     path('geodata/rasters/', views.RasterEntriesListView.as_view(), name='rasters'),
     path(
         'geodata/rasters/<int:pk>/',
