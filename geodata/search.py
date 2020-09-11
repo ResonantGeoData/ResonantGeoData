@@ -6,6 +6,7 @@ from django.contrib.gis.db.models import Collect, Extent
 from django.contrib.gis.geos import Point
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db.models import Max, Min, Q
+from django.db.models.functions import Coalesce
 from django.http import HttpResponse, JsonResponse
 from drf_yasg.utils import swagger_auto_schema
 from rest_framework import serializers as rfserializers
@@ -194,6 +195,15 @@ def extent_summary_modifiable(found):
 def extent_summary(found):
     results = extent_summary_modifiable(found)
     results.update(extent_summary_spatial(found))
+    if found and found.count():
+        summary = found.aggregate(
+            acquisition__min=Min(Coalesce('acquisition_date', 'created')),
+            acquisition__max=Max(Coalesce('acquisition_date', 'created')),
+        )
+        results['acquisition'] = [
+            summary['acquisition__min'].isoformat(),
+            summary['acquisition__max'].isoformat(),
+        ]
     return results
 
 
