@@ -184,10 +184,35 @@ def _convert_video_to_mp4(fmv_entry):
             fmv_entry.web_video_file.save(
                 '%s.mp4' % os.path.basename(dataset_path), open(output_path, 'rb')
             )
+            fmv_entry.save()
         except subprocess.CalledProcessError as exc:
             result = exc.returncode
             logger.info('Failed to successfully convert video (%r)' % (exc))
         logger.info('Finished running video conversion: %r' % result)
+
+
+def _populate_fmv_entry(entry):
+
+    with _field_file_to_local_path(entry.klv_file) as file_path:
+        with open(file_path, 'r') as f:
+            content = f.read()
+
+    if not content:
+        raise Exception('FLV file not created')
+
+    # The returned `footprints` can have thoousands of Polygons which will not render well
+    #   for now we just ignore those. If there is a need, we can use later.
+    #   FYI: those footprints do not correspond to all frames, i.e. some are missing
+    path, _, union = _get_path_and_footprints(content)
+
+    entry.ground_frame = union
+    entry.flight_path = path
+
+    entry.outline = union.envelope
+    entry.footprint = union.convex_hull
+
+    entry.save()
+    return True
 
 
 def read_fmv_file(fmv_file_id):
@@ -211,26 +236,7 @@ def read_fmv_file(fmv_file_id):
     if not entry.klv_file or not fmv_file.validate():
         _extract_klv_with_docker(fmv_file, entry)
 
-    with _field_file_to_local_path(entry.klv_file) as file_path:
-        with open(file_path, 'r') as f:
-            content = f.read()
-
-    if not content:
-        raise Exception('FLV file not created')
-
-    # The returned `footprints` can have thoousands of Polygons which will not render well
-    #   for now we just ignore those. If there is a need, we can use later.
-    #   FYI: those footprints do not correspond to all frames, i.e. some are missing
-    path, _, union = _get_path_and_footprints(content)
-
-    entry.ground_frame = union
-    entry.flight_path = path
-
-    entry.outline = union.envelope
-    entry.footprint = union.convex_hull
-
     _convert_video_to_mp4(entry)
-
-    entry.save()
+    _populate_fmv_entry(entry)
 
     return

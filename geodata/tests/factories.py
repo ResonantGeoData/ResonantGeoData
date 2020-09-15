@@ -80,6 +80,31 @@ class KWCOCOArchiveFactory(factory.django.DjangoModelFactory):
         instance.refresh_from_db()
 
 
+class FMVFileFactory(factory.django.DjangoModelFactory):
+    class Meta:
+        model = models.FMVFile
+
+    name = factory.Faker('sentence', nb_words=2)
+    file = factory.django.FileField(filename='sample.mpeg')
+
+    # If we have an on_commit or post_save method that modifies the model, we
+    # need to refresh it afterwards.
+    # @classmethod
+    # def _after_postgeneration(cls, instance, *args, **kwargs):
+    #     super()._after_postgeneration(instance, *args, **kwargs)
+    #     instance.refresh_from_db()
+
+
+class FMVEntryFactory(factory.django.DjangoModelFactory):
+    class Meta:
+        model = models.FMVEntry
+
+    name = factory.Faker('sentence', nb_words=2)
+    # fmv_file = factory.SubFactory(FMVFileFactory)
+    klv_file = factory.django.FileField(filename='sample.klv')
+    web_video_file = factory.django.FileField(filename='sample.mp4')
+
+
 # https://factoryboy.readthedocs.io/en/latest/recipes.html#simple-many-to-many-relationship
 # For generating lat-lon coords, this may be helpful:
 # https://faker.readthedocs.io/en/latest/providers/faker.providers.geo.html
