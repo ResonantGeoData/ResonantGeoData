@@ -181,7 +181,9 @@ def _convert_video_to_mp4(fmv_entry):
             subprocess.check_call(cmd)
             result = 0
             # Store result
-            fmv_entry.web_video_file.save('%s.mp4' % os.path.basename(dataset_path), open(output_path, 'rb'))
+            fmv_entry.web_video_file.save(
+                '%s.mp4' % os.path.basename(dataset_path), open(output_path, 'rb')
+            )
         except subprocess.CalledProcessError as exc:
             result = exc.returncode
             logger.info('Failed to successfully convert video (%r)' % (exc))

@@ -14,6 +14,8 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='fmventry',
             name='web_video_file',
-            field=s3_file_field.fields.S3FileField(blank=True, max_length=2000, null=True, upload_to='files/fmv/web/'),
+            field=s3_file_field.fields.S3FileField(
+                blank=True, max_length=2000, null=True, upload_to='files/fmv/web/'
+            ),
         ),
     ]
