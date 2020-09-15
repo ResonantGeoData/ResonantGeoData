@@ -8,6 +8,8 @@ RUN apt-get update && \
         gcc \
         libc6-dev \
         libmagic1 \
+        libgl1-mesa-glx \
+        libglib2.0-0 \
         && \
     rm -rf /var/lib/apt/lists/*
 

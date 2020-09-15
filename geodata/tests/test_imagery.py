@@ -1,5 +1,6 @@
 import pytest
 
+from geodata.models.imagery.annotation import RLESegmentation
 from geodata.models.imagery.etl import populate_image_entry
 
 from . import factories
@@ -30,7 +31,9 @@ def test_imagefile_to_rasterentry_centroids(testfile):
         file__filename=testfile['name'],
         file__from_path=datastore.fetch(testfile['name']),
     )
-    raster = factories.RasterEntryFactory(name=testfile['name'], images=[imagefile.imageentry.id])
+    raster = factories.RasterEntryFactory(
+        name=testfile['name'], images=[imagefile.baseimagefile_ptr.imageentry.id]
+    )
     centroid = raster.footprint.centroid
     assert centroid.x == pytest.approx(testfile['centroid']['x'], abs=2e-4)
     assert centroid.y == pytest.approx(testfile['centroid']['y'], abs=2e-4)
@@ -65,7 +68,70 @@ def test_multi_file_raster():
     )
     # Create a RasterEntry from the three band image entries
     raster = factories.RasterEntryFactory(
-        name='Multi File Test', images=[b1.imageentry.id, b2.imageentry.id, b3.imageentry.id]
+        name='Multi File Test',
+        images=[
+            b1.baseimagefile_ptr.imageentry.id,
+            b2.baseimagefile_ptr.imageentry.id,
+            b3.baseimagefile_ptr.imageentry.id,
+        ],
     )
     assert raster.count == 3
     assert raster.crs is not None
+
+
+def _run_kwcoco_import(demo):
+    f_image_archive = demo['archive']
+    f_spec_file = demo['spec']
+
+    kwds = factories.KWCOCOArchiveFactory(
+        image_archive__file__filename=f_image_archive,
+        image_archive__file__from_path=datastore.fetch(f_image_archive),
+        spec_file__file__filename=f_spec_file,
+        spec_file__file__from_path=datastore.fetch(f_spec_file),
+    )
+    return kwds
+
+
+@pytest.mark.django_db(transaction=True)
+def test_kwcoco_basic_demo():
+    demo = {
+        'archive': 'demodata.zip',
+        'spec': 'demo.kwcoco.json',
+        'n_images': 3,
+        'n_annotations': 11,
+    }
+
+    kwds = _run_kwcoco_import(demo)
+    assert kwds.image_set.count == demo['n_images']
+    annotations = [a for anns in kwds.image_set.get_all_annotations().values() for a in anns]
+    assert len(annotations) == demo['n_annotations']
+    kwds.delete()
+
+
+@pytest.mark.django_db(transaction=True)
+def test_kwcoco_rle_demo():
+    demo = {
+        'archive': 'demo_rle.zip',
+        'spec': 'demo_rle.kwcoco.json',
+        'n_images': 2,
+        'n_annotations': 15,
+    }
+
+    kwds = _run_kwcoco_import(demo)
+    assert kwds.image_set.count == demo['n_images']
+    annotations = [a for anns in kwds.image_set.get_all_annotations().values() for a in anns]
+    assert len(annotations) == demo['n_annotations']
+
+    # Test the RLESegmentation methods
+    seg = RLESegmentation.objects.all().first()
+    image = seg.annotation.image
+    assert seg.width == image.width
+    assert seg.height == image.height
+
+    rle = seg.to_rle()
+    assert 'counts' in rle
+    assert 'size' in rle
+    assert rle['size'] == [seg.height, seg.width]
+
+    mask = seg.to_mask()
+    assert mask.shape == (seg.height, seg.width)

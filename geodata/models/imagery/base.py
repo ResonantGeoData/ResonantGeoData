@@ -4,14 +4,14 @@ import os
 from django.contrib.gis.db import models
 from django.contrib.postgres import fields
 from django.db import transaction
-from django.db.models.signals import m2m_changed, post_save
+from django.db.models.signals import m2m_changed, post_delete, post_save
 from django.dispatch import receiver
 from s3_file_field import S3FileField
 
 from ... import tasks
-from ..common import ChecksumFile, ModifiableEntry, SpatialEntry
+from ..common import ArbitraryFile, ChecksumFile, ModifiableEntry, SpatialEntry
 from ..mixins import TaskEventMixin
-from .ifiles import ImageFile
+from .ifiles import BaseImageFile
 
 
 class ImageEntry(ModifiableEntry):
@@ -30,7 +30,7 @@ class ImageEntry(ModifiableEntry):
         help_text='The instrumentation used to acquire these data.',
     )
 
-    image_file = models.OneToOneField(ImageFile, null=True, on_delete=models.CASCADE)
+    image_file = models.OneToOneField(BaseImageFile, null=True, on_delete=models.CASCADE)
     driver = models.CharField(max_length=100)
 
     # thumbnail = models.ImageField(blank=True, upload_to='thumbnails')
@@ -68,6 +68,12 @@ class ImageSet(ModifiableEntry):
     def count(self):
         return self.images.count()
 
+    def get_all_annotations(self):
+        annots = {}
+        for image in self.images.all():
+            annots[image.pk] = image.annotation_set.all()
+        return annots
+
 
 @receiver(m2m_changed, sender=ImageSet.images.through)
 def _m2m_changed_image_set(sender, instance, action, reverse, *args, **kwargs):
@@ -103,6 +109,11 @@ class RasterEntry(ImageSet, SpatialEntry, TaskEventMixin):
     failure_reason = models.TextField(null=True, blank=True)
 
 
+@receiver(post_save, sender=RasterEntry)
+def _post_save_raster_entry(sender, instance, *args, **kwargs):
+    transaction.on_commit(lambda: instance._on_commit_event_task(*args, **kwargs))
+
+
 class BandMetaEntry(ModifiableEntry):
     """A basic container to keep track of useful band info."""
 
@@ -129,6 +140,48 @@ class ConvertedImageFile(ChecksumFile):
     source_image = models.ForeignKey(ImageEntry, on_delete=models.CASCADE)
 
 
-@receiver(post_save, sender=RasterEntry)
-def _post_save_raster_entry(sender, instance, *args, **kwargs):
+class KWCOCOArchive(ModifiableEntry, TaskEventMixin):
+    """A container for holding imported KWCOCO datasets.
+
+    User must upload a JSON file of the KWCOCO meta info and an optional
+    archive of images - optional because images can come from URLs instead of
+    files.
+
+    """
+
+    task_func = tasks.task_load_kwcoco_dataset
+    name = models.CharField(max_length=100, blank=True, null=True)
+    failure_reason = models.TextField(null=True, blank=True)
+    spec_file = models.ForeignKey(
+        ArbitraryFile,
+        on_delete=models.CASCADE,
+        related_name='kwcoco_spec_file',
+        help_text='The JSON spec file.',
+    )
+    image_archive = models.ForeignKey(
+        ArbitraryFile,
+        null=True,
+        on_delete=models.CASCADE,
+        related_name='kwcoco_image_archive',
+        help_text='An archive (.tar or .zip) of the images referenced by the spec file (optional).',
+    )
+    image_set = models.ForeignKey(ImageSet, on_delete=models.DO_NOTHING, null=True)
+
+    def _post_delete(self, *args, **kwargs):
+        # Frist delete all the images in the image set
+        #  this will cascade to the annotations
+        images = self.image_set.images.all()
+        for image in images:
+            image.image_file.delete()
+        # Now delete the empty image set
+        self.image_set.delete()
+
+
+@receiver(post_save, sender=KWCOCOArchive)
+def _post_save_kwcoco_dataset(sender, instance, *args, **kwargs):
     transaction.on_commit(lambda: instance._on_commit_event_task(*args, **kwargs))
+
+
+@receiver(post_delete, sender=KWCOCOArchive)
+def _post_delete_kwcoco_dataset(sender, instance, *args, **kwargs):
+    transaction.on_commit(lambda: instance._post_delete(*args, **kwargs))

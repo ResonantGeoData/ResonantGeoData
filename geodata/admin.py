@@ -3,21 +3,45 @@ from django.contrib.gis.admin import OSMGeoAdmin
 
 from rgd.utility import _link_url
 
+from .models.common import ArbitraryFile
 from .models.geometry.base import GeometryArchive, GeometryEntry
-from .models.imagery.annotation import Annotation
+from .models.imagery.annotation import (
+    Annotation,
+    PolygonSegmentation,
+    RLESegmentation,
+    Segmentation,
+)
 from .models.imagery.base import (
     BandMetaEntry,
     ConvertedImageFile,
     ImageEntry,
     ImageSet,
+    KWCOCOArchive,
     RasterEntry,
 )
-from .models.imagery.ifiles import ImageFile
+from .models.imagery.ifiles import BaseImageFile, ImageArchiveFile, ImageFile
 
 SPATIAL_ENTRY_FILTERS = (
     'acquisition_date',
     'modified',
 )
+
+
+@admin.register(ArbitraryFile)
+class ArbitraryFileAdmin(OSMGeoAdmin):
+    list_display = (
+        'id',
+        'name',
+    )
+
+
+@admin.register(KWCOCOArchive)
+class KWCOCOArchiveAdmin(OSMGeoAdmin):
+    list_display = (
+        'id',
+        'name',
+    )
+    readonly_fields = ('image_set',)
 
 
 @admin.register(ImageSet)
@@ -103,6 +127,27 @@ class BandMetaEntryAdmin(OSMGeoAdmin):
     )
 
 
+@admin.register(Segmentation)
+class SegmentationAdmin(OSMGeoAdmin):
+    list_display = ('id',)
+    readonly_fields = ('outline',)
+
+
+@admin.register(PolygonSegmentation)
+class PolygonSegmentationAdmin(OSMGeoAdmin):
+    list_display = ('id',)
+    readonly_fields = (
+        'outline',
+        'feature',
+    )
+
+
+@admin.register(RLESegmentation)
+class RLESegmentationAdmin(OSMGeoAdmin):
+    list_display = ('id',)
+    readonly_fields = ('outline', 'width', 'height', 'blob')
+
+
 @admin.register(Annotation)
 class AnnotationAdmin(OSMGeoAdmin):
     list_display = (
@@ -111,10 +156,20 @@ class AnnotationAdmin(OSMGeoAdmin):
     )
 
 
+@admin.register(BaseImageFile)
+class BaseImageFileAdmin(OSMGeoAdmin):
+    list_display = ('image_file_id',)
+
+
+@admin.register(ImageArchiveFile)
+class ImageArchiveFileAdmin(OSMGeoAdmin):
+    list_display = ('image_file_id',)
+
+
 @admin.register(ImageFile)
 class ImageFileAdmin(OSMGeoAdmin):
     list_display = (
-        'id',
+        'image_file_id',
         'name',
         'status',
         'modified',
