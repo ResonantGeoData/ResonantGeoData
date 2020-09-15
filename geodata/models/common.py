@@ -75,6 +75,28 @@ class ChecksumFile(ModifiableEntry):
     class Meta:
         abstract = True
 
+    def update_checksum(self):
+        with _field_file_to_local_path(self.file) as file_path:
+            self.checksum = compute_checksum(file_path)
+        # Simple update save - not full save
+        super(ChecksumFile, self).save(
+            update_fields=[
+                'checksum',
+            ]
+        )
+
+    def validate(self):
+        previous = self.checksum
+        self.update_checksum()
+        self.last_validation = self.checksum == previous
+        # Simple update save - not full save
+        super(ChecksumFile, self).save(
+            update_fields=[
+                'last_validation',
+            ]
+        )
+        return self.last_validation
+
     def save(self, *args, **kwargs):
         # TODO: is there a cleaner way to enforce child class has `file` field?
         if not hasattr(self, 'file'):
@@ -85,11 +107,10 @@ class ChecksumFile(ModifiableEntry):
         super(ChecksumFile, self).save(*args, **kwargs)
         # Checksum is additional step after saving everything else - simply update these fields.
         if self.compute_checksum or self.validate_checksum:
-            previous = self.checksum
-            with _field_file_to_local_path(self.file) as file_path:
-                self.checksum = compute_checksum(file_path)
             if self.validate_checksum:
-                self.last_validation = self.checksum == previous
+                self.validate()
+            else:
+                self.update_checksum()
             # Reset the user flags
             self.compute_checksum = False
             self.validate_checksum = False
