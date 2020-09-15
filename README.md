@@ -1,6 +1,7 @@
 # ResonantGeoData
 
 [![codecov](https://codecov.io/gh/ResonantGeoData/ResonantGeoData/branch/master/graph/badge.svg)](https://codecov.io/gh/ResonantGeoData/ResonantGeoData)
+[![CircleCI](https://circleci.com/gh/ResonantGeoData/ResonantGeoData/tree/master.svg?style=svg)](https://circleci.com/gh/ResonantGeoData/ResonantGeoData/tree/master)
 
 2D/3D/4D Geospatial Data API and Machine Learning System for Evaluation
 
