@@ -89,10 +89,10 @@ class FMVFileFactory(factory.django.DjangoModelFactory):
 
     # If we have an on_commit or post_save method that modifies the model, we
     # need to refresh it afterwards.
-    # @classmethod
-    # def _after_postgeneration(cls, instance, *args, **kwargs):
-    #     super()._after_postgeneration(instance, *args, **kwargs)
-    #     instance.refresh_from_db()
+    @classmethod
+    def _after_postgeneration(cls, instance, *args, **kwargs):
+        super()._after_postgeneration(instance, *args, **kwargs)
+        instance.refresh_from_db()
 
 
 class FMVEntryFactory(factory.django.DjangoModelFactory):
