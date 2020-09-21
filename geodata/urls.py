@@ -21,4 +21,10 @@ urlpatterns = [
     path('api/geodata/near_point/extent', search.search_near_point_extent),
     path('api/geodata/raster/near_point/extent', search.search_near_point_extent_raster),
     path('api/geodata/geometry/near_point/extent', search.search_near_point_extent_geometry),
+    path('api/geodata/bounding_box', search.search_bounding_box),
+    path('api/geodata/raster/bounding_box', search.search_bounding_box_raster),
+    path('api/geodata/geometry/bounding_box', search.search_bounding_box_geometry),
+    path('api/geodata/bounding_box/extent', search.search_bounding_box_extent),
+    path('api/geodata/raster/bounding_box/extent', search.search_bounding_box_extent_raster),
+    path('api/geodata/geometry/bounding_box/extent', search.search_bounding_box_extent_geometry),
 ]
