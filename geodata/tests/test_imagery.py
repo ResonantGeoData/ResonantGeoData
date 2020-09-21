@@ -59,12 +59,12 @@ def test_multi_file_raster():
         file__from_path=datastore.fetch(LandsatFiles[0]),
     )
     b2 = factories.ImageFileFactory(
-        file__filename=LandsatFiles[0],
-        file__from_path=datastore.fetch(LandsatFiles[0]),
+        file__filename=LandsatFiles[1],
+        file__from_path=datastore.fetch(LandsatFiles[1]),
     )
     b3 = factories.ImageFileFactory(
-        file__filename=LandsatFiles[0],
-        file__from_path=datastore.fetch(LandsatFiles[0]),
+        file__filename=LandsatFiles[2],
+        file__from_path=datastore.fetch(LandsatFiles[2]),
     )
     # Create a RasterEntry from the three band image entries
     raster = factories.RasterEntryFactory(

@@ -3,7 +3,7 @@ import json
 
 import dateutil.parser
 from django.contrib.gis.db.models import Collect, Extent
-from django.contrib.gis.geos import Point
+from django.contrib.gis.geos import Point, Polygon
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db.models import Max, Min, Q
 from django.db.models.functions import Coalesce
@@ -41,6 +41,52 @@ class NearPointSerializer(rfserializers.Serializer):
     )
 
 
+class BoundingBoxSerializer(rfserializers.Serializer):
+    minimum_longitude = rfserializers.FloatField(required=False)
+    minimum_latitude = rfserializers.FloatField(
+        required=False, validators=[MinValueValidator(-90), MaxValueValidator(90)]
+    )
+    maximum_longitude = rfserializers.FloatField(required=False)
+    maximum_latitude = rfserializers.FloatField(
+        required=False, validators=[MinValueValidator(-90), MaxValueValidator(90)]
+    )
+    # minimum_altitude = rfserializers.FloatField(
+    #     allow_null=True, required=False, help_text='Altitude in meters'
+    # )
+    # maximum_altitude = rfserializers.FloatField(
+    #     allow_null=True, required=False, help_text='Altitude in meters'
+    # )
+    start_time = rfserializers.DateTimeField(allow_null=True, required=False)
+    end_time = rfserializers.DateTimeField(allow_null=True, required=False)
+    timefield = rfserializers.CharField(
+        required=False,
+        default='acquisition',
+        help_text='A comma-separated list of fields to search.  This can include acquisition, created, modified.',
+    )
+
+
+def _add_time_to_query(query, timefield, starttime, endtime):
+    timefields = [field.strip() for field in timefield.split(',')] or ['acquisition']
+    subquery = []
+    for field in timefields:
+        field_name = {
+            'acquisition': 'acquisition_date',
+            'created': 'created',
+            'modified': 'modified',
+        }.get(field)
+        if not field_name:
+            raise Exception('Unrecognized time field %s' % field)
+        subquery.append(Q(**{'%s__gte' % field_name: starttime, '%s__lte' % field_name: endtime}))
+        if field == 'acquisition':
+            subquery.append(
+                Q(acquisition_date__isnull=True, created__gte=starttime, created__lte=endtime)
+            )
+    if subquery:
+        for subq in subquery[1:]:
+            subquery[0].add(subq, Q.OR)
+        query.add(subquery[0], Q.AND)
+
+
 def search_near_point_filter(params):
     """
     Get a filter object that can be used when searching SpatialEntry models.
@@ -58,29 +104,44 @@ def search_near_point_filter(params):
         timespan = datetime.timedelta(0, float(params['timespan']))
         starttime = qtime - timespan
         endtime = qtime + timespan
-        timefields = [field.strip() for field in params.get('timefield', '').split(',')] or [
-            'acquisition'
-        ]
-        subquery = []
-        for field in timefields:
-            field_name = {
-                'acquisition': 'acquisition_date',
-                'created': 'created',
-                'modified': 'modified',
-            }.get(field)
-            if not field_name:
-                raise Exception('Unrecognized time field %s' % field)
-            subquery.append(
-                Q(**{'%s__gte' % field_name: starttime, '%s__lte' % field_name: endtime})
+        _add_time_to_query(query, params.get('timefield', ''), starttime, endtime)
+    return query
+
+
+def search_bounding_box_filter(params):
+    """
+    Get a filter object that can be used when searching SpatialEntry models.
+
+    :param params: a dictionary of parameters, optionally including
+        minimum_latitude, minimum_longitude, maximum_latitude,
+        maximum_longitude, start_time, end_time, and timefield.
+    :returns: a Django query (Q) object.
+    """
+    query = Q()
+    if all(
+        params.get(key) is not None
+        for key in {'minimum_longitude', 'minimumlatitude', 'maximum_longitude', 'maximum_latitude'}
+    ):
+        geom = Polygon(
+            (
+                (float(params['minimum_longitude']), float(params['minimum_latitude'])),
+                (float(params['maximum_longitude']), float(params['minimum_latitude'])),
+                (float(params['maximum_longitude']), float(params['maximum_latitude'])),
+                (float(params['minimum_longitude']), float(params['maximum_latitude'])),
+                (float(params['minimum_longitude']), float(params['minimum_latitude'])),
             )
-            if field == 'acquisition':
-                subquery.append(
-                    Q(acquisition_date__isnull=True, created__gte=starttime, created__lte=endtime)
-                )
-        if subquery:
-            for subq in subquery[1:]:
-                subquery[0].add(subq, Q.OR)
-            query.add(subquery[0], Q.AND)
+        )
+        query.add(Q(footprint__intersects=(geom)), Q.AND)
+    if params.get('start_time') is not None or params.get('end_time') is not None:
+        if params.get('start_time') is not None:
+            starttime = dateutil.parser.isoparser().isoparse(params['start_time'])
+        if params.get('end_time') is not None:
+            endtime = dateutil.parser.isoparser().isoparse(params['end_time'])
+        else:
+            endtime = starttime
+        if params.get('start_time') is None:
+            starttime = endtime
+        _add_time_to_query(query, params.get('timefield', ''), starttime, endtime)
     return query
 
 
@@ -120,6 +181,45 @@ def search_near_point_raster(request, *args, **kwargs):
 def search_near_point_geometry(request, *args, **kwargs):
     params = request.query_params
     results = GeometryEntry.objects.filter(search_near_point_filter(params))
+    return JsonResponse(serializers.GeometryEntrySerializer(results, many=True).data, safe=False)
+
+
+@swagger_auto_schema(
+    method='GET',
+    operation_summary='List geospatial datasets in a bounding box',
+    operation_description='List geospatial datasets that intersect a bounding box in latitude and longitude',
+    query_serializer=BoundingBoxSerializer,
+)
+@api_view(['GET'])
+def search_bounding_box(request, *args, **kwargs):
+    params = request.query_params
+    results = SpatialEntry.objects.filter(search_bounding_box_filter(params))
+    return JsonResponse(serializers.SpatialEntrySerializer(results, many=True).data, safe=False)
+
+
+@swagger_auto_schema(
+    method='GET',
+    operation_summary='List raster datasets in a bounding box',
+    operation_description='List geospatial raster datasets that intersect a bounding box in latitude and longitude',
+    query_serializer=BoundingBoxSerializer,
+)
+@api_view(['GET'])
+def search_bounding_box_raster(request, *args, **kwargs):
+    params = request.query_params
+    results = RasterEntry.objects.filter(search_bounding_box_filter(params))
+    return JsonResponse(serializers.RasterEntrySerializer(results, many=True).data, safe=False)
+
+
+@swagger_auto_schema(
+    method='GET',
+    operation_summary='List geometry datasets in a bounding box',
+    operation_description='List geospatial geometry datasets that intersect a bounding box in latitude and longitude',
+    query_serializer=BoundingBoxSerializer,
+)
+@api_view(['GET'])
+def search_bounding_box_geometry(request, *args, **kwargs):
+    params = request.query_params
+    results = GeometryEntry.objects.filter(search_bounding_box_filter(params))
     return JsonResponse(serializers.GeometryEntrySerializer(results, many=True).data, safe=False)
 
 
@@ -254,4 +354,43 @@ def search_near_point_extent_raster(request, *args, **kwargs):
 def search_near_point_extent_geometry(request, *args, **kwargs):
     params = request.query_params
     found = GeometryEntry.objects.filter(search_near_point_filter(params))
+    return extent_summary_http(found)
+
+
+@swagger_auto_schema(
+    method='GET',
+    operation_summary='Extents of geospatial datasets in a bounding box',
+    operation_description='Get the convex hull and time range for geospatial datasets that intersect a bounding box in latitude and longitude',
+    query_serializer=BoundingBoxSerializer,
+)
+@api_view(['GET'])
+def search_bounding_box_extent(request, *args, **kwargs):
+    params = request.query_params
+    found = SpatialEntry.objects.filter(search_bounding_box_filter(params))
+    return extent_summary_http(found)
+
+
+@swagger_auto_schema(
+    method='GET',
+    operation_summary='Extents of raster datasets in a bounding box',
+    operation_description='Get the convex hull and time range for geospatial raster datasets that intersect a bounding box in latitude and longitude',
+    query_serializer=BoundingBoxSerializer,
+)
+@api_view(['GET'])
+def search_bounding_box_extent_raster(request, *args, **kwargs):
+    params = request.query_params
+    found = RasterEntry.objects.filter(search_bounding_box_filter(params))
+    return extent_summary_http(found)
+
+
+@swagger_auto_schema(
+    method='GET',
+    operation_summary='Extents of geometry datasets in a bounding box',
+    operation_description='Get the convex hull and time range for geospatial geometry datasets that intersect a bounding box in latitude and longitude',
+    query_serializer=BoundingBoxSerializer,
+)
+@api_view(['GET'])
+def search_bounding_box_extent_geometry(request, *args, **kwargs):
+    params = request.query_params
+    found = GeometryEntry.objects.filter(search_bounding_box_filter(params))
     return extent_summary_http(found)

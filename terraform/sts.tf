@@ -1,9 +1,9 @@
 data "aws_iam_user" "heroku_user" {
-  user_name = "rgd-heroku"
+  user_name = module.django.iam_user_id
 }
 
 data "aws_s3_bucket" "storage" {
-  bucket = "resonantgeodata-files"
+  bucket = module.django.storage_bucket_name
 }
 
 resource "aws_iam_role" "storage_upload" {
