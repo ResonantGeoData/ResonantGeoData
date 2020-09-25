@@ -65,7 +65,7 @@ class BoundingBoxSerializer(rfserializers.Serializer):
     )
 
 
-def _add_time_to_query(query, timefield, starttime, endtime):
+def _add_time_to_query(query, timefield, starttime, endtime, has_created=False):
     timefields = [field.strip() for field in timefield.split(',')] or ['acquisition']
     subquery = []
     for field in timefields:
@@ -77,7 +77,7 @@ def _add_time_to_query(query, timefield, starttime, endtime):
         if not field_name:
             raise Exception('Unrecognized time field %s' % field)
         subquery.append(Q(**{'%s__gte' % field_name: starttime, '%s__lte' % field_name: endtime}))
-        if field == 'acquisition':
+        if field == 'acquisition' and has_created:
             subquery.append(
                 Q(acquisition_date__isnull=True, created__gte=starttime, created__lte=endtime)
             )
@@ -87,12 +87,14 @@ def _add_time_to_query(query, timefield, starttime, endtime):
         query.add(subquery[0], Q.AND)
 
 
-def search_near_point_filter(params):
+def search_near_point_filter(params, has_created=False):
     """
     Get a filter object that can be used when searching SpatialEntry models.
 
     :param params: a dictionary of parameters, optionally including
         latitude, longitude, radius, time, timespan, and timefield.
+    :param has_created: if True, searching acquisition time will fallback to
+        include created times.
     :returns: a Django query (Q) object.
     """
     query = Q()
@@ -104,23 +106,30 @@ def search_near_point_filter(params):
         timespan = datetime.timedelta(0, float(params['timespan']))
         starttime = qtime - timespan
         endtime = qtime + timespan
-        _add_time_to_query(query, params.get('timefield', ''), starttime, endtime)
+        _add_time_to_query(query, params.get('timefield', ''), starttime, endtime, has_created)
     return query
 
 
-def search_bounding_box_filter(params):
+def search_bounding_box_filter(params, has_created=False):
     """
     Get a filter object that can be used when searching SpatialEntry models.
 
     :param params: a dictionary of parameters, optionally including
         minimum_latitude, minimum_longitude, maximum_latitude,
         maximum_longitude, start_time, end_time, and timefield.
+    :param has_created: if True, searching acquisition time will fallback to
+        include created times.
     :returns: a Django query (Q) object.
     """
     query = Q()
     if all(
         params.get(key) is not None
-        for key in {'minimum_longitude', 'minimumlatitude', 'maximum_longitude', 'maximum_latitude'}
+        for key in {
+            'minimum_longitude',
+            'minimum_latitude',
+            'maximum_longitude',
+            'maximum_latitude',
+        }
     ):
         geom = Polygon(
             (
@@ -141,7 +150,7 @@ def search_bounding_box_filter(params):
             endtime = starttime
         if params.get('start_time') is None:
             starttime = endtime
-        _add_time_to_query(query, params.get('timefield', ''), starttime, endtime)
+        _add_time_to_query(query, params.get('timefield', ''), starttime, endtime, has_created)
     return query
 
 
@@ -167,7 +176,7 @@ def search_near_point(request, *args, **kwargs):
 @api_view(['GET'])
 def search_near_point_raster(request, *args, **kwargs):
     params = request.query_params
-    results = RasterEntry.objects.filter(search_near_point_filter(params))
+    results = RasterEntry.objects.filter(search_near_point_filter(params, True))
     return JsonResponse(serializers.RasterEntrySerializer(results, many=True).data, safe=False)
 
 
@@ -206,7 +215,7 @@ def search_bounding_box(request, *args, **kwargs):
 @api_view(['GET'])
 def search_bounding_box_raster(request, *args, **kwargs):
     params = request.query_params
-    results = RasterEntry.objects.filter(search_bounding_box_filter(params))
+    results = RasterEntry.objects.filter(search_bounding_box_filter(params, True))
     return JsonResponse(serializers.RasterEntrySerializer(results, many=True).data, safe=False)
 
 
@@ -263,7 +272,7 @@ def extent_summary_spatial(found):
     return results
 
 
-def extent_summary_modifiable(found):
+def extent_summary_modifiable(found, has_created=False):
     """
     Given a query set of ModifiableEntry, return a result dictionary with the summary.
 
@@ -273,48 +282,63 @@ def extent_summary_modifiable(found):
         convex_hull are geojson objects.
     """
     if found and found.count():
-        summary = found.aggregate(
-            Min('created'),
-            Max('created'),
-            Min('modified'),
-            Max('modified'),
-        )
         results = {
             'count': found.count(),
-            'created': [summary['created__min'].isoformat(), summary['created__max'].isoformat()],
-            'modified': [
-                summary['modified__min'].isoformat(),
-                summary['modified__max'].isoformat(),
-            ],
         }
+        if has_created:
+            summary = found.aggregate(
+                Min('created'),
+                Max('created'),
+                Min('modified'),
+                Max('modified'),
+            )
+            results.update(
+                {
+                    'created': [
+                        summary['created__min'].isoformat(),
+                        summary['created__max'].isoformat(),
+                    ],
+                    'modified': [
+                        summary['modified__min'].isoformat(),
+                        summary['modified__max'].isoformat(),
+                    ],
+                }
+            )
     else:
         results = {'count': 0}
     return results
 
 
-def extent_summary(found):
-    results = extent_summary_modifiable(found)
+def extent_summary(found, has_created=False):
+    results = extent_summary_modifiable(found, has_created)
     results.update(extent_summary_spatial(found))
     if found and found.count():
-        summary = found.aggregate(
-            acquisition__min=Min(Coalesce('acquisition_date', 'created')),
-            acquisition__max=Max(Coalesce('acquisition_date', 'created')),
-        )
-        results['acquisition'] = [
-            summary['acquisition__min'].isoformat(),
-            summary['acquisition__max'].isoformat(),
-        ]
+        if has_created:
+            summary = found.aggregate(
+                acquisition__min=Min(Coalesce('acquisition_date', 'created')),
+                acquisition__max=Max(Coalesce('acquisition_date', 'created')),
+            )
+        else:
+            summary = found.aggregate(
+                acquisition__min=Min('acquisition_date'),
+                acquisition__max=Max('acquisition_date'),
+            )
+        if summary['acquisition__min'] is not None:
+            results['acquisition'] = [
+                summary['acquisition__min'].isoformat(),
+                summary['acquisition__max'].isoformat(),
+            ]
     return results
 
 
-def extent_summary_http(found):
+def extent_summary_http(found, has_created=False):
     """
     Given a query set of items, return an http response with the summary.
 
     :param found: a query set with SpatialEntry results.
     :returns: an HttpResponse.
     """
-    results = extent_summary(found)
+    results = extent_summary(found, has_created)
     return HttpResponse(json.dumps(results), content_type='application/json')
 
 
@@ -340,8 +364,8 @@ def search_near_point_extent(request, *args, **kwargs):
 @api_view(['GET'])
 def search_near_point_extent_raster(request, *args, **kwargs):
     params = request.query_params
-    found = RasterEntry.objects.filter(search_near_point_filter(params))
-    return extent_summary_http(found)
+    found = RasterEntry.objects.filter(search_near_point_filter(params, True))
+    return extent_summary_http(found, True)
 
 
 @swagger_auto_schema(
@@ -379,8 +403,8 @@ def search_bounding_box_extent(request, *args, **kwargs):
 @api_view(['GET'])
 def search_bounding_box_extent_raster(request, *args, **kwargs):
     params = request.query_params
-    found = RasterEntry.objects.filter(search_bounding_box_filter(params))
-    return extent_summary_http(found)
+    found = RasterEntry.objects.filter(search_bounding_box_filter(params, True))
+    return extent_summary_http(found, True)
 
 
 @swagger_auto_schema(
