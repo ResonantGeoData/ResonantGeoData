@@ -5,7 +5,7 @@ setup(
     version='0.1',
     python_requires='>=3.8.0',
     install_requires=[
-        'celery',
+        'celery<5',
         'django>=3.1',
         'django-admin-display',
         'django-allauth',
@@ -19,7 +19,7 @@ setup(
         'django-model-utils',
         'django-s3-file-field>=0.0.11',
         'django-storages',
-        'djangorestframework',
+        'djangorestframework<3.12',
         'djproxy',
         'docker',
         'drf-yasg',
