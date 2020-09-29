@@ -123,8 +123,8 @@ class RgdConfig(
         for key in {'drf_yasg'}:
             if key in configuration.INSTALLED_APPS:
                 insert_index = min(insert_index, configuration.INSTALLED_APPS.index(key))
-        configuration.INSTALLED_APPS.insert(insert_index, 'geodata')
-        configuration.INSTALLED_APPS.insert(insert_index, 'core')
+        configuration.INSTALLED_APPS.insert(insert_index, 'rgd.geodata')
+        configuration.INSTALLED_APPS.insert(insert_index, 'rgd.core')
 
         configuration.INSTALLED_APPS += [
             'django.contrib.humanize',

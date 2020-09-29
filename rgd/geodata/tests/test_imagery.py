@@ -1,7 +1,7 @@
 import pytest
 
-from geodata.models.imagery.annotation import RLESegmentation
-from geodata.models.imagery.etl import populate_image_entry
+from rgd.geodata.models.imagery.annotation import RLESegmentation
+from rgd.geodata.models.imagery.etl import populate_image_entry
 
 from . import factories
 from .datastore import datastore
