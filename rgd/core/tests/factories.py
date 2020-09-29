@@ -1,7 +1,7 @@
 from django.contrib.auth.models import User
 import factory.django
 
-from core import models
+from rgd.core import models
 
 
 class UserFactory(factory.django.DjangoModelFactory):

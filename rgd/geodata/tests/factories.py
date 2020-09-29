@@ -2,7 +2,7 @@ from django.contrib.auth.models import User
 import factory
 import factory.django
 
-from geodata import models
+from rgd.geodata import models
 
 
 class UserFactory(factory.django.DjangoModelFactory):
