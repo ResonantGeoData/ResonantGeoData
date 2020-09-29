@@ -41,14 +41,15 @@ setup(
         'GDAL',
         'numpy',
     ],
-    extras_require={'dev': ['ipython', 'tox'],
-                    'worker': [
-                        'rasterio',
-                        'fiona',
-                        'shapely',
-                        'scipy',
-                        'kwcoco',
-                        'kwimage',
-                        ],
-                    },
+    extras_require={
+        'dev': ['ipython', 'tox'],
+        'worker': [
+            'rasterio',
+            'fiona',
+            'shapely',
+            'scipy',
+            'kwcoco',
+            'kwimage',
+        ],
+    },
 )
