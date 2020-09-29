@@ -39,6 +39,7 @@ setup(
         'django-minio-storage',
         # GeoData
         'GDAL',
+        'numpy',
     ],
     extras_require={'dev': ['ipython', 'tox'],
                     'worker': [
