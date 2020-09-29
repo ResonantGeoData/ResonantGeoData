@@ -22,8 +22,8 @@ ENV PYTHONUNBUFFERED 1
 # over top of this directory, the .egg-link in site-packages resolves to the mounted directory
 # and all package modules are importable.
 COPY ./setup.py /opt/django/setup.py
-COPY ./requirements.txt /opt/django/requirements.txt
 WORKDIR /opt/django
 RUN pip install \
-    -r requirements.txt \
-    -e .[dev]
+    --find-links https://girder.github.io/large_image_wheels \
+    GDAL \
+    -e .[dev,worker]
