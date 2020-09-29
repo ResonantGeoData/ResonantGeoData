@@ -5,7 +5,7 @@ from django.db import migrations, models
 import django.db.models.deletion
 import s3_file_field.fields
 
-import geodata.models.mixins
+import rgd.geodata.models.mixins
 
 
 class Migration(migrations.Migration):
@@ -40,7 +40,7 @@ class Migration(migrations.Migration):
             options={
                 'abstract': False,
             },
-            bases=('geodata.modifiableentry', geodata.models.mixins.TaskEventMixin),
+            bases=('geodata.modifiableentry', rgd.geodata.models.mixins.TaskEventMixin),
         ),
         migrations.CreateModel(
             name='FMVEntry',
