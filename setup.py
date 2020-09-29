@@ -39,12 +39,15 @@ setup(
         'django-minio-storage',
         # GeoData
         'GDAL',
-        'rasterio',
-        'fiona',
-        'shapely',
-        'scipy',
-        'kwcoco',
-        'kwimage',
     ],
-    extras_require={'dev': ['ipython', 'tox']},
+    extras_require={'dev': ['ipython', 'tox'],
+                    'worker': [
+                        'rasterio',
+                        'fiona',
+                        'shapely',
+                        'scipy',
+                        'kwcoco',
+                        'kwimage',
+                        ],
+                    },
 )
