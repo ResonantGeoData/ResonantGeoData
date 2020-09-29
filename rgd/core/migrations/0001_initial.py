@@ -6,7 +6,7 @@ import django.db.models.deletion
 import django.utils.timezone
 import s3_file_field.fields
 
-import core.validators
+import rgd.core.validators
 
 
 class Migration(migrations.Migration):
@@ -36,7 +36,7 @@ class Migration(migrations.Migration):
                     s3_file_field.fields.S3FileField(
                         max_length=2000,
                         upload_to='algorithm',
-                        validators=[core.validators.MimetypeValidator(['application/x-tar'])],
+                        validators=[rgd.core.validators.MimetypeValidator(['application/x-tar'])],
                     ),
                 ),
                 ('docker_image_id', models.TextField(blank=True, null=True)),
@@ -194,7 +194,7 @@ class Migration(migrations.Migration):
                     s3_file_field.fields.S3FileField(
                         max_length=2000,
                         upload_to='score_algorithm',
-                        validators=[core.validators.MimetypeValidator(['application/x-tar'])],
+                        validators=[rgd.core.validators.MimetypeValidator(['application/x-tar'])],
                     ),
                 ),
                 ('docker_image_id', models.TextField(blank=True, null=True)),

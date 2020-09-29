@@ -6,8 +6,8 @@ from django.db import migrations, models
 import django.db.models.deletion
 import s3_file_field.fields
 
-import geodata.models.geometry.base
-import geodata.models.mixins
+import rgd.geodata.models.geometry.base
+import rgd.geodata.models.mixins
 
 
 class Migration(migrations.Migration):
@@ -162,7 +162,7 @@ class Migration(migrations.Migration):
                         help_text='This must be an archive (`.zip` or `.tar`) of a single shape (`.shp`, `.dbf`, `.shx`, etc.).',
                         max_length=2000,
                         upload_to='files/geometry_files',
-                        validators=[geodata.models.geometry.base.validate_archive],
+                        validators=[rgd.geodata.models.geometry.base.validate_archive],
                     ),
                 ),
                 ('failure_reason', models.TextField(blank=True, null=True)),
@@ -170,7 +170,7 @@ class Migration(migrations.Migration):
             options={
                 'abstract': False,
             },
-            bases=('geodata.modifiableentry', geodata.models.mixins.TaskEventMixin),
+            bases=('geodata.modifiableentry', rgd.geodata.models.mixins.TaskEventMixin),
         ),
         migrations.CreateModel(
             name='ImageEntry',
@@ -252,7 +252,7 @@ class Migration(migrations.Migration):
             },
             bases=(
                 'geodata.modifiableentry',
-                geodata.models.mixins.TaskEventMixin,
+                rgd.geodata.models.mixins.TaskEventMixin,
                 'geodata.baseimagefile',
             ),
         ),
@@ -370,7 +370,7 @@ class Migration(migrations.Migration):
             bases=(
                 'geodata.imageset',
                 'geodata.spatialentry',
-                geodata.models.mixins.TaskEventMixin,
+                rgd.geodata.models.mixins.TaskEventMixin,
             ),
         ),
         migrations.AddField(
@@ -424,7 +424,7 @@ class Migration(migrations.Migration):
                     ),
                 ),
             ],
-            bases=('geodata.modifiableentry', geodata.models.mixins.TaskEventMixin),
+            bases=('geodata.modifiableentry', rgd.geodata.models.mixins.TaskEventMixin),
         ),
         migrations.CreateModel(
             name='ImageArchiveFile',
