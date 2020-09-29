@@ -25,4 +25,4 @@ WORKDIR /opt/django
 RUN pip install \
     --find-links https://girder.github.io/large_image_wheels \
     GDAL \
-    -e .[dev]
+    -e .[dev,worker]
