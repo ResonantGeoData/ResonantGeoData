@@ -1,7 +1,7 @@
 import pytest
 
-from geodata.models.fmv.base import FMVEntry
-from geodata.models.fmv.etl import _populate_fmv_entry
+from rgd.geodata.models.fmv.base import FMVEntry
+from rgd.geodata.models.fmv.etl import _populate_fmv_entry
 
 from . import factories
 from .datastore import datastore
