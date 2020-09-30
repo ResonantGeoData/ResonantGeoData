@@ -62,3 +62,19 @@ def task_load_kwcoco_dataset(kwcoco_dataset_id):
         ds_entry.failure_reason = str(exc)
     ds_entry.save(update_fields=['failure_reason'])
     return
+
+
+@shared_task(time_limit=86400)
+def task_read_fmv_file(file_id):
+    from .models.fmv.base import FMVFile
+    from .models.fmv.etl import read_fmv_file
+
+    fmv_file = FMVFile.objects.get(id=file_id)
+    try:
+        read_fmv_file(file_id)
+        fmv_file.failure_reason = ''
+    except Exception as exc:
+        logger.exception(f'Internal error run `read_fmv_file`: {exc}')
+        fmv_file.failure_reason = str(exc)
+    fmv_file.save(update_fields=['failure_reason'])
+    return
