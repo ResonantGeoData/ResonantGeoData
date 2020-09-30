@@ -11,7 +11,6 @@ jobs:
       - image: girder/minio-nonroot:latest
     steps:
       - checkout
-      - setup_remote_docker
       - run:
           name: Install tox and codecov
           command: sudo pip install tox codecov
