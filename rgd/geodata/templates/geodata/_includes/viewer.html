@@ -1,12 +1,16 @@
 {% block content %}
   <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/geojs/0.20.0/geo.min.js"></script>
+  <script src="https://d3js.org/d3-color.v2.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/lodash.js/4.17.20/lodash.min.js"></script>
 
   <div id="map" style="width:100%;height:600px"></div>
 
+  <br/>
+
   <script>
     let extents = JSON.parse('{{ extents|escapejs }}');
-    let search_params = JSON.parse('{{ search_params|escapejs }}');
-    console.log(search_params)
+
+    // Initialize the map
     let map = geo.map({
       node: '#map'
     })
@@ -16,33 +20,37 @@
     let layer = map.createLayer('feature', {
       features: ['polygon', 'marker']
     });
-    // Add collected data to map
+
+    // Add collected polygons to map
     let reader = geo.createFileReader('geojsonReader', {
       'layer': layer
     });
-    reader.read(extents.collect); 
-    map.bounds({
-      left: extents.extent.xmin,
-      right: extents.extent.xmax,
-      top: extents.extent.ymax,
-      bottom: extents.extent.ymin
+    reader.read(extents.collect, (features) => {
+      var fill = '#6586c9';
+      if (extents.count > 1) {
+        var scale = d3.scale.category10();
+        fill = function (d, i, p, j) {
+          return scale(j);
+        }
+      }
+      features[0].style({
+        fillColor: fill,
+        fillOpacity: 0.75,
+      })
+      .draw();
     });
-    map.zoom(map.zoom() - 0.25);
-    // Add marker to map to show search location
-    if (search_params.longitude != undefined && search_params.latitude != undefined) {
-      var data = [{
-        lon: search_params.longitude,
-        lat: search_params.latitude
-      }, ]
-      var feature = layer.createFeature('marker')
-        .data(data)
-        .position(function(marker) {
-          return {
-            x: marker.lon,
-            y: marker.lat
-          };
-        })
-        .draw();
+
+    // Position the map to show data extents. If none present, the position
+    //   should have been set by the search parameters
+    if (extents.extent != undefined) {
+      map.bounds({
+        left: extents.extent.xmin,
+        right: extents.extent.xmax,
+        top: extents.extent.ymax,
+        bottom: extents.extent.ymin
+      });
     }
+    // One final zoom out for polishing
+    map.zoom(map.zoom() - 0.25);
   </script>
 {% endblock %}

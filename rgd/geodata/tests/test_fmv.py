@@ -15,4 +15,4 @@ def test_populate_fmv_entry_from_klv_file():
 
     assert _populate_fmv_entry(fmv_entry)
 
-    assert fmv_entry.ground_frame is not None
+    assert fmv_entry.ground_frames is not None
