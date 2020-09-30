@@ -5,7 +5,7 @@
 #
 # Usage:
 #   cat video.mpg | docker run -i banesullivan/kwiver:dump-klv > video.klv
-FROM banesullivan/kwiver:latest
+FROM kitware/kwiver:latest
 
 # NOTE: vodeo file extension does not matter.
 CMD bash -c '\
