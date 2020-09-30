@@ -100,23 +100,30 @@
             <p class='text-muted'>
               <ul class="list-group">
                 <li class="list-group-item list-group-item-dark">
-                  <a class="mr-2" href="{% url 'index' %}">Home</a>
+                  <a class="mr-2" href="{% url 'index' %}">Core</a>
                 </li>
+                <ul class="list-group">
+                  <li class="list-group-item list-group-item-dark">
+                    <a class="mr-2" href="{% url 'tasks' %}">Tasks</a>
+                  </li>
+                  <li class="list-group-item list-group-item-dark">
+                    <a class="mr-2" href="{% url 'algorithms' %}">My Algorithms</a>
+                  </li>
+                  <li class="list-group-item list-group-item-dark">
+                    <a class="mr-2" href="{% url 'jobs' %}">My Jobs</a>
+                  </li>
+                </ul>
                 <li class="list-group-item list-group-item-dark">
-                  <a class="mr-2" href="{% url 'tasks' %}">Tasks</a>
+                  <a class="mr-2" href="{% url 'spatial_entries' %}">GeoData</a>
                 </li>
-                <li class="list-group-item list-group-item-dark">
-                  <a class="mr-2" href="{% url 'algorithms' %}">My Algorithms</a>
-                </li>
-                <li class="list-group-item list-group-item-dark">
-                  <a class="mr-2" href="{% url 'jobs' %}">My Jobs</a>
-                </li>
-                <li class="list-group-item list-group-item-dark">
-                  <a class="mr-2" href="{% url 'spatial_entries' %}">Spatial Entries</a>
-                </li>
-                <li class="list-group-item list-group-item-dark">
-                  <a class="mr-2" href="{% url 'rasters' %}">Raster Entries</a>
-                </li>
+                <ul class="list-group">
+                  <li class="list-group-item list-group-item-dark">
+                    <a class="mr-2" href="{% url 'rasters' %}">Raster Entries</a>
+                  </li>
+                  <li class="list-group-item list-group-item-dark">
+                    <a class="mr-2" href="{% url 'fmv_entries' %}">FMV Entries</a>
+                  </li>
+                </ul>
               </ul>
             </p>
           </div>

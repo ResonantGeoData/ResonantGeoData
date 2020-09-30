@@ -12,6 +12,7 @@ from rest_framework.decorators import api_view
 
 from . import models, search
 from .models.common import SpatialEntry
+from .models.fmv.base import FMVEntry
 from .models.imagery.base import RasterEntry
 
 
@@ -19,18 +20,32 @@ class _SpatialListView(generic.ListView):
     def get_queryset(self):
         # latitude, longitude, radius, time, timespan, and timefield
         self.search_params = {}
-        for key in {'longitude', 'latitude', 'radius'}:
+        point = {'longitude', 'latitude', 'radius'}
+        bbox = {'minimum_longitude', 'minimum_latitude', 'maximum_longitude', 'maximum_latitude'}
+        search_options = point.union(bbox)
+        # Collect all passed search options
+        for key in search_options:
             if self.request.GET.get(key):
                 try:
                     self.search_params[key] = float(self.request.GET.get(key))
                 except ValueError:
                     pass
-        return self.model.objects.filter(search.search_near_point_filter(self.search_params))
+        # Choose search method based on passed options
+        method = search.search_near_point_filter
+        if all(k in self.search_params for k in point):
+            method = search.search_near_point_filter
+        elif all(k in self.search_params for k in bbox):
+            method = search.search_bounding_box_filter
+
+        return self.model.objects.filter(method(self.search_params))
+
+    def _get_extent_summary(self):
+        return search.extent_summary_spatial(self.object_list)
 
     def get_context_data(self, *args, **kwargs):
         # The returned query set is in self.object_list, not self.queryset
         context = super().get_context_data(*args, **kwargs)
-        context['extents'] = json.dumps(search.extent_summary_spatial(self.object_list))
+        context['extents'] = json.dumps(self._get_extent_summary())
         context['search_params'] = json.dumps(self.search_params)
         return context
 
@@ -47,8 +62,61 @@ class SpatialEntriesListView(_SpatialListView):
     template_name = 'geodata/spatial_entries.html'
 
 
-class RasterEntryDetailView(DetailView):
+class FMVEntriesListView(_SpatialListView):
+    model = FMVEntry
+    context_object_name = 'entries'
+    template_name = 'geodata/fmv_entries.html'
+
+    def _get_extent_summary(self):
+        return search.extent_summary_fmv(self.object_list)
+
+
+class _SpatialDetailView(DetailView):
+    def _get_extent(self):
+        if self.object.footprint is None:
+            extent = {
+                'count': 0,
+            }
+        else:
+            extent = {
+                'count': 1,
+                'collect': self.object.footprint.json,
+                'extent': {
+                    'xmin': self.object.footprint.extent[0],
+                    'ymin': self.object.footprint.extent[1],
+                    'xmax': self.object.footprint.extent[2],
+                    'ymax': self.object.footprint.extent[3],
+                },
+            }
+        return extent
+
+    def get_context_data(self, *args, **kwargs):
+        context = super().get_context_data(*args, **kwargs)
+        context['extents'] = json.dumps(self._get_extent())
+        context['search_params'] = json.dumps({})
+        return context
+
+
+class RasterEntryDetailView(_SpatialDetailView):
     model = RasterEntry
+
+
+class FMVEntryDetailView(_SpatialDetailView):
+    model = FMVEntry
+
+    def _get_extent(self):
+        extent = super()._get_extent()
+        if self.object.ground_union is not None:
+            # All or none of these will be set, only check one
+            extent['collect'] = self.object.ground_union.json
+            extent['ground_frames'] = self.object.ground_frames.json
+            extent['frame_numbers'] = self.object._blob_to_array(self.object.frame_numbers)
+        return extent
+
+    def get_context_data(self, *args, **kwargs):
+        context = super().get_context_data(*args, **kwargs)
+        context['frame_rate'] = json.dumps(self.object.frame_rate)
+        return context
 
 
 @swagger_auto_schema(

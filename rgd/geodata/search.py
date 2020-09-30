@@ -331,6 +331,29 @@ def extent_summary(found, has_created=False):
     return results
 
 
+def extent_summary_fmv(found):
+    results = extent_summary(found)
+    if found and found.count():
+        summary = found.aggregate(
+            Collect('ground_union'),
+            Extent('ground_union'),
+        )
+        results.update(
+            {
+                'count': found.count(),
+                'collect': json.loads(summary['ground_union__collect'].geojson),
+                'convex_hull': json.loads(summary['ground_union__collect'].convex_hull.geojson),
+                'extent': {
+                    'xmin': summary['ground_union__extent'][0],
+                    'ymin': summary['ground_union__extent'][1],
+                    'xmax': summary['ground_union__extent'][2],
+                    'ymax': summary['ground_union__extent'][3],
+                },
+            }
+        )
+    return results
+
+
 def extent_summary_http(found, has_created=False):
     """
     Given a query set of items, return an http response with the summary.

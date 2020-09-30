@@ -1,0 +1,196 @@
+{% block content %}
+
+<style type="text/css">
+  /* Style the tab */
+  .tab {
+    overflow: hidden;
+    border: 1px solid #ccc;
+    background-color: #f1f1f1;
+  }
+
+  /* Style the buttons that are used to open the tab content */
+  .tab button {
+    background-color: inherit;
+    float: left;
+    border: none;
+    outline: none;
+    cursor: pointer;
+    padding: 14px 16px;
+    transition: 0.3s;
+  }
+
+  /* Change background color of buttons on hover */
+  .tab button:hover {
+    background-color: #ddd;
+  }
+
+  /* Create an active/current tablink class */
+  .tab button.active {
+    background-color: #ccc;
+  }
+
+  /* Style the tab content */
+  .tabcontent {
+    display: none;
+    padding: 6px 12px;
+    border: 1px solid #ccc;
+    border-top: none;
+  }
+  .tabcontent.active {
+    display: block;
+  }
+</style>
+
+<div class="tab">
+  <button class="tablinks" onclick="openTab(event, 'Point')">Point</button>
+  <button class="tablinks" onclick="openTab(event, 'Boundung Box')">Boundung Box</button>
+</div>
+
+<div id="Point" class="tabcontent">
+  <form method="GET">
+    Longitude (deg): <input type="text" name="longitude" value="{{ request.GET.longitude }}">
+    Latitude (deg): <input type="text" name="latitude" value="{{ request.GET.latitude }}">
+    <br>
+    Proximity (m): <input type="text" name="radius" value="{{ request.GET.radius }}">
+    <br>
+    <input class="button" type="button" value="Use Map" name="button" onclick="populatePoint()">
+    <input class="button" type="submit" value="Filter">
+  </form>
+</div>
+
+<div id="Boundung Box" class="tabcontent">
+  <form method="GET">
+    Min Longitude (deg): <input type="text" name="minimum_longitude" value="{{ request.GET.minimum_longitude }}">
+    Max Longitude (deg): <input type="text" name="maximum_longitude" value="{{ request.GET.maximum_longitude }}">
+    <br>
+    Min Latitude (deg): <input type="text" name="minimum_latitude" value="{{ request.GET.minimum_latitude }}">
+    Max Latitude (deg): <input type="text" name="maximum_latitude" value="{{ request.GET.maximum_latitude }}">
+    <br>
+    <input class="button" type="button" value="Use Map" name="button" onclick="populateBounds()">
+    <input class="button" type="submit" value="Filter">
+  </form>
+</div>
+
+
+<br/>
+
+{% include 'geodata/_includes/viewer.html' %}
+
+<script>
+  function openTab(evt, tabName) {
+    // Declare all variables
+    var i, tabcontent, tablinks;
+    // Get all elements with class="tabcontent" and hide them
+    tabcontent = document.getElementsByClassName("tabcontent");
+    for (i = 0; i < tabcontent.length; i++) {
+      tabcontent[i].style.display = "none";
+    }
+    // Get all elements with class="tablinks" and remove the class "active"
+    tablinks = document.getElementsByClassName("tablinks");
+    for (i = 0; i < tablinks.length; i++) {
+      tablinks[i].className = tablinks[i].className.replace(" active", "");
+    }
+    // Show the current tab, and add an "active" class to the button that opened the tab
+    document.getElementById(tabName).style.display = "block";
+    evt.currentTarget.className += " active";
+  }
+
+  function populateBounds() {
+    var bounds = map.bounds()
+    console.log(bounds)
+    var left = document.getElementsByName("minimum_longitude")[0]
+    var right = document.getElementsByName("maximum_longitude")[0]
+    var bottom = document.getElementsByName("minimum_latitude")[0]
+    var top = document.getElementsByName("maximum_latitude")[0]
+    left.value = bounds.left
+    right.value = bounds.right
+    bottom.value = bounds.bottom
+    top.value = bounds.top
+  }
+
+  function populatePoint() {
+    var center = map.center()
+    console.log(center)
+    var a = document.getElementsByName("longitude")[0]
+    var b = document.getElementsByName("latitude")[0]
+    a.value = center.x
+    b.value = center.y
+  }
+
+</script>
+
+<script>
+  // script to add search parameters to the map
+  let search_params = JSON.parse('{{ search_params|escapejs }}');
+  // Add search parameters as markers
+  if (search_params.longitude != undefined && search_params.latitude != undefined) {
+    // center map here by default (incase no data appears in search)
+    map.center({
+       x: search_params.longitude,
+       y: search_params.latitude
+     })
+    var data = [{
+      lon: search_params.longitude,
+      lat: search_params.latitude
+    }, ]
+    var searchMarker = layer.createFeature('marker')
+      .data(data)
+      .position(function(marker) {
+        return {
+          x: marker.lon,
+          y: marker.lat
+        };
+      })
+      .draw();
+    if (search_params.radius != undefined) {
+      // Add a search radius marker if defined
+      var radius = Number(search_params.radius) / 1.11 * 0.00001
+      var theta = _.range(0, 2*Math.PI+Math.PI/32, Math.PI/32)
+      var lineNodes = theta.map(e => {
+        var x = radius * Math.cos(e) + Number(search_params.longitude)
+        var y = radius * Math.sin(e) + Number(search_params.latitude)
+        return {x: x, y: y}
+      })
+      var lineData = []
+      for (i = 0; i < lineNodes.length - 1; i++) {
+        lineData.push([lineNodes[i], lineNodes[i+1]])
+      }
+      var line = layer.createFeature('line')
+        // set the data to our example data
+        .data(lineData)
+        // add some styles
+        .style({
+          // use a function for determining if the line should be closed based
+          // on where it is in our list of data.
+          closed: function (item, itemIndex) {
+            return itemIndex === 1 || itemIndex === 3 || itemIndex === 5;
+          },
+          strokeColor: 'black',
+          strokeWidth: 2
+        });
+      // draw the feature
+      line.draw();
+    }
+  } else if (search_params.maximum_latitude != undefined) {
+    var data = [{
+      ll: [search_params.minimum_longitude, search_params.minimum_latitude],
+      ur: [search_params.maximum_longitude, search_params.maximum_latitude]
+    }, ]
+    var searchQuad = layer.createFeature('quad')
+      .data(data)
+      .style({
+        color: 'black',
+        opacity: 0.1
+      })
+      .draw();
+    // position map around search region
+    map.bounds({
+      left: search_params.minimum_longitude,
+      right: search_params.maximum_longitude,
+      top: search_params.maximum_latitude,
+      bottom: search_params.minimum_latitude
+    });
+  }
+</script>
+
+{% endblock %}

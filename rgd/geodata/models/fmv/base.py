@@ -1,3 +1,6 @@
+import base64
+import pickle
+
 from django.contrib.gis.db import models
 from django.db import transaction
 from django.db.models.signals import post_save
@@ -35,6 +38,17 @@ class FMVEntry(ModifiableEntry, SpatialEntry):
     fmv_file = models.OneToOneField(FMVFile, null=True, on_delete=models.CASCADE)
     klv_file = S3FileField(upload_to='files/fmv/', null=True, blank=True)
     web_video_file = S3FileField(upload_to='files/fmv/web/', null=True, blank=True)
+    frame_rate = models.FloatField(null=True, blank=True)
 
-    ground_frame = models.MultiPolygonField(srid=DB_SRID, null=True, blank=True)
+    ground_frames = models.MultiPolygonField(srid=DB_SRID, null=True, blank=True)
+    ground_union = models.MultiPolygonField(srid=DB_SRID, null=True, blank=True)
     flight_path = models.MultiPointField(srid=DB_SRID, null=True, blank=True)
+    frame_numbers = models.BinaryField(null=True, blank=True)
+
+    @staticmethod
+    def _array_to_blob(array):
+        return base64.b64encode(pickle.dumps(array))
+
+    @staticmethod
+    def _blob_to_array(blob):
+        return pickle.loads(base64.b64decode(blob))
