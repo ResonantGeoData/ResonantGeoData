@@ -1,3 +1,5 @@
+import os
+
 # from django.contrib.auth import get_user_model
 from django.contrib.gis.db import models
 from django.utils import timezone
@@ -102,7 +104,7 @@ class ChecksumFile(ModifiableEntry):
         if not hasattr(self, 'file'):
             raise AttributeError('Child class of `ChecksumFile` must have a `file` field.')
         if not self.name:
-            self.name = self.file.name
+            self.name = os.path.basename(self.file.name)
         # Must save the model with the file before accessing it for the checksum
         super(ChecksumFile, self).save(*args, **kwargs)
         # Checksum is additional step after saving everything else - simply update these fields.
