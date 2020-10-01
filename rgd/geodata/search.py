@@ -8,6 +8,7 @@ from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db.models import Max, Min, Q
 from django.db.models.functions import Coalesce
 from django.http import HttpResponse, JsonResponse
+from django.utils.timezone import make_aware
 from drf_yasg.utils import swagger_auto_schema
 from rest_framework import serializers as rfserializers
 from rest_framework.decorators import api_view
@@ -66,6 +67,8 @@ class BoundingBoxSerializer(rfserializers.Serializer):
 
 
 def _add_time_to_query(query, timefield, starttime, endtime, has_created=False):
+    starttime = make_aware(starttime)
+    endtime = make_aware(endtime)
     timefields = [field.strip() for field in timefield.split(',')] or ['acquisition']
     subquery = []
     for field in timefields:
