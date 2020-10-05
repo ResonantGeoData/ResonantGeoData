@@ -33,7 +33,7 @@ class ImageEntry(ModifiableEntry):
     image_file = models.OneToOneField(BaseImageFile, null=True, on_delete=models.CASCADE)
     driver = models.CharField(max_length=100)
 
-    # thumbnail = models.ImageField(blank=True, upload_to='thumbnails')
+    # thumbnail = models.ImageField(blank=True)
 
     height = models.PositiveIntegerField()
     width = models.PositiveIntegerField()

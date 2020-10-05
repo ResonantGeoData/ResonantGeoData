@@ -45,8 +45,6 @@ def _link_url(root, name, obj, field):
     if not getattr(obj, field, None):
         return 'No attachment'
     url = getattr(obj, field).url
-    if '//minio:' in url:
-        url = '/api/%s/download/%s/%s/%s' % (root, name, obj.id, field)
     return mark_safe('<a href="%s" download>Download</a>' % (url,))
 
 
