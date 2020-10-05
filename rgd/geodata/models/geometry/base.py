@@ -31,7 +31,6 @@ class GeometryArchive(ChecksumFile, TaskEventMixin):
 
     task_func = tasks.task_read_geometry_archive
     file = S3FileField(
-        upload_to='files/geometry_files',
         validators=[validate_archive],
         help_text='This must be an archive (`.zip` or `.tar`) of a single shape (`.shp`, `.dbf`, `.shx`, etc.).',
     )

@@ -130,4 +130,4 @@ class ChecksumFile(ModifiableEntry):
 class ArbitraryFile(ChecksumFile):
     """Container for arbitrary file uploads."""
 
-    file = S3FileField(upload_to='files/arbitrary/')
+    file = S3FileField()

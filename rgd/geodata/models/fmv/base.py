@@ -18,7 +18,7 @@ class FMVFile(ChecksumFile, TaskEventMixin):
 
     task_func = tasks.task_read_fmv_file
     failure_reason = models.TextField(null=True, blank=True)
-    file = S3FileField(upload_to='files/fmv/')
+    file = S3FileField()
 
 
 @receiver(post_save, sender=FMVFile)
@@ -36,8 +36,8 @@ class FMVEntry(ModifiableEntry, SpatialEntry):
     description = models.TextField(null=True, blank=True)
 
     fmv_file = models.OneToOneField(FMVFile, null=True, on_delete=models.CASCADE)
-    klv_file = S3FileField(upload_to='files/fmv/', null=True, blank=True)
-    web_video_file = S3FileField(upload_to='files/fmv/web/', null=True, blank=True)
+    klv_file = S3FileField(null=True, blank=True)
+    web_video_file = S3FileField(null=True, blank=True)
     frame_rate = models.FloatField(null=True, blank=True)
 
     ground_frames = models.MultiPolygonField(srid=DB_SRID, null=True, blank=True)

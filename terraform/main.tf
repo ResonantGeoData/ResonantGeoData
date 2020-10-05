@@ -41,9 +41,6 @@ module "django" {
   # for other possible optional variables
   heroku_app_name     = "resonantgeodata"
   storage_bucket_name = "resonantgeodata-files"
-  additional_django_vars = {
-    DJANGO_S3FF_UPLOAD_STS_ARN = aws_iam_role.storage_upload.arn
-  }
   # This defaults to 1, but may be changed
   heroku_worker_dyno_quantity = 1
 }

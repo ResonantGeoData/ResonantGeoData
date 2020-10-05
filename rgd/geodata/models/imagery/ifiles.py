@@ -37,7 +37,7 @@ class ImageFile(ChecksumFile, TaskEventMixin, BaseImageFile):
 
     task_func = tasks.task_read_image_file
     failure_reason = models.TextField(null=True, blank=True)
-    file = S3FileField(upload_to='files/rasters')
+    file = S3FileField()
 
 
 @receiver(post_save, sender=ImageFile)
