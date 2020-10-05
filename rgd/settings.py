@@ -2,8 +2,7 @@ import os
 from pathlib import Path
 from typing import Type
 
-from configurations import values
-from django_girders.configuration import (
+from composed_configuration import (
     ComposedConfiguration,
     ConfigMixin,
     DevelopmentBaseConfiguration,
@@ -11,6 +10,7 @@ from django_girders.configuration import (
     ProductionBaseConfiguration,
     TestingBaseConfiguration,
 )
+from configurations import values
 
 
 class GeoDjangoConfig(ConfigMixin):
@@ -106,7 +106,7 @@ class RgdConfig(
     WSGI_APPLICATION = 'rgd.wsgi.application'
     ROOT_URLCONF = 'rgd.urls'
 
-    BASE_DIR = str(Path(__file__).absolute().parent.parent)
+    BASE_DIR = Path(__file__).resolve(strict=True).parent.parent
 
     @staticmethod
     def before_binding(configuration: Type[ComposedConfiguration]):
@@ -159,7 +159,6 @@ class DevelopmentConfiguration(RgdConfig, DevelopmentBaseConfiguration):
 
 
 class TestingConfiguration(RgdConfig, TestingBaseConfiguration):
-    MINIO_STORAGE_MEDIA_BUCKET_NAME = 'test-django-storage'
     S3FF_UPLOAD_STS_ARN = None
     CELERY_TASK_ALWAYS_EAGER = True
     CELERY_TASK_EAGER_PROPAGATES = True
