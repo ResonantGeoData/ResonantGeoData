@@ -1,0 +1,24 @@
+{% extends "geodata/_base/base.html" %}
+{% block content %}
+
+  <h1 class="article-title">
+    <span>{% block title %}{% endblock %}</span>
+  </h1>
+
+  <hr/>
+
+  <div class="row">
+    <div class="col-md-4">
+      {% include 'geodata/_includes/search_form.html' %}
+      <br/>
+      {% block list_view %}{% endblock %}
+    </div>
+
+    <div class="col-md-8">
+      <div class="content-section">
+        {% include 'geodata/_includes/search_map.html' %}
+      </div>
+    </div>
+  </div>
+
+{% endblock content %}

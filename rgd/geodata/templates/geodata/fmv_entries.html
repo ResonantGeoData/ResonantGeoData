@@ -1,13 +1,9 @@
-{% extends "base.html" %}
-{% block content %}
+{% extends "geodata/_base/search_view.html" %}
+{% block title %}
+  FMV Entries
+{% endblock title %}
 
-
-  <h1 class="article-title">
-    <span>FMV Entries</span>
-  </h1>
-  <hr/>
-
-  {% include 'geodata/_includes/search.html' %}
+{% block list_view %}
 
   <table class="table">
     <thead class="thead-dark">
@@ -26,4 +22,4 @@
     </tbody>
   </table>
 
-{% endblock content %}
+{% endblock list_view %}
