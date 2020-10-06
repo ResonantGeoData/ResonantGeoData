@@ -1,29 +1,27 @@
-{% extends "base.html" %}
-{% block content %}
+{% extends "geodata/_base/search_view.html" %}
+{% block title %}
+  FMV Entries
+{% endblock title %}
 
+{% block list_view %}
 
-  <h1 class="article-title">
-    <span>FMV Entries</span>
-  </h1>
-  <hr/>
-
-  {% include 'geodata/_includes/search.html' %}
-
-  <table class="table">
-    <thead class="thead-dark">
-      <tr>
-        <th>Name (ID)</th>
-        <th>Video File Size</th>
-      </tr>
-    </thead>
-    <tbody>
-      {% for entry in entries %}
+  <div style="overflow-x:auto;">
+    <table class="table">
+      <thead class="thead-dark">
         <tr>
-          <td><a href="{% url 'fmv-entry-detail' entry.pk %}">{{ entry.name }} ({{ entry.id }})</a></td>
-          <td>{{ entry.fmv_file.file.size|filesizeformat }}</td>
+          <th>Name (ID)</th>
+          <th>Video File Size</th>
         </tr>
-      {% endfor %}
-    </tbody>
-  </table>
+      </thead>
+      <tbody>
+        {% for entry in entries %}
+          <tr>
+            <td><a href="{% url 'fmv-entry-detail' entry.pk %}">{{ entry.name }} ({{ entry.id }})</a></td>
+            <td>{{ entry.fmv_file.file.size|filesizeformat }}</td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
 
-{% endblock content %}
+{% endblock list_view %}

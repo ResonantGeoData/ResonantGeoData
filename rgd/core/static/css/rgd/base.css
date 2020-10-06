@@ -404,6 +404,7 @@ h6 {
 .main-header .navbar li.login,
 .main-header .navbar li.signup,
 .main-header .navbar li.admin,
+.main-header .navbar li.home,
 .main-header .navbar li.logout {
   padding-left: 10px;
 }

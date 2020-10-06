@@ -1,32 +1,31 @@
-{% extends "base.html" %}
-{% block content %}
+{% extends "geodata/_base/search_view.html" %}
+{% block title %}
+  Rasters
+{% endblock title %}
 
-  <h1 class="article-title">
-    <span>Rasters</span>
-  </h1>
-  <hr/>
+{% block list_view %}
 
-  {% include 'geodata/_includes/search.html' %}
-
-  <table class="table">
-    <thead class="thead-dark">
-      <tr>
-        <th>Name (ID)</th>
-        <th>Size</th>
-        <th>Number of Bands</th>
-        <th>Resolution</th>
-      </tr>
-    </thead>
-    <tbody>
-      {% for raster in rasters %}
+  <div style="overflow-x:auto;">
+    <table class="table">
+      <thead class="thead-dark">
         <tr>
-          <td><a href="{% url 'raster-entry-detail' raster.pk %}">{{ raster.name }} ({{ raster.id }})</a></td>
-          <td>{{ raster.width }} x {{ raster.height }}</td>
-          <td>{{ raster.image_bands }}</td>
-          <td>{{ raster.resolution }}</td>
+          <th>Name (ID)</th>
+          <th>Size</th>
+          <th>Number of Bands</th>
+          <th>Resolution</th>
         </tr>
-      {% endfor %}
-    </tbody>
-  </table>
+      </thead>
+      <tbody>
+        {% for raster in rasters %}
+          <tr>
+            <td><a href="{% url 'raster-entry-detail' raster.pk %}">{{ raster.name }} ({{ raster.id }})</a></td>
+            <td>{{ raster.width }} x {{ raster.height }}</td>
+            <td>{{ raster.image_bands }}</td>
+            <td>{{ raster.resolution }}</td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
 
-{% endblock content %}
+{% endblock list_view %}
