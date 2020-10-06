@@ -64,7 +64,7 @@ class Dataset(models.Model):
     tasks = models.ManyToManyField(Task)
     # TODO: If we try to edit data and this has been referenced anywhere, we
     # need to make a new model and mark this one as inactive
-    data = S3FileField(upload_to='dataset')
+    data = S3FileField()
 
 
 class Groundtruth(models.Model):
@@ -96,7 +96,7 @@ class Groundtruth(models.Model):
     public = models.BooleanField(default=False)
     # TODO: If we try to edit data and this has been referenced anywhere, we
     # need to make a new model and mark this one as inactive
-    data = S3FileField(upload_to='groundtruth')
+    data = S3FileField()
 
 
 class Algorithm(models.Model):
@@ -121,9 +121,7 @@ class Algorithm(models.Model):
     active = models.BooleanField(default=True)
     # TODO: If we try to edit data and this has been referenced anywhere, we
     # need to make a new model and mark this one as inactive
-    data = S3FileField(
-        upload_to='algorithm', validators=[validators.MimetypeValidator(['application/x-tar'])]
-    )
+    data = S3FileField(validators=[validators.MimetypeValidator(['application/x-tar'])])
     docker_image_id = models.TextField(null=True, blank=True)
     docker_attrs = models.TextField(null=True, blank=True)
     docker_validation_failure = models.TextField(null=True, blank=True)
@@ -176,7 +174,6 @@ class ScoreAlgorithm(models.Model):
     # TODO: If we try to edit data and this has been referenced anywhere, we
     # need to make a new model and mark this one as inactive
     data = S3FileField(
-        upload_to='score_algorithm',
         validators=[validators.MimetypeValidator(['application/x-tar'])],
     )
     docker_image_id = models.TextField(null=True, blank=True)
@@ -273,8 +270,8 @@ class AlgorithmResult(models.Model):
 
     algorithm_job = models.ForeignKey(AlgorithmJob, on_delete=models.CASCADE, blank=True, null=True)
     created = models.DateTimeField(default=timezone.now)
-    data = S3FileField(upload_to='results')
-    log = S3FileField(upload_to='results_logs', null=True, blank=True)
+    data = S3FileField()
+    log = S3FileField(null=True, blank=True)
     data_mimetype = models.TextField(null=True, blank=True)
 
 
@@ -340,8 +337,8 @@ class ScoreResult(models.Model):
 
     score_job = models.ForeignKey(ScoreJob, on_delete=models.CASCADE, blank=True, null=True)
     created = models.DateTimeField(default=timezone.now)
-    data = S3FileField(upload_to='scores')
-    log = S3FileField(upload_to='scores_logs', null=True, blank=True)
+    data = S3FileField()
+    log = S3FileField(null=True, blank=True)
     overall_score = models.FloatField(
         null=True, blank=True, validators=[MaxValueValidator(1.0), MinValueValidator(0.0)]
     )

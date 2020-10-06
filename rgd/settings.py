@@ -2,8 +2,7 @@ import os
 from pathlib import Path
 from typing import Type
 
-from configurations import values
-from django_girders.configuration import (
+from composed_configuration import (
     ComposedConfiguration,
     ConfigMixin,
     DevelopmentBaseConfiguration,
@@ -11,6 +10,7 @@ from django_girders.configuration import (
     ProductionBaseConfiguration,
     TestingBaseConfiguration,
 )
+from configurations import values
 
 
 class GeoDjangoConfig(ConfigMixin):
@@ -92,21 +92,11 @@ class CrispyFormsConfig(ConfigMixin):
         configuration.INSTALLED_APPS += ['crispy_forms']
 
 
-class S3FileFieldConfig(ConfigMixin):
-    S3FF_UPLOAD_STS_ARN = values.Value(environ_required=True)
-
-    @staticmethod
-    def before_binding(configuration: Type[ComposedConfiguration]):
-        configuration.INSTALLED_APPS += ['s3_file_field']
-
-
-class RgdConfig(
-    S3FileFieldConfig, CrispyFormsConfig, AllauthConfig, GeoDjangoConfig, SwaggerConfig, ConfigMixin
-):
+class RgdConfig(CrispyFormsConfig, AllauthConfig, GeoDjangoConfig, SwaggerConfig, ConfigMixin):
     WSGI_APPLICATION = 'rgd.wsgi.application'
     ROOT_URLCONF = 'rgd.urls'
 
-    BASE_DIR = str(Path(__file__).absolute().parent.parent)
+    BASE_DIR = Path(__file__).resolve(strict=True).parent.parent
 
     @staticmethod
     def before_binding(configuration: Type[ComposedConfiguration]):
@@ -127,6 +117,7 @@ class RgdConfig(
         configuration.INSTALLED_APPS.insert(insert_index, 'rgd.core')
 
         configuration.INSTALLED_APPS += [
+            's3_file_field',
             'django.contrib.humanize',
             'rules.apps.AutodiscoverRulesConfig',  # TODO: need this?
             # To ensure that exceptions inside other apps' signal handlers do not affect the
@@ -155,12 +146,10 @@ class RgdConfig(
 
 
 class DevelopmentConfiguration(RgdConfig, DevelopmentBaseConfiguration):
-    S3FF_UPLOAD_STS_ARN = None
+    pass
 
 
 class TestingConfiguration(RgdConfig, TestingBaseConfiguration):
-    MINIO_STORAGE_MEDIA_BUCKET_NAME = 'test-django-storage'
-    S3FF_UPLOAD_STS_ARN = None
     CELERY_TASK_ALWAYS_EAGER = True
     CELERY_TASK_EAGER_PROPAGATES = True
 
