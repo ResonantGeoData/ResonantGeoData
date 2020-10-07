@@ -22,6 +22,7 @@
     let extents = JSON.parse('{{ extents|escapejs }}');
 
     let img = new Image();
+    img.crossOrigin = 'anonymous'
     img.src = extents['img_url'];
 
     var quad = layer.createFeature('quad')
@@ -29,7 +30,7 @@
         {
           ll: {x: extents.extent.xmin, y: extents.extent.ymin },
           ur: {x: extents.extent.xmax, y: extents.extent.ymax },
-          // image: img,
+          image: img,
         },
       ])
       .style({
