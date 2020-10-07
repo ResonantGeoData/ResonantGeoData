@@ -1,14 +1,18 @@
 """Helper methods for creating a ``GDALRaster`` entry from a raster file."""
+import io
 import os
 import tempfile
 import zipfile
 
+import PIL.Image
 from celery.utils.log import get_task_logger
 from django.conf import settings
 from django.contrib.gis.gdal import SpatialReference
 from django.contrib.gis.geos import LineString, MultiPoint, MultiPolygon, Point, Polygon
+from django.core.files.base import ContentFile
 import kwcoco
 import kwimage
+import matplotlib.pyplot as plt
 import numpy as np
 from osgeo import gdal
 import rasterio
@@ -24,6 +28,7 @@ from .base import (
     ImageSet,
     KWCOCOArchive,
     RasterEntry,
+    Thumbnail,
 )
 from .ifiles import ImageArchiveFile, ImageFile
 
@@ -33,17 +38,33 @@ logger = get_task_logger(__name__)
 MAX_LOAD_SHAPE = (4000, 4000)
 
 
-# def create_thumbnail(src):
-#     oview = int(max(src.height, src.width) * 0.1) or 1
-#     thumbnail = src.read(1, out_shape=(1, int(src.height // oview), int(src.width // oview)))
-#
-#     buf = io.BytesIO()
-#     thumbnail.save(buf, format='JPEG')
-#     byte_im = buf.getvalue()
-#     return ContentFile(byte_im)
+def _create_thumbnail_image(src):
+    oview = int(max(src.height, src.width) * 0.01) or 1
+    thumbnail = src.read(1, out_shape=(1, int(src.height // oview), int(src.width // oview)))
+
+    norm = plt.Normalize()
+    colors = (plt.cm.viridis(norm(thumbnail)) * 255).astype('uint8')[:, :, 0:3]
+
+    buf = io.BytesIO()
+    img = PIL.Image.fromarray(colors)
+    img.save(buf, 'JPEG')
+    byte_im = buf.getvalue()
+    return ContentFile(byte_im)
 
 
 def _read_image_to_entry(image_entry, image_file_path):
+
+    thumbnail_query = Thumbnail.objects.filter(image_entry=image_entry)
+    if len(thumbnail_query) < 1:
+        thumbnail = Thumbnail()
+        # image_entry.creator = ife.creator
+    elif len(thumbnail_query) == 1:
+        thumbnail = thumbnail_query.first()
+    else:
+        # This should never happen because it is a OneToOneField
+        raise RuntimeError('multiple thumbnail entries found for this image.')  # pragma: no cover
+
+    thumbnail.image_entry = image_entry
 
     with rasterio.open(image_file_path) as src:
         image_entry.number_of_bands = src.count
@@ -54,8 +75,7 @@ def _read_image_to_entry(image_entry, image_file_path):
         # A catch-all metadata feild:
         # TODO: image_entry.metadata =
 
-        # thumbnail = create_thumbnail(src)
-        # image_entry.thumbnail.save('thumbnail.jpg', thumbnail, save=True)
+        thumb_image = _create_thumbnail_image(src)
 
         # These are things I couldn't figure out how to get with gdal directly
         dtypes = src.dtypes
@@ -63,6 +83,8 @@ def _read_image_to_entry(image_entry, image_file_path):
 
     # No longer editing image_entry
     image_entry.save()
+    thumbnail.base_thumbnail.save(f'{image_entry.name}.jpg', thumb_image, save=True)
+    thumbnail.save()
 
     # Rasterio is no longer open... using gdal directly:
     gsrc = gdal.Open(str(image_file_path))  # Have to cast Path to str

@@ -19,6 +19,7 @@ from .models.imagery.base import (
     ImageSet,
     KWCOCOArchive,
     RasterEntry,
+    Thumbnail,
 )
 from .models.imagery.ifiles import BaseImageFile, ImageArchiveFile, ImageFile
 
@@ -187,6 +188,14 @@ class ImageFileAdmin(OSMGeoAdmin):
         return not obj.failure_reason
 
     status.boolean = True
+
+
+@admin.register(Thumbnail)
+class ThumbnailAdmin(OSMGeoAdmin):
+    list_display = (
+        'id',
+        'image_entry',
+    )
 
 
 @admin.register(ConvertedImageFile)

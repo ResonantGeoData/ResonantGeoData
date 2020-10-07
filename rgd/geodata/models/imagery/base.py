@@ -32,13 +32,18 @@ class ImageEntry(ModifiableEntry):
 
     image_file = models.OneToOneField(BaseImageFile, null=True, on_delete=models.CASCADE)
     driver = models.CharField(max_length=100)
-
-    # thumbnail = models.ImageField(blank=True)
-
     height = models.PositiveIntegerField()
     width = models.PositiveIntegerField()
     number_of_bands = models.PositiveIntegerField()
     metadata = models.JSONField(null=True)
+
+
+class Thumbnail(ModifiableEntry):
+    """Thumbnail model and utility for ImageEntry."""
+
+    image_entry = models.OneToOneField(ImageEntry, null=True, on_delete=models.CASCADE)
+
+    base_thumbnail = models.ImageField(blank=True, upload_to='thumbnails')
 
 
 class ImageSet(ModifiableEntry):
