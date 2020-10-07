@@ -39,8 +39,8 @@ MAX_LOAD_SHAPE = (4000, 4000)
 
 
 def _create_thumbnail_image(src):
-    oview = int(max(src.height, src.width) * 0.01) or 1
-    thumbnail = src.read(1, out_shape=(1, int(src.height // oview), int(src.width // oview)))
+    shape = (min(MAX_LOAD_SHAPE[0], src.height), min(MAX_LOAD_SHAPE[0], src.width))
+    thumbnail = src.read(1, out_shape=shape)
 
     norm = plt.Normalize()
     colors = (plt.cm.viridis(norm(thumbnail)) * 255).astype('uint8')[:, :, 0:3]
