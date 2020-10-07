@@ -5,26 +5,6 @@
   <script>
     let extents = JSON.parse('{{ extents|escapejs }}');
 
-    // Add collected polygons to map
-    let reader = geo.createFileReader('geojsonReader', {
-      'layer': layer
-    });
-
-    reader.read(extents.collect, (features) => {
-      var fill = '#6586c9';
-      if (extents.count > 1) {
-        var scale = d3.scale.category10();
-        fill = function (d, i, p, j) {
-          return scale(j);
-        }
-      }
-      features[0].style({
-        fillColor: fill,
-        fillOpacity: 0.75,
-      })
-      .draw();
-    });
-
     // Position the map to show data extents. If none present, the position
     //   should have been set by the search parameters
     if (extents.extent != undefined) {
@@ -38,4 +18,7 @@
     // One final zoom out for polishing
     map.zoom(map.zoom() - 0.25);
   </script>
+
+  {% include 'geodata/_includes/geojson_reader.html' %}
+
 {% endblock %}
