@@ -196,7 +196,7 @@ class ThumbnailAdmin(OSMGeoAdmin):
         'id',
         'image_entry',
     )
-    fields = ('image_tag', )
+    fields = ('image_tag',)
     readonly_fields = ('image_tag',)
 
 
