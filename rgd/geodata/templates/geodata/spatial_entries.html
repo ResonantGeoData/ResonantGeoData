@@ -1,30 +1,29 @@
-{% extends "base.html" %}
-{% block content %}
+{% extends "geodata/_base/search_view.html" %}
+{% block title %}
+  Spatial Entries
+{% endblock title %}
 
-  <h1 class="article-title">
-    <span>Spatial Entries</span>
-  </h1>
-  <hr/>
+{% block list_view %}
 
-  {% include 'geodata/_includes/search.html' %}
-
-  <table class="table">
-    <thead class="thead-dark">
-      <tr>
-        <th>Name (ID)</th>
-        <th>Acquisition Date</th>
-        <th>Area</th>
-      </tr>
-    </thead>
-    <tbody>
-      {% for entry in spatial_entries %}
+  <div style="overflow-x:auto;">
+    <table class="table">
+      <thead class="thead-dark">
         <tr>
-          <td>({{ entry.spatial_id }})</td>
-          <td>{{ entry.acquisition_date }}</td>
-          <td>{{ entry.footprint.area }}</td>
+          <th><span class="text">Name (ID)</span></th>
+          <th><span class="text">Acquisition Date</span></th>
+          <th><span class="text">Area</span></th>
         </tr>
-      {% endfor %}
-    </tbody>
-  </table>
+      </thead>
+      <tbody>
+        {% for entry in spatial_entries %}
+          <tr>
+            <td>({{ entry.spatial_id }})</td>
+            <td>{{ entry.acquisition_date }}</td>
+            <td>{{ entry.footprint.area }}</td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
 
-{% endblock content %}
+{% endblock list_view %}
