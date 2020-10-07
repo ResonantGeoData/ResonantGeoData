@@ -13,7 +13,7 @@ from rest_framework.decorators import api_view
 from . import models, search
 from .models.common import SpatialEntry
 from .models.fmv.base import FMVEntry
-from .models.imagery.base import RasterEntry
+from .models.imagery.base import RasterEntry, Thumbnail
 
 
 class _SpatialListView(generic.ListView):
@@ -81,6 +81,7 @@ class _SpatialDetailView(DetailView):
             extent = {
                 'count': 1,
                 'collect': self.object.footprint.json,
+                'outline': self.object.outline.json,
                 'extent': {
                     'xmin': self.object.footprint.extent[0],
                     'ymin': self.object.footprint.extent[1],
@@ -99,6 +100,14 @@ class _SpatialDetailView(DetailView):
 
 class RasterEntryDetailView(_SpatialDetailView):
     model = RasterEntry
+
+    def _get_extent(self):
+        extent = super()._get_extent()
+        # Add a thumbnail of the first image in the raster set
+        image_entry = self.object.images.first()
+        thumbnail = Thumbnail.objects.filter(image_entry=image_entry).first()
+        extent['img_url'] = thumbnail.base_thumbnail.url
+        return extent
 
 
 class FMVEntryDetailView(_SpatialDetailView):

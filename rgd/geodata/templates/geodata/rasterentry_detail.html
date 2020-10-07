@@ -16,6 +16,55 @@
   <p class="article-content">Additional Metadata: {{ object.metadata }}</p>
   <p class="article-content">Meta: {{ object.metadata }}</p>
 
-  {% include 'geodata/_includes/viewer.html' %}
+  {% include 'geodata/_includes/empty_viewer.html' %}
+
+  <script>
+    let extents = JSON.parse('{{ extents|escapejs }}');
+
+    let img = new Image();
+    img.src = extents['img_url'];
+
+    var quad = layer.createFeature('quad')
+      .data([
+        {
+          ll: {x: extents.extent.xmin, y: extents.extent.ymin },
+          ur: {x: extents.extent.xmax, y: extents.extent.ymax },
+          // image: img,
+        },
+      ])
+      .style({
+        // use a function for determining if the line should be closed based
+        // on where it is in our list of data.
+        color: '#6586c9',
+        opacity: 0.75,
+      })
+      .draw();
+
+    // Add collected polygons to map
+    let reader = geo.createFileReader('geojsonReader', {
+      'layer': layer
+    });
+
+    reader.read(extents.collect, (features) => {
+      features[0].style({
+        strokeColor: '#FF0000',
+        fill: false,
+      })
+      .draw();
+    });
+
+    // Position the map to show data extents. If none present, the position
+    //   should have been set by the search parameters
+    if (extents.extent != undefined) {
+      map.bounds({
+        left: extents.extent.xmin,
+        right: extents.extent.xmax,
+        top: extents.extent.ymax,
+        bottom: extents.extent.ymin
+      });
+    }
+    // One final zoom out for polishing
+    map.zoom(map.zoom() - 0.25);
+  </script>
 
 {% endblock %}
