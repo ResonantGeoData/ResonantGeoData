@@ -196,6 +196,8 @@ class ThumbnailAdmin(OSMGeoAdmin):
         'id',
         'image_entry',
     )
+    fields = ('image_tag', )
+    readonly_fields = ('image_tag',)
 
 
 @admin.register(ConvertedImageFile)
