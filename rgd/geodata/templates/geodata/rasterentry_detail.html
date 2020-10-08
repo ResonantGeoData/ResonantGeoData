@@ -15,6 +15,13 @@
   <p class="article-content">Additional Metadata: {{ object.metadata }}</p>
   <p class="article-content">Meta: {{ object.metadata }}</p>
 
+
+  <select id="band-selector" onchange="if (this.selectedIndex) updateBandThumbnail();">
+    {% for image in object.images.all %}
+      <option value="{{ image.id }}">{{ image.name }}</option>
+    {% endfor %}
+  </select>
+
   {% include 'geodata/_includes/empty_viewer.html' %}
 
   <script>
@@ -22,7 +29,6 @@
 
     let img = new Image();
     img.crossOrigin = 'anonymous'
-    img.src = extents['img_url'];
 
     var quad = layer.createFeature('quad')
       .data([
@@ -33,12 +39,25 @@
         },
       ])
       .style({
-        // use a function for determining if the line should be closed based
-        // on where it is in our list of data.
         color: '#6586c9',
         opacity: 0.75,
       })
       .draw();
+
+    function updateBandThumbnail () {
+      selector = document.getElementById('band-selector')
+      var image_id = Number(selector.value);
+      img.src = extents['thumbnails'][image_id];
+      console.log(img.src)
+      quad.data([
+        {
+          ll: {x: extents.extent.xmin, y: extents.extent.ymin },
+          ur: {x: extents.extent.xmax, y: extents.extent.ymax },
+          image: img,
+        },
+      ]).draw()
+    }
+    updateBandThumbnail()
 
     // Add collected polygons to map
     let reader = geo.createFileReader('geojsonReader', {
