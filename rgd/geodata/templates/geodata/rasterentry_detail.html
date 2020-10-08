@@ -27,15 +27,18 @@
   <script>
     let extents = JSON.parse('{{ extents|escapejs }}');
 
-    let img = new Image();
-    img.crossOrigin = 'anonymous'
+    function createImage (src) {
+      let img = new Image();
+      img.crossOrigin = 'anonymous';
+      img.src = src;
+      return img
+    }
 
     var quad = layer.createFeature('quad')
       .data([
         {
           ll: {x: extents.extent.xmin, y: extents.extent.ymin },
           ur: {x: extents.extent.xmax, y: extents.extent.ymax },
-          image: img,
         },
       ])
       .style({
@@ -47,13 +50,12 @@
     function updateBandThumbnail () {
       selector = document.getElementById('band-selector')
       var image_id = Number(selector.value);
-      img.src = extents['thumbnails'][image_id];
-      console.log(img.src)
+      var src = extents['thumbnails'][image_id];
       quad.data([
         {
           ll: {x: extents.extent.xmin, y: extents.extent.ymin },
           ur: {x: extents.extent.xmax, y: extents.extent.ymax },
-          image: img,
+          image: createImage(src),
         },
       ]).draw()
     }
