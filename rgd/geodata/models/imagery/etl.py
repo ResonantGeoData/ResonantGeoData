@@ -49,7 +49,7 @@ def _create_thumbnail_image(src):
         r = get_band(1)
         g = get_band(2)
         b = get_band(3)
-        colors = np.dstack((r, g, b))
+        colors = np.dstack((r, g, b)).astype('uint8')
     elif len(c) == 1 and c[0] == 1:
         # Gray scale
         colors = (norm(get_band(1)) * 255).astype('uint8')
