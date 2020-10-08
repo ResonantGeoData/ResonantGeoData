@@ -40,7 +40,10 @@ MAX_LOAD_SHAPE = (4000, 4000)
 
 def _create_thumbnail_image(src):
     shape = (min(MAX_LOAD_SHAPE[0], src.height), min(MAX_LOAD_SHAPE[0], src.width))
-    get_band = lambda n: src.read(n, out_shape=shape)
+
+    def get_band(n):
+        return src.read(n, out_shape=shape)
+
     norm = plt.Normalize()
 
     c = src.colorinterp
