@@ -40,10 +40,21 @@ MAX_LOAD_SHAPE = (4000, 4000)
 
 def _create_thumbnail_image(src):
     shape = (min(MAX_LOAD_SHAPE[0], src.height), min(MAX_LOAD_SHAPE[0], src.width))
-    thumbnail = src.read(1, out_shape=shape)
-
+    get_band = lambda n: src.read(n, out_shape=shape)
     norm = plt.Normalize()
-    colors = (plt.cm.viridis(norm(thumbnail)) * 255).astype('uint8')[:, :, 0:3]
+
+    c = src.colorinterp
+
+    if c[0:3] == (3, 4, 5):
+        r = get_band(1)
+        g = get_band(2)
+        b = get_band(3)
+        colors = np.dstack((r, g, b))
+    elif len(c) == 1 and c[0] == 1:
+        # Gray scale
+        colors = (norm(get_band(1)) * 255).astype('uint8')
+    else:
+        colors = (plt.cm.viridis(norm(get_band(1))) * 255).astype('uint8')[:, :, 0:3]
 
     buf = io.BytesIO()
     img = PIL.Image.fromarray(colors)

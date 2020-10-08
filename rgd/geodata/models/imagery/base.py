@@ -47,7 +47,7 @@ class Thumbnail(ModifiableEntry):
     base_thumbnail = models.ImageField(blank=True, upload_to='thumbnails')
 
     def image_tag(self):
-        return mark_safe(u'<img src="%s" id="thumbnail"/>' % escape(self.base_thumbnail.url))
+        return mark_safe(u'<img src="%s" id="thumbnail" width="500"/>' % escape(self.base_thumbnail.url))
 
     image_tag.short_description = 'Image'
     image_tag.allow_tags = True
