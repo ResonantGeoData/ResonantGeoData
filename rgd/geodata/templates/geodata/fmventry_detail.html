@@ -9,6 +9,14 @@
     <td>Video File Size</td>
     <td>{{ object.fmv_file.file.size|filesizeformat }}</td>
   </tr>
+  <tr>
+    <td>KLV Metadata</td>
+    <td>{{ object.klv_data_link }}</td>
+  </tr>
+  <tr>
+    <td>Original FMV Video</td>
+    <td>{{ object.fmv_file.fmv_data_link }}</td>
+  </tr>
 
 {% endblock %}
 
