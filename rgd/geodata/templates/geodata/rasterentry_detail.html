@@ -41,7 +41,7 @@
 {% block detail %}
 
 
-  <select id="band-selector" onchange="if (this.selectedIndex) updateBandThumbnail();">
+  <select id="band-selector" onchange="updateBandThumbnail()">
     {% for image in object.images.all %}
       <option value="{{ image.id }}">{{ image.name }}</option>
     {% endfor %}
