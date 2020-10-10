@@ -31,7 +31,7 @@ module "django" {
   source  = "girder/django/heroku"
   version = "0.5.0"
 
-  project_slug     = "rgd"
+  project_slug     = "resonantgeodata"
   subdomain_name   = "www"
   heroku_team_name = data.heroku_team.common.name
   route53_zone_id  = aws_route53_zone.common.id
@@ -42,7 +42,6 @@ module "django" {
   additional_django_vars = {
     SENTRY_DSN = "https://b3dac135af6c42fea439998200656ca3@o267860.ingest.sentry.io/5458973"
   }
-  storage_bucket_name = "resonantgeodata-files"
   # This defaults to 1, but may be changed
   heroku_worker_dyno_quantity = 1
 }
