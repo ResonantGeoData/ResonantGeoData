@@ -39,7 +39,9 @@ module "django" {
   # Optional overrides
   # See https://registry.terraform.io/modules/girder/django/heroku/
   # for other possible optional variables
-  heroku_app_name     = "resonantgeodata"
+  additional_django_vars = {
+    SENTRY_DSN = "https://b3dac135af6c42fea439998200656ca3@o267860.ingest.sentry.io/5458973"
+  }
   storage_bucket_name = "resonantgeodata-files"
   # This defaults to 1, but may be changed
   heroku_worker_dyno_quantity = 1
