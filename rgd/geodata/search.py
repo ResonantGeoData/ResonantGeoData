@@ -176,6 +176,20 @@ def search_bounding_box_filter(params, has_created=False):
     return query
 
 
+def search_geojson_filter(params, has_created=False):
+    """
+    Get a filter object that can be used when searching SpatialEntry models.
+
+    :param params: a dictionary of parameters, optionally including
+        geojson, within, start_time, end_time, and timefield.
+    :param has_created: if True, searching acquisition time will fallback to
+        include created times.
+    :raises ValueError: The GeoJSON is invalid.
+    :returns: a Django query (Q) object.
+    """
+    pass
+
+
 @swagger_auto_schema(
     method='GET',
     operation_summary='List geospatial datasets near a point',
