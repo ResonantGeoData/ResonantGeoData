@@ -36,4 +36,7 @@ urlpatterns = [
     path('api/geodata/geojson', search.search_geojson),
     path('api/geodata/raster/geojson', search.search_geojson_raster),
     path('api/geodata/geometry/geojson', search.search_geojson_geometry),
+    path('api/geodata/geojson/extent', search.search_geojson_extent),
+    path('api/geodata/raster/geojson/extent', search.search_geojson_extent_raster),
+    path('api/geodata/geometry/geojson/extent', search.search_geojson_extent_geometry),
 ]

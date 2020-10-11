@@ -510,3 +510,36 @@ def search_bounding_box_extent_geometry(request, *args, **kwargs):
     params = request.query_params
     found = GeometryEntry.objects.filter(search_bounding_box_filter(params))
     return extent_summary_http(found)
+
+
+@swagger_auto_schema(
+    method='GET',
+    operation_summary='Extents of geospatial datasets in a GeoJSON geometry',
+    operation_description='Get the convex hull and time range for geospatial datasets that intersect or lie entirely within a GeoJSON geometry',
+    query_serializer=GeoJsonSerializer,
+)
+@api_view(['GET'])
+def search_geojson_extent(request, *args, **kwargs):
+    pass
+
+
+@swagger_auto_schema(
+    method='GET',
+    operation_summary='Extents of raster datasets in a GeoJSON geometry',
+    operation_description='Get the convex hull and time range for geospatial raster datasets that intersect or lie entirely within a GeoJSON geometry',
+    query_serializer=GeoJsonSerializer,
+)
+@api_view(['GET'])
+def search_geojson_extent_raster(request, *args, **kwargs):
+    pass
+
+
+@swagger_auto_schema(
+    method='GET',
+    operation_summary='Extents of geometry datasets in a GeoJSON geometry',
+    operation_description='Get the convex hull and time range for geospatial geometry datasets that intersect or lie entirely within a GeoJSON geometry',
+    query_serializer=GeoJsonSerializer,
+)
+@api_view(['GET'])
+def search_geojson_extent_geometry(request, *args, **kwargs):
+    pass
