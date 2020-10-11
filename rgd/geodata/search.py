@@ -268,6 +268,39 @@ def search_bounding_box_geometry(request, *args, **kwargs):
     return JsonResponse(serializers.GeometryEntrySerializer(results, many=True).data, safe=False)
 
 
+@swagger_auto_schema(
+    method='GET',
+    operation_summary='List geospatial datasets in a GeoJSON geometry',
+    operation_description='List geospatial datasets that intersect or lie entirely within a GeoJSON geometry',
+    query_serializer=GeoJsonSerializer,
+)
+@api_view(['GET'])
+def search_geojson(request, *args, **kwargs):
+    pass
+
+
+@swagger_auto_schema(
+    method='GET',
+    operation_summary='List raster datasets in a GeoJSON geometry',
+    operation_description='List geospatial raster datasets that intersect or lie entirely within a GeoJSON geometry',
+    query_serializer=GeoJsonSerializer,
+)
+@api_view(['GET'])
+def search_geojson_raster(request, *args, **kwargs):
+    pass
+
+
+@swagger_auto_schema(
+    method='GET',
+    operation_summary='List geometry datasets in a GeoJSON geometry',
+    operation_description='List geospatial geometry datasets that intersect or lie entirely within a GeoJSON geometry',
+    query_serializer=GeoJsonSerializer,
+)
+@api_view(['GET'])
+def search_geojson_geometry(request, *args, **kwargs):
+    pass
+
+
 def extent_summary_spatial(found):
     """
     Given a query set of SpatialEntry, return a result dictionary with the summary.
