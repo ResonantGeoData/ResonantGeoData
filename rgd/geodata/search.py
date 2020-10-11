@@ -66,6 +66,25 @@ class BoundingBoxSerializer(rfserializers.Serializer):
     )
 
 
+class GeoJsonSerializer(rfserializers.Serializer):
+    geojson = rfserializers.CharField(
+        required=False,
+        help_text='A URL-encoded text of a GeoJSON Geometry object describing a geometry to search.'
+    )
+    within = rfserializers.BooleanField(
+        default=False,
+        allow_null=True,
+        help_text='Return data entirely within (rather than intersecting) the provided geometry.'
+    )
+    start_time = rfserializers.DateTimeField(allow_null=True, required=False)
+    end_time = rfserializers.DateTimeField(allow_null=True, required=False)
+    timefield = rfserializers.CharField(
+        required=False,
+        default='acquisition',
+        help_text='A comma-separated list of fields to search.  This can include acquisition, created, modified.',
+    )
+
+
 def _add_time_to_query(query, timefield, starttime, endtime, has_created=False):
     starttime = make_aware(starttime)
     endtime = make_aware(endtime)
