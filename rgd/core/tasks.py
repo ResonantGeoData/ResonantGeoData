@@ -35,19 +35,19 @@ def _run_algorithm(algorithm_job):
             except docker.errors.ImageNotFound:
                 pass
         if not image:
-            with _field_file_to_local_path(algorithm_file) as algorithm_path:
-                logger.info('Loading docker image %s' % algorithm_path)
-                image = client.images.load(open(algorithm_path, 'rb'))
+            with algorithm_file.open() as algorithm_file_obj:
+                logger.info('Loading docker image %s' % algorithm_file)
+                image = client.images.load(algorithm_file_obj)
                 if len(image) != 1:
                     raise Exception('tar file contains more than one image')
                 image = image[0]
                 algorithm_job.algorithm.docker_image_id = image.attrs['Id']
                 algorithm_job.algorithm.save(update_fields=['docker_image_id'])
                 logger.info('Loaded docker image %r' % algorithm_job.algorithm.docker_image_id)
-        with _field_file_to_local_path(dataset_file) as dataset_path:
+        with dataset_file.open() as dataset_file_obj:
             logger.info(
                 'Running image %s with data %s'
-                % (algorithm_job.algorithm.docker_image_id, dataset_path)
+                % (algorithm_job.algorithm.docker_image_id, dataset_file)
             )
             tmpdir = tempfile.mkdtemp()
             output_path = os.path.join(tmpdir, 'output.dat')
@@ -67,7 +67,7 @@ def _run_algorithm(algorithm_job):
                 'Running %s <%s >%s 2>%s'
                 % (
                     ' '.join([shlex.quote(c) for c in cmd]),
-                    shlex.quote(str(dataset_path)),
+                    shlex.quote(str(dataset_file)),
                     shlex.quote(output_path),
                     shlex.quote(stderr_path),
                 )
@@ -75,7 +75,7 @@ def _run_algorithm(algorithm_job):
             try:
                 subprocess.check_call(
                     cmd,
-                    stdin=open(dataset_path, 'rb'),
+                    stdin=dataset_file_obj,
                     stdout=open(output_path, 'wb'),
                     stderr=open(stderr_path, 'wb'),
                 )
@@ -222,10 +222,10 @@ def _run_scoring(score_job):
 def _validate_docker(docker_file):
     results = {}
     try:
-        with _field_file_to_local_path(docker_file) as docker_path:
+        with docker_file.open() as docker_file_obj:
             client = docker.from_env(version='auto', timeout=3600)
-            logger.info('Loading docker image %s' % docker_path)
-            image = client.images.load(open(docker_path, 'rb'))
+            logger.info('Loading docker image %s' % docker_file)
+            image = client.images.load(docker_file_obj)
             if len(image) != 1:
                 raise Exception('tar file contains more than one image')
             image = image[0]

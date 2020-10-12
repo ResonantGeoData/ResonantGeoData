@@ -211,10 +211,9 @@ def _convert_video_to_mp4(fmv_entry):
 
 
 def _populate_fmv_entry(entry):
-
-    with _field_file_to_local_path(entry.klv_file) as file_path:
-        with open(file_path, 'r') as f:
-            content = f.read()
+    # Open in text mode
+    with entry.klv_file.open() as file_obj:
+        content = file_obj.read().decode('utf-8')
 
     if not content:
         raise Exception('FLV file not created')
