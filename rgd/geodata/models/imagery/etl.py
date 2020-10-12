@@ -141,8 +141,8 @@ def _extract_raster_meta(image_file_entry):
 
     """
     raster_meta = dict()
-    with _field_file_to_local_path(image_file_entry.file) as file_path:
-        with rasterio.open(file_path) as src:
+    with image_file_entry.file.open() as file_obj:
+        with rasterio.open(file_obj) as src:
             raster_meta['crs'] = src.crs.to_proj4()
             raster_meta['origin'] = [src.bounds.left, src.bounds.bottom]
             raster_meta['extent'] = [
@@ -385,11 +385,11 @@ def load_kwcoco_dataset(kwcoco_dataset_id):
     # Unarchive the images locally so we can import them when loading the spec
     # Images could come from a URL, so this is optional
     if ds_entry.image_archive:
-        with _field_file_to_local_path(ds_entry.image_archive.file) as file_path:
-            logger.info(f'The KWCOCO image archive: {file_path}')
+        with ds_entry.image_archive.file as file_obj:
+            logger.info(f'The KWCOCO image archive: {ds_entry.image_archive}')
             # Place images in a local directory and keep track of root path
             # Unzip the contents to the working dir
-            with zipfile.ZipFile(file_path, 'r') as zip_ref:
+            with zipfile.ZipFile(file_obj, 'r') as zip_ref:
                 zip_ref.extractall(tmpdir)
             logger.info(f'The extracted KWCOCO image archive: {tmpdir}')
     else:
