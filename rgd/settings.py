@@ -110,7 +110,7 @@ class RgdConfig(CrispyFormsConfig, AllauthConfig, GeoDjangoConfig, SwaggerConfig
             raise Exception('RgdConfig must be loaded after AllauthConfig.')
         # We also want our apps to be before any apps that we want to override
         # the templates of
-        for key in {'drf_yasg'}:
+        for key in {'drf_yasg2'}:
             if key in configuration.INSTALLED_APPS:
                 insert_index = min(insert_index, configuration.INSTALLED_APPS.index(key))
         configuration.INSTALLED_APPS.insert(insert_index, 'rgd.geodata')
