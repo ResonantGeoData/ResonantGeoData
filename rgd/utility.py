@@ -33,9 +33,9 @@ def _field_file_to_local_path(field_file: FieldFile) -> Generator[Path, None, No
             yield Path(file_obj.name)
 
 
-def compute_checksum(file_path, chunk_num_blocks=128):
+def compute_checksum(field_file: FieldFile, chunk_num_blocks=128):
     sha256 = hashlib.sha256()
-    with open(file_path, 'rb') as f:
+    with field_file.open() as f:
         while chunk := f.read(chunk_num_blocks * sha256.block_size):
             sha256.update(chunk)
     return sha256.hexdigest()

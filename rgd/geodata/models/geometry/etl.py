@@ -13,8 +13,6 @@ import fiona
 from shapely.geometry import shape
 from shapely.wkb import dumps
 
-from rgd.utility import _field_file_to_local_path
-
 from .base import GeometryArchive, GeometryEntry
 from .transform import transform_geometry
 
@@ -44,11 +42,11 @@ def read_geometry_archive(archive_id):
     workdir = getattr(settings, 'GEODATA_WORKDIR', None)
     tmpdir = tempfile.mkdtemp(dir=workdir)
 
-    with _field_file_to_local_path(archive.file) as file_path:
-        logger.info(f'The geometry archive: {file_path}')
+    with archive.file.open() as archive_file_obj:
+        logger.info(f'The geometry archive: {archive.file}')
 
         # Unzip the contents to the working dir
-        with zipfile.ZipFile(file_path, 'r') as zip_ref:
+        with zipfile.ZipFile(archive_file_obj, 'r') as zip_ref:
             zip_ref.extractall(tmpdir)
 
     shape_files = glob(os.path.join(tmpdir, '*.shp'))
