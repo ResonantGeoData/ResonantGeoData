@@ -15,5 +15,6 @@ from .base import (
     ImageSet,
     KWCOCOArchive,
     RasterEntry,
+    Thumbnail,
 )
 from .ifiles import ImageFile
