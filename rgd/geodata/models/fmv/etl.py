@@ -117,21 +117,22 @@ def _get_path_and_footprints(content):
     frame_regex = re.compile(r'========== Read frame (\d+) \(index (\d+)\) ==========')
     idxs = [m.start() for m in re.finditer(frame_regex, content)]
     frames = [content[idxs[i] : idxs[i + 1]] for i in range(len(idxs) - 1)]
+    nf = [int(c[0]) for c in re.findall(frame_regex, content)]
 
-    locations = {}
-    for i, f in enumerate(frames):
-        try:
-            s = _get_spatial_ref_of_frame(f)
-        except IndexError:
-            # s = "No data"
-            continue
-        locations[i + 1] = s
+    assert len(nf[:-1]) == len(frames)
 
     path = []
     polys = []
     union = None
-    for meta in locations.values():
-        sensor, bbox, srid = meta
+    frame_numbers = []
+    for i, f in enumerate(frames):
+        try:
+            sensor, bbox, srid = _get_spatial_ref_of_frame(f)
+        except IndexError:
+            # No data for that frame
+            continue
+
+        frame_numbers.append(nf[i])
 
         point = Point(*sensor[:2], srid=srid)
         path.append(point)
@@ -157,7 +158,14 @@ def _get_path_and_footprints(content):
             ]
         )
 
-    return points, polys, union
+    return points, polys, union, frame_numbers
+
+
+def _get_frame_rate_of_video(file_path):
+    import cv2  # NOTE: in project depends from kwcoco
+
+    cap = cv2.VideoCapture(os.path.abspath(file_path))
+    return cap.get(cv2.CAP_PROP_FPS)
 
 
 def _convert_video_to_mp4(fmv_entry):
@@ -194,6 +202,7 @@ def _convert_video_to_mp4(fmv_entry):
             fmv_entry.web_video_file.save(
                 '%s.mp4' % os.path.basename(dataset_path), open(output_path, 'rb')
             )
+            fmv_entry.frame_rate = _get_frame_rate_of_video(dataset_path)
             fmv_entry.save()
         except subprocess.CalledProcessError as exc:
             result = exc.returncode
@@ -202,10 +211,9 @@ def _convert_video_to_mp4(fmv_entry):
 
 
 def _populate_fmv_entry(entry):
-
-    with _field_file_to_local_path(entry.klv_file) as file_path:
-        with open(file_path, 'r') as f:
-            content = f.read()
+    # Open in text mode
+    with entry.klv_file.open() as file_obj:
+        content = file_obj.read().decode('utf-8')
 
     if not content:
         raise Exception('FLV file not created')
@@ -213,10 +221,12 @@ def _populate_fmv_entry(entry):
     # The returned `footprints` can have thoousands of Polygons which will not render well
     #   for now we just ignore those. If there is a need, we can use later.
     #   FYI: those footprints do not correspond to all frames, i.e. some are missing
-    path, _, union = _get_path_and_footprints(content)
+    path, polys, union, nf = _get_path_and_footprints(content)
 
-    entry.ground_frame = union
+    entry.ground_frames = polys
+    entry.ground_union = union
     entry.flight_path = path
+    entry.frame_numbers = entry._array_to_blob(nf)
 
     entry.outline = union.envelope
     entry.footprint = union.convex_hull
@@ -242,11 +252,13 @@ def read_fmv_file(fmv_file_id):
         # This should never happen because it is a foreign key
         raise RuntimeError('multiple FMV entries found for this file.')  # pragma: no cover
 
+    validation = fmv_file.validate()
     # Only extraxt the KLV data if it does not exist or the checksum of the video has changed
-    if not entry.klv_file or not fmv_file.validate():
+    if not entry.klv_file or not validation:
         _extract_klv_with_docker(fmv_file, entry)
+    if not entry.web_video_file or not validation:
+        _convert_video_to_mp4(entry)
 
-    _convert_video_to_mp4(entry)
     _populate_fmv_entry(entry)
 
     return

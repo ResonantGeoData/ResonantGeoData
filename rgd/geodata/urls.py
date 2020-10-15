@@ -6,11 +6,17 @@ urlpatterns = [
     path(
         'geodata/spatial_entries/', views.SpatialEntriesListView.as_view(), name='spatial_entries'
     ),
+    path('geodata/fmv_entries/', views.FMVEntriesListView.as_view(), name='fmv_entries'),
     path('geodata/rasters/', views.RasterEntriesListView.as_view(), name='rasters'),
     path(
         'geodata/rasters/<int:pk>/',
         views.RasterEntryDetailView.as_view(),
         name='raster-entry-detail',
+    ),
+    path(
+        'geodata/fmv_entries/<int:pk>/',
+        views.FMVEntryDetailView.as_view(),
+        name='fmv-entry-detail',
     ),
     path(
         'api/geodata/download/<model>/<int:id>/<field>', views.download_file, name='download-file'

@@ -1,10 +1,12 @@
+import os
+
 # from django.contrib.auth import get_user_model
 from django.contrib.gis.db import models
 from django.utils import timezone
 from model_utils.managers import InheritanceManager
 from s3_file_field import S3FileField
 
-from rgd.utility import _field_file_to_local_path, compute_checksum
+from rgd.utility import compute_checksum
 
 from .constants import DB_SRID
 
@@ -76,8 +78,7 @@ class ChecksumFile(ModifiableEntry):
         abstract = True
 
     def update_checksum(self):
-        with _field_file_to_local_path(self.file) as file_path:
-            self.checksum = compute_checksum(file_path)
+        self.checksum = compute_checksum(self.file)
         # Simple update save - not full save
         super(ChecksumFile, self).save(
             update_fields=[
@@ -102,7 +103,7 @@ class ChecksumFile(ModifiableEntry):
         if not hasattr(self, 'file'):
             raise AttributeError('Child class of `ChecksumFile` must have a `file` field.')
         if not self.name:
-            self.name = self.file.name
+            self.name = os.path.basename(self.file.name)
         # Must save the model with the file before accessing it for the checksum
         super(ChecksumFile, self).save(*args, **kwargs)
         # Checksum is additional step after saving everything else - simply update these fields.
@@ -128,4 +129,4 @@ class ChecksumFile(ModifiableEntry):
 class ArbitraryFile(ChecksumFile):
     """Container for arbitrary file uploads."""
 
-    file = S3FileField(upload_to='files/arbitrary/')
+    file = S3FileField()

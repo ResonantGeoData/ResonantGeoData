@@ -1,6 +1,6 @@
 {% extends "geodata/_base/search_view.html" %}
 {% block title %}
-  Rasters
+  FMV Entries
 {% endblock title %}
 
 {% block list_view %}
@@ -10,18 +10,14 @@
       <thead class="thead-dark">
         <tr>
           <th>Name (ID)</th>
-          <th>Size</th>
-          <th>Number of Bands</th>
-          <th>Resolution</th>
+          <th>Video File Size</th>
         </tr>
       </thead>
       <tbody>
-        {% for raster in rasters %}
+        {% for entry in entries %}
           <tr>
-            <td><a href="{% url 'raster-entry-detail' raster.pk %}">{{ raster.name }} ({{ raster.id }})</a></td>
-            <td>{{ raster.width }} x {{ raster.height }}</td>
-            <td>{{ raster.image_bands }}</td>
-            <td>{{ raster.resolution }}</td>
+            <td><a href="{% url 'fmv-entry-detail' entry.pk %}">{{ entry.name }} ({{ entry.id }})</a></td>
+            <td>{{ entry.fmv_file.file.size|filesizeformat }}</td>
           </tr>
         {% endfor %}
       </tbody>

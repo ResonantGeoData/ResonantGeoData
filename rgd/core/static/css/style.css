@@ -1,5 +1,3 @@
-@import url('dist/bulma.css');
-
 @import url('rgd/base.css'); /* fonts, links, headings, structure */
 @import url('rgd/transitions.css'); /* transition classes */
 

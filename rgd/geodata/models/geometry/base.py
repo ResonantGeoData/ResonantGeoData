@@ -6,6 +6,8 @@ from django.dispatch import receiver
 import magic
 from s3_file_field import S3FileField
 
+from rgd.utility import _link_url
+
 from ... import tasks
 from ..common import ChecksumFile, ModifiableEntry, SpatialEntry
 from ..constants import DB_SRID
@@ -31,7 +33,6 @@ class GeometryArchive(ChecksumFile, TaskEventMixin):
 
     task_func = tasks.task_read_geometry_archive
     file = S3FileField(
-        upload_to='files/geometry_files',
         validators=[validate_archive],
         help_text='This must be an archive (`.zip` or `.tar`) of a single shape (`.shp`, `.dbf`, `.shx`, etc.).',
     )
@@ -42,6 +43,11 @@ class GeometryArchive(ChecksumFile, TaskEventMixin):
         if not self.name:
             self.name = self.file.name
         super(GeometryArchive, self).save(*args, **kwargs)
+
+    def archive_data_link(self):
+        return _link_url('geodata', 'geometry_archive', self, 'file')
+
+    archive_data_link.allow_tags = True
 
 
 class GeometryEntry(ModifiableEntry, SpatialEntry):

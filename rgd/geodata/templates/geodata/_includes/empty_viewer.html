@@ -1,0 +1,30 @@
+{% block empty_viewer %}
+  <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/geojs/0.20.0/geo.min.js"></script>
+  <script src="https://d3js.org/d3-color.v2.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/lodash.js/4.17.20/lodash.min.js"></script>
+
+  <div id="map" style="width:100%;height:600px"></div>
+
+  <br/>
+
+  <script>
+    // Initialize the map
+    let map = geo.map({
+      node: '#map'
+    })
+    map.createLayer('osm', {
+      source: 'osm'
+    }); // stamen-terrain
+
+    // Feature/data layer
+    let layer = map.createLayer('feature', {
+      features: ['polygon', 'marker']
+    });
+
+    // User Interface layer
+    var ui = map.createLayer('ui');
+
+    // Create a zoom slider widget
+    ui.createWidget('slider', {position: {left: 40, top: 40}});
+  </script>
+{% endblock %}

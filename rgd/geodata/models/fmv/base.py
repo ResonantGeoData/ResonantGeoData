@@ -1,8 +1,13 @@
+import base64
+import pickle
+
 from django.contrib.gis.db import models
 from django.db import transaction
 from django.db.models.signals import post_save
 from django.dispatch import receiver
 from s3_file_field import S3FileField
+
+from rgd.utility import _link_url
 
 from ... import tasks
 from ..common import ChecksumFile, ModifiableEntry, SpatialEntry
@@ -15,7 +20,12 @@ class FMVFile(ChecksumFile, TaskEventMixin):
 
     task_func = tasks.task_read_fmv_file
     failure_reason = models.TextField(null=True, blank=True)
-    file = S3FileField(upload_to='files/fmv/')
+    file = S3FileField()
+
+    def fmv_data_link(self):
+        return _link_url('geodata', 'fmv_file', self, 'file')
+
+    fmv_data_link.allow_tags = True
 
 
 @receiver(post_save, sender=FMVFile)
@@ -33,8 +43,24 @@ class FMVEntry(ModifiableEntry, SpatialEntry):
     description = models.TextField(null=True, blank=True)
 
     fmv_file = models.OneToOneField(FMVFile, null=True, on_delete=models.CASCADE)
-    klv_file = S3FileField(upload_to='files/fmv/', null=True, blank=True)
-    web_video_file = S3FileField(upload_to='files/fmv/web/', null=True, blank=True)
+    klv_file = S3FileField(null=True, blank=True)
+    web_video_file = S3FileField(null=True, blank=True)
+    frame_rate = models.FloatField(null=True, blank=True)
 
-    ground_frame = models.MultiPolygonField(srid=DB_SRID, null=True, blank=True)
+    ground_frames = models.MultiPolygonField(srid=DB_SRID, null=True, blank=True)
+    ground_union = models.MultiPolygonField(srid=DB_SRID, null=True, blank=True)
     flight_path = models.MultiPointField(srid=DB_SRID, null=True, blank=True)
+    frame_numbers = models.BinaryField(null=True, blank=True)
+
+    @staticmethod
+    def _array_to_blob(array):
+        return base64.b64encode(pickle.dumps(array))
+
+    @staticmethod
+    def _blob_to_array(blob):
+        return pickle.loads(base64.b64decode(blob))
+
+    def klv_data_link(self):
+        return _link_url('geodata', 'fmv_entry', self, 'klv_file')
+
+    klv_data_link.allow_tags = True

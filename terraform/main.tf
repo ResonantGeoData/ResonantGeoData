@@ -31,7 +31,7 @@ module "django" {
   source  = "girder/django/heroku"
   version = "0.5.0"
 
-  project_slug     = "rgd"
+  project_slug     = "resonantgeodata"
   subdomain_name   = "www"
   heroku_team_name = data.heroku_team.common.name
   route53_zone_id  = aws_route53_zone.common.id
@@ -39,10 +39,8 @@ module "django" {
   # Optional overrides
   # See https://registry.terraform.io/modules/girder/django/heroku/
   # for other possible optional variables
-  heroku_app_name     = "resonantgeodata"
-  storage_bucket_name = "resonantgeodata-files"
   additional_django_vars = {
-    DJANGO_S3FF_UPLOAD_STS_ARN = aws_iam_role.storage_upload.arn
+    SENTRY_DSN = "https://b3dac135af6c42fea439998200656ca3@o267860.ingest.sentry.io/5458973"
   }
   # This defaults to 1, but may be changed
   heroku_worker_dyno_quantity = 1

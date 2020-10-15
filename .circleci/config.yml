@@ -4,11 +4,15 @@ jobs:
   test:
     docker:
       - image: circleci/python:3.8
-      - image: circleci/postgres:12-postgis-ram
+      - image: circleci/postgres:latest-postgis-ram
         environment:
           POSTGRES_DB: django
           POSTGRES_PASSWORD: postgres
-      - image: girder/minio-nonroot:latest
+      - image: minio/minio:latest
+        command: server /data
+        environment:
+          MINIO_ACCESS_KEY: minioAccessKey
+          MINIO_SECRET_KEY: minioSecretKey
     steps:
       - checkout
       - run:
@@ -20,8 +24,8 @@ jobs:
           environment:
             DJANGO_DATABASE_URL: postgres://postgres:postgres@localhost:5432/django
             DJANGO_MINIO_STORAGE_ENDPOINT: localhost:9000
-            DJANGO_MINIO_STORAGE_ACCESS_KEY: minioUserAccessKey
-            DJANGO_MINIO_STORAGE_SECRET_KEY: minioUserSecretKey
+            DJANGO_MINIO_STORAGE_ACCESS_KEY: minioAccessKey
+            DJANGO_MINIO_STORAGE_SECRET_KEY: minioSecretKey
       - run:
           name: Upload Coverage
           command: codecov

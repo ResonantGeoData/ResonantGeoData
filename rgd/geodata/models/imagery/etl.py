@@ -1,14 +1,18 @@
 """Helper methods for creating a ``GDALRaster`` entry from a raster file."""
+import io
 import os
 import tempfile
 import zipfile
 
+import PIL.Image
 from celery.utils.log import get_task_logger
 from django.conf import settings
 from django.contrib.gis.gdal import SpatialReference
 from django.contrib.gis.geos import LineString, MultiPoint, MultiPolygon, Point, Polygon
+from django.core.files.base import ContentFile
 import kwcoco
 import kwimage
+import matplotlib.pyplot as plt
 import numpy as np
 from osgeo import gdal
 import rasterio
@@ -24,6 +28,7 @@ from .base import (
     ImageSet,
     KWCOCOArchive,
     RasterEntry,
+    Thumbnail,
 )
 from .ifiles import ImageArchiveFile, ImageFile
 
@@ -33,17 +38,47 @@ logger = get_task_logger(__name__)
 MAX_LOAD_SHAPE = (4000, 4000)
 
 
-# def create_thumbnail(src):
-#     oview = int(max(src.height, src.width) * 0.1) or 1
-#     thumbnail = src.read(1, out_shape=(1, int(src.height // oview), int(src.width // oview)))
-#
-#     buf = io.BytesIO()
-#     thumbnail.save(buf, format='JPEG')
-#     byte_im = buf.getvalue()
-#     return ContentFile(byte_im)
+def _create_thumbnail_image(src):
+    shape = (min(MAX_LOAD_SHAPE[0], src.height), min(MAX_LOAD_SHAPE[0], src.width))
+
+    def get_band(n):
+        return src.read(n, out_shape=shape)
+
+    norm = plt.Normalize()
+
+    c = src.colorinterp
+
+    if c[0:3] == (3, 4, 5):
+        r = get_band(1)
+        g = get_band(2)
+        b = get_band(3)
+        colors = np.dstack((r, g, b)).astype('uint8')
+    elif len(c) == 1 and c[0] == 1:
+        # Gray scale
+        colors = (norm(get_band(1)) * 255).astype('uint8')
+    else:
+        colors = (plt.cm.viridis(norm(get_band(1))) * 255).astype('uint8')[:, :, 0:3]
+
+    buf = io.BytesIO()
+    img = PIL.Image.fromarray(colors)
+    img.save(buf, 'JPEG')
+    byte_im = buf.getvalue()
+    return ContentFile(byte_im)
 
 
 def _read_image_to_entry(image_entry, image_file_path):
+
+    thumbnail_query = Thumbnail.objects.filter(image_entry=image_entry)
+    if len(thumbnail_query) < 1:
+        thumbnail = Thumbnail()
+        # image_entry.creator = ife.creator
+    elif len(thumbnail_query) == 1:
+        thumbnail = thumbnail_query.first()
+    else:
+        # This should never happen because it is a OneToOneField
+        raise RuntimeError('multiple thumbnail entries found for this image.')  # pragma: no cover
+
+    thumbnail.image_entry = image_entry
 
     with rasterio.open(image_file_path) as src:
         image_entry.number_of_bands = src.count
@@ -54,8 +89,7 @@ def _read_image_to_entry(image_entry, image_file_path):
         # A catch-all metadata feild:
         # TODO: image_entry.metadata =
 
-        # thumbnail = create_thumbnail(src)
-        # image_entry.thumbnail.save('thumbnail.jpg', thumbnail, save=True)
+        thumb_image = _create_thumbnail_image(src)
 
         # These are things I couldn't figure out how to get with gdal directly
         dtypes = src.dtypes
@@ -63,6 +97,8 @@ def _read_image_to_entry(image_entry, image_file_path):
 
     # No longer editing image_entry
     image_entry.save()
+    thumbnail.base_thumbnail.save(f'{image_entry.name}.jpg', thumb_image, save=True)
+    thumbnail.save()
 
     # Rasterio is no longer open... using gdal directly:
     gsrc = gdal.Open(str(image_file_path))  # Have to cast Path to str
@@ -141,8 +177,8 @@ def _extract_raster_meta(image_file_entry):
 
     """
     raster_meta = dict()
-    with _field_file_to_local_path(image_file_entry.file) as file_path:
-        with rasterio.open(file_path) as src:
+    with image_file_entry.file.open() as file_obj:
+        with rasterio.open(file_obj) as src:
             raster_meta['crs'] = src.crs.to_proj4()
             raster_meta['origin'] = [src.bounds.left, src.bounds.bottom]
             raster_meta['extent'] = [
@@ -385,11 +421,11 @@ def load_kwcoco_dataset(kwcoco_dataset_id):
     # Unarchive the images locally so we can import them when loading the spec
     # Images could come from a URL, so this is optional
     if ds_entry.image_archive:
-        with _field_file_to_local_path(ds_entry.image_archive.file) as file_path:
-            logger.info(f'The KWCOCO image archive: {file_path}')
+        with ds_entry.image_archive.file as file_obj:
+            logger.info(f'The KWCOCO image archive: {ds_entry.image_archive}')
             # Place images in a local directory and keep track of root path
             # Unzip the contents to the working dir
-            with zipfile.ZipFile(file_path, 'r') as zip_ref:
+            with zipfile.ZipFile(file_obj, 'r') as zip_ref:
                 zip_ref.extractall(tmpdir)
             logger.info(f'The extracted KWCOCO image archive: {tmpdir}')
     else:

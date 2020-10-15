@@ -8,7 +8,8 @@ from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db.models import Max, Min, Q
 from django.db.models.functions import Coalesce
 from django.http import HttpResponse, JsonResponse
-from drf_yasg.utils import swagger_auto_schema
+from django.utils.timezone import make_aware
+from drf_yasg2.utils import swagger_auto_schema
 from rest_framework import serializers as rfserializers
 from rest_framework.decorators import api_view
 
@@ -66,6 +67,8 @@ class BoundingBoxSerializer(rfserializers.Serializer):
 
 
 def _add_time_to_query(query, timefield, starttime, endtime, has_created=False):
+    starttime = make_aware(starttime)
+    endtime = make_aware(endtime)
     timefields = [field.strip() for field in timefield.split(',')] or ['acquisition']
     subquery = []
     for field in timefields:
@@ -328,6 +331,29 @@ def extent_summary(found, has_created=False):
                 summary['acquisition__min'].isoformat(),
                 summary['acquisition__max'].isoformat(),
             ]
+    return results
+
+
+def extent_summary_fmv(found):
+    results = extent_summary(found)
+    if found and found.count():
+        summary = found.aggregate(
+            Collect('ground_union'),
+            Extent('ground_union'),
+        )
+        results.update(
+            {
+                'count': found.count(),
+                'collect': json.loads(summary['ground_union__collect'].geojson),
+                'convex_hull': json.loads(summary['ground_union__collect'].convex_hull.geojson),
+                'extent': {
+                    'xmin': summary['ground_union__extent'][0],
+                    'ymin': summary['ground_union__extent'][1],
+                    'xmax': summary['ground_union__extent'][2],
+                    'ymax': summary['ground_union__extent'][3],
+                },
+            }
+        )
     return results
 
 

@@ -18,39 +18,7 @@
   </head>
   <body class="content">
     <header class="main-header">
-      <div class="container">
-        {% comment %}
-        <div class="logo">
-          <h1><a href="{% url 'index' %}"><img src="{% static 'img/isic_logo.svg' %}" alt="ISIC Challenge"></a></h1>
-        </div>
-        {% endcomment %}
-        <div class="navigation">
-          <ul class="navbar">
-            {% if user.is_authenticated %}
-              <strong>{{ request.user.email }}</strong>
-              {% if user.is_superuser %}
-              <li class="admin">
-                  <a href="{% url 'admin:index' %}" class="button is-small">Admin</a>
-              </li>
-              {% endif %}
-              <!-- TODO: uncomment this eventually? -->
-              {% comment %}
-              {% if user.is_staff %}
-              <li class="admin">
-                  <a href="{% url 'staff-dashboard' %}" class="button is-small">Dashboard</a>
-              </li>
-              {% endif %}
-              {% endcomment %}
-              <li class="logout">
-                  <a href="{% url 'account_logout' %}" class="button btn-blue is-small">Logout</a>
-              </li>
-            {% else %}
-              <li id="login-button" class="login"><a href="{% url 'account_login' %}" class="button btn-blue">Login</a></li>
-              <li class="signup"><a href="{% url 'account_signup' %}" class="button">Sign up</a></li>
-            {% endif %}
-          </ul>
-        </div>
-      </div>
+      {% include 'geodata/_includes/navbar.html' %}
     </header>
     {% if not request.user.is_authenticated %}
         <div id="temporary-transition-banner" class="notification">
@@ -92,42 +60,8 @@
 
       <main role="main" class="container">
       <div class="row">
-        <div class="col-md-8">
+        <div class="col-md">
           {% block content %}{% endblock %}
-        </div>
-        <div class="col-md-4">
-          <div class="content-section">
-            <h3>Useful Links</h3>
-            <p class='text-muted'>
-              <ul class="list-group">
-                <li class="list-group-item list-group-item-dark">
-                  <a class="mr-2" href="{% url 'index' %}">Core</a>
-                </li>
-                <ul class="list-group">
-                  <li class="list-group-item list-group-item-dark">
-                    <a class="mr-2" href="{% url 'tasks' %}">Tasks</a>
-                  </li>
-                  <li class="list-group-item list-group-item-dark">
-                    <a class="mr-2" href="{% url 'algorithms' %}">My Algorithms</a>
-                  </li>
-                  <li class="list-group-item list-group-item-dark">
-                    <a class="mr-2" href="{% url 'jobs' %}">My Jobs</a>
-                  </li>
-                </ul>
-                <li class="list-group-item list-group-item-dark">
-                  <a class="mr-2" href="{% url 'spatial_entries' %}">GeoData</a>
-                </li>
-                <ul class="list-group">
-                  <li class="list-group-item list-group-item-dark">
-                    <a class="mr-2" href="{% url 'rasters' %}">Raster Entries</a>
-                  </li>
-                  <li class="list-group-item list-group-item-dark">
-                    <a class="mr-2" href="{% url 'fmv_entries' %}">FMV Entries</a>
-                  </li>
-                </ul>
-              </ul>
-            </p>
-          </div>
         </div>
       </div>
     </main>
