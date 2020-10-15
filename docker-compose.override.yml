@@ -10,6 +10,8 @@ services:
     env_file: ./dev/.env.docker-compose
     volumes:
       - .:/opt/django-project
+      - ${DOCKER_SOCK:-/var/run/docker.sock}:/var/run/docker.sock
+      - ${DOCKER_CMD:-/usr/bin/docker}:/usr/bin/docker
     ports:
       - 8000:8000
     depends_on:
