@@ -21,7 +21,6 @@ class ImageFileFactory(factory.django.DjangoModelFactory):
 
     name = factory.Faker('sentence', nb_words=2)
     file = factory.django.FileField(filename='sample.dat')
-    compute_checksum = True
     # creator = factory.SubFactory(UserFactory)
     # modifier = factory.SubFactory(UserFactory)
 
@@ -54,7 +53,6 @@ class GeometryArchiveFactory(factory.django.DjangoModelFactory):
 
     name = factory.Faker('sentence', nb_words=2)
     file = factory.django.FileField(filename='sample.dat')
-    compute_checksum = True
 
 
 class ArbitraryFileFactory(factory.django.DjangoModelFactory):
