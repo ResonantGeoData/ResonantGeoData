@@ -5,8 +5,8 @@ setup(
     version='0.1',
     python_requires='>=3.8.0',
     install_requires=[
-        'celery<5',
-        'django>=3.1',
+        'celery',
+        'django',
         'django-admin-display',
         'django-allauth',
         'django-cleanup',

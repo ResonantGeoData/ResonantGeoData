@@ -40,7 +40,7 @@ module "django" {
   # See https://registry.terraform.io/modules/girder/django/heroku/
   # for other possible optional variables
   additional_django_vars = {
-    SENTRY_DSN = "https://b3dac135af6c42fea439998200656ca3@o267860.ingest.sentry.io/5458973"
+    DJANGO_SENTRY_DSN = "https://b3dac135af6c42fea439998200656ca3@o267860.ingest.sentry.io/5458973"
   }
   # This defaults to 1, but may be changed
   heroku_worker_dyno_quantity = 1
