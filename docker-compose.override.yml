@@ -22,9 +22,10 @@ services:
       context: .
       dockerfile: ./dev/django.Dockerfile
     command: [
-      "celery", "worker",
+      "celery",
       "--app", "rgd.celery",
-      "--loglevel", "info",
+      "worker",
+      "--loglevel", "INFO",
       "--without-heartbeat"
     ]
     # Docker Compose does not set the TTY width, which causes Celery errors
