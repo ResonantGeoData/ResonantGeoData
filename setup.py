@@ -34,6 +34,7 @@ setup(
         'django-storages[boto3]',
         'flower',
         'gunicorn',
+        'sentry-sdk',
         # Development-only
         'django-debug-toolbar',
         'django-minio-storage',
