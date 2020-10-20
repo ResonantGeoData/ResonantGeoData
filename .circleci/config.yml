@@ -31,7 +31,7 @@ jobs:
             DJANGO_MINIO_STORAGE_ACCESS_KEY: minioAccessKey
             DJANGO_MINIO_STORAGE_SECRET_KEY: minioSecretKey
             DOCKER_CMD: /usr/bin/docker
-            DOCKER_SOCK: $DOCKER_HOST/var/run/docker.sock
+            DOCKER_SOCK: /var/run/docker.sock
       - run:
           name: Upload Coverage
           command: codecov
