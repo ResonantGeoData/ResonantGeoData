@@ -327,12 +327,8 @@ def populate_raster_entry(raster_id):
     """Autopopulate the fields of the raster."""
     raster_entry = RasterEntry.objects.get(id=raster_id)
 
-    try:
-        meta = _validate_image_set_is_raster(raster_entry)
-    except ValueError as err:
-        raster_entry.failure_reason = str(err)
-        raster_entry.save(update_fields=['failure_reason'])
-        return False
+    # Has potential to error with failure reason
+    meta = _validate_image_set_is_raster(raster_entry)
 
     for k, v in meta.items():
         # Yeah. This is sketchy, but it works.
@@ -397,7 +393,6 @@ def _fill_annotation_segmentation(annotation_entry, ann_json):
 def load_kwcoco_dataset(kwcoco_dataset_id):
     logger.info('Starting KWCOCO ETL routine')
     ds_entry = KWCOCOArchive.objects.get(id=kwcoco_dataset_id)
-    ds_entry.failure_reason = ''
 
     # TODO: add a setting like this:
     workdir = getattr(settings, 'GEODATA_WORKDIR', None)
@@ -414,7 +409,6 @@ def load_kwcoco_dataset(kwcoco_dataset_id):
     ds_entry.save(
         update_fields=[
             'image_set',
-            'failure_reason',
         ]  # noqa: E231
     )
 
