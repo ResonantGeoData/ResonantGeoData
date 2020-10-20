@@ -54,11 +54,11 @@ SwaggerAutoSchema.get_summary_and_description = drf_yasg_get_summary_and_descrip
 
 
 urlpatterns = [
+    path('accounts/', include('allauth.urls')),
+    path('admin/', admin.site.urls),
+    path('api/s3-upload/', include('s3_file_field.urls')),
     path('', include('rgd.core.urls')),
     path('', include('rgd.geodata.urls')),
-    path('admin/', admin.site.urls),
-    path('accounts/', include('allauth.urls')),
-    path('api/s3-upload/', include('s3_file_field.urls')),
 ]
 
 schema_view = get_schema_view(

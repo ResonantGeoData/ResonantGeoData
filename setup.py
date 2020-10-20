@@ -5,8 +5,8 @@ setup(
     version='0.1',
     python_requires='>=3.8.0',
     install_requires=[
-        'celery<5',
-        'django>=3.1',
+        'celery',
+        'django',
         'django-admin-display',
         'django-allauth',
         'django-cleanup',
@@ -34,6 +34,7 @@ setup(
         'django-storages[boto3]',
         'flower',
         'gunicorn',
+        'sentry-sdk',
         # Development-only
         'django-debug-toolbar',
         'django-minio-storage',
