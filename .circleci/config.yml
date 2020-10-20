@@ -20,6 +20,9 @@ jobs:
           name: Install tox and codecov
           command: sudo pip install tox codecov
       - run:
+          name: Debugging
+          command: which docker;docker --help
+      - run:
           name: Run tests
           command: tox
           environment:
