@@ -1,9 +1,6 @@
 from django.contrib.auth import get_user_model
 from django.contrib.gis.db import models
 from django.core.validators import MaxValueValidator, MinValueValidator
-from django.db import transaction
-from django.db.models.signals import post_save
-from django.dispatch import receiver
 from django.urls import reverse
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
@@ -145,11 +142,6 @@ class Algorithm(models.Model):
         self.validate_algorithm()
 
 
-@receiver(post_save, sender=Algorithm)
-def _post_save_algorithm(sender, instance, *args, **kwargs):
-    transaction.on_commit(lambda: instance._post_save(**kwargs))
-
-
 class ScoreAlgorithm(models.Model):
     """
     Scoring alogorithm.
@@ -194,11 +186,6 @@ class ScoreAlgorithm(models.Model):
         ):
             return
         self.validate_score_algorithm()
-
-
-@receiver(post_save, sender=ScoreAlgorithm)
-def _post_save_score_algorithm(sender, instance, *args, **kwargs):
-    transaction.on_commit(lambda: instance._post_save(**kwargs))
 
 
 class AlgorithmJob(models.Model):
@@ -253,11 +240,6 @@ class AlgorithmJob(models.Model):
         if self.status == self.Status.QUEUED:
             self.run_algorithm()
         # We may want to implement canceling here
-
-
-@receiver(post_save, sender=AlgorithmJob)
-def _post_save_algorithm_job(sender, instance, *args, **kwargs):
-    transaction.on_commit(lambda: instance._post_save(**kwargs))
 
 
 class AlgorithmResult(models.Model):
@@ -323,11 +305,6 @@ class ScoreJob(models.Model):
         if self.status == self.Status.QUEUED:
             self.run_scoring()
         # We may want to implement canceling here
-
-
-@receiver(post_save, sender=ScoreJob)
-def _post_save_score_job(sender, instance, *args, **kwargs):
-    transaction.on_commit(lambda: instance._post_save(**kwargs))
 
 
 class ScoreResult(models.Model):
