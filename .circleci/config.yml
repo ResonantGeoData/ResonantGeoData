@@ -2,7 +2,7 @@
 version: 2.1
 jobs:
   test:
-    machine:
+    docker:
       - image: circleci/python:3.8
       - image: circleci/postgres:latest-postgis-ram
         environment:
@@ -15,6 +15,7 @@ jobs:
           MINIO_SECRET_KEY: minioSecretKey
     steps:
       - checkout
+      - setup_remote_docker
       - run:
           name: Install tox and codecov
           command: sudo pip install tox codecov
