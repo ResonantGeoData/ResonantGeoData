@@ -30,6 +30,7 @@ jobs:
             DJANGO_MINIO_STORAGE_ENDPOINT: localhost:9000
             DJANGO_MINIO_STORAGE_ACCESS_KEY: minioAccessKey
             DJANGO_MINIO_STORAGE_SECRET_KEY: minioSecretKey
+            DOCKER_CMD: /usr/bin/docker
       - run:
           name: Upload Coverage
           command: codecov
