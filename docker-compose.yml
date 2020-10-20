@@ -28,11 +28,6 @@ services:
     volumes:
       - fsdata:/data
 
-  sass:
-    image: larryprice/sass
-    volumes:
-      - ./rgd/core/static/css/sass:/src
-
 volumes:
   dbdata:
   fsdata:

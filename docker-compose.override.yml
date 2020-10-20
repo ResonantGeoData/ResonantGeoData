@@ -45,3 +45,8 @@ services:
   flower:
     image: mher/flower
     command: ["--broker=amqp://rabbitmq:5672/", "--url_prefix=flower"]
+
+  sass:
+    image: larryprice/sass
+    volumes:
+      - ./rgd/core/static/css/sass:/src
