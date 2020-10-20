@@ -1,8 +1,5 @@
 from django.contrib.gis.db import models
 from django.core.exceptions import ValidationError
-from django.db import transaction
-from django.db.models.signals import post_save
-from django.dispatch import receiver
 import magic
 from s3_file_field import S3FileField
 
@@ -53,8 +50,3 @@ class GeometryEntry(ModifiableEntry, SpatialEntry):
     # The actual collection is iterable so access is super easy
 
     geometry_archive = models.OneToOneField(GeometryArchive, null=True, on_delete=models.CASCADE)
-
-
-@receiver(post_save, sender=GeometryArchive)
-def _post_save_geometry_archive(sender, instance, *args, **kwargs):
-    transaction.on_commit(lambda: instance._post_save_event_task(*args, **kwargs))
