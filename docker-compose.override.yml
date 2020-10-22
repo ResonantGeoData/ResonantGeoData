@@ -50,4 +50,4 @@ services:
   sass:
     image: larryprice/sass
     volumes:
-      - ./rgd/core/static/css/sass:/src
+      - ./rgd/geodata/static/css/sass/:/src
