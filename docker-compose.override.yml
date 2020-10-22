@@ -48,6 +48,9 @@ services:
     command: ["--broker=amqp://rabbitmq:5672/", "--url_prefix=flower"]
 
   sass:
-    image: larryprice/sass
+    build:
+      context: ./dev
+      dockerfile: ./sass.Dockerfile
     volumes:
-      - ./rgd/geodata/static/css/sass/:/src
+      # Must point to top level, image will compile things in `sass/ su`
+      - ./rgd/geodata/static/css/:/src
