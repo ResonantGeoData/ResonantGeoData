@@ -41,8 +41,6 @@ class GeometryArchive(ChecksumFile, TaskEventMixin):
     status = models.CharField(max_length=20, default=Status.CREATED, choices=Status.choices)
 
     def save(self, *args, **kwargs):
-        if not self.name:
-            self.name = self.file.name
         super(GeometryArchive, self).save(*args, **kwargs)
 
     def archive_data_link(self):
