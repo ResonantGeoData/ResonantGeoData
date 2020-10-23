@@ -4,112 +4,96 @@
 .is-trans-rotate {
   transition: transform .35s ease-in-out;
 
-  /* 45 degrees */
   &.is-45 {
     &:hover {
       transform: rotate(45deg);
     }
   }
 
-  /* -45 degrees */
   &.is-neg45 {
     &:hover {
       transform: rotate(-45deg);
     }
   }
 
-  /* 90 degrees */
   &.is-90 {
     &:hover {
       transform: rotate(90deg);
     }
   }
 
-  /* -90 degrees */
   &.is-neg90 {
     &:hover {
       transform: rotate(-90deg);
     }
   }
 
-  /* 135 degrees */
   &.is-135 {
     &:hover {
       transform: rotate(135deg);
     }
   }
 
-  /* -135 degrees */
   &.is-neg135 {
     &:hover {
       transform: rotate(-135deg);
     }
   }
 
-  /* 180 degrees */
   &.is-180 {
     &:hover {
       transform: rotate(180deg);
     }
   }
 
-  /* -185 degrees */
   &.is-neg180 {
     &:hover {
       transform: rotate(-180deg);
     }
   }
 
-  /* 225 degrees */
   &.is-225 {
     &:hover {
       transform: rotate(225deg);
     }
   }
 
-  /* -225 degrees */
   &.is-neg225 {
     &:hover {
       transform: rotate(-225deg);
     }
   }
 
-  /* 270 degrees */
   &.is-270 {
     &:hover {
       transform: rotate(270deg);
     }
   }
 
-  /* -270 degrees */
   &.is-neg270 {
     &:hover {
       transform: rotate(-270deg);
     }
   }
 
-  /* 315 degrees */
   &.is-315 {
     &:hover {
       transform: rotate(315deg);
     }
   }
 
-  /* -315 degrees */
   &.is-neg315 {
     &:hover {
       transform: rotate(-315deg);
     }
   }
 
-  /* 360 degrees */
   &.is-360 {
     &:hover {
       transform: rotate(360deg);
     }
   }
 
-  /* -360 degrees */
   &.is-neg360 {
     &:hover {
       transform: rotate(-360deg);
@@ -120,112 +104,96 @@
 .is-trans-parent {
   &:hover {
     .is-trans-rotate {
-      /* 45 degrees */
       &.is-45 {
         &:hover {
           transform: rotate(45deg);
         }
       }
 
-      /* -45 degrees */
       &.is-neg45 {
         &:hover {
           transform: rotate(-45deg);
         }
       }
 
-      /* 90 degrees */
       &.is-90 {
         &:hover {
           transform: rotate(90deg);
         }
       }
 
-      /* -90 degrees */
       &.is-neg90 {
         &:hover {
           transform: rotate(-90deg);
         }
       }
 
-      /* 135 degrees */
       &.is-135 {
         &:hover {
           transform: rotate(135deg);
         }
       }
 
-      /* -135 degrees */
       &.is-neg135 {
         &:hover {
           transform: rotate(-135deg);
         }
       }
 
-      /* 180 degrees */
       &.is-180 {
         &:hover {
           transform: rotate(180deg);
         }
       }
 
-      /* -185 degrees */
       &.is-neg180 {
         &:hover {
           transform: rotate(-180deg);
         }
       }
 
-      /* 225 degrees */
       &.is-225 {
         &:hover {
           transform: rotate(225deg);
         }
       }
 
-      /* -225 degrees */
       &.is-neg225 {
         &:hover {
           transform: rotate(-225deg);
         }
       }
 
-      /* 270 degrees */
       &.is-270 {
         &:hover {
           transform: rotate(270deg);
         }
       }
 
-      /* -270 degrees */
       &.is-neg270 {
         &:hover {
           transform: rotate(-270deg);
         }
       }
 
-      /* 315 degrees */
       &.is-315 {
         &:hover {
           transform: rotate(315deg);
         }
       }
 
-      /* -315 degrees */
       &.is-neg315 {
         &:hover {
           transform: rotate(-315deg);
         }
       }
 
-      /* 360 degrees */
       &.is-360 {
         &:hover {
           transform: rotate(360deg);
         }
       }
 
-      /* -360 degrees */
       &.is-neg360 {
         &:hover {
           transform: rotate(-360deg);
