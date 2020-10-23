@@ -18,7 +18,7 @@ setup(
         'django-girders',
         'django-filter',
         'django-model-utils',
-        'django-s3-file-field>=0.0.12',
+        'django-s3-file-field>=0.0.14',
         'djangorestframework',
         'djproxy',
         'docker',

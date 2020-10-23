@@ -103,8 +103,6 @@ class ChecksumFile(ModifiableEntry):
             self.name = os.path.basename(self.file.name)
         # Must save the model with the file before accessing it for the checksum
         super(ChecksumFile, self).save(*args, **kwargs)
-        # Refresh model to access file. See: https://github.com/girder/django-s3-file-field/issues/105
-        self.refresh_from_db()
         # Checksum is additional step after saving everything else - simply update these fields.
         if not self.checksum or self.validate_checksum:
             if self.validate_checksum:
