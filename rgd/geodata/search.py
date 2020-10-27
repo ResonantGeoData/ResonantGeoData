@@ -3,7 +3,7 @@ import json
 
 import dateutil.parser
 from django.contrib.gis.db.models import Collect, Extent
-from django.contrib.gis.geos import Point, Polygon
+from django.contrib.gis.geos import GEOSGeometry, Point, Polygon
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db.models import Max, Min, Q
 from django.db.models.functions import Coalesce
@@ -184,10 +184,27 @@ def search_geojson_filter(params, has_created=False):
         geojson, within, start_time, end_time, and timefield.
     :param has_created: if True, searching acquisition time will fallback to
         include created times.
-    :raises ValueError: The GeoJSON is invalid.
+    :raises ValueError: String input unrecognized as WKT EWKT, and HEXEWKB.
     :returns: a Django query (Q) object.
     """
-    pass
+    query = Q()
+    if params.get('geojson') is not None:
+        geom = GEOSGeometry(params.get('geojson'))
+        if params.get('within'):
+            query.add(Q(footprint__within=(geom)), Q.AND)
+        else:
+            query.add(Q(footprint__intersects=(geom)), Q.AND)
+    if params.get('start_time') is not None or params.get('end_time') is not None:
+        if params.get('start_time') is not None:
+            starttime = dateutil.parser.isoparser().isoparse(params['start_time'])
+        if params.get('end_time') is not None:
+            endtime = dateutil.parser.isoparser().isoparse(params['end_time'])
+        else:
+            endtime = starttime
+        if params.get('start_time') is None:
+            starttime = endtime
+        _add_time_to_query(query, params.get('timefield', ''), starttime, endtime, has_created)
+    return query
 
 
 @swagger_auto_schema(
@@ -276,7 +293,9 @@ def search_bounding_box_geometry(request, *args, **kwargs):
 )
 @api_view(['GET'])
 def search_geojson(request, *args, **kwargs):
-    pass
+    params = request.query_params
+    results = SpatialEntry.objects.filter(search_geojson_filter(params))
+    return JsonResponse(serializers.SpatialEntrySerializer(results, many=True).data, safe=False)
 
 
 @swagger_auto_schema(
@@ -287,7 +306,9 @@ def search_geojson(request, *args, **kwargs):
 )
 @api_view(['GET'])
 def search_geojson_raster(request, *args, **kwargs):
-    pass
+    params = request.query_params
+    results = RasterEntry.objects.filter(search_geojson_filter(params, True))
+    return JsonResponse(serializers.RasterEntrySerializer(results, many=True).data, safe=False)
 
 
 @swagger_auto_schema(
@@ -298,7 +319,9 @@ def search_geojson_raster(request, *args, **kwargs):
 )
 @api_view(['GET'])
 def search_geojson_geometry(request, *args, **kwargs):
-    pass
+    params = request.query_params
+    results = GeometryEntry.objects.filter(search_geojson_filter(params))
+    return JsonResponse(serializers.GeometryEntrySerializer(results, many=True).data, safe=False)
 
 
 def extent_summary_spatial(found):
@@ -520,7 +543,9 @@ def search_bounding_box_extent_geometry(request, *args, **kwargs):
 )
 @api_view(['GET'])
 def search_geojson_extent(request, *args, **kwargs):
-    pass
+    params = request.query_params
+    found = SpatialEntry.objects.filter(search_geojson_filter(params))
+    return extent_summary_http(found)
 
 
 @swagger_auto_schema(
@@ -531,7 +556,9 @@ def search_geojson_extent(request, *args, **kwargs):
 )
 @api_view(['GET'])
 def search_geojson_extent_raster(request, *args, **kwargs):
-    pass
+    params = request.query_params
+    found = RasterEntry.objects.filter(search_geojson_filter(params, True))
+    return extent_summary_http(found, True)
 
 
 @swagger_auto_schema(
@@ -542,4 +569,6 @@ def search_geojson_extent_raster(request, *args, **kwargs):
 )
 @api_view(['GET'])
 def search_geojson_extent_geometry(request, *args, **kwargs):
-    pass
+    params = request.query_params
+    found = GeometryEntry.objects.filter(search_geojson_filter(params))
+    return extent_summary_http(found)
