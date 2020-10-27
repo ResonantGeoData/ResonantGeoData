@@ -36,6 +36,9 @@ class _SpatialListView(generic.ListView):
             method = search.search_near_point_filter
         elif all(k in self.search_params for k in bbox):
             method = search.search_bounding_box_filter
+        elif 'geojson' in self.request.GET:
+            self.search_params = self.request.GET
+            method = search.search_geojson_filter
 
         return self.model.objects.filter(method(self.search_params))
 
