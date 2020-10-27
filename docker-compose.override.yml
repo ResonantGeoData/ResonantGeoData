@@ -53,4 +53,4 @@ services:
       dockerfile: ./sass.Dockerfile
     volumes:
       # Must point to top level, image will compile things in `sass/ su`
-      - ./rgd/geodata/static/css/:/src
+      - ./rgd/geodata/static/geodata/css/:/src
