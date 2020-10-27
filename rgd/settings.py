@@ -70,8 +70,8 @@ class RgdConfig(CrispyFormsConfig, GeoDjangoConfig, SwaggerConfig, ConfigMixin):
         for key in {'drf_yasg2'}:
             if key in configuration.INSTALLED_APPS:
                 insert_index = min(insert_index, configuration.INSTALLED_APPS.index(key))
-        configuration.INSTALLED_APPS.insert(insert_index, 'rgd.geodata')
-        configuration.INSTALLED_APPS.insert(insert_index, 'rgd.core')
+        configuration.INSTALLED_APPS.insert(insert_index, 'rgd.geodata.apps.GeodataConfig')
+        configuration.INSTALLED_APPS.insert(insert_index, 'rgd.core.apps.CoreConfig')
 
         configuration.INSTALLED_APPS += [
             's3_file_field',
