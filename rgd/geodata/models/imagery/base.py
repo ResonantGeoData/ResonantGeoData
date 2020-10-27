@@ -1,6 +1,10 @@
 """Base classes for raster dataset entries."""
 from django.contrib.gis.db import models
 from django.contrib.postgres import fields
+from django.db import transaction
+from django.db.models.signals import m2m_changed, post_delete, post_save
+from django.dispatch import receiver
+from django.utils.html import escape, mark_safe
 from s3_file_field import S3FileField
 
 from ... import tasks
@@ -27,13 +31,26 @@ class ImageEntry(ModifiableEntry):
 
     image_file = models.OneToOneField(BaseImageFile, null=True, on_delete=models.CASCADE)
     driver = models.CharField(max_length=100)
-
-    # thumbnail = models.ImageField(blank=True)
-
     height = models.PositiveIntegerField()
     width = models.PositiveIntegerField()
     number_of_bands = models.PositiveIntegerField()
     metadata = models.JSONField(null=True)
+
+
+class Thumbnail(ModifiableEntry):
+    """Thumbnail model and utility for ImageEntry."""
+
+    image_entry = models.OneToOneField(ImageEntry, null=True, on_delete=models.CASCADE)
+
+    base_thumbnail = models.ImageField(blank=True, upload_to='thumbnails')
+
+    def image_tag(self):
+        return mark_safe(
+            u'<img src="%s" id="thumbnail" width="500"/>' % escape(self.base_thumbnail.url)
+        )
+
+    image_tag.short_description = 'Image'
+    image_tag.allow_tags = True
 
 
 class ImageSet(ModifiableEntry):

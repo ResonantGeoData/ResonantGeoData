@@ -13,6 +13,20 @@
       </h2>
       <hr/>
 
+      <div style="overflow-x:auto;">
+        <table class="table">
+          <thead class="thead-dark">
+            <tr>
+              <th><span class="text">Field</span></th>
+              <th><span class="text">Value</span></th>
+            </tr>
+          </thead>
+          <tbody>
+            {% block meta_table_body %}{% endblock %}
+          </tbody>
+        </table>
+      </div>
+
       {% block detail %}{% endblock %}
 
     </div>

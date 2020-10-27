@@ -3,9 +3,9 @@ import re
 from django.conf import settings
 from django.contrib import admin
 from django.urls import include, path, re_path
-from drf_yasg import openapi
-from drf_yasg.inspectors.view import SwaggerAutoSchema
-from drf_yasg.views import get_schema_view
+from drf_yasg2 import openapi
+from drf_yasg2.inspectors.view import SwaggerAutoSchema
+from drf_yasg2.views import get_schema_view
 from rest_framework import permissions
 import uritemplate  # noqa: F401
 
@@ -13,7 +13,7 @@ import uritemplate  # noqa: F401
 def drf_yasg_get_summary_and_description(self):
     """Return an operation summary and description.
 
-    This is a modified form of the function in drf_yasg.
+    This is a modified form of the function in drf_yasg2.
 
     When getting descriptions from view docstrings or when there is no summary,
     the resultant summary is prefixed with the method.  When taking
@@ -54,11 +54,11 @@ SwaggerAutoSchema.get_summary_and_description = drf_yasg_get_summary_and_descrip
 
 
 urlpatterns = [
+    path('accounts/', include('allauth.urls')),
+    path('admin/', admin.site.urls),
+    path('api/s3-upload/', include('s3_file_field.urls')),
     path('', include('rgd.core.urls')),
     path('', include('rgd.geodata.urls')),
-    path('admin/', admin.site.urls),
-    path('accounts/', include('allauth.urls')),
-    path('api/s3-upload/', include('s3_file_field.urls')),
 ]
 
 schema_view = get_schema_view(

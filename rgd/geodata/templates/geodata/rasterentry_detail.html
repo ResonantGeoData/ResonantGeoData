@@ -1,21 +1,116 @@
 {% extends "geodata/_base/detail.html" %}
+
+{% block meta_table_body %}
+
+  <tr>
+    <td>Description</td>
+    <td>{{ object.description }}</td>
+  </tr>
+  <tr>
+    <td>Number of bands</td>
+    <td>{{ object.count }}</td>
+  </tr>
+  <tr>
+    <td>Resolution</td>
+    <td>{{ object.resolution }}</td>
+  </tr>
+  <tr>
+    <td>Height, Width</td>
+    <td>{{ object.height }}, {{ object.width }}</td>
+  </tr>
+  <tr>
+    <td>Origin</td>
+    <td>{{ object.origin }}</td>
+  </tr>
+  <tr>
+    <td>Extent</td>
+    <td>{{ object.extent }}</td>
+  </tr>
+  <tr>
+    <td>Transform</td>
+    <td>{{ object.transform }}</td>
+  </tr>
+  <tr>
+    <td>PROJ4 String</td>
+    <td>{{ object.crs }}</td>
+  </tr>
+
+{% endblock %}
+
+
 {% block detail %}
 
-  <p class="article-content">Instrumentation: {{ object.instrumentation }}</p>
-  <p class="article-content">Number of bands: {{ object.number_of_bands }}</p>
 
-  <h3><span>Raster Metadata</span></h3>
-  <p class="article-content">Resolution: {{ object.resolution }}</p>
-  <p class="article-content">Height, Width: {{ object.height }}, {{ object.width }}</p>
-  <p class="article-content">Origin: {{ object.origin }}</p>
-  <p class="article-content">Extent: {{ object.extent }}</p>
-  <p class="article-content">Transform: {{ object.transform }}</p>
+  <select id="band-selector" onchange="updateBandThumbnail()">
+    {% for image in object.images.all %}
+      <option value="{{ image.id }}">{{ image.name }}</option>
+    {% endfor %}
+  </select>
 
-  <p class="article-content">PROJ4 String: {{ object.crs }}</p>
-  <p class="article-content">GDAL Driver: {{ object.driver }}</p>
-  <p class="article-content">Additional Metadata: {{ object.metadata }}</p>
-  <p class="article-content">Meta: {{ object.metadata }}</p>
+  {% include 'geodata/_includes/empty_viewer.html' %}
 
-  {% include 'geodata/_includes/viewer.html' %}
+  <script>
+    let extents = JSON.parse('{{ extents|escapejs }}');
+
+    function createImage (src) {
+      let img = new Image();
+      img.crossOrigin = 'anonymous';
+      img.src = src;
+      return img
+    }
+
+    var quad = layer.createFeature('quad')
+      .data([
+        {
+          ll: {x: extents.extent.xmin, y: extents.extent.ymin },
+          ur: {x: extents.extent.xmax, y: extents.extent.ymax },
+        },
+      ])
+      .style({
+        color: '#6586c9',
+        opacity: 0.75,
+      })
+      .draw();
+
+    function updateBandThumbnail () {
+      selector = document.getElementById('band-selector')
+      var image_id = Number(selector.value);
+      var src = extents['thumbnails'][image_id];
+      quad.data([
+        {
+          ll: {x: extents.extent.xmin, y: extents.extent.ymin },
+          ur: {x: extents.extent.xmax, y: extents.extent.ymax },
+          image: createImage(src),
+        },
+      ]).draw()
+    }
+    updateBandThumbnail()
+
+    // Add collected polygons to map
+    let reader = geo.createFileReader('geojsonReader', {
+      'layer': layer
+    });
+
+    reader.read(extents.collect, (features) => {
+      features[0].style({
+        strokeColor: '#FF0000',
+        fill: false,
+      })
+      .draw();
+    });
+
+    // Position the map to show data extents. If none present, the position
+    //   should have been set by the search parameters
+    if (extents.extent != undefined) {
+      map.bounds({
+        left: extents.extent.xmin,
+        right: extents.extent.xmax,
+        top: extents.extent.ymax,
+        bottom: extents.extent.ymin
+      });
+    }
+    // One final zoom out for polishing
+    map.zoom(map.zoom() - 0.25);
+  </script>
 
 {% endblock %}

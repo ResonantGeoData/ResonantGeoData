@@ -4,6 +4,8 @@ import pickle
 from django.contrib.gis.db import models
 from s3_file_field import S3FileField
 
+from rgd.utility import _link_url
+
 from ... import tasks
 from ..common import ChecksumFile, ModifiableEntry, SpatialEntry
 from ..constants import DB_SRID
@@ -16,6 +18,11 @@ class FMVFile(ChecksumFile, TaskEventMixin):
     task_func = tasks.task_read_fmv_file
     failure_reason = models.TextField(null=True, blank=True)
     file = S3FileField()
+
+    def fmv_data_link(self):
+        return _link_url('geodata', 'fmv_file', self, 'file')
+
+    fmv_data_link.allow_tags = True
 
 
 class FMVEntry(ModifiableEntry, SpatialEntry):
@@ -44,3 +51,8 @@ class FMVEntry(ModifiableEntry, SpatialEntry):
     @staticmethod
     def _blob_to_array(blob):
         return pickle.loads(base64.b64decode(blob))
+
+    def klv_data_link(self):
+        return _link_url('geodata', 'fmv_entry', self, 'klv_file')
+
+    klv_data_link.allow_tags = True

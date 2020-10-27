@@ -1,44 +1,9 @@
-{% block content %}
-  <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/geojs/0.20.0/geo.min.js"></script>
-  <script src="https://d3js.org/d3-color.v2.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/lodash.js/4.17.20/lodash.min.js"></script>
+{% block viewer %}
 
-  <div id="map" style="width:100%;height:600px"></div>
-
-  <br/>
+  {% include 'geodata/_includes/empty_viewer.html' %}
 
   <script>
     let extents = JSON.parse('{{ extents|escapejs }}');
-
-    // Initialize the map
-    let map = geo.map({
-      node: '#map'
-    })
-    map.createLayer('osm', {
-      source: 'osm'
-    }); // stamen-terrain
-    let layer = map.createLayer('feature', {
-      features: ['polygon', 'marker']
-    });
-
-    // Add collected polygons to map
-    let reader = geo.createFileReader('geojsonReader', {
-      'layer': layer
-    });
-    reader.read(extents.collect, (features) => {
-      var fill = '#6586c9';
-      if (extents.count > 1) {
-        var scale = d3.scale.category10();
-        fill = function (d, i, p, j) {
-          return scale(j);
-        }
-      }
-      features[0].style({
-        fillColor: fill,
-        fillOpacity: 0.75,
-      })
-      .draw();
-    });
 
     // Position the map to show data extents. If none present, the position
     //   should have been set by the search parameters
@@ -53,4 +18,7 @@
     // One final zoom out for polishing
     map.zoom(map.zoom() - 0.25);
   </script>
+
+  {% include 'geodata/_includes/geojson_reader.html' %}
+
 {% endblock %}

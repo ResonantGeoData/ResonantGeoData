@@ -1,8 +1,6 @@
 from django.contrib import admin
 from django.contrib.gis.admin import OSMGeoAdmin
 
-from rgd.utility import _link_url
-
 from .models.common import ArbitraryFile
 from .models.fmv.base import FMVEntry, FMVFile
 from .models.geometry.base import GeometryArchive, GeometryEntry
@@ -19,6 +17,7 @@ from .models.imagery.base import (
     ImageSet,
     KWCOCOArchive,
     RasterEntry,
+    Thumbnail,
 )
 from .models.imagery.ifiles import BaseImageFile, ImageArchiveFile, ImageFile
 
@@ -174,19 +173,24 @@ class ImageFileAdmin(OSMGeoAdmin):
         'name',
         'status',
         'modified',
-        'data_link',
+        'image_data_link',
     )
     readonly_fields = ('failure_reason', 'modified', 'created', 'checksum', 'last_validation')
-
-    def data_link(self, obj):
-        return _link_url('geodata', 'image_file', obj, 'file')
-
-    data_link.allow_tags = True
 
     def status(self, obj):
         return not obj.failure_reason
 
     status.boolean = True
+
+
+@admin.register(Thumbnail)
+class ThumbnailAdmin(OSMGeoAdmin):
+    list_display = (
+        'id',
+        'image_entry',
+    )
+    fields = ('image_tag',)
+    readonly_fields = ('image_tag',)
 
 
 @admin.register(ConvertedImageFile)
@@ -232,7 +236,7 @@ class GeometryArchiveAdmin(OSMGeoAdmin):
         'name',
         'status',
         'modified',
-        'data_link',
+        'archive_data_link',
     )
     readonly_fields = (
         'failure_reason',
@@ -247,11 +251,6 @@ class GeometryArchiveAdmin(OSMGeoAdmin):
 
     status.boolean = True
 
-    def data_link(self, obj):
-        return _link_url('geodata', 'geometry_archive', obj, 'file')
-
-    data_link.allow_tags = True
-
 
 @admin.register(FMVFile)
 class FMVFileAdmin(OSMGeoAdmin):
@@ -260,14 +259,9 @@ class FMVFileAdmin(OSMGeoAdmin):
         'name',
         'status',
         'modified',
-        'data_link',
+        'fmv_data_link',
     )
     readonly_fields = ('failure_reason', 'modified', 'created', 'checksum', 'last_validation')
-
-    def data_link(self, obj):
-        return _link_url('geodata', 'fmv_file', obj, 'file')
-
-    data_link.allow_tags = True
 
     def status(self, obj):
         return not obj.failure_reason
@@ -280,8 +274,3 @@ class FMVEntryAdmin(OSMGeoAdmin):
     list_display = ('id', 'name', 'klv_data_link')
 
     readonly_fields = ('modified', 'created', 'klv_file', 'fmv_file')
-
-    def klv_data_link(self, obj):
-        return _link_url('geodata', 'fmv_entry', obj, 'klv_file')
-
-    klv_data_link.allow_tags = True

@@ -6,7 +6,7 @@ from django.utils import timezone
 from model_utils.managers import InheritanceManager
 from s3_file_field import S3FileField
 
-from rgd.utility import _field_file_to_local_path, compute_checksum
+from rgd.utility import compute_checksum
 
 from .constants import DB_SRID
 
@@ -66,9 +66,6 @@ class ChecksumFile(ModifiableEntry):
 
     name = models.CharField(max_length=100, blank=True, null=True)
     checksum = models.CharField(max_length=64, blank=True, null=True)
-    compute_checksum = models.BooleanField(
-        default=False
-    )  # a flag to recompute the checksum on save
     validate_checksum = models.BooleanField(
         default=False
     )  # a flag to validate the checksum against the saved checksum
@@ -78,8 +75,7 @@ class ChecksumFile(ModifiableEntry):
         abstract = True
 
     def update_checksum(self):
-        with _field_file_to_local_path(self.file) as file_path:
-            self.checksum = compute_checksum(file_path)
+        self.checksum = compute_checksum(self.file)
         # Simple update save - not full save
         super(ChecksumFile, self).save(
             update_fields=[
@@ -108,19 +104,17 @@ class ChecksumFile(ModifiableEntry):
         # Must save the model with the file before accessing it for the checksum
         super(ChecksumFile, self).save(*args, **kwargs)
         # Checksum is additional step after saving everything else - simply update these fields.
-        if self.compute_checksum or self.validate_checksum:
+        if not self.checksum or self.validate_checksum:
             if self.validate_checksum:
                 self.validate()
             else:
                 self.update_checksum()
             # Reset the user flags
-            self.compute_checksum = False
             self.validate_checksum = False
             # Simple update save - not full save
             super(ChecksumFile, self).save(
                 update_fields=[
                     'checksum',
-                    'compute_checksum',
                     'last_validation',
                     'validate_checksum',
                 ]

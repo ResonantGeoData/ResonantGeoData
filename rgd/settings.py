@@ -36,49 +36,6 @@ class GeoDjangoConfig(ConfigMixin):
             pass
 
 
-class AllauthConfig(ConfigMixin):
-    @staticmethod
-    def before_binding(configuration: Type[ComposedConfiguration]):
-        # `allauth` specific authentication methods, such as login by e-mail
-        configuration.AUTHENTICATION_BACKENDS += [
-            'allauth.account.auth_backends.AuthenticationBackend'
-        ]
-
-        configuration.INSTALLED_APPS += [
-            'django.contrib.sites',
-            'allauth',
-            'allauth.account',
-            'allauth.socialaccount',
-        ]
-
-    # Sites framework
-    SITE_ID = 1
-
-    ACCOUNT_AUTHENTICATION_METHOD = 'email'
-    ACCOUNT_USERNAME_REQUIRED = False
-    ACCOUNT_EMAIL_REQUIRED = True
-    ACCOUNT_EMAIL_VERIFICATION = 'optional'
-
-    # This improves lookup performance, but makes the username no longer match the email
-    # TODO: Do we want this?
-    # TODO: Does it prevent near-duplicate registration?
-    ACCOUNT_PRESERVE_USERNAME_CASING = False
-
-    # TODO: Add a migration for contrib.sites, to prevent "example.com" from being used everywhere
-
-    # Always enable "Remember me?", as it is a significant quality of life
-    # improvement, and auto-logout for shared devices is a less relevent
-    # concern for modern usage scenarios
-    ACCOUNT_SESSION_REMEMBER = True
-
-    LOGIN_REDIRECT_URL = '/'
-    ACCOUNT_LOGOUT_REDIRECT_URL = '/'
-
-    # Quality of life improvements, but may not work if the browser is closed
-    ACCOUNT_LOGIN_ON_EMAIL_CONFIRMATION = True
-    ACCOUNT_LOGIN_ON_PASSWORD_RESET = True
-
-
 class SwaggerConfig(ConfigMixin):
     REFETCH_SCHEMA_WITH_AUTH = True
     REFETCH_SCHEMA_ON_LOGOUT = True
@@ -92,7 +49,7 @@ class CrispyFormsConfig(ConfigMixin):
         configuration.INSTALLED_APPS += ['crispy_forms']
 
 
-class RgdConfig(CrispyFormsConfig, AllauthConfig, GeoDjangoConfig, SwaggerConfig, ConfigMixin):
+class RgdConfig(CrispyFormsConfig, GeoDjangoConfig, SwaggerConfig, ConfigMixin):
     WSGI_APPLICATION = 'rgd.wsgi.application'
     ROOT_URLCONF = 'rgd.urls'
 
@@ -110,7 +67,7 @@ class RgdConfig(CrispyFormsConfig, AllauthConfig, GeoDjangoConfig, SwaggerConfig
             raise Exception('RgdConfig must be loaded after AllauthConfig.')
         # We also want our apps to be before any apps that we want to override
         # the templates of
-        for key in {'drf_yasg'}:
+        for key in {'drf_yasg2'}:
             if key in configuration.INSTALLED_APPS:
                 insert_index = min(insert_index, configuration.INSTALLED_APPS.index(key))
         configuration.INSTALLED_APPS.insert(insert_index, 'rgd.geodata')
@@ -125,11 +82,7 @@ class RgdConfig(CrispyFormsConfig, AllauthConfig, GeoDjangoConfig, SwaggerConfig
             'django_cleanup.apps.CleanupConfig',
         ]
 
-    AUTHENTICATION_BACKENDS = [
-        'rules.permissions.ObjectPermissionBackend',
-        # Needed to login by username in Django admin, regardless of `allauth`
-        'django.contrib.auth.backends.ModelBackend',
-    ]
+        configuration.AUTHENTICATION_BACKENDS.insert(0, 'rules.permissions.ObjectPermissionBackend')
 
     # This cannot have a default value, since the password and database name are always
     # set by the service admin
