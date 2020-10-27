@@ -188,3 +188,109 @@ def test_search_bounding_box_extent(client):
         ).content
     )
     assert results['count'] == 0
+
+
+@pytest.mark.django_db(transaction=True)
+def test_search_geojson(client):
+    _load_sample_files()
+    items = json.loads(client.get('/api/geodata/geojson').content)
+    assert len(items) == len(SampleFiles)
+    items = json.loads(
+        client.get(
+            '/api/geodata/geojson',
+            {
+                'geojson': json.dumps(
+                    {
+                        'type': 'Polygon',
+                        'coordinates': [[[-80, 43], [-80, 44], [-79, 44], [-79, 43], [-80, 43]]],
+                    }
+                )
+            },
+        ).content
+    )
+    assert len(items) == 1
+    items = json.loads(
+        client.get(
+            '/api/geodata/geojson',
+            {
+                'geojson': json.dumps(
+                    {
+                        'type': 'Polygon',
+                        'coordinates': [[[-90, 30], [-90, 50], [-70, 50], [-70, 30], [-90, 30]]],
+                    }
+                )
+            },
+        ).content
+    )
+    assert len(items) == 3
+    timestr = (datetime.datetime.now() + datetime.timedelta(days=1)).strftime('%Y-%m-%d %H:%M:%S')
+    oldtimestr = (datetime.datetime.now() - datetime.timedelta(days=1)).strftime(
+        '%Y-%m-%d %H:%M:%S'
+    )
+    items = json.loads(
+        client.get(
+            '/api/geodata/raster/geojson',
+            {'start_time': oldtimestr, 'end_time': timestr, 'timefield': 'acquisition'},
+        ).content
+    )
+    assert len(items) == len(SampleFiles)
+    items = json.loads(
+        client.get(
+            '/api/geodata/raster/geojson',
+            {'start_time': timestr, 'end_time': timestr, 'timefield': 'acquisition'},
+        ).content
+    )
+    assert len(items) == 0
+
+
+@pytest.mark.django_db(transaction=True)
+def test_search_geojson_extent(client):
+    _load_sample_files()
+    results = json.loads(client.get('/api/geodata/geojson/extent').content)
+    assert results['count'] == len(SampleFiles)
+    results = json.loads(
+        client.get(
+            '/api/geodata/geojson/extent',
+            {
+                'geojson': json.dumps(
+                    {
+                        'type': 'Polygon',
+                        'coordinates': [[[-80, 43], [-80, 44], [-79, 44], [-79, 43], [-80, 43]]],
+                    }
+                )
+            },
+        ).content
+    )
+    assert results['count'] == 1
+    results = json.loads(
+        client.get(
+            '/api/geodata/geojson/extent',
+            {
+                'geojson': json.dumps(
+                    {
+                        'type': 'Polygon',
+                        'coordinates': [[[-90, 30], [-90, 50], [-70, 50], [-70, 30], [-90, 30]]],
+                    }
+                )
+            },
+        ).content
+    )
+    assert results['count'] == 3
+    timestr = (datetime.datetime.now() + datetime.timedelta(days=1)).strftime('%Y-%m-%d %H:%M:%S')
+    oldtimestr = (datetime.datetime.now() - datetime.timedelta(days=1)).strftime(
+        '%Y-%m-%d %H:%M:%S'
+    )
+    results = json.loads(
+        client.get(
+            '/api/geodata/raster/geojson/extent',
+            {'start_time': oldtimestr, 'end_time': timestr, 'timefield': 'acquisition'},
+        ).content
+    )
+    assert results['count'] == len(SampleFiles)
+    results = json.loads(
+        client.get(
+            '/api/geodata/raster/geojson/extent',
+            {'start_time': timestr, 'end_time': timestr, 'timefield': 'acquisition'},
+        ).content
+    )
+    assert results['count'] == 0
