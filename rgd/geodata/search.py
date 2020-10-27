@@ -190,7 +190,7 @@ def search_geojson_filter(params, has_created=False):
     query = Q()
     if params.get('geojson') is not None:
         geom = GEOSGeometry(params.get('geojson'))
-        if params.get('within'):
+        if 'within' in params and params['within'] not in ('0', 'false', 'False', 'no', 'n'):
             query.add(Q(footprint__within=(geom)), Q.AND)
         else:
             query.add(Q(footprint__intersects=(geom)), Q.AND)
