@@ -1,4 +1,5 @@
 from django.urls import path
+from django.views.generic.base import RedirectView
 
 from . import search, views
 
@@ -6,6 +7,8 @@ urlpatterns = [
     path(
         'geodata/spatial_entries/', views.SpatialEntriesListView.as_view(), name='spatial_entries'
     ),
+    # Temporary redirect for home page
+    path(r'', RedirectView.as_view(url='geodata/spatial_entries/', permanent=False), name='index'),
     path('geodata/fmv_entries/', views.FMVEntriesListView.as_view(), name='fmv_entries'),
     path('geodata/rasters/', views.RasterEntriesListView.as_view(), name='rasters'),
     path(

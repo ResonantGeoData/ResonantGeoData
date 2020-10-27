@@ -80,9 +80,6 @@
           <li class="logout">
               <a href="{% url 'account_logout' %}" class="button btn-blue is-small">Logout</a>
           </li>
-          <li class="home">
-              <a href="{% url 'index' %}" class="button btn-blue is-small">Home</a>
-          </li>
         {% else %}
           <li id="login-button" class="login"><a href="{% url 'account_login' %}" class="button btn-blue">Login</a></li>
           <li class="signup"><a href="{% url 'account_signup' %}" class="button">Sign up</a></li>
