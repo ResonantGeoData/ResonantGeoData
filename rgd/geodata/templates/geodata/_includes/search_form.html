@@ -78,7 +78,7 @@
     <form method="GET">
       GeoJSON geometry: <input type="text" name="geojson" value="{{ request.GET.geojson }}">
       <br>
-      within: <input type="checkbox" {{ request.GET.within|yesno:"checked,," }} name="within">
+      within: <input type="checkbox" {{ request.GET.within|yesno:"checked,," }} name="within" title="Only retrieve entries that are fully within the boundary of the feature.">
       <br>
       <input class="button" type="submit" value="Filter">
     </form>
