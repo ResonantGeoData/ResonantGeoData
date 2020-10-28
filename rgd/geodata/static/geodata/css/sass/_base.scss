@@ -26,7 +26,7 @@ body {
 ** ================================ */
 
 a {
-  color: #427aa1;
+  color: $secondary;
   position: relative;
   text-decoration: none;
   transition: all .15s ease-in-out;
@@ -105,8 +105,8 @@ h6 {
   padding: 20px 0;
 }
 
-.button {
-  background: #00a9a5;
+.btn {
+  background: $primary;
   border: 0;
   color: #fff;
   font-family: 'Barlow Semi Condensed', sans-serif;
@@ -127,8 +127,8 @@ h6 {
     display: none;
 	}
 
-  &.btn-blue {
-    background: #427aa1;
+  &.btn-secondary {
+    background: $secondary;
     &:hover {
       background: #1f5673;
       &::after {
@@ -142,7 +142,7 @@ h6 {
 
   &.btn-nobg {
     background: none;
-    color: #427aa1;
+    color: $secondary;
     &:hover {
       background: #eaf2f7;
       &::after {
@@ -295,7 +295,7 @@ h6 {
 ** ================================ */
 
 #temporary-transition-banner {
-  background-color: #00a9a5;
+  background-color: $primary;
   border-radius: 0;
   color: #fff;
   margin-bottom: 0;
@@ -394,7 +394,7 @@ h6 {
           display: block;
           padding: 18px 24px;
           &::after {
-            background: #00a9a5;
+            background: $primary;
             bottom: 0;
             height: 3px;
   				}
@@ -471,7 +471,7 @@ h6 {
     padding: 10px;
     position: relative;
     a {
-      background: #00a9a5;
+      background: $primary;
       border-radius: 5px;
       color: #fff;
       display: block;
@@ -527,7 +527,7 @@ h6 {
 		}
 
     .badge {
-      background: #427aa1;
+      background: $secondary;
       border-radius: 3px 3px 0 0;
       display: inline-block;
       padding: 10px 5px 15px;
@@ -543,7 +543,7 @@ h6 {
 			}
 
       &::after {
-        border-color: transparent transparent #00a9a5;
+        border-color: transparent transparent $primary;
         border-style: solid;
         border-width: 0 13px 6px;
         bottom: 0;
