@@ -17,21 +17,16 @@
     {% endif %}
 
   </head>
-  <body class="content">
+  <body>
     <header class="main-header">
       {% include 'geodata/_includes/navbar.html' %}
     </header>
-    {% if not request.user.is_authenticated %}
-        <div id="temporary-transition-banner" class="notification">
-        <div class="container">
-            <div class="notice-content">
-            {% comment %}
-            <h1 class="banner-title">Welcome to the new submission platform for the ISIC Challenge!</h1>
-            {% endcomment %}
-            </div>
-        </div>
-        </div>
-    {% endif %}
+
+    <div id="page-banner" class="notification">
+      <div class="container">
+        <h1 class="banner-title">{% block title %}{% endblock %}</h1>
+      </div>
+    </div>
 
 
     {% comment %}
@@ -71,7 +66,7 @@
 
     {% comment %}
     <div class="help-container">
-      <a class="help-button button is-medium is-warning" href="https://forum.isic-archive.com" target="_blank">Report an Issue</a>
+      <a class="help-button btn is-medium is-warning" href="https://forum.isic-archive.com" target="_blank">Report an Issue</a>
     </div>
     {% endcomment %}
 
