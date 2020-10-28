@@ -56,7 +56,7 @@
         {% if user.is_authenticated %}
 
           <div class="dropdown">
-            <button class="dropbtn button" onclick="location.href='{% url 'spatial_entries' %}'" type="button">GeoData</button>
+            <button class="dropbtn btn" onclick="location.href='{% url 'spatial_entries' %}'" type="button">GeoData</button>
             <div class="dropdown-content">
               <a class="mr-2" href="{% url 'rasters' %}">Raster Entries</a>
               <a class="mr-2" href="{% url 'fmv_entries' %}">FMV Entries</a>
@@ -66,23 +66,23 @@
           <strong>{{ request.user.email }}</strong>
           {% if user.is_superuser %}
           <li class="admin">
-              <a href="{% url 'admin:index' %}" class="button is-small">Admin</a>
+              <a href="{% url 'admin:index' %}" class="btn is-small">Admin</a>
           </li>
           {% endif %}
           <!-- TODO: uncomment this eventually? -->
           {% comment %}
           {% if user.is_staff %}
           <li class="admin">
-              <a href="{% url 'staff-dashboard' %}" class="button is-small">Dashboard</a>
+              <a href="{% url 'staff-dashboard' %}" class="btn is-small">Dashboard</a>
           </li>
           {% endif %}
           {% endcomment %}
           <li class="logout">
-              <a href="{% url 'account_logout' %}" class="button btn-blue is-small">Logout</a>
+              <a href="{% url 'account_logout' %}" class="btn btn-secondary is-small">Logout</a>
           </li>
         {% else %}
-          <li id="login-button" class="login"><a href="{% url 'account_login' %}" class="button btn-blue">Login</a></li>
-          <li class="signup"><a href="{% url 'account_signup' %}" class="button">Sign up</a></li>
+          <li id="login-button" class="login"><a href="{% url 'account_login' %}" class="btn btn-secondary">Login</a></li>
+          <li class="signup"><a href="{% url 'account_signup' %}" class="btn">Sign up</a></li>
         {% endif %}
       </ul>
     </div>
