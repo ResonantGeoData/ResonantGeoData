@@ -462,6 +462,16 @@ h6 {
 	}
 }
 
+/* Full width template */
+.fullwidth {
+  .row {
+    margin: 0;
+  }
+  .main-content {
+    padding: 0;
+  }
+}
+
 /* Front page specific */
 
 .tasks-list {
