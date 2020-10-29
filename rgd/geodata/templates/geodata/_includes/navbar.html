@@ -51,40 +51,77 @@
       <h1><a href="{% url 'index' %}"><img src="{% static 'img/isic_logo.svg' %}" alt="ISIC Challenge"></a></h1>
     </div>
     {% endcomment %}
-    <div class="navigation">
-      <ul class="navbar">
-        {% if user.is_authenticated %}
 
-          <div class="dropdown">
-            <button class="dropbtn btn" onclick="location.href='{% url 'spatial_entries' %}'" type="button">GeoData</button>
-            <div class="dropdown-content">
-              <a class="mr-2" href="{% url 'rasters' %}">Raster Entries</a>
-              <a class="mr-2" href="{% url 'fmv_entries' %}">FMV Entries</a>
+    <nav class="navbar" role="navigation" aria-label="main navigation">
+      <div class="navbar-brand">
+        <a class="navbar-item logo" href="{% url 'index' %}">
+          <strong>ResonantGeoData</strong>
+        </a>
+
+        <a role="button" class="navbar-burger burger" aria-label="menu" aria-expanded="false" data-target="navbarBasicExample">
+          <span aria-hidden="true"></span>
+          <span aria-hidden="true"></span>
+          <span aria-hidden="true"></span>
+        </a>
+      </div>
+
+      <div id="navbarBasicExample" class="navbar-menu">
+        <div class="navbar-start">
+          <a href="{% url 'index' %}" class="navbar-item">Welcome</a>
+          {% if user.is_authenticated %}
+            <div class="navbar-item has-dropdown is-hoverable">
+              <a class="navbar-link"><strong>GeoData</strong></a>
+              <div class="navbar-dropdown">
+                <a href="{% url 'rasters' %}" class="navbar-item">Raster Entries</a>
+                <a href="{% url 'fmv_entries' %}" class="navbar-item">FMV Entries</a>
+              </div>
             </div>
-          </div>
-
-          <strong>{{ request.user.email }}</strong>
-          {% if user.is_superuser %}
-          <li class="admin">
-              <a href="{% url 'admin:index' %}" class="btn is-small">Admin</a>
-          </li>
           {% endif %}
-          <!-- TODO: uncomment this eventually? -->
-          {% comment %}
-          {% if user.is_staff %}
-          <li class="admin">
-              <a href="{% url 'staff-dashboard' %}" class="btn is-small">Dashboard</a>
-          </li>
+          <a href="#" class="navbar-item">Contact Us</a>
+        </div>
+        <div class="navbar-end user-menu">
+          {% if user.is_authenticated %}
+            <div class="navbar-item">{{ request.user.email }}</div>
+            {% if user.is_superuser %}
+              <a href="{% url 'admin:index' %}" class="navbar-item admin">
+                <i class="material-icons mr-1">
+                  admin_panel_settings
+                </i>
+                Admin
+              </a>
+            {% endif %}
+            {% comment %}
+            {% if user.is_staff %}
+              <a href="{% url 'staff-dashboard' %}" class="navbar-item dashboard">
+                <i class="material-icons mr-1">
+                  dashboard
+                </i>
+                Dashboard
+              </a>
+            {% endif %}
+            {% endcomment %}
+            <a href="{% url 'account_logout' %}" class="navbar-item logout">
+              <i class="material-icons mr-1">
+                meeting_room
+              </i>
+              Logout
+            </a>
+          {% else %}
+            <a href="{% url 'account_login' %}" class="navbar-item login">
+              <i class="material-icons mr-1">
+                login
+              </i>
+              Login
+            </a>
+            <a href="{% url 'account_signup' %}" class="navbar-item signup">
+              <i class="material-icons mr-1">
+                create
+              </i>
+              Sign up
+            </a>
           {% endif %}
-          {% endcomment %}
-          <li class="logout">
-              <a href="{% url 'account_logout' %}" class="btn btn-secondary is-small">Logout</a>
-          </li>
-        {% else %}
-          <li id="login-button" class="login"><a href="{% url 'account_login' %}" class="btn btn-secondary">Login</a></li>
-          <li class="signup"><a href="{% url 'account_signup' %}" class="btn">Sign up</a></li>
-        {% endif %}
-      </ul>
-    </div>
+        </div>
+      </div>
+    </nav>
   </div>
 {% endblock %}
