@@ -22,10 +22,8 @@
       {% include 'geodata/_includes/navbar.html' %}
     </header>
 
-    <div id="page-banner" class="notification">
-      <div class="container">
-        <h1 class="banner-title">{% block title %}{% endblock %}</h1>
-      </div>
+    <div id="page-banner" class="px-5">
+      <h1 class="banner-title">{% block title %}{% endblock %}</h1>
     </div>
 
 
@@ -36,7 +34,7 @@
     {% endcomment %}
     <div class="main-content">
       {% if messages %}
-        <div class="container notification-wrapper">
+        <div class="notification-wrapper">
         {% for message in messages %}
           {% if message.level == DEFAULT_MESSAGE_LEVELS.SUCCESS %}
             <div class="notification is-success">
@@ -54,13 +52,9 @@
       {% endif %}
 
 
-      <main role="main" class="container">
-      <div class="row">
-        <div class="col-md">
-          {% block content %}{% endblock %}
-        </div>
-      </div>
-    </main>
+      <main role="main">
+        {% block content %}{% endblock %}
+      </main>
 
     </div>
 
