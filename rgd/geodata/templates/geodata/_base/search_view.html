@@ -1,14 +1,14 @@
 {% extends "geodata/_base/fullwidth.html" %}
 {% block content %}
 
-  <div class="row">
-    <div class="col-md-3 p-0">
+  <div class="columns">
+    <div class="column is-one-quarter">
       {% include 'geodata/_includes/search_form.html' %}
       <br/>
       {% block list_view %}{% endblock %}
     </div>
 
-    <div class="col-md-9 p-0">
+    <div class="column">
       {% include 'geodata/_includes/search_map.html' %}
     </div>
   </div>
