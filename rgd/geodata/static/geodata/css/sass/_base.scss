@@ -300,6 +300,22 @@ h6 {
 	}
 }
 
+/* Tabs
+** ================================ */
+.tabs {
+  background: darken($primary, 8%);
+  li {
+    a {
+      color: lighten($primary, 50%);
+    }
+    &.is-active {
+      a {
+        color: $primary;
+      }
+    }
+  }
+}
+
 /* Site structure
 ** ================================ */
 
