@@ -9,28 +9,122 @@
 
   <div id="Point" class="tabcontent">
     <form method="GET">
-      Longitude (deg): <input type="text" name="longitude" value="{{ request.GET.longitude }}">
-      Latitude (deg): <input type="text" name="latitude" value="{{ request.GET.latitude }}">
-      <br>
-      Proximity (m): <input type="text" name="radius" value="{{ request.GET.radius }}">
-      <br>
-      <input class="button" type="button" value="Use Map" name="button" onclick="populatePoint()">
-      <input class="button" type="submit" value="Filter">
+      <div class="columns is-multiline mx-0">
+        <div class="column is-full field mb-0">
+          <div class="field-label is-normal">
+            <label class="label">Longitude (deg)</label>
+          </div>
+          <div class="field-body">
+            <div class="field">
+              <p class="control">
+                <input class="input" type="text" name="longitude" value="{{ request.GET.longitude }}">
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <div class="column is-full field mb-0">
+          <div class="field-label is-normal">
+            <label class="label">Latitude (deg)</label>
+          </div>
+          <div class="field-body">
+            <div class="field">
+              <p class="control">
+                <input class="input" type="text" name="latitude" value="{{ request.GET.latitude }}">
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <div class="column is-full field mb-0">
+          <div class="field-label is-normal">
+            <label class="label">Proximity (m)</label>
+          </div>
+          <div class="field-body">
+            <div class="field">
+              <p class="control">
+                <input class="input" type="text" name="radius" value="{{ request.GET.radius }}">
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <div class="column is-full field is-grouped">
+          <div class="control">
+            <input class="button is-secondary" type="button" value="Use Map" name="button" onclick="populatePoint()">
+          </div>
+          <div class="control">
+            <input class="button is-accent" type="submit" value="Filter">
+          </div>
+        </div>
+      </div>
     </form>
   </div>
 
-  <div id="Boundung Box" class="tabcontent">
+  <div id="Bounding Box" class="tabcontent">
     <form method="GET">
-      Min Longitude (deg): <input type="text" name="minimum_longitude" value="{{ request.GET.minimum_longitude }}">
-      <br>
-      Max Longitude (deg): <input type="text" name="maximum_longitude" value="{{ request.GET.maximum_longitude }}">
-      <br>
-      Min Latitude (deg): <input type="text" name="minimum_latitude" value="{{ request.GET.minimum_latitude }}">
-      <br>
-      Max Latitude (deg): <input type="text" name="maximum_latitude" value="{{ request.GET.maximum_latitude }}">
-      <br>
-      <input class="button" type="button" value="Use Map" name="button" onclick="populateBounds()">
-      <input class="button" type="submit" value="Filter">
+      <div class="columns is-multiline mx-0">
+        <div class="column is-full field mb-0">
+          <div class="field-label is-normal">
+            <label class="label">Minimum Longitude (deg)</label>
+          </div>
+          <div class="field-body">
+            <div class="field">
+              <p class="control">
+                <input class="input" type="text" name="minimum_longitude" value="{{ request.GET.minimum_longitude }}">
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <div class="column is-full field mb-0">
+          <div class="field-label is-normal">
+            <label class="label">Maximum Longitude (deg)</label>
+          </div>
+          <div class="field-body">
+            <div class="field">
+              <p class="control">
+                <input class="input" type="text" name="maximum_longitude" value="{{ request.GET.maximum_longitude }}">
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <div class="column is-full field mb-0">
+          <div class="field-label is-normal">
+            <label class="label">Minimum Latitude (deg)</label>
+          </div>
+          <div class="field-body">
+            <div class="field">
+              <p class="control">
+                <input class="input" type="text" name="minimum_latitude" value="{{ request.GET.minimum_latitude }}">
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <div class="column is-full field mb-0">
+          <div class="field-label is-normal">
+            <label class="label">Maximum Latitude (deg)</label>
+          </div>
+          <div class="field-body">
+            <div class="field">
+              <p class="control">
+                <input class="input" type="text" name="maximum_latitude" value="{{ request.GET.maximum_latitude }}">
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <div class="column is-full field is-grouped">
+          <div class="control">
+            <input class="button is-secondary" type="button" value="Use Map" name="button" onclick="populatePoint()">
+          </div>
+          <div class="control">
+            <input class="button is-accent" type="submit" value="Filter">
+          </div>
+        </div>
+      </div>
     </form>
   </div>
 
