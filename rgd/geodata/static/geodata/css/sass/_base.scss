@@ -369,7 +369,8 @@ h6 {
     width: 100%;
     .navbar-brand {
       .logo {
-        color: $secondary;
+        border-right: 1px solid lighten($primary, 65%);
+        color: darken($primary, 30%);
       }
     }
     .navbar-menu {
@@ -377,7 +378,7 @@ h6 {
       .navbar-end {
         .navbar-item {
           &:hover {
-            color: $secondary;
+            color: darken($secondary, 15%);
           }
           .navbar-link {
             &:not(.is-arrowless) {
@@ -386,7 +387,7 @@ h6 {
               }
             }
             &:hover {
-              color: $secondary;
+              color: darken($secondary, 15%);
             }
           }
         }
@@ -400,11 +401,6 @@ h6 {
           }
         }
         &.user-menu {
-          .admin {
-            &:hover {
-              color: darken($accent, 30%);
-            }
-          }
           .logout {
             &:hover {
               color: $danger;
