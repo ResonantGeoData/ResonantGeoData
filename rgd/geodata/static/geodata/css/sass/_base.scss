@@ -104,77 +104,27 @@ h6 {
   padding: 20px 0;
 }
 
-.btn {
-  background: $primary;
+.button {
   border: 0;
-  color: #fff;
-  text-transform: uppercase;
-  transition: all .15s ease-in-out;
-  &:hover {
-    background: #5cc8c5;
-    color: #fff;
-    &::after {
-      display: none;
-		}
-	}
-  &:focus {
-    color: #fff;
-	}
-  &::after {
-    display: none;
-	}
-
-  &.btn-secondary {
+  &.is-primary {
+    background: $primary;
+    color: $white;
+    &:hover {
+      background: lighten($primary, 10%);
+    }
+  }
+  &.is-secondary {
     background: $secondary;
+    color: $white;
     &:hover {
-      background: #1f5673;
-      &::after {
-        display: none;
-  		}
-  	}
-    &::after {
-      display: none;
-  	}
+      background: lighten($secondary, 10%);
+    }
   }
-
-  &.btn-nobg {
-    background: none;
-    color: $secondary;
+  &.is-accent {
+    background: $accent;
     &:hover {
-      background: #eaf2f7;
-      &::after {
-        display: none;
-  		}
-  	}
-    &::after {
-      display: none;
-  	}
-  }
-
-  &.is-small {
-    font-weight: 500;
-    padding-bottom: 5px;
-  }
-
-  &.is-disabled {
-    background: #d8dadc;
-    color: #58636b;
-    cursor: not-allowed;
-  }
-
-  /* Override some Bulma stuff */
-
-  &.is-text {
-    text-decoration: none;
-    text-transform: none;
-  }
-
-  &.is-medium {
-    padding-bottom: 9px;
-  }
-
-  &.is-large {
-    padding-bottom: 10px;
+      background: lighten($accent, 10%);
+    }
   }
 }
 
