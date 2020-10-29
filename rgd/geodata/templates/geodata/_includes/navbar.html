@@ -1,127 +1,75 @@
 {% block navlinks %}
+  <nav class="navbar" role="navigation" aria-label="main navigation">
+    <div class="navbar-brand">
+      <a class="navbar-item logo" href="{% url 'index' %}">
+        <strong>ResonantGeoData</strong>
+      </a>
 
-  <style>
-    /* Dropdown Button */
-    .dropbtn {
-      background-color: #4CAF50;
-      color: white;
-      padding: 5px;
-      font-size: 16px;
-      border: none;
-    }
-
-    /* The container <div> - needed to position the dropdown content */
-    .dropdown {
-      position: relative;
-      display: inline-block;
-      padding: 16px 16px;
-    }
-
-    /* Dropdown Content (Hidden by Default) */
-    .dropdown-content {
-      display: none;
-      position: absolute;
-      background-color: #f1f1f1;
-      min-width: 160px;
-      box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
-      z-index: 1;
-    }
-
-    /* Links inside the dropdown */
-    .dropdown-content a {
-      color: black;
-      padding: 12px 16px;
-      text-decoration: none;
-      display: block;
-    }
-
-    /* Change color of dropdown links on hover */
-    .dropdown-content a:hover {background-color: #ddd;}
-
-    /* Show the dropdown menu on hover */
-    .dropdown:hover .dropdown-content {display: block;}
-
-    /* Change the background color of the dropdown button when the dropdown content is shown */
-    .dropdown:hover .dropbtn {background-color: #3e8e41;}
-  </style>
-
-  <div class="container">
-    {% comment %}
-    <div class="logo">
-      <h1><a href="{% url 'index' %}"><img src="{% static 'img/isic_logo.svg' %}" alt="ISIC Challenge"></a></h1>
+      <a role="button" class="navbar-burger burger" aria-label="menu" aria-expanded="false" data-target="navbarBasicExample">
+        <span aria-hidden="true"></span>
+        <span aria-hidden="true"></span>
+        <span aria-hidden="true"></span>
+      </a>
     </div>
-    {% endcomment %}
 
-    <nav class="navbar" role="navigation" aria-label="main navigation">
-      <div class="navbar-brand">
-        <a class="navbar-item logo" href="{% url 'index' %}">
-          <strong>ResonantGeoData</strong>
-        </a>
-
-        <a role="button" class="navbar-burger burger" aria-label="menu" aria-expanded="false" data-target="navbarBasicExample">
-          <span aria-hidden="true"></span>
-          <span aria-hidden="true"></span>
-          <span aria-hidden="true"></span>
-        </a>
-      </div>
-
-      <div id="navbarBasicExample" class="navbar-menu">
-        <div class="navbar-start">
-          <a href="{% url 'index' %}" class="navbar-item">Welcome</a>
-          {% if user.is_authenticated %}
-            <div class="navbar-item has-dropdown is-hoverable">
-              <a class="navbar-link"><strong>GeoData</strong></a>
-              <div class="navbar-dropdown">
-                <a href="{% url 'rasters' %}" class="navbar-item">Raster Entries</a>
-                <a href="{% url 'fmv_entries' %}" class="navbar-item">FMV Entries</a>
-              </div>
+    <div id="navbarBasicExample" class="navbar-menu">
+      <div class="navbar-start">
+        <a href="{% url 'index' %}" class="navbar-item">Welcome</a>
+        {% if user.is_authenticated %}
+          <div class="navbar-item has-dropdown is-hoverable">
+            <a class="navbar-link"><strong>GeoData</strong></a>
+            <div class="navbar-dropdown">
+              <a href="{% url 'rasters' %}" class="navbar-item">Raster Entries</a>
+              <a href="{% url 'fmv_entries' %}" class="navbar-item">FMV Entries</a>
             </div>
-          {% endif %}
-          <a href="#" class="navbar-item">Contact Us</a>
-        </div>
-        <div class="navbar-end user-menu">
-          {% if user.is_authenticated %}
-            <div class="navbar-item">{{ request.user.email }}</div>
-            {% if user.is_superuser %}
-              <a href="{% url 'admin:index' %}" class="navbar-item admin">
-                <i class="material-icons mr-1">
-                  admin_panel_settings
-                </i>
-                Admin
-              </a>
-            {% endif %}
-            {% comment %}
-            {% if user.is_staff %}
-              <a href="{% url 'staff-dashboard' %}" class="navbar-item dashboard">
-                <i class="material-icons mr-1">
-                  dashboard
-                </i>
-                Dashboard
-              </a>
-            {% endif %}
-            {% endcomment %}
-            <a href="{% url 'account_logout' %}" class="navbar-item logout">
-              <i class="material-icons mr-1">
-                meeting_room
-              </i>
-              Logout
-            </a>
-          {% else %}
-            <a href="{% url 'account_login' %}" class="navbar-item login">
-              <i class="material-icons mr-1">
-                login
-              </i>
-              Login
-            </a>
-            <a href="{% url 'account_signup' %}" class="navbar-item signup">
-              <i class="material-icons mr-1">
-                create
-              </i>
-              Sign up
-            </a>
-          {% endif %}
-        </div>
+          </div>
+        {% endif %}
+        {% comment %}
+        <a href="#" class="navbar-item">Contact Us</a>
+        {% endcomment %}
       </div>
-    </nav>
-  </div>
+      <div class="navbar-end user-menu">
+        {% if user.is_authenticated %}
+          <div class="navbar-item">{{ request.user.email }}</div>
+          {% if user.is_superuser %}
+            <a href="{% url 'admin:index' %}" class="navbar-item admin">
+              <i class="material-icons mr-1">
+                admin_panel_settings
+              </i>
+              Admin
+            </a>
+          {% endif %}
+          {% comment %}
+          {% if user.is_staff %}
+            <a href="{% url 'staff-dashboard' %}" class="navbar-item dashboard">
+              <i class="material-icons mr-1">
+                dashboard
+              </i>
+              Dashboard
+            </a>
+          {% endif %}
+          {% endcomment %}
+          <a href="{% url 'account_logout' %}" class="navbar-item logout">
+            <i class="material-icons mr-1">
+              meeting_room
+            </i>
+            Logout
+          </a>
+        {% else %}
+          <a href="{% url 'account_login' %}" class="navbar-item login">
+            <i class="material-icons mr-1">
+              login
+            </i>
+            Login
+          </a>
+          <a href="{% url 'account_signup' %}" class="navbar-item signup">
+            <i class="material-icons mr-1">
+              create
+            </i>
+            Sign up
+          </a>
+        {% endif %}
+      </div>
+    </div>
+  </nav>
 {% endblock %}
