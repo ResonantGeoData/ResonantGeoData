@@ -152,6 +152,19 @@ h6 {
   width: 100%;
 }
 
+/* Forms
+** ================================ */
+
+.field {
+  &:not(.is-horizontal) {
+    .field-label {
+      margin: 0;
+      padding: 0;
+      text-align: left;
+    }
+  }
+}
+
 /* Tooltips
 ** ================================ */
 
