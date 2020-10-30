@@ -215,9 +215,8 @@ class ConvertedImageFileAdmin(OSMGeoAdmin):
         'modified',
     )
     readonly_fields = (
-        'failure_reason',
         'file',
-    )
+    ) + TASK_EVENT_READONLY
 
 
 @admin.register(GeometryEntry)
@@ -234,6 +233,7 @@ class GeometryEntryAdmin(OSMGeoAdmin):
         'created',
         'geometry_archive',
     )
+    modifiable = False  # To still show the footprint and outline
 
 
 @admin.register(GeometryArchive)
@@ -246,12 +246,11 @@ class GeometryArchiveAdmin(OSMGeoAdmin):
         'archive_data_link',
     )
     readonly_fields = (
-        'failure_reason',
         'modified',
         'created',
         'last_validation',
         'checksum',
-    )
+    ) + TASK_EVENT_READONLY
 
 
 @admin.register(FMVFile)
@@ -264,7 +263,6 @@ class FMVFileAdmin(OSMGeoAdmin):
         'fmv_data_link',
     )
     readonly_fields = (
-        'failure_reason',
         'modified',
         'created',
         'checksum',
@@ -272,7 +270,7 @@ class FMVFileAdmin(OSMGeoAdmin):
         'klv_file',
         'web_video_file',
         'frame_rate',
-    )
+    ) + TASK_EVENT_READONLY
 
 
 @admin.register(FMVEntry)
