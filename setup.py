@@ -49,8 +49,9 @@ setup(
             'fiona',
             'shapely',
             'scipy',
+            'kwarray>=0.5.10',
             'kwcoco',
-            'kwimage',
+            'kwimage>=0.6.7',
         ],
     },
 )

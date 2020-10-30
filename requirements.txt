@@ -1,8 +1,5 @@
 # This is used by heroku for deployment
 --find-links https://girder.github.io/large_image_wheels
 GDAL
-# Heroku only uses CPU
-# See https://download.pytorch.org/whl/torch_stable.html for a list of wheels.
-https://download.pytorch.org/whl/cpu/torch-1.6.0%2Bcpu-cp38-cp38-linux_x86_64.whl
 # Install the app itself
 -e .[worker]
