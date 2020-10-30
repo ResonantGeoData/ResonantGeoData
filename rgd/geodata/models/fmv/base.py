@@ -9,7 +9,7 @@ from rgd.utility import _link_url
 from ... import tasks
 from ..common import ChecksumFile, ModifiableEntry, SpatialEntry
 from ..constants import DB_SRID
-from ..mixins import TaskEventMixin
+from ..mixins import Status, TaskEventMixin
 
 
 class FMVFile(ChecksumFile, TaskEventMixin):
@@ -17,6 +17,7 @@ class FMVFile(ChecksumFile, TaskEventMixin):
 
     task_func = tasks.task_read_fmv_file
     failure_reason = models.TextField(null=True, blank=True)
+    status = models.CharField(max_length=20, default=Status.CREATED, choices=Status.choices)
     file = S3FileField()
 
     def fmv_data_link(self):

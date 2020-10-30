@@ -6,7 +6,7 @@ from s3_file_field import S3FileField
 
 from ... import tasks
 from ..common import ArbitraryFile, ChecksumFile, ModifiableEntry, SpatialEntry
-from ..mixins import TaskEventMixin
+from ..mixins import Status, TaskEventMixin
 from .ifiles import BaseImageFile
 
 
@@ -105,6 +105,7 @@ class RasterEntry(ImageSet, SpatialEntry, TaskEventMixin):
 
     task_func = tasks.task_populate_raster_entry
     failure_reason = models.TextField(null=True, blank=True)
+    status = models.CharField(max_length=20, default=Status.CREATED, choices=Status.choices)
 
 
 class BandMetaEntry(ModifiableEntry):
@@ -130,6 +131,7 @@ class ConvertedImageFile(ChecksumFile):
 
     file = S3FileField()
     failure_reason = models.TextField(null=True, blank=True)
+    status = models.CharField(max_length=20, default=Status.CREATED, choices=Status.choices)
     source_image = models.ForeignKey(ImageEntry, on_delete=models.CASCADE)
 
 
@@ -145,6 +147,7 @@ class KWCOCOArchive(ModifiableEntry, TaskEventMixin):
     task_func = tasks.task_load_kwcoco_dataset
     name = models.CharField(max_length=100, blank=True, null=True)
     failure_reason = models.TextField(null=True, blank=True)
+    status = models.CharField(max_length=20, default=Status.CREATED, choices=Status.choices)
     spec_file = models.ForeignKey(
         ArbitraryFile,
         on_delete=models.CASCADE,

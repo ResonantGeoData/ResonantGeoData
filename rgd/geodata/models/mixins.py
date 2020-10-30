@@ -1,4 +1,14 @@
 """Mixin helper classes."""
+from django.contrib.gis.db import models
+from django.utils.translation import gettext_lazy as _
+
+
+class Status(models.TextChoices):
+    CREATED = 'created', _('Created but not queued')
+    QUEUED = 'queued', _('Queued for processing')
+    RUNNING = 'running', _('Processing')
+    FAILED = 'failed', _('Failed')
+    SUCCEEDED = 'success', _('Succeeded')
 
 
 class TaskEventMixin(object):
@@ -14,9 +24,14 @@ class TaskEventMixin(object):
     """The task function."""
 
     def _run_task(self):
-        """Validate the raster asynchronously."""
         if not callable(self.task_func):
             raise RuntimeError('Task function must be set to a callable.')  # pragma: no cover
+        self.status = Status.QUEUED
+        self.save(
+            update_fields=[
+                'status',
+            ]
+        )
         self.task_func.delay(self.id)
 
     def _post_save_event_task(self, created, *args, **kwargs):

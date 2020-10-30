@@ -95,11 +95,6 @@ class RasterEntryAdmin(OSMGeoAdmin):
     list_filter = SPATIAL_ENTRY_FILTERS + ('crs',)
     modifiable = False  # To still show the footprint and outline
 
-    def status(self, obj):
-        return not obj.failure_reason
-
-    status.boolean = True
-
 
 @admin.register(BandMetaEntry)
 class BandMetaEntryAdmin(OSMGeoAdmin):
@@ -177,11 +172,6 @@ class ImageFileAdmin(OSMGeoAdmin):
     )
     readonly_fields = ('failure_reason', 'modified', 'created', 'checksum', 'last_validation')
 
-    def status(self, obj):
-        return not obj.failure_reason
-
-    status.boolean = True
-
 
 @admin.register(Thumbnail)
 class ThumbnailAdmin(OSMGeoAdmin):
@@ -206,11 +196,6 @@ class ConvertedImageFileAdmin(OSMGeoAdmin):
         'failure_reason',
         'file',
     )
-
-    def status(self, obj):
-        return not obj.failure_reason
-
-    status.boolean = True
 
 
 @admin.register(GeometryEntry)
@@ -246,11 +231,6 @@ class GeometryArchiveAdmin(OSMGeoAdmin):
         'checksum',
     )
 
-    def status(self, obj):
-        return not obj.failure_reason
-
-    status.boolean = True
-
 
 @admin.register(FMVFile)
 class FMVFileAdmin(OSMGeoAdmin):
@@ -262,11 +242,6 @@ class FMVFileAdmin(OSMGeoAdmin):
         'fmv_data_link',
     )
     readonly_fields = ('failure_reason', 'modified', 'created', 'checksum', 'last_validation')
-
-    def status(self, obj):
-        return not obj.failure_reason
-
-    status.boolean = True
 
 
 @admin.register(FMVEntry)
