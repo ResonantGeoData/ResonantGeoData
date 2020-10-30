@@ -80,6 +80,7 @@
       <br>
       within: <input type="checkbox" {{ request.GET.within|yesno:"checked,," }} name="within" title="Only retrieve entries that are fully within the boundary of the feature.">
       <br>
+      <input class="button" type="button" value="Draw on Map" name="drawOnMapButton" onclick="enableDrawOnMap()">
       <input class="button" type="submit" value="Filter">
     </form>
   </div>
@@ -123,6 +124,26 @@
       var b = document.getElementsByName("latitude")[0]
       a.value = center.x
       b.value = center.y
+    }
+
+
+    function enableDrawOnMap() {
+      // Disable button until completed
+      var button = document.getElementsByName("drawOnMapButton")[0]
+      button.disabled = true
+      // Clear any previous annotations
+      annotationLayer.removeAllAnnotations()
+      // Start new annotation
+      annotationLayer.mode('polygon');
+      annotationLayer.geoOn(geo.event.annotation.state, (e) => {
+        if (e.annotation.state() === "done") {
+          var geojson = JSON.stringify(e.annotation.geojson().geometry)
+          var jsonField = document.getElementsByName("geojson")[0]
+          jsonField.value = geojson
+          // Re-enable button
+          button.disabled = false
+        }
+      });
     }
 
   </script>
