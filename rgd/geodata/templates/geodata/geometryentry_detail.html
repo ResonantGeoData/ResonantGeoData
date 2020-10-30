@@ -1,0 +1,59 @@
+{% extends "geodata/_base/detail.html" %}
+
+{% block meta_table_body %}
+
+  <tr>
+    <td>Description</td>
+    <td>{{ object.description }}</td>
+  </tr>
+
+{% endblock %}
+
+
+{% block detail %}
+
+
+  {% include 'geodata/_includes/empty_viewer.html' %}
+
+  <script>
+    let extents = JSON.parse('{{ extents|escapejs }}');
+
+
+    // Add collected polygons to map
+    let reader = geo.createFileReader('geojsonReader', {
+      'layer': layer
+    });
+
+    // Reads the boundary
+    reader.read(extents.collect, (features) => {
+      features[0].style({
+        strokeColor: '#FF0000',
+        fill: false,
+      })
+      .draw();
+    });
+
+    // Read the data
+    reader.read(extents.data, (features) => {
+      features[0].style({
+        strokeColor: '#00FFFF',
+        fill: true,
+      })
+      .draw();
+    });
+
+    // Position the map to show data extents. If none present, the position
+    //   should have been set by the search parameters
+    if (extents.extent != undefined) {
+      map.bounds({
+        left: extents.extent.xmin,
+        right: extents.extent.xmax,
+        top: extents.extent.ymax,
+        bottom: extents.extent.ymin
+      });
+    }
+    // One final zoom out for polishing
+    map.zoom(map.zoom() - 0.25);
+  </script>
+
+{% endblock %}
