@@ -146,7 +146,7 @@ class GeometryEntryDetailView(_SpatialDetailView):
 
     def _get_extent(self):
         extent = super()._get_extent()
-        extent["data"] = self.object.data.json
+        extent['data'] = self.object.data.json
         return extent
 
 
