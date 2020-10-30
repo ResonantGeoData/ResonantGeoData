@@ -43,7 +43,8 @@
 
   <div class="tab">
     <button class="tablinks" onclick="openTab(event, 'Point')">Point</button>
-    <button class="tablinks" onclick="openTab(event, 'Boundung Box')">Boundung Box</button>
+    <button class="tablinks" onclick="openTab(event, 'Bounding Box')">Bounding Box</button>
+    <button class="tablinks" onclick="openTab(event, 'GeoJSON')">GeoJSON</button>
   </div>
 
   <div id="Point" class="tabcontent">
@@ -58,7 +59,7 @@
     </form>
   </div>
 
-  <div id="Boundung Box" class="tabcontent">
+  <div id="Bounding Box" class="tabcontent">
     <form method="GET">
       Min Longitude (deg): <input type="text" name="minimum_longitude" value="{{ request.GET.minimum_longitude }}">
       <br>
@@ -69,6 +70,16 @@
       Max Latitude (deg): <input type="text" name="maximum_latitude" value="{{ request.GET.maximum_latitude }}">
       <br>
       <input class="button" type="button" value="Use Map" name="button" onclick="populateBounds()">
+      <input class="button" type="submit" value="Filter">
+    </form>
+  </div>
+
+  <div id="GeoJSON" class="tabcontent">
+    <form method="GET">
+      GeoJSON geometry: <input type="text" name="geojson" value="{{ request.GET.geojson }}">
+      <br>
+      within: <input type="checkbox" {{ request.GET.within|yesno:"checked,," }} name="within" title="Only retrieve entries that are fully within the boundary of the feature.">
+      <br>
       <input class="button" type="submit" value="Filter">
     </form>
   </div>
