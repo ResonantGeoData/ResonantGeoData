@@ -26,12 +26,6 @@
       <h1 class="banner-title">{% block title %}{% endblock %}</h1>
     </div>
 
-
-    {% comment %}
-    {% load invites %}
-
-    {% show_pending_invites request %}
-    {% endcomment %}
     <div class="main-content">
       {% if messages %}
         <div class="notification-wrapper">
@@ -53,7 +47,11 @@
 
 
       <main role="main">
-        {% block content %}{% endblock %}
+        {% if user.is_authenticated %}
+          {% block content %}{% endblock %}
+        {% else %}
+          {% include 'geodata/_includes/not_logged_in.html' %}
+        {% endif %}
       </main>
 
     </div>
