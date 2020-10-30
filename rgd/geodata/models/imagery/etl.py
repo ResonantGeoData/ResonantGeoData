@@ -28,6 +28,7 @@ from .base import (
     ImageSet,
     KWCOCOArchive,
     RasterEntry,
+    RasterMetaEntry,
     Thumbnail,
 )
 from .ifiles import ImageArchiveFile, ImageFile
@@ -328,13 +329,14 @@ def populate_raster_entry(raster_id):
     raster_entry = RasterEntry.objects.get(id=raster_id)
 
     # Has potential to error with failure reason
-    meta = _validate_image_set_is_raster(raster_entry)
+    meta = _validate_image_set_is_raster(raster_entry.image_set)
 
+    raster_meta = RasterMetaEntry()
+    raster_meta.parent_raster = raster_entry
     for k, v in meta.items():
         # Yeah. This is sketchy, but it works.
-        setattr(raster_entry, k, v)
-
-    raster_entry.save(update_fields=list(meta.keys()))
+        setattr(raster_meta, k, v)
+    raster_meta.save()
     return True
 
 

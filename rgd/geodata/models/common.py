@@ -46,8 +46,8 @@ class SpatialEntry(models.Model):
     acquisition_date = models.DateTimeField(null=True, default=None, blank=True)
 
     # This can be used with GeoDjango's geographic database functions for spatial indexing
-    footprint = models.PolygonField(srid=DB_SRID, null=True, blank=True)
-    outline = models.PolygonField(srid=DB_SRID, null=True, blank=True)
+    footprint = models.PolygonField(srid=DB_SRID, blank=True)
+    outline = models.PolygonField(srid=DB_SRID, blank=True)
 
     objects = InheritanceManager()
 
@@ -64,8 +64,8 @@ class ChecksumFile(ModifiableEntry):
 
     """
 
-    name = models.CharField(max_length=100, blank=True, null=True)
-    checksum = models.CharField(max_length=64, blank=True, null=True)
+    name = models.CharField(max_length=100, blank=True)
+    checksum = models.CharField(max_length=64)
     validate_checksum = models.BooleanField(
         default=False
     )  # a flag to validate the checksum against the saved checksum

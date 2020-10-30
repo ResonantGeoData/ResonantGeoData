@@ -1,6 +1,7 @@
 from django.contrib import admin
 from django.contrib.gis.admin import OSMGeoAdmin
 
+from . import actions
 from .models.common import ArbitraryFile
 from .models.fmv.base import FMVEntry, FMVFile
 from .models.geometry.base import GeometryArchive, GeometryEntry
@@ -17,6 +18,7 @@ from .models.imagery.base import (
     ImageSet,
     KWCOCOArchive,
     RasterEntry,
+    RasterMetaEntry,
     Thumbnail,
 )
 from .models.imagery.ifiles import BaseImageFile, ImageArchiveFile, ImageFile
@@ -26,6 +28,11 @@ SPATIAL_ENTRY_FILTERS = (
     'modified',
 )
 
+TASK_EVENT_READONLY = (
+    'failure_reason',
+    'status',
+)
+
 
 @admin.register(ArbitraryFile)
 class ArbitraryFileAdmin(OSMGeoAdmin):
@@ -33,6 +40,7 @@ class ArbitraryFileAdmin(OSMGeoAdmin):
         'id',
         'name',
     )
+    readonly_fields = ('checksum',)
 
 
 @admin.register(KWCOCOArchive)
@@ -41,7 +49,7 @@ class KWCOCOArchiveAdmin(OSMGeoAdmin):
         'id',
         'name',
     )
-    readonly_fields = ('image_set',)
+    readonly_fields = ('image_set',) + TASK_EVENT_READONLY
 
 
 @admin.register(ImageSet)
@@ -51,6 +59,7 @@ class ImageSetAdmin(OSMGeoAdmin):
         'name',
         'count',
     )
+    actions = (actions.make_raster_from_image_set,)
 
 
 @admin.register(ImageEntry)
@@ -72,6 +81,7 @@ class ImageEntryAdmin(OSMGeoAdmin):
         'created',
     )  # 'thumbnail')
     list_filter = ('instrumentation', 'number_of_bands', 'driver')
+    actions = (actions.make_image_set, actions.make_raster_from_image_entries)
 
 
 @admin.register(RasterEntry)
@@ -83,6 +93,18 @@ class RasterEntryAdmin(OSMGeoAdmin):
         'modified',
     )
     readonly_fields = (
+        'modified',
+        'created',
+    ) + TASK_EVENT_READONLY
+
+
+@admin.register(RasterMetaEntry)
+class RasterMetaEntryAdmin(OSMGeoAdmin):
+    list_display = (
+        'id',
+        'modified',
+    )
+    readonly_fields = (
         'crs',
         'origin',
         'extent',
@@ -90,8 +112,8 @@ class RasterEntryAdmin(OSMGeoAdmin):
         'transform',
         'modified',
         'created',
-        'failure_reason',
-    )  # 'thumbnail')
+        'parent_raster',
+    )
     list_filter = SPATIAL_ENTRY_FILTERS + ('crs',)
     modifiable = False  # To still show the footprint and outline
 
@@ -170,7 +192,7 @@ class ImageFileAdmin(OSMGeoAdmin):
         'modified',
         'image_data_link',
     )
-    readonly_fields = ('failure_reason', 'modified', 'created', 'checksum', 'last_validation')
+    readonly_fields = ('modified', 'created', 'checksum', 'last_validation') + TASK_EVENT_READONLY
 
 
 @admin.register(Thumbnail)
@@ -241,11 +263,23 @@ class FMVFileAdmin(OSMGeoAdmin):
         'modified',
         'fmv_data_link',
     )
-    readonly_fields = ('failure_reason', 'modified', 'created', 'checksum', 'last_validation')
+    readonly_fields = (
+        'failure_reason',
+        'modified',
+        'created',
+        'checksum',
+        'last_validation',
+        'klv_file',
+        'web_video_file',
+        'frame_rate',
+    )
 
 
 @admin.register(FMVEntry)
 class FMVEntryAdmin(OSMGeoAdmin):
-    list_display = ('id', 'name', 'klv_data_link')
+    list_display = ('id', 'name', 'klv_data_link', 'fmv_file')
 
-    readonly_fields = ('modified', 'created', 'klv_file', 'fmv_file')
+    readonly_fields = (
+        'modified',
+        'created',
+    )
