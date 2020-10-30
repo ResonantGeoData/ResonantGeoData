@@ -4,6 +4,7 @@
     <ul class="pt-2 px-2">
       <li class="tablinks" onclick="openTab(event, 'Point')"><a>Point</a></li>
       <li class="tablinks" onclick="openTab(event, 'Bounding Box')"><a>Bounding Box</a></li>
+      <li class="tablinks" onclick="openTab(event, 'GeoJSON')"><a>GeoJSON</a></li>
     </ul>
   </div>
 
@@ -128,6 +129,47 @@
     </form>
   </div>
 
+  <div id="GeoJSON" class="tabcontent">
+    <form method="GET">
+      <div class="columns is-multiline mx-0">
+        <div class="column is-full field mb-0">
+          <div class="field-label is-normal">
+            <label class="label">GeoJSON geometry</label>
+          </div>
+          <div class="field-body">
+            <div class="field">
+              <p class="control">
+                <input class="input" type="text" name="geojson" value="{{ request.GET.geojson }}">
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <div class="column is-full field mb-0">
+          <div class="field-label is-normal">
+            <label class="label">within</label>
+          </div>
+          <div class="field-body">
+            <div class="field">
+              <p class="control">
+                <input type="checkbox" {{ request.GET.within|yesno:"checked,," }} name="within" title="Only retrieve entries that are fully within the boundary of the feature.">
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <div class="column is-full field is-grouped">
+          <div class="control">
+            <input class="button is-secondary" type="button" value="Draw on Map" name="button" onclick="drawOnMapButton()">
+          </div>
+          <div class="control">
+            <input class="button is-accent" type="submit" value="Filter">
+          </div>
+        </div>
+      </div>
+    </form>
+  </div>
+
   <script>
     function openTab(evt, tabName) {
       // Declare all variables
@@ -167,6 +209,26 @@
       var b = document.getElementsByName("latitude")[0]
       a.value = center.x
       b.value = center.y
+    }
+
+
+    function enableDrawOnMap() {
+      // Disable button until completed
+      var button = document.getElementsByName("drawOnMapButton")[0]
+      button.disabled = true
+      // Clear any previous annotations
+      annotationLayer.removeAllAnnotations()
+      // Start new annotation
+      annotationLayer.mode('polygon');
+      annotationLayer.geoOn(geo.event.annotation.state, (e) => {
+        if (e.annotation.state() === "done") {
+          var geojson = JSON.stringify(e.annotation.geojson().geometry)
+          var jsonField = document.getElementsByName("geojson")[0]
+          jsonField.value = geojson
+          // Re-enable button
+          button.disabled = false
+        }
+      });
     }
 
   </script>

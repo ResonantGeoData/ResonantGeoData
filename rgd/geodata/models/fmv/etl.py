@@ -54,11 +54,10 @@ def _extract_klv_with_docker(fmv_file_entry, entry):
                     stderr=open(stderr_path, 'wb'),
                 )
                 result = 0
-                fmv_file_entry.failure_reason = None
             except subprocess.CalledProcessError as exc:
                 result = exc.returncode
                 logger.info('Failed to successfully run image (%r)' % (exc))
-                fmv_file_entry.failure_reason = 'Return code: %s\nException:\n%r' % (result, exc)
+                raise exc
             logger.info('Finished running image with result %r' % result)
             # Store result
             entry.klv_file.save('%s.klv' % os.path.basename(dataset_path), open(output_path, 'rb'))
@@ -73,10 +72,6 @@ def _extract_klv_with_docker(fmv_file_entry, entry):
             shutil.rmtree(tmpdir)
     except Exception as exc:
         logger.exception('Internal error running dump-klv')
-        try:
-            fmv_file_entry.failure_reason = exc.args[0]
-        except Exception:
-            pass
         raise exc
     return
 
@@ -245,7 +240,6 @@ def read_fmv_file(fmv_file_id):
         # geometry_entry.creator = archive.creator
         entry.name = fmv_file.name
         entry.fmv_file = fmv_file
-        entry.save()
     elif len(entry_query) == 1:
         entry = entry_query.first()
     else:
@@ -256,6 +250,8 @@ def read_fmv_file(fmv_file_id):
     # Only extraxt the KLV data if it does not exist or the checksum of the video has changed
     if not entry.klv_file or not validation:
         _extract_klv_with_docker(fmv_file, entry)
+    # Only save the enry at this point if it has KLV data
+    entry.save()
     if not entry.web_video_file or not validation:
         _convert_video_to_mp4(entry)
 

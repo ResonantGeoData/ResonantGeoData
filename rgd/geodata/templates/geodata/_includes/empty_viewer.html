@@ -26,5 +26,9 @@
 
     // Create a zoom slider widget
     ui.createWidget('slider', {position: {left: 40, top: 40}});
+
+    // Annotation layer
+    var annotationLayer = map.createLayer('annotation', {clickToEdit: true, showLabels: false});
+
   </script>
 {% endblock %}

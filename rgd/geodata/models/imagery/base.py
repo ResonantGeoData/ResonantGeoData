@@ -1,17 +1,12 @@
 """Base classes for raster dataset entries."""
-import os
-
 from django.contrib.gis.db import models
 from django.contrib.postgres import fields
-from django.db import transaction
-from django.db.models.signals import m2m_changed, post_delete, post_save
-from django.dispatch import receiver
 from django.utils.html import escape, mark_safe
 from s3_file_field import S3FileField
 
 from ... import tasks
 from ..common import ArbitraryFile, ChecksumFile, ModifiableEntry, SpatialEntry
-from ..mixins import TaskEventMixin
+from ..mixins import Status, TaskEventMixin
 from .ifiles import BaseImageFile
 
 
@@ -89,17 +84,6 @@ class ImageSet(ModifiableEntry):
         return annots
 
 
-@receiver(m2m_changed, sender=ImageSet.images.through)
-def _m2m_changed_image_set(sender, instance, action, reverse, *args, **kwargs):
-    # If no name was specified for an ImageSet, when images are added to it,
-    # use the common base name of all images as the name of the ImageSet.
-    if action == 'post_add' and not instance.name and instance.images.count():
-        names = [image.name for image in instance.images.all() if image.name]
-        if len(names):
-            instance.name = os.path.commonprefix(names)
-            instance.save(update_fields=['name'])
-
-
 class RasterEntry(ImageSet, SpatialEntry, TaskEventMixin):
     """This class is a container for the metadata of a raster.
 
@@ -121,11 +105,7 @@ class RasterEntry(ImageSet, SpatialEntry, TaskEventMixin):
 
     task_func = tasks.task_populate_raster_entry
     failure_reason = models.TextField(null=True, blank=True)
-
-
-@receiver(post_save, sender=RasterEntry)
-def _post_save_raster_entry(sender, instance, *args, **kwargs):
-    transaction.on_commit(lambda: instance._on_commit_event_task(*args, **kwargs))
+    status = models.CharField(max_length=20, default=Status.CREATED, choices=Status.choices)
 
 
 class BandMetaEntry(ModifiableEntry):
@@ -151,6 +131,7 @@ class ConvertedImageFile(ChecksumFile):
 
     file = S3FileField()
     failure_reason = models.TextField(null=True, blank=True)
+    status = models.CharField(max_length=20, default=Status.CREATED, choices=Status.choices)
     source_image = models.ForeignKey(ImageEntry, on_delete=models.CASCADE)
 
 
@@ -166,6 +147,7 @@ class KWCOCOArchive(ModifiableEntry, TaskEventMixin):
     task_func = tasks.task_load_kwcoco_dataset
     name = models.CharField(max_length=100, blank=True, null=True)
     failure_reason = models.TextField(null=True, blank=True)
+    status = models.CharField(max_length=20, default=Status.CREATED, choices=Status.choices)
     spec_file = models.ForeignKey(
         ArbitraryFile,
         on_delete=models.CASCADE,
@@ -189,13 +171,3 @@ class KWCOCOArchive(ModifiableEntry, TaskEventMixin):
             image.image_file.delete()
         # Now delete the empty image set
         self.image_set.delete()
-
-
-@receiver(post_save, sender=KWCOCOArchive)
-def _post_save_kwcoco_dataset(sender, instance, *args, **kwargs):
-    transaction.on_commit(lambda: instance._on_commit_event_task(*args, **kwargs))
-
-
-@receiver(post_delete, sender=KWCOCOArchive)
-def _post_delete_kwcoco_dataset(sender, instance, *args, **kwargs):
-    transaction.on_commit(lambda: instance._post_delete(*args, **kwargs))
