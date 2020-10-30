@@ -13,6 +13,7 @@ from rest_framework.decorators import api_view
 from . import models, search
 from .models.common import SpatialEntry
 from .models.fmv.base import FMVEntry
+from .models.geometry import GeometryEntry
 from .models.imagery.base import RasterEntry, Thumbnail
 
 
@@ -63,6 +64,12 @@ class SpatialEntriesListView(_SpatialListView):
     model = SpatialEntry
     context_object_name = 'spatial_entries'
     template_name = 'geodata/spatial_entries.html'
+
+
+class GeometryEntriesListView(_SpatialListView):
+    model = GeometryEntry
+    context_object_name = 'geometries'
+    template_name = 'geodata/geometry_entries.html'
 
 
 class FMVEntriesListView(_SpatialListView):
@@ -132,6 +139,15 @@ class FMVEntryDetailView(_SpatialDetailView):
         context = super().get_context_data(*args, **kwargs)
         context['frame_rate'] = json.dumps(self.object.frame_rate)
         return context
+
+
+class GeometryEntryDetailView(_SpatialDetailView):
+    model = GeometryEntry
+
+    def _get_extent(self):
+        extent = super()._get_extent()
+        extent['data'] = self.object.data.json
+        return extent
 
 
 @swagger_auto_schema(

@@ -4,6 +4,7 @@ from django.views.generic.base import RedirectView
 from . import search, views
 
 urlpatterns = [
+    # Pages
     path(
         'geodata/spatial_entries/', views.SpatialEntriesListView.as_view(), name='spatial_entries'
     ),
@@ -21,6 +22,13 @@ urlpatterns = [
         views.FMVEntryDetailView.as_view(),
         name='fmv-entry-detail',
     ),
+    path('geodata/geometries/', views.GeometryEntriesListView.as_view(), name='geometries'),
+    path(
+        'geodata/geometries/<int:pk>/',
+        views.GeometryEntryDetailView.as_view(),
+        name='geometry-entry-detail',
+    ),
+    # API
     path(
         'api/geodata/download/<model>/<int:id>/<field>', views.download_file, name='download-file'
     ),

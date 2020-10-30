@@ -1,0 +1,29 @@
+{% extends "geodata/_base/search_view.html" %}
+{% block title %}
+  Geometry Entries
+{% endblock title %}
+
+{% block list_view %}
+
+  <div style="overflow-x:auto;">
+    <table class="table">
+      <thead class="thead-dark">
+        <tr>
+          <th><span class="text">Name (ID)</span></th>
+          <th><span class="text">Acquisition Date</span></th>
+          <th><span class="text">Area</span></th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for entry in geometries %}
+          <tr>
+            <td><a href="{% url 'geometry-entry-detail' entry.pk %}">{{ entry.name }} ({{ entry.spatial_id }})</a></td>
+            <td>{{ entry.acquisition_date }}</td>
+            <td>{{ entry.footprint.area }}</td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+{% endblock list_view %}
