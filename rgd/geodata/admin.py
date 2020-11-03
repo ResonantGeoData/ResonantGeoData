@@ -214,9 +214,7 @@ class ConvertedImageFileAdmin(OSMGeoAdmin):
         'status',
         'modified',
     )
-    readonly_fields = (
-        'file',
-    ) + TASK_EVENT_READONLY
+    readonly_fields = ('file',) + TASK_EVENT_READONLY
 
 
 @admin.register(GeometryEntry)
