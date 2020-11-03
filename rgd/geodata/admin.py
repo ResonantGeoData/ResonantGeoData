@@ -198,6 +198,9 @@ class AnnotationAdmin(OSMGeoAdmin):
     list_display = (
         'id',
         'caption',
+        'label',
+        'annotator',
+        'segmentation_type',
     )
     readonly_fields = (
         'keypoints',

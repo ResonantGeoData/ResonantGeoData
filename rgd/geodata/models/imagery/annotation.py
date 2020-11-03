@@ -2,6 +2,7 @@ import base64
 import pickle
 
 from django.contrib.gis.db import models
+from django.core.exceptions import ObjectDoesNotExist
 import numpy as np
 
 from ..common import ModifiableEntry
@@ -20,6 +21,10 @@ class Annotation(ModifiableEntry):
 
     keypoints = models.MultiPointField(null=True, srid=0)
     line = models.LineStringField(null=True, srid=0)
+
+    def segmentation_type(self):
+        """Get type of segmentation."""
+        return self.segmentation.get_type()
 
 
 class Segmentation(models.Model):
@@ -44,6 +49,20 @@ class Segmentation(models.Model):
     # COCO bounding box format is [top left x position, top left y position, width, height]
     # This should come from the COCO format rather than be autopopulated by us
     outline = models.PolygonField(srid=0, null=True, help_text='The bounding box')
+
+    def get_type(self):
+        """The type of segmentation."""
+        try:
+            _ = self.polygonsegmentation
+            return 'PolygonSegmentation'
+        except ObjectDoesNotExist:
+            pass
+        try:
+            _ = self.rlesegmentation
+            return 'RLE'
+        except ObjectDoesNotExist:
+            pass
+        return 'Oultine/BBox'
 
 
 class PolygonSegmentation(Segmentation):
