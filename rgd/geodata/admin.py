@@ -273,7 +273,7 @@ class GeometryArchiveAdmin(OSMGeoAdmin):
         'last_validation',
         'checksum',
     ) + TASK_EVENT_READONLY
-    inlines = (GeometryEntryInline, )
+    inlines = (GeometryEntryInline,)
 
 
 class FMVEntryInline(admin.StackedInline):
@@ -304,4 +304,4 @@ class FMVFileAdmin(OSMGeoAdmin):
         'web_video_file',
         'frame_rate',
     ) + TASK_EVENT_READONLY
-    inlines = (FMVEntryInline, )
+    inlines = (FMVEntryInline,)
