@@ -48,6 +48,7 @@ class KWCOCOArchiveAdmin(OSMGeoAdmin):
     list_display = (
         'id',
         'name',
+        'status',
     )
     readonly_fields = ('image_set',) + TASK_EVENT_READONLY
 
@@ -60,6 +61,53 @@ class ImageSetAdmin(OSMGeoAdmin):
         'count',
     )
     actions = (actions.make_raster_from_image_set,)
+
+
+class ThumbnailInline(admin.TabularInline):
+    model = Thumbnail
+    fk_name = 'image_entry'
+    list_display = (
+        'id',
+        'image_entry',
+    )
+    fields = ('image_tag',)
+    readonly_fields = ('image_tag',)
+
+    def has_add_permission(self, request, obj=None):
+        """Prevent user from adding more."""
+        return False
+
+
+class BandMetaEntryInline(admin.StackedInline):
+    model = BandMetaEntry
+    fk_name = 'parent_image'
+
+    list_display = (
+        'id',
+        'parent_image',
+        'modified',
+    )
+    readonly_fields = (
+        'mean',
+        'max',
+        'min',
+        'modified',
+        'created',
+        'parent_image',
+        'std',
+        'nodata_value',
+        'dtype',
+        'band_number',
+    )
+    list_filter = (
+        'parent_image',
+        'interpretation',
+        'dtype',
+    )
+
+    def has_add_permission(self, request, obj=None):
+        """Prevent user from adding more."""
+        return False
 
 
 @admin.register(ImageEntry)
@@ -79,27 +127,15 @@ class ImageEntryAdmin(OSMGeoAdmin):
         'metadata',
         'modified',
         'created',
-    )  # 'thumbnail')
-    list_filter = ('instrumentation', 'number_of_bands', 'driver')
-    actions = (actions.make_image_set, actions.make_raster_from_image_entries)
-
-
-@admin.register(RasterEntry)
-class RasterEntryAdmin(OSMGeoAdmin):
-    list_display = (
-        'id',
-        'name',
-        'status',
-        'modified',
     )
-    readonly_fields = (
-        'modified',
-        'created',
-    ) + TASK_EVENT_READONLY
+    list_filter = ('instrumentation', 'number_of_bands', 'driver')
+    actions = (actions.make_image_set_from_image_entries, actions.make_raster_from_image_entries)
+    inlines = (ThumbnailInline, BandMetaEntryInline)
 
 
-@admin.register(RasterMetaEntry)
-class RasterMetaEntryAdmin(OSMGeoAdmin):
+class RasterMetaEntryInline(admin.StackedInline):
+    model = RasterMetaEntry
+    fk_name = 'parent_raster'
     list_display = (
         'id',
         'modified',
@@ -118,40 +154,31 @@ class RasterMetaEntryAdmin(OSMGeoAdmin):
     modifiable = False  # To still show the footprint and outline
 
 
-@admin.register(BandMetaEntry)
-class BandMetaEntryAdmin(OSMGeoAdmin):
+@admin.register(RasterEntry)
+class RasterEntryAdmin(OSMGeoAdmin):
     list_display = (
         'id',
-        'parent_image',
+        'name',
+        'status',
         'modified',
-        # 'parent_image',  # TODO: this prevents the list view from working
     )
     readonly_fields = (
-        'mean',
-        'max',
-        'min',
         'modified',
         'created',
-        'parent_image',
-        'std',
-        'nodata_value',
-        'dtype',
-    )
-    list_filter = (
-        'parent_image',
-        'interpretation',
-        'dtype',
-    )
+    ) + TASK_EVENT_READONLY
+    inlines = (RasterMetaEntryInline,)
 
 
-@admin.register(Segmentation)
-class SegmentationAdmin(OSMGeoAdmin):
+class SegmentationInline(admin.StackedInline):
+    model = Segmentation
+    fk_name = 'annotation'
     list_display = ('id',)
     readonly_fields = ('outline',)
 
 
-@admin.register(PolygonSegmentation)
-class PolygonSegmentationAdmin(OSMGeoAdmin):
+class PolygonSegmentationInline(admin.StackedInline):
+    model = PolygonSegmentation
+    fk_name = 'annotation'
     list_display = ('id',)
     readonly_fields = (
         'outline',
@@ -159,8 +186,9 @@ class PolygonSegmentationAdmin(OSMGeoAdmin):
     )
 
 
-@admin.register(RLESegmentation)
-class RLESegmentationAdmin(OSMGeoAdmin):
+class RLESegmentationInline(admin.StackedInline):
+    model = RLESegmentation
+    fk_name = 'annotation'
     list_display = ('id',)
     readonly_fields = ('outline', 'width', 'height', 'blob')
 
@@ -171,6 +199,11 @@ class AnnotationAdmin(OSMGeoAdmin):
         'id',
         'caption',
     )
+    readonly_fields = (
+        'keypoints',
+        'line',
+    )
+    inlines = (SegmentationInline, PolygonSegmentationInline, RLESegmentationInline)
 
 
 @admin.register(BaseImageFile)
@@ -193,16 +226,6 @@ class ImageFileAdmin(OSMGeoAdmin):
         'image_data_link',
     )
     readonly_fields = ('modified', 'created', 'checksum', 'last_validation') + TASK_EVENT_READONLY
-
-
-@admin.register(Thumbnail)
-class ThumbnailAdmin(OSMGeoAdmin):
-    list_display = (
-        'id',
-        'image_entry',
-    )
-    fields = ('image_tag',)
-    readonly_fields = ('image_tag',)
 
 
 @admin.register(ConvertedImageFile)

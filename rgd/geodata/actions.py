@@ -1,8 +1,8 @@
 from .models.imagery import ImageSet, RasterEntry
 
 
-def make_image_set(modeladmin, request, queryset):
-    """Make a `ImageSet` of the selected `ImageEntry`s.
+def make_image_set_from_image_entries(modeladmin, request, queryset):
+    """Make an `ImageSet` of the selected `ImageEntry`s.
 
     This is an action on `ImageEntry`.
     """
@@ -26,7 +26,7 @@ def make_raster_from_image_entries(modeladmin, request, queryset):
 
     This is an action on `ImageEntry`
     """
-    imset = make_image_set(modeladmin, request, queryset)
+    imset = make_image_set_from_image_entries(modeladmin, request, queryset)
     return _make_raster_from_image_set(imset)
 
 
