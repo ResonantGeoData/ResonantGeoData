@@ -240,8 +240,9 @@ class ConvertedImageFileAdmin(OSMGeoAdmin):
     readonly_fields = ('file',) + TASK_EVENT_READONLY
 
 
-@admin.register(GeometryEntry)
-class GeometryEntryAdmin(OSMGeoAdmin):
+class GeometryEntryInline(admin.StackedInline):
+    model = GeometryEntry
+    fk_name = 'geometry_archive'
     list_display = (
         'id',
         'name',
@@ -272,6 +273,17 @@ class GeometryArchiveAdmin(OSMGeoAdmin):
         'last_validation',
         'checksum',
     ) + TASK_EVENT_READONLY
+    inlines = (GeometryEntryInline, )
+
+
+class FMVEntryInline(admin.StackedInline):
+    model = FMVEntry
+    fk_name = 'fmv_file'
+    list_display = ('id', 'name', 'klv_data_link', 'fmv_file')
+    readonly_fields = (
+        'modified',
+        'created',
+    )
 
 
 @admin.register(FMVFile)
@@ -292,13 +304,4 @@ class FMVFileAdmin(OSMGeoAdmin):
         'web_video_file',
         'frame_rate',
     ) + TASK_EVENT_READONLY
-
-
-@admin.register(FMVEntry)
-class FMVEntryAdmin(OSMGeoAdmin):
-    list_display = ('id', 'name', 'klv_data_link', 'fmv_file')
-
-    readonly_fields = (
-        'modified',
-        'created',
-    )
+    inlines = (FMVEntryInline, )
