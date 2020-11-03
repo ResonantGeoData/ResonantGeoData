@@ -51,7 +51,7 @@ class Segmentation(models.Model):
     outline = models.PolygonField(srid=0, null=True, help_text='The bounding box')
 
     def get_type(self):
-        """The type of segmentation."""
+        """Get type of segmentation."""
         try:
             _ = self.polygonsegmentation
             return 'PolygonSegmentation'
