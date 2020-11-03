@@ -123,6 +123,7 @@ class BandMetaEntry(ModifiableEntry):
     """A basic container to keep track of useful band info."""
 
     parent_image = models.ForeignKey(ImageEntry, on_delete=models.CASCADE)
+    band_number = models.IntegerField()
     description = models.TextField(
         null=True,
         blank=True,

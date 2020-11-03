@@ -112,6 +112,7 @@ def _read_image_to_entry(image_entry, image_file_path):
         gdal_band = gsrc.GetRasterBand(i + 1)  # off by 1 indexing
         band_meta = BandMetaEntry()
         band_meta.parent_image = image_entry
+        band_meta.band_number = i + 1  # off by 1 indexing
         band_meta.description = gdal_band.GetDescription()
         band_meta.nodata_value = gdal_band.GetNoDataValue()
         # band_meta.creator = ife.creator
