@@ -14,7 +14,7 @@ from rest_framework import serializers as rfserializers
 from rest_framework.decorators import api_view
 
 from . import serializers
-from .models import GeometryEntry, RasterEntry, SpatialEntry
+from .models import GeometryEntry, RasterMetaEntry, SpatialEntry
 
 
 class NearPointSerializer(rfserializers.Serializer):
@@ -229,8 +229,8 @@ def search_near_point(request, *args, **kwargs):
 @api_view(['GET'])
 def search_near_point_raster(request, *args, **kwargs):
     params = request.query_params
-    results = RasterEntry.objects.filter(search_near_point_filter(params, True))
-    return JsonResponse(serializers.RasterEntrySerializer(results, many=True).data, safe=False)
+    results = RasterMetaEntry.objects.filter(search_near_point_filter(params, True))
+    return JsonResponse(serializers.RasterMetaEntrySerializer(results, many=True).data, safe=False)
 
 
 @swagger_auto_schema(
@@ -268,8 +268,8 @@ def search_bounding_box(request, *args, **kwargs):
 @api_view(['GET'])
 def search_bounding_box_raster(request, *args, **kwargs):
     params = request.query_params
-    results = RasterEntry.objects.filter(search_bounding_box_filter(params, True))
-    return JsonResponse(serializers.RasterEntrySerializer(results, many=True).data, safe=False)
+    results = RasterMetaEntry.objects.filter(search_bounding_box_filter(params, True))
+    return JsonResponse(serializers.RasterMetaEntrySerializer(results, many=True).data, safe=False)
 
 
 @swagger_auto_schema(
@@ -307,8 +307,8 @@ def search_geojson(request, *args, **kwargs):
 @api_view(['GET'])
 def search_geojson_raster(request, *args, **kwargs):
     params = request.query_params
-    results = RasterEntry.objects.filter(search_geojson_filter(params, True))
-    return JsonResponse(serializers.RasterEntrySerializer(results, many=True).data, safe=False)
+    results = RasterMetaEntry.objects.filter(search_geojson_filter(params, True))
+    return JsonResponse(serializers.RasterMetaEntrySerializer(results, many=True).data, safe=False)
 
 
 @swagger_auto_schema(
@@ -479,7 +479,7 @@ def search_near_point_extent(request, *args, **kwargs):
 @api_view(['GET'])
 def search_near_point_extent_raster(request, *args, **kwargs):
     params = request.query_params
-    found = RasterEntry.objects.filter(search_near_point_filter(params, True))
+    found = RasterMetaEntry.objects.filter(search_near_point_filter(params, True))
     return extent_summary_http(found, True)
 
 
@@ -518,7 +518,7 @@ def search_bounding_box_extent(request, *args, **kwargs):
 @api_view(['GET'])
 def search_bounding_box_extent_raster(request, *args, **kwargs):
     params = request.query_params
-    found = RasterEntry.objects.filter(search_bounding_box_filter(params, True))
+    found = RasterMetaEntry.objects.filter(search_bounding_box_filter(params, True))
     return extent_summary_http(found, True)
 
 
@@ -557,7 +557,7 @@ def search_geojson_extent(request, *args, **kwargs):
 @api_view(['GET'])
 def search_geojson_extent_raster(request, *args, **kwargs):
     params = request.query_params
-    found = RasterEntry.objects.filter(search_geojson_filter(params, True))
+    found = RasterMetaEntry.objects.filter(search_geojson_filter(params, True))
     return extent_summary_http(found, True)
 
 

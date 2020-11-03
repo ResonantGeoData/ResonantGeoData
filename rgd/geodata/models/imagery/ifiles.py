@@ -35,7 +35,7 @@ class ImageFile(ChecksumFile, TaskEventMixin, BaseImageFile):
     """
 
     task_func = tasks.task_read_image_file
-    failure_reason = models.TextField(null=True, blank=True)
+    failure_reason = models.TextField(null=True)
     status = models.CharField(max_length=20, default=Status.CREATED, choices=Status.choices)
     file = S3FileField()
 

@@ -28,6 +28,7 @@ from .base import (
     ImageSet,
     KWCOCOArchive,
     RasterEntry,
+    RasterMetaEntry,
     Thumbnail,
 )
 from .ifiles import ImageArchiveFile, ImageFile
@@ -111,6 +112,7 @@ def _read_image_to_entry(image_entry, image_file_path):
         gdal_band = gsrc.GetRasterBand(i + 1)  # off by 1 indexing
         band_meta = BandMetaEntry()
         band_meta.parent_image = image_entry
+        band_meta.band_number = i + 1  # off by 1 indexing
         band_meta.description = gdal_band.GetDescription()
         band_meta.nodata_value = gdal_band.GetNoDataValue()
         # band_meta.creator = ife.creator
@@ -328,13 +330,14 @@ def populate_raster_entry(raster_id):
     raster_entry = RasterEntry.objects.get(id=raster_id)
 
     # Has potential to error with failure reason
-    meta = _validate_image_set_is_raster(raster_entry)
+    meta = _validate_image_set_is_raster(raster_entry.image_set)
 
+    raster_meta = RasterMetaEntry()
+    raster_meta.parent_raster = raster_entry
     for k, v in meta.items():
         # Yeah. This is sketchy, but it works.
-        setattr(raster_entry, k, v)
-
-    raster_entry.save(update_fields=list(meta.keys()))
+        setattr(raster_meta, k, v)
+    raster_meta.save()
     return True
 
 
@@ -444,11 +447,11 @@ def load_kwcoco_dataset(kwcoco_dataset_id):
             image_file.path = img['file_name']
             image_file.save()
             # Create a new ImageEntry
-            image_entry = ImageEntry()
             image_file_abs_path = os.path.join(ds.img_root, img['file_name'])
-            _read_image_to_entry(image_entry, image_file_abs_path)
+            image_entry = ImageEntry()
             image_entry.name = os.path.basename(image_file_abs_path)
             image_entry.image_file = image_file
+            _read_image_to_entry(image_entry, image_file_abs_path)
             image_entry.save()
             # Add ImageEntry to ImageSet
             ds_entry.image_set.images.add(image_entry)

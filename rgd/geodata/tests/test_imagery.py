@@ -31,10 +31,15 @@ def test_imagefile_to_rasterentry_centroids(testfile):
         file__filename=testfile['name'],
         file__from_path=datastore.fetch(testfile['name']),
     )
-    raster = factories.RasterEntryFactory(
-        name=testfile['name'], images=[imagefile.baseimagefile_ptr.imageentry.id]
+    image_set = factories.ImageSetFactory(
+        images=[imagefile.baseimagefile_ptr.imageentry.id],
     )
-    centroid = raster.footprint.centroid
+    raster = factories.RasterEntryFactory(
+        name=testfile['name'],
+        image_set=image_set,
+    )
+    meta = raster.rastermetaentry
+    centroid = meta.footprint.centroid
     assert centroid.x == pytest.approx(testfile['centroid']['x'], abs=2e-4)
     assert centroid.y == pytest.approx(testfile['centroid']['y'], abs=2e-4)
 
@@ -66,17 +71,21 @@ def test_multi_file_raster():
         file__filename=LandsatFiles[2],
         file__from_path=datastore.fetch(LandsatFiles[2]),
     )
-    # Create a RasterEntry from the three band image entries
-    raster = factories.RasterEntryFactory(
-        name='Multi File Test',
+    image_set = factories.ImageSetFactory(
         images=[
             b1.baseimagefile_ptr.imageentry.id,
             b2.baseimagefile_ptr.imageentry.id,
             b3.baseimagefile_ptr.imageentry.id,
         ],
     )
-    assert raster.count == 3
-    assert raster.crs is not None
+    # Create a RasterEntry from the three band image entries
+    raster = factories.RasterEntryFactory(
+        name='Multi File Test',
+        image_set=image_set,
+    )
+    meta = raster.rastermetaentry
+    assert raster.image_set.count == 3
+    assert meta.crs is not None
 
 
 def _run_kwcoco_import(demo):

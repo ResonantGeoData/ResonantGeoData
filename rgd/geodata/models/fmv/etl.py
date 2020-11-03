@@ -17,7 +17,7 @@ from .base import FMVEntry, FMVFile
 logger = get_task_logger(__name__)
 
 
-def _extract_klv_with_docker(fmv_file_entry, entry):
+def _extract_klv_with_docker(fmv_file_entry):
     logger.info('Entered `_extract_klv_with_docker`')
     image_name = 'banesullivan/kwiver:dump-klv'
     video_file = fmv_file_entry.file
@@ -60,11 +60,13 @@ def _extract_klv_with_docker(fmv_file_entry, entry):
                 raise exc
             logger.info('Finished running image with result %r' % result)
             # Store result
-            entry.klv_file.save('%s.klv' % os.path.basename(dataset_path), open(output_path, 'rb'))
+            fmv_file_entry.klv_file.save(
+                '%s.klv' % os.path.basename(dataset_path), open(output_path, 'rb')
+            )
             # entry.log.save(
             #     '%s_log.dat' % os.path.basename(dataset_path), open(stderr_path, 'rb')
             # )
-            entry.save(
+            fmv_file_entry.save(
                 update_fields=[
                     'klv_file',
                 ]
@@ -163,8 +165,8 @@ def _get_frame_rate_of_video(file_path):
     return cap.get(cv2.CAP_PROP_FPS)
 
 
-def _convert_video_to_mp4(fmv_entry):
-    video_file = fmv_entry.fmv_file.file
+def _convert_video_to_mp4(fmv_file_entry):
+    video_file = fmv_file_entry.file
     with _field_file_to_local_path(video_file) as dataset_path:
         logger.info('Converting video file: %s' % (dataset_path))
         tmpdir = tempfile.mkdtemp()
@@ -194,11 +196,11 @@ def _convert_video_to_mp4(fmv_entry):
             subprocess.check_call(cmd)
             result = 0
             # Store result
-            fmv_entry.web_video_file.save(
+            fmv_file_entry.web_video_file.save(
                 '%s.mp4' % os.path.basename(dataset_path), open(output_path, 'rb')
             )
-            fmv_entry.frame_rate = _get_frame_rate_of_video(dataset_path)
-            fmv_entry.save()
+            fmv_file_entry.frame_rate = _get_frame_rate_of_video(dataset_path)
+            fmv_file_entry.save()
         except subprocess.CalledProcessError as exc:
             result = exc.returncode
             logger.info('Failed to successfully convert video (%r)' % (exc))
@@ -207,7 +209,7 @@ def _convert_video_to_mp4(fmv_entry):
 
 def _populate_fmv_entry(entry):
     # Open in text mode
-    with entry.klv_file.open() as file_obj:
+    with entry.fmv_file.klv_file.open() as file_obj:
         content = file_obj.read().decode('utf-8')
 
     if not content:
@@ -233,6 +235,13 @@ def _populate_fmv_entry(entry):
 def read_fmv_file(fmv_file_id):
     fmv_file = FMVFile.objects.filter(id=fmv_file_id).first()
 
+    validation = fmv_file.validate()
+    # Only extraxt the KLV data if it does not exist or the checksum of the video has changed
+    if not fmv_file.klv_file or not validation:
+        _extract_klv_with_docker(fmv_file)
+    if not fmv_file.web_video_file or not validation:
+        _convert_video_to_mp4(fmv_file)
+
     # create a model entry for that shapefile
     entry_query = FMVEntry.objects.filter(fmv_file=fmv_file_id)
     if len(entry_query) < 1:
@@ -246,15 +255,7 @@ def read_fmv_file(fmv_file_id):
         # This should never happen because it is a foreign key
         raise RuntimeError('multiple FMV entries found for this file.')  # pragma: no cover
 
-    validation = fmv_file.validate()
-    # Only extraxt the KLV data if it does not exist or the checksum of the video has changed
-    if not entry.klv_file or not validation:
-        _extract_klv_with_docker(fmv_file, entry)
-    # Only save the enry at this point if it has KLV data
-    entry.save()
-    if not entry.web_video_file or not validation:
-        _convert_video_to_mp4(entry)
-
     _populate_fmv_entry(entry)
+    entry.save()
 
     return

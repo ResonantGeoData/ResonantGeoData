@@ -34,7 +34,7 @@ class GeometryArchive(ChecksumFile, TaskEventMixin):
         help_text='This must be an archive (`.zip` or `.tar`) of a single shape (`.shp`, `.dbf`, `.shx`, etc.).',
     )
 
-    failure_reason = models.TextField(null=True, blank=True)
+    failure_reason = models.TextField(null=True)
     status = models.CharField(max_length=20, default=Status.CREATED, choices=Status.choices)
 
     def save(self, *args, **kwargs):
@@ -49,10 +49,11 @@ class GeometryArchive(ChecksumFile, TaskEventMixin):
 class GeometryEntry(ModifiableEntry, SpatialEntry):
     """A holder for geometry vector data."""
 
-    name = models.CharField(max_length=100, blank=True, null=True)
+    name = models.CharField(max_length=100, blank=True)
     description = models.TextField(null=True, blank=True)
 
     data = models.GeometryCollectionField(srid=DB_SRID)  # Can be one or many features
     # The actual collection is iterable so access is super easy
 
+    # Can be null if not generated from uploaded ZIP file but something else
     geometry_archive = models.OneToOneField(GeometryArchive, null=True, on_delete=models.CASCADE)
