@@ -38,7 +38,7 @@ def test_imagefile_to_rasterentry_centroids(testfile):
         name=testfile['name'],
         image_set=image_set,
     )
-    meta = raster.rastermetaentry_set.first()
+    meta = raster.rastermetaentry
     centroid = meta.footprint.centroid
     assert centroid.x == pytest.approx(testfile['centroid']['x'], abs=2e-4)
     assert centroid.y == pytest.approx(testfile['centroid']['y'], abs=2e-4)
@@ -83,7 +83,7 @@ def test_multi_file_raster():
         name='Multi File Test',
         image_set=image_set,
     )
-    meta = raster.rastermetaentry_set.first()
+    meta = raster.rastermetaentry
     assert raster.image_set.count == 3
     assert meta.crs is not None
 

@@ -108,7 +108,7 @@ class RasterEntry(ModifiableEntry, TaskEventMixin):
 
 class RasterMetaEntry(ModifiableEntry, SpatialEntry):
 
-    parent_raster = models.ForeignKey(RasterEntry, on_delete=models.CASCADE)
+    parent_raster = models.OneToOneField(RasterEntry, on_delete=models.CASCADE)
 
     # Raster fields
     crs = models.TextField(help_text='PROJ string')  # PROJ String
@@ -144,7 +144,7 @@ class ConvertedImageFile(ChecksumFile):
     file = S3FileField()
     failure_reason = models.TextField(null=True)
     status = models.CharField(max_length=20, default=Status.CREATED, choices=Status.choices)
-    source_image = models.ForeignKey(ImageEntry, on_delete=models.CASCADE)
+    source_image = models.OneToOneField(ImageEntry, on_delete=models.CASCADE)
 
 
 class KWCOCOArchive(ModifiableEntry, TaskEventMixin):
@@ -160,13 +160,13 @@ class KWCOCOArchive(ModifiableEntry, TaskEventMixin):
     name = models.CharField(max_length=100, blank=True)
     failure_reason = models.TextField(null=True)
     status = models.CharField(max_length=20, default=Status.CREATED, choices=Status.choices)
-    spec_file = models.ForeignKey(
+    spec_file = models.OneToOneField(
         ArbitraryFile,
         on_delete=models.CASCADE,
         related_name='kwcoco_spec_file',
         help_text='The JSON spec file.',
     )
-    image_archive = models.ForeignKey(
+    image_archive = models.OneToOneField(
         ArbitraryFile,
         null=True,
         on_delete=models.CASCADE,
@@ -174,7 +174,7 @@ class KWCOCOArchive(ModifiableEntry, TaskEventMixin):
         help_text='An archive (.tar or .zip) of the images referenced by the spec file (optional).',
     )
     # Allowed null because model must be saved before task can populate this
-    image_set = models.ForeignKey(ImageSet, on_delete=models.DO_NOTHING, null=True)
+    image_set = models.OneToOneField(ImageSet, on_delete=models.DO_NOTHING, null=True)
 
     def _post_delete(self, *args, **kwargs):
         # Frist delete all the images in the image set
