@@ -26,8 +26,7 @@ class ImageEntry(ModifiableEntry):
         help_text='The instrumentation used to acquire these data.',
     )
 
-    # TODO: remove allowed null value! Requires refactoring KWCOCO ETL
-    image_file = models.OneToOneField(BaseImageFile, null=True, on_delete=models.CASCADE)
+    image_file = models.OneToOneField(BaseImageFile, on_delete=models.CASCADE)
     driver = models.CharField(max_length=100)
     height = models.PositiveIntegerField()
     width = models.PositiveIntegerField()

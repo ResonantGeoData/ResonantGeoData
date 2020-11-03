@@ -447,11 +447,11 @@ def load_kwcoco_dataset(kwcoco_dataset_id):
             image_file.path = img['file_name']
             image_file.save()
             # Create a new ImageEntry
-            image_entry = ImageEntry()
             image_file_abs_path = os.path.join(ds.img_root, img['file_name'])
-            _read_image_to_entry(image_entry, image_file_abs_path)
+            image_entry = ImageEntry()
             image_entry.name = os.path.basename(image_file_abs_path)
             image_entry.image_file = image_file
+            _read_image_to_entry(image_entry, image_file_abs_path)
             image_entry.save()
             # Add ImageEntry to ImageSet
             ds_entry.image_set.images.add(image_entry)
