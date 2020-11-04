@@ -2,13 +2,13 @@
 
   <div class="tab tabs is-boxed">
     <ul class="pt-2 px-2">
-      <li class="tablinks" onclick="openTab(event, 'Point')"><a>Point</a></li>
+      <li class="tablinks is-active" onclick="openTab(event, 'Point')"><a>Point</a></li>
       <li class="tablinks" onclick="openTab(event, 'Bounding Box')"><a>Bounding Box</a></li>
       <li class="tablinks" onclick="openTab(event, 'GeoJSON')"><a>GeoJSON</a></li>
     </ul>
   </div>
 
-  <div id="Point" class="tabcontent">
+  <div id="Point" class="tabcontent" style="display: block;">
     <form method="GET">
       <div class="columns is-multiline mx-0">
         <div class="column is-full field mb-0">
@@ -62,7 +62,7 @@
     </form>
   </div>
 
-  <div id="Bounding Box" class="tabcontent">
+  <div id="Bounding Box" class="tabcontent" style="display: none;">
     <form method="GET">
       <div class="columns is-multiline mx-0">
         <div class="column is-full field mb-0">
@@ -129,7 +129,7 @@
     </form>
   </div>
 
-  <div id="GeoJSON" class="tabcontent">
+  <div id="GeoJSON" class="tabcontent" style="display: none;">
     <form method="GET">
       <div class="columns is-multiline mx-0">
         <div class="column is-full field mb-0">
