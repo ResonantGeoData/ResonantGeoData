@@ -465,7 +465,7 @@ def load_kwcoco_dataset(kwcoco_dataset_id):
                     pass
                 # annotation_entry.annotator =
                 # annotation_entry.notes =
-                annotation_entry.save()
                 _fill_annotation_segmentation(annotation_entry, ann)
+                annotation_entry.save()
     logger.info('Done with KWCOCO ETL routine')
     return
