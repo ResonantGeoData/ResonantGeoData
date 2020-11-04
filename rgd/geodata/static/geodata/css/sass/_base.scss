@@ -9,14 +9,17 @@ html {
   color: #292f36;
   font-family: 'Barlow Semi Condensed', sans-serif;
   font-weight: 300;
+  height: 100%;
   margin: 0;
   padding: 0;
 }
 
 body {
+  background: #efefef;
   color: #292f36;
   font-family: 'Barlow Semi Condensed', sans-serif;
   font-weight: 300;
+  height: 100%;
   margin: 0;
   padding: 0;
 }
@@ -94,6 +97,17 @@ h6 {
     i {
       margin-left: 5px;
     }
+  }
+}
+
+/* Max Width */
+
+@for $i from 1 through 4 {
+  $base: 240;
+  $width: $base * $i;
+  .mw-#{$width} {
+    margin: 0 auto;
+    max-width: $width + 0px;
   }
 }
 
@@ -256,6 +270,29 @@ h6 {
       display: block;
 		}
 	}
+}
+
+/* Cards
+** ================================ */
+
+.card {
+  background: $white;
+  .card-footer {
+    .card-footer-item {
+      &.is-primary {
+        background: $primary;
+        color: $white;
+      }
+      &.is-secondary {
+        background: $secondary;
+        color: $white;
+      }
+      &.is-accent {
+        background: $accent;
+        color: $white;
+      }
+    }
+  }
 }
 
 /* Notifications

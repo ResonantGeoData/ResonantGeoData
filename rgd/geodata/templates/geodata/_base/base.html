@@ -22,9 +22,11 @@
       {% include 'geodata/_includes/navbar.html' %}
     </header>
 
+    {% if user.is_authenticated %}
     <div id="page-banner" class="px-5">
       <h1 class="banner-title">{% block title %}{% endblock %}</h1>
     </div>
+    {% endif %}
 
     <div class="main-content">
       {% if messages %}
