@@ -386,6 +386,7 @@ def _fill_annotation_segmentation(annotation_entry, ann_json):
             [x0, y0],  # close the loop
         ]
         segmentation.outline = Polygon(points, srid=0)
+    annotation_entry.save()
     # Save if a segmentation is used
     if segmentation:
         segmentation.annotation = annotation_entry
@@ -466,6 +467,5 @@ def load_kwcoco_dataset(kwcoco_dataset_id):
                 # annotation_entry.annotator =
                 # annotation_entry.notes =
                 _fill_annotation_segmentation(annotation_entry, ann)
-                annotation_entry.save()
     logger.info('Done with KWCOCO ETL routine')
     return
