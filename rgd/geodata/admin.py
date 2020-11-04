@@ -129,7 +129,11 @@ class ImageEntryAdmin(OSMGeoAdmin):
         'created',
     )
     list_filter = ('instrumentation', 'number_of_bands', 'driver')
-    actions = (actions.make_image_set_from_image_entries, actions.make_raster_from_image_entries)
+    actions = (
+        actions.make_image_set_from_image_entries,
+        actions.make_raster_from_image_entries,
+        actions.make_raster_for_each_image_entry,
+    )
     inlines = (ThumbnailInline, BandMetaEntryInline)
 
 
