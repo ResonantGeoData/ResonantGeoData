@@ -19,7 +19,7 @@
           <tr>
             <td>({{ entry.spatial_id }})</td>
             <td>{{ entry.acquisition_date }}</td>
-            <td>{{ entry.footprint.area }}</td>
+            <td>{{ entry.footprint.area | floatformat:-2 }}</td>
           </tr>
         {% endfor %}
       </tbody>
