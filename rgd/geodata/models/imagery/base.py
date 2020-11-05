@@ -104,6 +104,24 @@ class RasterEntry(ModifiableEntry, TaskEventMixin):
     failure_reason = models.TextField(null=True)
     status = models.CharField(max_length=20, default=Status.CREATED, choices=Status.choices)
 
+    @property
+    def footprint(self):
+        """Pointer to RasterMetaEntry footprint."""
+        return self.rastermetaentry.footprint
+
+    @property
+    def outline(self):
+        """Pointer to RasterMetaEntry outline."""
+        return self.rastermetaentry.outline
+
+    @property
+    def count(self):
+        """Get number of bands across all images in image set."""
+        n = 0
+        for im in self.image_set.images.all():
+            n += im.number_of_bands
+        return n
+
 
 class RasterMetaEntry(ModifiableEntry, SpatialEntry):
 
