@@ -154,6 +154,10 @@ class GeometryEntryDetailView(_SpatialDetailView):
         return extent
 
 
+class SpatialEntryDetailView(_SpatialDetailView):
+    model = SpatialEntry
+
+
 @swagger_auto_schema(
     method='GET',
     operation_summary='Download a model file',

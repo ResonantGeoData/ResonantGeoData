@@ -8,6 +8,11 @@ urlpatterns = [
     path(
         'geodata/spatial_entries/', views.SpatialEntriesListView.as_view(), name='spatial_entries'
     ),
+    path(
+        'geodata/spatial_entries/<int:pk>/',
+        views.SpatialEntryDetailView.as_view(),
+        name='spatial-entry-detail',
+    ),
     # Temporary redirect for home page
     path(r'', RedirectView.as_view(url='geodata/spatial_entries/', permanent=False), name='index'),
     path('geodata/fmv_entries/', views.FMVEntriesListView.as_view(), name='fmv_entries'),
