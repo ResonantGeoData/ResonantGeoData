@@ -13,6 +13,10 @@
         <small class="text-muted">Modified: {{ object.modified }}</small>
       </div>
 
+      <textarea readonly>
+        {{ object.footprint.json }}
+      </textarea>
+
       <hr/>
 
       <div style="overflow-x:auto;">
