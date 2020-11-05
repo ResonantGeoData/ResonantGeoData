@@ -11,7 +11,7 @@
   </tr>
   <tr>
     <td>KLV Metadata</td>
-    <td>{{ object.klv_data_link }}</td>
+    <td>{{ object.fmv_file.klv_data_link }}</td>
   </tr>
   <tr>
     <td>Original FMV Video</td>
@@ -23,7 +23,7 @@
 {% block detail %}
 
     <video width="320" height="240" autobuffer="autobuffer" autoplay="autoplay" loop="loop" controls="controls" id="fmv_video">
-      <source src="{{ object.web_video_file.url }}" type='video/mp4; codecs="avc1.42E01E, mp4a.40.2"'>
+      <source src="{{ object.fmv_file.web_video_file.url }}" type='video/mp4; codecs="avc1.42E01E, mp4a.40.2"'>
     </video>
 
     <p/>
