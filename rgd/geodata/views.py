@@ -61,7 +61,6 @@ class RasterEntriesListView(_SpatialListView):
 
     def _get_extent_summary(self):
         metas = RasterMetaEntry.objects.filter(parent_raster__in=self.object_list)
-        print(metas)
         return search.extent_summary_spatial(metas)
 
 
