@@ -9,6 +9,7 @@ from celery.utils.log import get_task_logger
 from django.conf import settings
 from django.contrib.gis.gdal import SpatialReference
 from django.contrib.gis.geos import LineString, MultiPoint, MultiPolygon, Point, Polygon
+from django.core.exceptions import ObjectDoesNotExist
 from django.core.files.base import ContentFile
 import kwcoco
 import kwimage
@@ -331,9 +332,18 @@ def populate_raster_entry(raster_id):
 
     # Has potential to error with failure reason
     meta = _validate_image_set_is_raster(raster_entry.image_set)
-
-    raster_meta = RasterMetaEntry()
-    raster_meta.parent_raster = raster_entry
+    if not raster_entry.name:
+        raster_entry.name = raster_entry.image_set.name
+        raster_entry.save(
+            update_fields=[
+                'name',
+            ]
+        )
+    try:
+        raster_meta = raster_entry.rastermetaentry
+    except ObjectDoesNotExist:
+        raster_meta = RasterMetaEntry()
+        raster_meta.parent_raster = raster_entry
     for k, v in meta.items():
         # Yeah. This is sketchy, but it works.
         setattr(raster_meta, k, v)

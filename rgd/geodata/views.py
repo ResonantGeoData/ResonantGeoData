@@ -14,7 +14,7 @@ from . import models, search
 from .models.common import SpatialEntry
 from .models.fmv.base import FMVEntry
 from .models.geometry import GeometryEntry
-from .models.imagery.base import RasterEntry, Thumbnail
+from .models.imagery.base import RasterEntry, RasterMetaEntry
 
 
 class _SpatialListView(generic.ListView):
@@ -58,6 +58,10 @@ class RasterEntriesListView(_SpatialListView):
     model = RasterEntry
     context_object_name = 'rasters'
     template_name = 'geodata/raster_entries.html'
+
+    def _get_extent_summary(self):
+        metas = RasterMetaEntry.objects.filter(parent_raster__in=self.object_list)
+        return search.extent_summary_spatial(metas)
 
 
 class SpatialEntriesListView(_SpatialListView):
@@ -114,10 +118,10 @@ class RasterEntryDetailView(_SpatialDetailView):
     def _get_extent(self):
         extent = super()._get_extent()
         # Add a thumbnail of the first image in the raster set
-        image_entries = self.object.images.all()
+        image_entries = self.object.image_set.images.all()
         image_urls = {}
         for image_entry in image_entries:
-            thumbnail = Thumbnail.objects.filter(image_entry=image_entry).first()
+            thumbnail = image_entry.thumbnail
             image_urls[thumbnail.image_entry.id] = thumbnail.base_thumbnail.url
         extent['thumbnails'] = image_urls
         return extent
@@ -137,7 +141,7 @@ class FMVEntryDetailView(_SpatialDetailView):
 
     def get_context_data(self, *args, **kwargs):
         context = super().get_context_data(*args, **kwargs)
-        context['frame_rate'] = json.dumps(self.object.frame_rate)
+        context['frame_rate'] = json.dumps(self.object.fmv_file.frame_rate)
         return context
 
 
