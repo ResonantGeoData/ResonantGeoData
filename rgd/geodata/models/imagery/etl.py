@@ -17,9 +17,11 @@ import matplotlib.pyplot as plt
 import numpy as np
 from osgeo import gdal
 import rasterio
+from rasterio.warp import Resampling, calculate_default_transform, reproject
 
 from rgd.utility import _field_file_to_local_path
 
+from ..constants import DB_SRID
 from ..geometry.transform import transform_geometry
 from .annotation import Annotation, PolygonSegmentation, RLESegmentation, Segmentation
 from .base import (
@@ -36,8 +38,40 @@ from .ifiles import ImageArchiveFile, ImageFile
 
 logger = get_task_logger(__name__)
 
+GDAL_DATA = os.path.join(os.path.dirname(rasterio.__file__), 'gdal_data')
+os.environ['GDAL_DATA'] = GDAL_DATA
+
 
 MAX_LOAD_SHAPE = (4000, 4000)
+
+
+def _reproject_raster_to_db(src):
+    """Reproject an open raster to the DB's spatial reference.
+
+    This is needed to properly extract thumbnails.
+    """
+    dst_crs = rasterio.crs.CRS.from_epsg(DB_SRID)
+    transform, width, height = calculate_default_transform(
+        src.crs, dst_crs, src.width, src.height, *src.bounds
+    )
+    kwargs = src.meta.copy()
+    kwargs.update({'crs': dst_crs, 'transform': transform, 'width': width, 'height': height})
+
+    workdir = getattr(settings, 'GEODATA_WORKDIR', None)
+    tmpdir = tempfile.mkdtemp(dir=workdir)
+    path = os.path.join(tmpdir, os.path.basename(src.name))
+    with rasterio.open(path, 'w', **kwargs) as dst:
+        for i in range(1, src.count + 1):
+            reproject(
+                source=rasterio.band(src, i),
+                destination=rasterio.band(dst, i),
+                src_transform=src.transform,
+                src_crs=src.crs,
+                dst_transform=transform,
+                dst_crs=dst_crs,
+                resampling=Resampling.nearest,
+            )
+    return rasterio.open(path, 'r')
 
 
 def _create_thumbnail_image(src):
@@ -45,6 +79,9 @@ def _create_thumbnail_image(src):
 
     def get_band(n):
         return src.read(n, out_shape=shape)
+
+    if src.crs is not None:
+        src = _reproject_raster_to_db(src)
 
     norm = plt.Normalize()
 
@@ -217,6 +254,7 @@ def _get_valid_data_footprint(src, band_num):
     Returns a numpy array of the bounadry points in a closed polygon.
 
     """
+    src = _reproject_raster_to_db(src)
     # Determine mask resolution to prevent loading massive imagery
     shape = tuple(np.min([src.shape, MAX_LOAD_SHAPE], axis=0))
 
