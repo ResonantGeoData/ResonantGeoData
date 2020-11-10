@@ -38,7 +38,7 @@
 
       // Move video to UI layer in map
       var videoFrame = ui.createWidget('dom', {position: {left: 10, bottom: 10}});
-      videoFrame.canvas().appendChild(video)
+      // videoFrame.canvas().appendChild(video)
 
       if (extents.ground_frames !== undefined) {
         let polys = JSON.parse(extents.ground_frames);
