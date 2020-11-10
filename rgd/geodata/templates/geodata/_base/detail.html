@@ -1,11 +1,12 @@
 {% extends "geodata/_base/base.html" %}
+{% block title %}
+  {{ object.name }} ({{object.pk}})
+{% endblock title %}
+
 {% block content %}
 
   <div class="columns m-0">
     <div class="column is-sidebar is-one-quarter p-0">
-      <h2 class="article-title">
-        <span>{{ object.name }} ({{object.pk}})</span>
-      </h2>
 
       <div class="article-metadata">
         <small class="text-muted">Created: {{ object.created }}</small>
