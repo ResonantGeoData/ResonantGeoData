@@ -312,6 +312,8 @@ h6 {
 
 .is-sidebar {
   background: $white;
+  height: calc(100vh - 128px);
+  overflow-y: auto;
 }
 
 /* Notifications
