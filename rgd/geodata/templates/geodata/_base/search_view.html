@@ -3,8 +3,13 @@
 {% block extra_title_content %}
   <div class="column is-1">
     <span class="text-has-dark-bg is-block">Spatial Entries:</span>
-    XX
+    <p id="search-count"></p>
   </div>
+  <script>
+    let extents_meta = JSON.parse('{{ extents_meta|escapejs }}');
+    document.getElementById('search-count').innerHTML = extents_meta['count'];
+  </script>
+
 {% endblock extra_title_content %}
 
 {% block content %}

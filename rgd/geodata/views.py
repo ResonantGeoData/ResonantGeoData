@@ -49,8 +49,15 @@ class _SpatialListView(generic.ListView):
     def get_context_data(self, *args, **kwargs):
         # The returned query set is in self.object_list, not self.queryset
         context = super().get_context_data(*args, **kwargs)
-        context['extents'] = json.dumps(self._get_extent_summary())
+        summary = self._get_extent_summary()
+        context['extents'] = json.dumps(summary)
         context['search_params'] = json.dumps(self.search_params)
+        # Have a smaller dict of meta fields to parse for menu bar
+        # This keeps us from parsing long GeoJSON fields twice
+        meta = {
+            'count': summary['count'],
+        }
+        context['extents_meta'] = json.dumps(meta)
         return context
 
 
