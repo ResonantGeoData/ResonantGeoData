@@ -104,6 +104,14 @@ h6 {
   color: lighten($primary, 40%);
 }
 
+.icon {
+  &.is-small {
+    .material-icons {
+      font-size: 18px;
+    }
+  }
+}
+
 /* Max Width */
 
 @for $i from 1 through 4 {

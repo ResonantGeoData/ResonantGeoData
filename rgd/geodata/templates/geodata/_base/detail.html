@@ -4,17 +4,17 @@
 {% endblock title %}
 
 {% block extra_title_content %}
-  <div class="column">
+  <div class="column is-1">
     <span class="text-has-dark-bg is-block">Created:</span>
     {{ object.created }}
   </div>
-  <div class="column">
+  <div class="column is-1">
     <span class="text-has-dark-bg is-block">Modified:</span>
     {{ object.modified }}
   </div>
-  <div class="column">
-    <a id="copyjson" class="button has-icon is-secondary">
-      <span class="icon">
+  <div class="column is-1 px-0">
+    <a id="copyjson" class="button has-icon is-secondary is-pulled-right">
+      <span class="icon is-small">
         <i class="material-icons">refresh</i>
       </span>
       <span>Copy GeoJSON</span>
