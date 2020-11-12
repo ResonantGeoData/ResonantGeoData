@@ -3,13 +3,31 @@
   {{ object.name }} ({{object.pk}})
 {% endblock title %}
 
-{% block created %}
-  {{ object.created }}
-{% endblock created %}
+{% block extra_title_content %}
+  <div class="column">
+    <span class="text-has-dark-bg is-block">Created:</span>
+    {{ object.created }}
+  </div>
+  <div class="column">
+    <span class="text-has-dark-bg is-block">Modified:</span>
+    {{ object.modified }}
+  </div>
+  <div class="column">
+    <a id="copyjson" class="button has-icon is-secondary">
+      <span class="icon">
+        <i class="material-icons">refresh</i>
+      </span>
+      <span>Copy GeoJSON</span>
+    </a>
 
-{% block modified %}
-  {{ object.modified }}
-{% endblock modified %}
+    <script>
+      document.getElementById("copyjson").onclick = function(){
+        document.getElementById("json").select();
+        document.execCommand('copy');
+      }
+    </script>
+  </div>
+{% endblock extra_title_content %}
 
 {% block content %}
 

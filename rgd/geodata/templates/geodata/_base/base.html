@@ -28,33 +28,7 @@
           <div class="column is-two-thirds">
             <h1 class="banner-title">{% block title %}{% endblock %}</h1>
           </div>
-          <div class="column">
-            <span class="text-has-dark-bg is-block">Created:</span>
-            {% block created %}{% endblock %}
-          </div>
-          <div class="column">
-            <span class="text-has-dark-bg is-block">Modified:</span>
-            {% block modified %}{% endblock %}
-          </div>
-          <div class="column">
-            <span class="text-has-dark-bg is-block">Spatial Entries:</span>
-            XX
-          </div>
-          <div class="column">
-            <a id="copyjson" class="button has-icon is-secondary">
-              <span class="icon">
-                <i class="material-icons">refresh</i>
-              </span>
-              <span>Copy GeoJSON</span>
-            </a>
-
-            <script>
-              document.getElementById("copyjson").onclick = function(){
-                document.getElementById("json").select();
-                document.execCommand('copy');
-              }
-            </script>
-          </div>
+          {% block extra_title_content %}{% endblock %}
         </div>
     </div>
     {% endif %}
