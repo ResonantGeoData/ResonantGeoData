@@ -362,6 +362,7 @@ h6 {
 ** ================================ */
 .tabs {
   background: darken($primary, 8%);
+  margin-bottom: 11px !important;
   li {
     a {
       color: lighten($primary, 50%);
@@ -511,6 +512,18 @@ h6 {
       margin: 3px 4px 0 0;
 		}
 	}
+}
+
+/* Spatial Entries Styles */
+.select-field {
+  background: $secondary;
+  border-bottom: 1px solid darken($secondary, 10%);
+  border-top: 1px solid #dbdbdb;
+  .field-label {
+    .label {
+      color: $white;
+    }
+  }
 }
 
 /* Front page specific */
