@@ -33,15 +33,17 @@
 
 {% endblock %}
 
-
-{% block detail %}
-
+{% block extra_meta %}
 
   <select id="band-selector" onchange="updateBandThumbnail()">
     {% for image in object.image_set.images.all %}
       <option value="{{ image.id }}">{{ image.name }}</option>
     {% endfor %}
   </select>
+
+{% endblock %}
+
+{% block detail %}
 
   {% include 'geodata/_includes/empty_viewer.html' %}
 

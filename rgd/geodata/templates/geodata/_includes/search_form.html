@@ -1,87 +1,238 @@
 {% block search_form %}
 
-  <style type="text/css">
-    /* Style the tab */
-    .tab {
-      overflow: hidden;
-      border: 1px solid #ccc;
-      background-color: #f1f1f1;
-    }
-
-    /* Style the buttons that are used to open the tab content */
-    .tab button {
-      background-color: inherit;
-      float: left;
-      border: none;
-      outline: none;
-      cursor: pointer;
-      padding: 14px 16px;
-      transition: 0.3s;
-    }
-
-    /* Change background color of buttons on hover */
-    .tab button:hover {
-      background-color: #ddd;
-    }
-
-    /* Create an active/current tablink class */
-    .tab button.active {
-      background-color: #ccc;
-    }
-
-    /* Style the tab content */
-    .tabcontent {
-      display: none;
-      padding: 6px 12px;
-      border: 1px solid #ccc;
-      border-top: none;
-    }
-    .tabcontent.active {
-      display: block;
-    }
-  </style>
-
-  <div class="tab">
-    <button class="tablinks" onclick="openTab(event, 'Point')">Point</button>
-    <button class="tablinks" onclick="openTab(event, 'Bounding Box')">Bounding Box</button>
-    <button class="tablinks" onclick="openTab(event, 'GeoJSON')">GeoJSON</button>
+  <div class="tab tabs is-boxed">
+    <ul class="pt-2 px-2">
+      <li class="tablinks is-active" onclick="openTab(event, 'tabcontent1')"><a>Geospatial</a></li>
+      <li class="tablinks" onclick="openTab(event, 'tabcontent2')"><a>Faceted Search</a></li>
+    </ul>
   </div>
 
-  <div id="Point" class="tabcontent">
-    <form method="GET">
-      Longitude (deg): <input type="text" name="longitude" value="{{ request.GET.longitude }}">
-      Latitude (deg): <input type="text" name="latitude" value="{{ request.GET.latitude }}">
-      <br>
-      Proximity (m): <input type="text" name="radius" value="{{ request.GET.radius }}">
-      <br>
-      <input class="button" type="button" value="Use Map" name="button" onclick="populatePoint()">
-      <input class="button" type="submit" value="Filter">
-    </form>
+  <div id="tabcontent1" class="tabcontent" style="display: block;">
+    <div class="columns is-multiline mx-0">
+      <div class="column select-field is-full mb-2 pb-5">
+        <div class="field">
+          <div class="field-label is-normal mb-1">
+            <label class="label">Selection type:</label>
+          </div>
+          <div class="field-body">
+            <div class="field">
+              <div class="control">
+                <div class="select is-fullwidth">
+                  <select id="selectionType">
+                    <option value="stPoint">Point</option>
+                    <option value="stBounding">Bounding Box</option>
+                    <option value="stJSON">GeoJSON</option>
+                  </select>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="column is-full">
+        <div id="stPoint" class="selection" style="display: block;">
+          <form method="GET">
+            <div class="columns is-multiline mx-0">
+              <div class="column is-full field mb-0">
+                <div class="field-label is-normal">
+                  <label class="label">Longitude (deg)</label>
+                </div>
+                <div class="field-body">
+                  <div class="field">
+                    <div class="control">
+                      <input class="input" type="text" name="longitude" value="{{ request.GET.longitude }}">
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="column is-full field mb-0">
+                <div class="field-label is-normal">
+                  <label class="label">Latitude (deg)</label>
+                </div>
+                <div class="field-body">
+                  <div class="field">
+                    <div class="control">
+                      <input class="input" type="text" name="latitude" value="{{ request.GET.latitude }}">
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="column is-full field mb-0">
+                <div class="field-label is-normal">
+                  <label class="label">Proximity (m)</label>
+                </div>
+                <div class="field-body">
+                  <div class="field">
+                    <div class="control">
+                      <input class="input" type="text" name="radius" value="{{ request.GET.radius }}">
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="column is-full field is-grouped">
+                <div class="control">
+                  <input class="button is-secondary" type="button" value="Use Map" name="button" onclick="populatePoint()">
+                </div>
+                <div class="control">
+                  <input class="button is-accent" type="submit" value="Filter">
+                </div>
+              </div>
+            </div>
+          </form>
+        </div>
+
+        <div id="stBounding" class="selection" style="display: none;">
+          <form method="GET">
+            <div class="columns is-multiline mx-0">
+              <div class="column is-full field mb-0">
+                <div class="field-label is-normal">
+                  <label class="label">Minimum Longitude (deg)</label>
+                </div>
+                <div class="field-body">
+                  <div class="field">
+                    <div class="control">
+                      <input class="input" type="text" name="minimum_longitude" value="{{ request.GET.minimum_longitude }}">
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="column is-full field mb-0">
+                <div class="field-label is-normal">
+                  <label class="label">Maximum Longitude (deg)</label>
+                </div>
+                <div class="field-body">
+                  <div class="field">
+                    <div class="control">
+                      <input class="input" type="text" name="maximum_longitude" value="{{ request.GET.maximum_longitude }}">
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="column is-full field mb-0">
+                <div class="field-label is-normal">
+                  <label class="label">Minimum Latitude (deg)</label>
+                </div>
+                <div class="field-body">
+                  <div class="field">
+                    <div class="control">
+                      <input class="input" type="text" name="minimum_latitude" value="{{ request.GET.minimum_latitude }}">
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="column is-full field mb-0">
+                <div class="field-label is-normal">
+                  <label class="label">Maximum Latitude (deg)</label>
+                </div>
+                <div class="field-body">
+                  <div class="field">
+                    <div class="control">
+                      <input class="input" type="text" name="maximum_latitude" value="{{ request.GET.maximum_latitude }}">
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="column is-full field is-grouped">
+                <div class="control">
+                  <input class="button is-secondary" type="button" value="Use Map" name="button" onclick="populateBounds()">
+                </div>
+                <div class="control">
+                  <input class="button is-accent" type="submit" value="Filter">
+                </div>
+              </div>
+            </div>
+          </form>
+        </div>
+
+        <div id="stJSON" class="selection" style="display: none;">
+          <form method="GET">
+            <div class="columns is-multiline mx-0">
+              <div class="column is-full field mb-0">
+                <div class="field-label is-normal">
+                  <label class="label">GeoJSON geometry</label>
+                </div>
+                <div class="field-body">
+                  <div class="field">
+                    <div class="control">
+                      <input class="input" type="text" name="geojson" value="{{ request.GET.geojson }}">
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="column is-full field mb-0">
+                <div class="field-label is-normal">
+                  <label class="label">within</label>
+                </div>
+                <div class="field-body">
+                  <div class="field">
+                    <div class="control">
+                      <input type="checkbox" {{ request.GET.within|yesno:"checked,," }} name="within" title="Only retrieve entries that are fully within the boundary of the feature.">
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="column is-full field is-grouped">
+                <div class="control">
+                  <input class="button is-secondary" type="button" value="Draw on Map" name="drawOnMapButton" onclick="enableDrawOnMap()">
+                </div>
+                <div class="control">
+                  <input class="button is-accent" type="submit" value="Filter">
+                </div>
+              </div>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
   </div>
 
-  <div id="Bounding Box" class="tabcontent">
-    <form method="GET">
-      Min Longitude (deg): <input type="text" name="minimum_longitude" value="{{ request.GET.minimum_longitude }}">
-      <br>
-      Max Longitude (deg): <input type="text" name="maximum_longitude" value="{{ request.GET.maximum_longitude }}">
-      <br>
-      Min Latitude (deg): <input type="text" name="minimum_latitude" value="{{ request.GET.minimum_latitude }}">
-      <br>
-      Max Latitude (deg): <input type="text" name="maximum_latitude" value="{{ request.GET.maximum_latitude }}">
-      <br>
-      <input class="button" type="button" value="Use Map" name="button" onclick="populateBounds()">
-      <input class="button" type="submit" value="Filter">
-    </form>
-  </div>
-
-  <div id="GeoJSON" class="tabcontent">
-    <form method="GET">
-      GeoJSON geometry: <input type="text" name="geojson" value="{{ request.GET.geojson }}">
-      <br>
-      within: <input type="checkbox" {{ request.GET.within|yesno:"checked,," }} name="within" title="Only retrieve entries that are fully within the boundary of the feature.">
-      <br>
-      <input class="button" type="button" value="Draw on Map" name="drawOnMapButton" onclick="enableDrawOnMap()">
-      <input class="button" type="submit" value="Filter">
+  <div id="tabcontent2" class="tabcontent" style="display: none;">
+    <form method="GET" class="columns is-multiline mx-0">
+      <div class="column is-full field mb-0">
+        <div class="field-label is-normal">
+          <label class="label">Arbitrary Field #1</label>
+        </div>
+        <div class="field-body">
+          <div class="field">
+            <div class="control">
+              <input class="input" type="text" name="af1" value="value goes here">
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="column is-full field mb-0">
+        <div class="field-label is-normal">
+          <label class="label">Arbitrary Field #2</label>
+        </div>
+        <div class="field-body">
+          <div class="field">
+            <div class="control">
+              <input class="input" type="text" name="af2" value="value goes here">
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="column is-full field mb-0">
+        <div class="field-label is-normal">
+          <label class="label">Arbitrary Field #3</label>
+        </div>
+        <div class="field-body">
+          <div class="field">
+            <div class="control">
+              <input class="input" type="text" name="af3" value="value goes here">
+            </div>
+          </div>
+        </div>
+      </div>
     </form>
   </div>
 
@@ -97,11 +248,11 @@
       // Get all elements with class="tablinks" and remove the class "active"
       tablinks = document.getElementsByClassName("tablinks");
       for (i = 0; i < tablinks.length; i++) {
-        tablinks[i].className = tablinks[i].className.replace(" active", "");
+        tablinks[i].className = tablinks[i].className.replace(" is-active", "");
       }
       // Show the current tab, and add an "active" class to the button that opened the tab
       document.getElementById(tabName).style.display = "block";
-      evt.currentTarget.className += " active";
+      evt.currentTarget.className += " is-active";
     }
 
     function populateBounds() {
@@ -145,6 +296,13 @@
         }
       });
     }
+
+    $(function() {
+      $('#selectionType').change(function(){
+        $('.selection').hide();
+        $('#' + $(this).val()).show();
+      });
+    });
 
   </script>
 

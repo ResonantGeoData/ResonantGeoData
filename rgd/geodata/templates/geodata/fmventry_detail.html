@@ -11,7 +11,7 @@
   </tr>
   <tr>
     <td>KLV Metadata</td>
-    <td>{{ object.klv_data_link }}</td>
+    <td>{{ object.fmv_file.klv_data_link }}</td>
   </tr>
   <tr>
     <td>Original FMV Video</td>
@@ -20,13 +20,15 @@
 
 {% endblock %}
 
+{% block extra_meta %}
+
+  <video width="320" height="240" autobuffer="autobuffer" autoplay="autoplay" loop="loop" controls="controls" id="fmv_video">
+    <source src="{{ object.fmv_file.web_video_file.url }}" type='video/mp4; codecs="avc1.42E01E, mp4a.40.2"'>
+  </video>
+
+{% endblock %}
+
 {% block detail %}
-
-    <video width="320" height="240" autobuffer="autobuffer" autoplay="autoplay" loop="loop" controls="controls" id="fmv_video">
-      <source src="{{ object.web_video_file.url }}" type='video/mp4; codecs="avc1.42E01E, mp4a.40.2"'>
-    </video>
-
-    <p/>
 
     {% include 'geodata/_includes/viewer.html' %}
 
@@ -36,7 +38,7 @@
 
       // Move video to UI layer in map
       var videoFrame = ui.createWidget('dom', {position: {left: 10, bottom: 10}});
-      videoFrame.canvas().appendChild(video)
+      // videoFrame.canvas().appendChild(video)
 
       if (extents.ground_frames !== undefined) {
         let polys = JSON.parse(extents.ground_frames);

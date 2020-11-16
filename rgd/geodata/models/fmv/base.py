@@ -30,6 +30,11 @@ class FMVFile(ChecksumFile, TaskEventMixin):
 
     fmv_data_link.allow_tags = True
 
+    def klv_data_link(self):
+        return _link_url('geodata', 'fmv_entry', self, 'klv_file')
+
+    klv_data_link.allow_tags = True
+
 
 class FMVEntry(ModifiableEntry, SpatialEntry):
     """Single FMV entry, tracks the original file."""
@@ -54,8 +59,3 @@ class FMVEntry(ModifiableEntry, SpatialEntry):
     @staticmethod
     def _blob_to_array(blob):
         return pickle.loads(base64.b64decode(blob))
-
-    def klv_data_link(self):
-        return _link_url('geodata', 'fmv_entry', self, 'klv_file')
-
-    klv_data_link.allow_tags = True

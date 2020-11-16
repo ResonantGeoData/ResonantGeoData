@@ -286,7 +286,7 @@ class GeometryArchiveAdmin(OSMGeoAdmin):
 class FMVEntryInline(admin.StackedInline):
     model = FMVEntry
     fk_name = 'fmv_file'
-    list_display = ('id', 'name', 'klv_data_link', 'fmv_file')
+    list_display = ('id', 'name', 'fmv_file')
     readonly_fields = (
         'modified',
         'created',
@@ -301,6 +301,7 @@ class FMVFileAdmin(OSMGeoAdmin):
         'status',
         'modified',
         'fmv_data_link',
+        'klv_data_link',
     )
     readonly_fields = (
         'modified',
