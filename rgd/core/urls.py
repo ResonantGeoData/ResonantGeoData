@@ -32,7 +32,7 @@ for _, ser in inspect.getmembers(serializers):
 
 admin.site.index_template = 'admin/add_links.html'
 urlpatterns = [
-    path('', views.index, name='index'),
+    path('core', views.index, name='core'),
     path('algorithms/', views.algorithms, name='algorithms'),
     path(
         'algorithms/<str:creator>/<int:pk>/',
