@@ -62,13 +62,9 @@ class _SpatialListView(generic.ListView):
 
 
 class RasterEntriesListView(_SpatialListView):
-    model = RasterEntry
-    context_object_name = 'rasters'
+    model = RasterMetaEntry
+    context_object_name = 'raster_metas'
     template_name = 'geodata/raster_entries.html'
-
-    def _get_extent_summary(self):
-        metas = RasterMetaEntry.objects.filter(parent_raster__in=self.object_list)
-        return search.extent_summary_spatial(metas)
 
 
 class SpatialEntriesListView(_SpatialListView):
