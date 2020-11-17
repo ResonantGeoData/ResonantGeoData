@@ -73,6 +73,20 @@
         top: search_params.maximum_latitude,
         bottom: search_params.minimum_latitude
       });
+    } else if (search_params.geojson != undefined) {
+      // Do GeoJSON display
+      let searchreader = geo.createFileReader('geojsonReader', {
+        'layer': layer
+      });
+
+      searchreader.read(search_params.geojson, (features) => {
+        var fill = '#6586c9';
+        features[0].style({
+          fillColor: fill,
+          fillOpacity: 0.75,
+        })
+        .draw();
+      });
     }
   </script>
 

@@ -17,9 +17,9 @@
       <tbody>
         {% for entry in spatial_entries %}
           <tr>
-            <td>({{ entry.spatial_id }})</td>
+            <td><a href="{% url 'spatial-entry-detail' entry.pk %}">{{ entry.name }} ({{ entry.spatial_id }})</a></td>
             <td>{{ entry.acquisition_date }}</td>
-            <td>{{ entry.footprint.area }}</td>
+            <td>{{ entry.footprint.area | floatformat:-2 }}</td>
           </tr>
         {% endfor %}
       </tbody>

@@ -1,17 +1,42 @@
 {% extends "geodata/_base/base.html" %}
-{% block content %}
-  <article class="media content-section">
-    <div class="media-body">
-      <div class="article-metadata">
-        <small class="text-muted">Created: {{ object.created }}</small>
-        <p/>
-        <small class="text-muted">Modified: {{ object.modified }}</small>
-      </div>
+{% block title %}
+  {{ object.name }} ({{object.pk}})
+{% endblock title %}
 
-      <h2 class="article-title">
-        <span>{{ object.name }} ({{object.pk}})</span>
-      </h2>
-      <hr/>
+{% block extra_title_content %}
+  <div class="column is-2">
+    <span class="text-has-dark-bg is-block">Created:</span>
+    {{ object.created }}Nov. 10, 2020, 3:55 a.m.
+  </div>
+  <div class="column is-2">
+    <span class="text-has-dark-bg is-block">Modified:</span>
+    {{ object.modified }}Nov. 10, 2020, 3:55 a.m.
+  </div>
+  <div class="column is-2">
+    <a id="copyjson" class="button has-icon is-flex is-justify-content-space-between is-secondary is-fullwidth">
+      <span>Copy GeoJSON</span>
+      <span class="icon is-small">
+        <i class="material-icons">refresh</i>
+      </span>
+    </a>
+
+    <script>
+      document.getElementById("copyjson").onclick = function(){
+        document.getElementById("json").select();
+        document.execCommand('copy');
+      }
+    </script>
+  </div>
+{% endblock extra_title_content %}
+
+{% block content %}
+
+  <div class="columns m-0">
+    <div class="column is-sidebar is-one-quarter p-0">
+
+      <textarea id="json" class="is-hidden" readonly>
+        {{ object.footprint.json }}
+      </textarea>
 
       <div style="overflow-x:auto;">
         <table class="table">
@@ -27,8 +52,13 @@
         </table>
       </div>
 
-      {% block detail %}{% endblock %}
+      {% block extra_meta %}{% endblock %}
 
     </div>
-  </article>
+
+    <div class="column p-0">
+      {% block detail %}{% endblock %}
+    </div>
+  </div>
+
 {% endblock content %}

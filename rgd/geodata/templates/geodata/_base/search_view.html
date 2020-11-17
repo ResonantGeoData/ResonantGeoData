@@ -1,23 +1,28 @@
 {% extends "geodata/_base/base.html" %}
+
+{% block extra_title_content %}
+  <div class="column is-1">
+    <span class="text-has-dark-bg is-block">Spatial Entries:</span>
+    <p id="search-count"></p>
+  </div>
+  <script>
+    let extents_meta = JSON.parse('{{ extents_meta|escapejs }}');
+    document.getElementById('search-count').innerHTML = extents_meta['count'];
+  </script>
+
+{% endblock extra_title_content %}
+
 {% block content %}
 
-  <h1 class="article-title">
-    <span>{% block title %}{% endblock %}</span>
-  </h1>
-
-  <hr/>
-
-  <div class="row">
-    <div class="col-md-4">
+  <div class="columns m-0">
+    <div class="column is-sidebar is-one-quarter p-0">
       {% include 'geodata/_includes/search_form.html' %}
       <br/>
       {% block list_view %}{% endblock %}
     </div>
 
-    <div class="col-md-8">
-      <div class="content-section">
-        {% include 'geodata/_includes/search_map.html' %}
-      </div>
+    <div class="column p-0">
+      {% include 'geodata/_includes/search_map.html' %}
     </div>
   </div>
 
