@@ -57,11 +57,14 @@
       return img
     }
 
+    var outline = JSON.parse(extents['outline'])["coordinates"][0]
     var quad = layer.createFeature('quad')
       .data([
         {
-          ll: {x: extents.extent.xmin, y: extents.extent.ymin },
-          ur: {x: extents.extent.xmax, y: extents.extent.ymax },
+          ul: {x: outline[0][0], y: outline[0][1]},
+          ur: {x: outline[1][0], y: outline[1][1]},
+          lr: {x: outline[2][0], y: outline[2][1]},
+          ll: {x: outline[3][0], y: outline[3][1]},
         },
       ])
       .style({
@@ -76,8 +79,10 @@
       var src = extents['thumbnails'][image_id];
       quad.data([
         {
-          ll: {x: extents.extent.xmin, y: extents.extent.ymin },
-          ur: {x: extents.extent.xmax, y: extents.extent.ymax },
+          ul: {x: outline[0][0], y: outline[0][1]},
+          ur: {x: outline[1][0], y: outline[1][1]},
+          lr: {x: outline[2][0], y: outline[2][1]},
+          ll: {x: outline[3][0], y: outline[3][1]},
           image: createImage(src),
         },
       ]).draw()
