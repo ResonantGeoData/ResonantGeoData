@@ -41,12 +41,7 @@ class _SpatialListView(generic.ListView):
             self.search_params = self.request.GET
             method = search.search_geojson_filter
 
-        # In case the spatial meta data is in a seperate model. E.g. RasterMetaEntry
-        objects = self.model.objects
-        if hasattr(self, 'search_model'):
-            objects = self.search_model.objects
-
-        return objects.filter(method(self.search_params))
+        return self.model.objects.filter(method(self.search_params))
 
     def _get_extent_summary(self):
         return search.extent_summary_spatial(self.object_list)
@@ -67,9 +62,8 @@ class _SpatialListView(generic.ListView):
 
 
 class RasterEntriesListView(_SpatialListView):
-    model = RasterEntry
-    search_model = RasterMetaEntry
-    context_object_name = 'rasters'
+    model = RasterMetaEntry
+    context_object_name = 'raster_metas'
     template_name = 'geodata/raster_entries.html'
 
 

@@ -15,11 +15,11 @@
         </tr>
       </thead>
       <tbody>
-        {% for raster in rasters %}
+        {% for meta in raster_metas %}
           <tr>
-            <td><a href="{% url 'raster-entry-detail' raster.pk %}">{{ raster.name }} ({{ raster.id }})</a></td>
-            <td>{{ raster.count }}</td>
-            <td>{{ raster.rastermetaentry.resolution }}</td>
+            <td><a href="{% url 'raster-entry-detail' meta.parent_raster.pk %}">{{ meta.parent_raster.name }} ({{ meta.parent_raster.id }})</a></td>
+            <td>{{ meta.parent_raster.count }}</td>
+            <td>{{ meta.resolution }}</td>
           </tr>
         {% endfor %}
       </tbody>
