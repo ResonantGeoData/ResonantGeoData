@@ -9,12 +9,16 @@ from django.db.models import Max, Min, Q
 from django.db.models.functions import Coalesce
 from django.http import HttpResponse, JsonResponse
 from django.utils.timezone import make_aware
+from django_filters.rest_framework import DjangoFilterBackend
 from drf_yasg2.utils import swagger_auto_schema
 from rest_framework import serializers as rfserializers
 from rest_framework.decorators import api_view
+from rest_framework.generics import ListAPIView
 
 from . import serializers
+from .filters import SpatialEntryFilter
 from .models import GeometryEntry, RasterMetaEntry, SpatialEntry
+from .serializers import SpatialEntrySerializer
 
 
 class NearPointSerializer(rfserializers.Serializer):
@@ -572,3 +576,10 @@ def search_geojson_extent_geometry(request, *args, **kwargs):
     params = request.query_params
     found = GeometryEntry.objects.filter(search_geojson_filter(params))
     return extent_summary_http(found)
+
+
+class SearchSpatialEntryView(ListAPIView):
+    queryset = SpatialEntry.objects.all()
+    serializer_class = SpatialEntrySerializer
+    filter_backends = [DjangoFilterBackend]
+    filterset_class = SpatialEntryFilter
