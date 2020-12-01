@@ -15,10 +15,9 @@ from rest_framework import serializers as rfserializers
 from rest_framework.decorators import api_view
 from rest_framework.generics import ListAPIView
 
-from . import serializers
-from .filters import SpatialEntryFilter
-from .models import GeometryEntry, RasterMetaEntry, SpatialEntry
-from .serializers import SpatialEntrySerializer
+from rgd.geodata import serializers
+from rgd.geodata.filters import SpatialEntryFilter
+from rgd.geodata.models import GeometryEntry, RasterMetaEntry, SpatialEntry
 
 
 class NearPointSerializer(rfserializers.Serializer):
@@ -580,6 +579,6 @@ def search_geojson_extent_geometry(request, *args, **kwargs):
 
 class SearchSpatialEntryView(ListAPIView):
     queryset = SpatialEntry.objects.all()
-    serializer_class = SpatialEntrySerializer
+    serializer_class = serializers.SpatialEntrySerializer
     filter_backends = [DjangoFilterBackend]
     filterset_class = SpatialEntryFilter
