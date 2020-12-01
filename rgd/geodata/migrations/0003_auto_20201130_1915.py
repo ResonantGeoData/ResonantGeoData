@@ -34,6 +34,8 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='convertedimagefile',
             name='converted_file',
-            field=models.OneToOneField(null=True, on_delete=django.db.models.deletion.CASCADE, to='geodata.arbitraryfile'),
+            field=models.OneToOneField(
+                null=True, on_delete=django.db.models.deletion.CASCADE, to='geodata.arbitraryfile'
+            ),
         ),
     ]

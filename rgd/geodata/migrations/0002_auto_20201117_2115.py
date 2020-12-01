@@ -14,6 +14,10 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name='convertedimagefile',
             name='file',
-            field=s3_file_field.fields.S3FileField(max_length=2000, null=True, upload_to=s3_file_field.fields.S3FileField.uuid_prefix_filename),
+            field=s3_file_field.fields.S3FileField(
+                max_length=2000,
+                null=True,
+                upload_to=s3_file_field.fields.S3FileField.uuid_prefix_filename,
+            ),
         ),
     ]

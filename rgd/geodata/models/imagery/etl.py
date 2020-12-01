@@ -1,8 +1,8 @@
 """Helper methods for creating a ``GDALRaster`` entry from a raster file."""
 import io
 import os
-import tempfile
 import subprocess
+import tempfile
 import zipfile
 
 import PIL.Image
@@ -517,7 +517,11 @@ def _convert_to_cog(conv_id):
             # Store result
             file.file.save(os.path.basename(output_path), open(output_path, 'rb'))
             file.save()
-            cog.save(update_fields=['converted_file', ])
+            cog.save(
+                update_fields=[
+                    'converted_file',
+                ]
+            )
         except subprocess.CalledProcessError as exc:
             result = exc.returncode
             logger.info('Failed to successfully convert image (%r)' % (exc))
