@@ -493,7 +493,6 @@ def _convert_to_cog(conv_id):
     # Fetch the ArbitraryFile
     if not cog.converted_file:
         cog.converted_file = ArbitraryFile()
-        cog.converted_file.save()
     file = cog.converted_file
 
     with _field_file_to_local_path(image_file.file) as dataset_path:
