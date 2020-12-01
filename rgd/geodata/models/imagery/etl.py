@@ -2,6 +2,7 @@
 import io
 import os
 import tempfile
+import subprocess
 import zipfile
 
 import PIL.Image
@@ -20,6 +21,7 @@ import rasterio
 
 from rgd.utility import _field_file_to_local_path
 
+from ..common import ArbitraryFile
 from ..geometry.transform import transform_geometry
 from .annotation import Annotation, PolygonSegmentation, RLESegmentation, Segmentation
 from .base import (
@@ -479,3 +481,44 @@ def load_kwcoco_dataset(kwcoco_dataset_id):
                 _fill_annotation_segmentation(annotation_entry, ann)
     logger.info('Done with KWCOCO ETL routine')
     return
+
+
+def _convert_to_cog(conv_id):
+    cog = ConvertedImageFile.objects.get(id=conv_id)
+
+    # Find the associated image file object
+    # BaseImageFile->ImageFile
+    image_file = cog.source_image.image_file.imagefile
+
+    # Fetch the ArbitraryFile
+    if not cog.converted_file:
+        cog.converted_file = ArbitraryFile()
+        cog.converted_file.save()
+    file = cog.converted_file
+
+    with _field_file_to_local_path(image_file.file) as dataset_path:
+        logger.info('Converting image file: %s' % (dataset_path))
+        tmpdir = tempfile.mkdtemp()
+        output_path = os.path.join(tmpdir, os.path.basename(dataset_path) + '.tiff')
+
+        cmd = [
+            'gdal_translate',
+            str(dataset_path),
+            output_path,
+            '-co',
+            'COMPRESS=LZW',
+            '-co',
+            'TILED=YES',
+        ]
+        logger.info('Running {}'.format(cmd))
+        try:
+            subprocess.check_call(cmd)
+            result = 0
+            # Store result
+            file.file.save(os.path.basename(output_path), open(output_path, 'rb'))
+            file.save()
+            cog.save(update_fields=['converted_file', ])
+        except subprocess.CalledProcessError as exc:
+            result = exc.returncode
+            logger.info('Failed to successfully convert image (%r)' % (exc))
+        logger.info('Finished running image conversion: %r' % result)

@@ -82,3 +82,13 @@ def task_read_fmv_file(file_id):
     fmv_file = FMVFile.objects.get(id=file_id)
     _run_with_failure_reason(fmv_file, read_fmv_file, file_id)
     return
+
+
+@shared_task(time_limit=86400)
+def task_convert_to_cog(conv_id):
+    from .models.imagery.base import ConvertedImageFile
+    from .models.imagery.etl import _convert_to_cog
+
+    cog = ConvertedImageFile.objects.get(id=conv_id)
+    _run_with_failure_reason(cog, _convert_to_cog, conv_id)
+    return

@@ -6,4 +6,4 @@ by these views ought to be `application/json`.
 
 __all__ = ['download', 'search']
 
-from . import download, search
+from . import download, get, post, search

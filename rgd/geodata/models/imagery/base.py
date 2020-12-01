@@ -155,10 +155,11 @@ class BandMetaEntry(ModifiableEntry):
     interpretation = models.TextField()
 
 
-class ConvertedImageFile(ChecksumFile):
+class ConvertedImageFile(ModifiableEntry, TaskEventMixin):
     """A model to store converted versions of a raster entry."""
 
-    file = S3FileField()
+    task_func = tasks.task_convert_to_cog
+    converted_file = models.OneToOneField(ArbitraryFile, on_delete=models.CASCADE, null=True)
     failure_reason = models.TextField(null=True)
     status = models.CharField(max_length=20, default=Status.CREATED, choices=Status.choices)
     source_image = models.OneToOneField(ImageEntry, on_delete=models.CASCADE)

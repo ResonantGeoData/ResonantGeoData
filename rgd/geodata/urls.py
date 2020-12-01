@@ -60,4 +60,6 @@ urlpatterns = [
     path('api/geodata/raster/geojson/extent', api.search.search_geojson_extent_raster),
     path('api/geodata/geometry/geojson/extent', api.search.search_geojson_extent_geometry),
     path('api/geodata/search', api.search.SearchSpatialEntryView.as_view()),
+    path('api/geodata/imagery/image_entry/convert/<int:pk>', api.post.convert_image_to_cog),
+    path('api/geodata/imagery/converted_image_files/<int:pk>/', api.get.get_status_converted_image_file),
 ]
