@@ -2,10 +2,9 @@
 from django.contrib.gis.db import models
 from django.contrib.postgres import fields
 from django.utils.html import escape, mark_safe
-from s3_file_field import S3FileField
 
 from ... import tasks
-from ..common import ArbitraryFile, ChecksumFile, ModifiableEntry, SpatialEntry
+from ..common import ArbitraryFile, ModifiableEntry, SpatialEntry
 from ..mixins import Status, TaskEventMixin
 from .ifiles import BaseImageFile
 
