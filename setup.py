@@ -4,6 +4,8 @@ setup(
     name='resonantgeodata',
     version='0.1',
     python_requires='>=3.8.0',
+    include_package_data=True,
+    zip_safe=False,  # Django needs to load static files
     install_requires=[
         'celery',
         'django',
