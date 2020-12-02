@@ -511,7 +511,7 @@ def _convert_to_cog(conv_id):
         ]
         logger.info('Running {}'.format(cmd))
         try:
-            subprocess.check_call(cmd, shell=True)
+            subprocess.check_call(' '.join(cmd), shell=True)
             result = 0
             # Store result
             file.file.save(os.path.basename(output_path), open(output_path, 'rb'))
