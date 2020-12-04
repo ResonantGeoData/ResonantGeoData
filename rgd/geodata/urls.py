@@ -63,6 +63,6 @@ urlpatterns = [
     path('api/geodata/imagery/image_entry/convert/<int:pk>', api.post.convert_image_to_cog),
     path(
         'api/geodata/imagery/converted_image_files/<int:pk>/',
-        api.get.get_status_converted_image_file,
+        api.get.GetConvertedImageStatus.as_view(),
     ),
 ]
