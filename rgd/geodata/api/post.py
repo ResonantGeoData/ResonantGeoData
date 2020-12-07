@@ -1,7 +1,7 @@
 from rest_framework.generics import CreateAPIView
 
-from ..models.imagery import ConvertedImageFile
 from .. import serializers
+from ..models.imagery import ConvertedImageFile
 
 
 class ConvertImageToCog(CreateAPIView):
