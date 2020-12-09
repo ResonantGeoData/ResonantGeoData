@@ -9,7 +9,7 @@ from osgeo import gdal
 from rgd.utility import _field_file_to_local_path
 
 from ..common import ArbitraryFile
-from .base import ConvertedImageFile, SubsampledImage
+from .base import ConvertedImageFile
 
 logger = get_task_logger(__name__)
 

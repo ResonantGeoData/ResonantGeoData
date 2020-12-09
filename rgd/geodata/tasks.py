@@ -92,4 +92,3 @@ def task_convert_to_cog(conv_id):
     cog = ConvertedImageFile.objects.get(id=conv_id)
     _run_with_failure_reason(cog, convert_to_cog, conv_id)
     return
-
