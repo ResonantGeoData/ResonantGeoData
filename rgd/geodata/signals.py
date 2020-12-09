@@ -6,7 +6,7 @@ from django.dispatch import receiver
 
 from .models.fmv import FMVFile
 from .models.geometry import GeometryArchive
-from .models.imagery import ImageFile, ImageSet, KWCOCOArchive, RasterEntry
+from .models.imagery import ConvertedImageFile, ImageFile, ImageSet, KWCOCOArchive, RasterEntry
 
 
 @receiver(post_save, sender=FMVFile)
@@ -47,4 +47,9 @@ def _post_delete_kwcoco_dataset(sender, instance, *args, **kwargs):
 
 @receiver(post_save, sender=ImageFile)
 def _post_save_image_file(sender, instance, *args, **kwargs):
+    transaction.on_commit(lambda: instance._post_save_event_task(*args, **kwargs))
+
+
+@receiver(post_save, sender=ConvertedImageFile)
+def _post_save_converted_image_file(sender, instance, *args, **kwargs):
     transaction.on_commit(lambda: instance._post_save_event_task(*args, **kwargs))

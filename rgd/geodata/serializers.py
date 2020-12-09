@@ -24,4 +24,11 @@ class GeometryEntrySerializer(SpatialEntrySerializer):
         exclude = ['data']
 
 
+class ConvertedImageFileSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = models.ConvertedImageFile
+        fields = ['source_image']
+        read_only_fields = ['pk', 'status', 'failure_reason']
+
+
 utility.make_serializers(globals(), models)

@@ -1,6 +1,7 @@
 import pytest
 
 from rgd.geodata.models.imagery.annotation import RLESegmentation
+from rgd.geodata.models.imagery.base import ConvertedImageFile, ImageEntry
 from rgd.geodata.models.imagery.etl import populate_image_entry
 
 from . import factories
@@ -144,3 +145,18 @@ def test_kwcoco_rle_demo():
 
     mask = seg.to_mask()
     assert mask.shape == (seg.height, seg.width)
+
+
+@pytest.mark.django_db(transaction=True)
+def test_cog_image_conversion():
+    image_file = factories.ImageFileFactory(
+        file__filename=SampleFiles[0]['name'],
+        file__from_path=datastore.fetch(SampleFiles[0]['name']),
+    )
+    img = ImageEntry.objects.get(image_file=image_file)
+    c = ConvertedImageFile()
+    c.source_image = img
+    c.save()
+    # Task should complete synchronously
+    c.refresh_from_db()
+    assert c.converted_file

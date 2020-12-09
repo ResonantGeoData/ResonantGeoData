@@ -2,10 +2,9 @@
 from django.contrib.gis.db import models
 from django.contrib.postgres import fields
 from django.utils.html import escape, mark_safe
-from s3_file_field import S3FileField
 
 from ... import tasks
-from ..common import ArbitraryFile, ChecksumFile, ModifiableEntry, SpatialEntry
+from ..common import ArbitraryFile, ModifiableEntry, SpatialEntry
 from ..mixins import Status, TaskEventMixin
 from .ifiles import BaseImageFile
 
@@ -155,10 +154,11 @@ class BandMetaEntry(ModifiableEntry):
     interpretation = models.TextField()
 
 
-class ConvertedImageFile(ChecksumFile):
+class ConvertedImageFile(ModifiableEntry, TaskEventMixin):
     """A model to store converted versions of a raster entry."""
 
-    file = S3FileField()
+    task_func = tasks.task_convert_to_cog
+    converted_file = models.OneToOneField(ArbitraryFile, on_delete=models.CASCADE, null=True)
     failure_reason = models.TextField(null=True)
     status = models.CharField(max_length=20, default=Status.CREATED, choices=Status.choices)
     source_image = models.OneToOneField(ImageEntry, on_delete=models.CASCADE)

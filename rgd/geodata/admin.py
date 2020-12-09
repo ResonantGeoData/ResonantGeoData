@@ -239,12 +239,11 @@ class ImageFileAdmin(OSMGeoAdmin):
 class ConvertedImageFileAdmin(OSMGeoAdmin):
     list_display = (
         'id',
-        'name',
         'source_image',
         'status',
         'modified',
     )
-    readonly_fields = ('file',) + TASK_EVENT_READONLY
+    readonly_fields = ('converted_file',) + TASK_EVENT_READONLY
 
 
 class GeometryEntryInline(admin.StackedInline):
