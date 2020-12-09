@@ -1,7 +1,6 @@
 """Helper methods for creating a ``GDALRaster`` entry from a raster file."""
 import io
 import os
-import subprocess
 import tempfile
 import zipfile
 
@@ -21,7 +20,6 @@ import rasterio
 
 from rgd.utility import _field_file_to_local_path
 
-from ..common import ArbitraryFile
 from ..geometry.transform import transform_geometry
 from .annotation import Annotation, PolygonSegmentation, RLESegmentation, Segmentation
 from .base import (
