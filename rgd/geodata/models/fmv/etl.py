@@ -8,9 +8,8 @@ import tempfile
 from celery.utils.log import get_task_logger
 from django.contrib.gis.geos import MultiPoint, MultiPolygon, Point, Polygon
 import docker
+from girder_utils.files import field_file_to_local_path
 import numpy as np
-
-from rgd.utility import _field_file_to_local_path
 
 from .base import FMVEntry, FMVFile
 
@@ -25,7 +24,7 @@ def _extract_klv_with_docker(fmv_file_entry):
         client = docker.from_env(version='auto', timeout=3600)
         _ = client.images.pull(image_name)
 
-        with _field_file_to_local_path(video_file) as dataset_path:
+        with field_file_to_local_path(video_file) as dataset_path:
             logger.info('Running dump-klv with data %s' % (dataset_path))
             tmpdir = tempfile.mkdtemp()
             output_path = os.path.join(tmpdir, os.path.basename(dataset_path) + '.klv')
@@ -167,7 +166,7 @@ def _get_frame_rate_of_video(file_path):
 
 def _convert_video_to_mp4(fmv_file_entry):
     video_file = fmv_file_entry.file
-    with _field_file_to_local_path(video_file) as dataset_path:
+    with field_file_to_local_path(video_file) as dataset_path:
         logger.info('Converting video file: %s' % (dataset_path))
         tmpdir = tempfile.mkdtemp()
         output_path = os.path.join(tmpdir, os.path.basename(dataset_path) + '.mp4')
