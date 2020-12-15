@@ -19,6 +19,7 @@ from .models.imagery.base import (
     KWCOCOArchive,
     RasterEntry,
     RasterMetaEntry,
+    SubsampledImage,
     Thumbnail,
 )
 from .models.imagery.ifiles import BaseImageFile, ImageArchiveFile, ImageFile
@@ -244,6 +245,18 @@ class ConvertedImageFileAdmin(OSMGeoAdmin):
         'modified',
     )
     readonly_fields = ('converted_file',) + TASK_EVENT_READONLY
+
+
+@admin.register(SubsampledImage)
+class SubsampledImageAdmin(OSMGeoAdmin):
+    list_display = (
+        'id',
+        'source_image',
+        'sample_type',
+        'status',
+        'modified',
+    )
+    readonly_fields = ('data',) + TASK_EVENT_READONLY
 
 
 class GeometryEntryInline(admin.StackedInline):

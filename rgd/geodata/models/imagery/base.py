@@ -2,6 +2,7 @@
 from django.contrib.gis.db import models
 from django.contrib.postgres import fields
 from django.utils.html import escape, mark_safe
+from django.utils.translation import gettext_lazy as _
 
 from ... import tasks
 from ..common import ArbitraryFile, ModifiableEntry, SpatialEntry
@@ -162,6 +163,28 @@ class ConvertedImageFile(ModifiableEntry, TaskEventMixin):
     failure_reason = models.TextField(null=True)
     status = models.CharField(max_length=20, default=Status.CREATED, choices=Status.choices)
     source_image = models.OneToOneField(ImageEntry, on_delete=models.CASCADE)
+
+
+class SubsampledImage(ModifiableEntry, TaskEventMixin):
+    """A subsample of an ImageEntry."""
+
+    task_func = tasks.task_populate_subsampled_image
+
+    class SampleTypes(models.TextChoices):
+        PIXEL_BOX = 'pixel box', _('Pixel bounding box')
+        GEO_BOX = 'geographic box', _('Geographic bounding box')
+        GEOJSON = 'geojson', _('GeoJSON feature')
+
+    source_image = models.OneToOneField(ImageEntry, on_delete=models.CASCADE)
+    sample_type = models.CharField(
+        max_length=20, default=SampleTypes.PIXEL_BOX, choices=SampleTypes.choices
+    )
+    sample_parameters = models.JSONField()
+
+    data = models.OneToOneField(ArbitraryFile, on_delete=models.CASCADE, null=True)
+
+    failure_reason = models.TextField(null=True)
+    status = models.CharField(max_length=20, default=Status.CREATED, choices=Status.choices)
 
 
 class KWCOCOArchive(ModifiableEntry, TaskEventMixin):
