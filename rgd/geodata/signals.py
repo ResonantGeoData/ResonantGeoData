@@ -18,7 +18,7 @@ from .models.imagery import (
 
 
 def skip_signal():
-    """Custom signal helper to be abe to skip the signal."""
+    """Skip the signal on an instance-basis."""
 
     def _skip_signal(signal_func):
         @wraps(signal_func)
