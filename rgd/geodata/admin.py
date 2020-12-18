@@ -114,6 +114,7 @@ class BandMetaEntryInline(admin.StackedInline):
 @admin.register(ImageEntry)
 class ImageEntryAdmin(OSMGeoAdmin):
     list_display = (
+        'icon_tag',
         'id',
         'name',
         'image_file',

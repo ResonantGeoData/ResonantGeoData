@@ -33,6 +33,12 @@ class ImageEntry(ModifiableEntry):
     number_of_bands = models.PositiveIntegerField()
     metadata = models.JSONField(null=True)
 
+    def image_tag(self):
+        return self.thumbnail.image_tag()
+
+    def icon_tag(self):
+        return self.thumbnail.icon_tag()
+
 
 class Thumbnail(ModifiableEntry):
     """Thumbnail model and utility for ImageEntry."""
@@ -48,6 +54,14 @@ class Thumbnail(ModifiableEntry):
 
     image_tag.short_description = 'Image'
     image_tag.allow_tags = True
+
+    def icon_tag(self):
+        return mark_safe(
+            u'<img src="%s" id="icon" height="100px"/>' % escape(self.base_thumbnail.url)
+        )
+
+    icon_tag.short_description = 'Icon'
+    icon_tag.allow_tags = True
 
 
 class ImageSet(ModifiableEntry):
