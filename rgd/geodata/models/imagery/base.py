@@ -175,7 +175,7 @@ class SubsampledImage(ModifiableEntry, TaskEventMixin):
         GEO_BOX = 'geographic box', _('Geographic bounding box')
         GEOJSON = 'geojson', _('GeoJSON feature')
 
-    source_image = models.OneToOneField(ImageEntry, on_delete=models.CASCADE)
+    source_image = models.ForeignKey(ImageEntry, on_delete=models.CASCADE)
     sample_type = models.CharField(
         max_length=20, default=SampleTypes.PIXEL_BOX, choices=SampleTypes.choices
     )
@@ -185,6 +185,26 @@ class SubsampledImage(ModifiableEntry, TaskEventMixin):
 
     failure_reason = models.TextField(null=True)
     status = models.CharField(max_length=20, default=Status.CREATED, choices=Status.choices)
+
+    def to_kwargs(self):
+        """Convert ``sample_parameters`` to kwargs ready for GDAL.
+
+        Note
+        ----
+        A ``KeyError`` could be raised if the sample parameters are illformed.
+
+        """
+        p = self.sample_parameters
+        if self.sample_type == SubsampledImage.SampleTypes.PIXEL_BOX:
+            # -srcwin <xoff> <yoff> <xsize> <ysize>
+            return dict(srcWin=[p['umin'], p['vmin'], p['umax'] - p['umin'], p['vmax'] - p['vmin']])
+        elif self.sample_type == SubsampledImage.SampleTypes.GEO_BOX:
+            # -projwin ulx uly lrx lry
+            return dict(projWin=[p['xmin'], p['ymax'], p['xmax'], p['ymin']])
+        elif self.sample_type == SubsampledImage.SampleTypes.GEOJSON:
+            return p
+        else:
+            raise ValueError('Sample type ({}) unknown.'.format(self.sample_type))
 
 
 class KWCOCOArchive(ModifiableEntry, TaskEventMixin):

@@ -7,6 +7,8 @@ from django.conf import settings
 from django.core.exceptions import ObjectDoesNotExist
 from girder_utils.files import field_file_to_local_path
 from osgeo import gdal
+import rasterio
+from rasterio.mask import mask
 
 from ..common import ArbitraryFile
 from .base import ConvertedImageFile, SubsampledImage
@@ -14,16 +16,29 @@ from .base import ConvertedImageFile, SubsampledImage
 logger = get_task_logger(__name__)
 
 
-def _gdal_translate(source_field, output_field, **kwargs):
+COG_OPTIONS = [
+    '-co',
+    'COMPRESS=LZW',
+    '-co',
+    'TILED=YES',
+]
+
+
+def _gdal_translate(src_path, dest_path, **kwargs):
+    ds = gdal.Open(str(src_path))
+    ds = gdal.Translate(str(dest_path), ds, **kwargs)
+    ds = None
+    return dest_path
+
+
+def _gdal_translate_fields(source_field, output_field, prefix='', **kwargs):
     workdir = getattr(settings, 'GEODATA_WORKDIR', None)
     tmpdir = tempfile.mkdtemp(dir=workdir)
 
     with field_file_to_local_path(source_field) as file_path:
         logger.info(f'The image file path: {file_path}')
-        output_path = os.path.join(tmpdir, 'subsampled_' + os.path.basename(file_path))
-        ds = gdal.Open(str(file_path))
-        ds = gdal.Translate(output_path, ds, **kwargs)
-        ds = None
+        output_path = os.path.join(tmpdir, prefix + os.path.basename(file_path))
+        _gdal_translate(file_path, output_path, **kwargs)
 
     output_field.save(os.path.basename(output_path), open(output_path, 'rb'))
 
@@ -32,25 +47,53 @@ def _gdal_translate(source_field, output_field, **kwargs):
 
 def convert_to_cog(cog):
     """Populate ConvertedImageFile with COG file."""
-    options = [
-        '-co',
-        'COMPRESS=LZW',
-        '-co',
-        'TILED=YES',
-    ]
     if not isinstance(cog, ConvertedImageFile):
         cog = ConvertedImageFile.objects.get(id=cog)
     cog.converted_file = ArbitraryFile()
     src = cog.source_image.image_file.imagefile.file
     output = cog.converted_file.file
-    _gdal_translate(src, output, options=options)
+    _gdal_translate_fields(src, output, prefix='cog_', options=COG_OPTIONS)
     cog.converted_file.save()
     cog.save(
         update_fields=[
             'converted_file',
         ]
     )
+    logger.info(f'Produced COG in ArbitraryFile: {cog.converted_file.id}')
     return cog.id
+
+
+def _subsample_with_geojson(source_field, output_field, geojson, prefix=''):
+    workdir = getattr(settings, 'GEODATA_WORKDIR', None)
+    tmpdir = tempfile.mkdtemp(dir=workdir)
+
+    with field_file_to_local_path(source_field) as file_path:
+        # load the raster, mask it by the polygon and crop it
+        with rasterio.open(file_path) as src:
+            out_image, out_transform = mask(src, [geojson], crop=True)
+            out_meta = src.meta.copy()
+            driver = src.driver
+
+        output_path = os.path.join(tmpdir, prefix + os.path.basename(file_path))
+
+    # save the resulting raster
+    out_meta.update(
+        {
+            "driver": driver,
+            "height": out_image.shape[1],
+            "width": out_image.shape[2],
+            "transform": out_transform,
+        }
+    )
+
+    with rasterio.open(output_path, "w", **out_meta) as dest:
+        dest.write(out_image)
+
+    # Convert subsampled to COG
+    # NOTE: this cannot subsampling produce a COG because it is irregular
+    # _gdal_translate(output_path, output_path, options=COG_OPTIONS)
+    output_field.save(os.path.basename(output_path), open(output_path, 'rb'))
+    return
 
 
 def populate_subsampled_image(subsampled_id):
@@ -68,28 +111,23 @@ def populate_subsampled_image(subsampled_id):
         convert_to_cog(cog)
 
     # Create kwargs based on subsample type
-    kwargs = dict()
-    if sub.sample_type == SubsampledImage.SampleTypes.GEO_BOX:
-        # -projwin ulx uly lrx lry
-        # kwargs = dict(projWin=[xmin, ymax, xmax, ymin])
-        logger.info(f'sample params: {sub.sample_parameters}')
-    elif sub.sample_type == SubsampledImage.SampleTypes.PIXEL_BOX:
-        # -srcwin <xoff> <yoff> <xsize> <ysize>
-        # kwargs = dict(srcWin=[umin, vmin, umax - umin, vmax - vmin])
-        logger.info(f'sample params: {sub.sample_parameters}')
-    elif sub.sample_type == SubsampledImage.SampleTypes.GEOJSON:
-        raise NotImplementedError()
-    else:
-        raise ValueError('Sample type ({}) unknown.'.format(sub.sample_type))
+    logger.info(f'Subsample parameters: {sub.sample_parameters}')
+    kwargs = sub.to_kwargs()
 
     source_field = cog.converted_file.file
     if not sub.data:
         sub.data = ArbitraryFile()
-    _gdal_translate(source_field, sub.data.file, **kwargs)
+
+    if sub.sample_type == SubsampledImage.SampleTypes.GEOJSON:
+        _subsample_with_geojson(source_field, sub.data.file, kwargs, prefix='subsampled_')
+    else:
+        _gdal_translate_fields(source_field, sub.data.file, prefix='subsampled_', **kwargs)
+
     sub.data.save()
     sub.save(
         update_fields=[
             'data',
         ]
     )
+    logger.info(f'Produced subsampled image in ArbitraryFile: {sub.data.id}')
     return sub.id
