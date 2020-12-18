@@ -1,7 +1,7 @@
 import os
 
 from django.db.models.fields.files import FieldFile
-from django.http import HttpResponse
+from django.http import HttpResponse, HttpResponseRedirect
 from django.shortcuts import get_object_or_404  # , render
 from django.utils.encoding import smart_str
 from drf_yasg2.utils import swagger_auto_schema
@@ -37,3 +37,14 @@ def download_file(request, model, id, field):
     if len(file) is not None:
         response['Content-Length'] = len(file)
     return response
+
+
+@swagger_auto_schema(
+    method='GET',
+    operation_summary='Get ArbitraryFile URL',
+)
+@api_view(['GET'])
+def get_arbitrary_file_url(request, pk):
+    instance = models.common.ArbitraryFile.objects.get(id=pk)
+    reponse = HttpResponseRedirect(instance.file.url)
+    return reponse

@@ -68,6 +68,10 @@ urlpatterns = [
         name='arbitrary-file',
     ),
     path(
+        'api/geodata/common/arbitrary_file/<int:pk>/url',
+        api.download.get_arbitrary_file_url,
+    ),
+    path(
         'api/geodata/common/spatial_entry/<int:pk>/',
         api.get.GetSpatialEntry.as_view(),
         name='spatial-entry',
