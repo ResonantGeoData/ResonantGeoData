@@ -79,14 +79,14 @@ def _subsample_with_geojson(source_field, output_field, geojson, prefix=''):
     # save the resulting raster
     out_meta.update(
         {
-            "driver": driver,
-            "height": out_image.shape[1],
-            "width": out_image.shape[2],
-            "transform": out_transform,
+            'driver': driver,
+            'height': out_image.shape[1],
+            'width': out_image.shape[2],
+            'transform': out_transform,
         }
     )
 
-    with rasterio.open(output_path, "w", **out_meta) as dest:
+    with rasterio.open(output_path, 'w', **out_meta) as dest:
         dest.write(out_image)
 
     # Convert subsampled to COG
