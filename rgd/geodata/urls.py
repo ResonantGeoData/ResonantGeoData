@@ -68,19 +68,30 @@ urlpatterns = [
         name='arbitrary-file',
     ),
     path(
-        'api/geodata/common/arbitrary_file/<int:pk>/url',
-        api.download.get_arbitrary_file_url,
+        'api/geodata/common/arbitrary_file/<int:pk>/data',
+        api.download.download_arbitrary_file,
+        name='arbitrary-file-data',
+    ),
+    path(
+        'api/geodata/imagery/image_entry/<int:pk>/data',
+        api.download.download_image_entry_file,
+        name='image-entry-data',
     ),
     path(
         'api/geodata/common/spatial_entry/<int:pk>/',
         api.get.GetSpatialEntry.as_view(),
         name='spatial-entry',
     ),
-    path('api/geodata/imagery/convert', api.post.CreateConvertedImageFile.as_view()),
+    path('api/geodata/imagery/cog', api.post.CreateConvertedImageFile.as_view()),
     path(
-        'api/geodata/imagery/convert/<int:pk>/',
+        'api/geodata/imagery/cog/<int:pk>/',
         api.get.GetConvertedImageStatus.as_view(),
-        name='converted',
+        name='cog',
+    ),
+    path(
+        'api/geodata/imagery/cog/<int:pk>/data',
+        api.download.download_cog_file,
+        name='cog-data',
     ),
     path(
         'api/geodata/imagery/subsample/',

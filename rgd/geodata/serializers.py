@@ -49,7 +49,7 @@ class ArbitraryFileSerializer(serializers.ModelSerializer):
 class SubsampledImageSerializer(serializers.ModelSerializer):
 
     data = serializers.HyperlinkedRelatedField(
-        many=False, read_only=True, view_name='arbitrary-file'
+        many=False, read_only=True, view_name='arbitrary-file-data'
     )
 
     class Meta:

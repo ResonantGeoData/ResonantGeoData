@@ -41,10 +41,33 @@ def download_file(request, model, id, field):
 
 @swagger_auto_schema(
     method='GET',
-    operation_summary='Get ArbitraryFile URL',
+    operation_summary='Download ArbitraryFile data directly from S3.',
 )
 @api_view(['GET'])
-def get_arbitrary_file_url(request, pk):
+def download_arbitrary_file(request, pk):
     instance = models.common.ArbitraryFile.objects.get(id=pk)
     reponse = HttpResponseRedirect(instance.file.url)
     return reponse
+
+
+@swagger_auto_schema(
+    method='GET',
+    operation_summary='Download the associated ImageFile data for this ImageEntry directly from S3.',
+)
+@api_view(['GET'])
+def download_image_entry_file(request, pk):
+    instance = models.imagery.ImageEntry.objects.get(id=pk)
+    url = instance.imagefile.file.url
+    reponse = HttpResponseRedirect(url)
+    return reponse
+
+
+@swagger_auto_schema(
+    method='GET',
+    operation_summary='Download the associated ImageFile data for this ImageEntry directly from S3.',
+)
+@api_view(['GET'])
+def download_cog_file(request, pk):
+    instance = models.imagery.ConvertedImageFile.objects.get(id=pk)
+    af_id = instance.converted_file.id
+    return download_arbitrary_file(request, af_id)
