@@ -19,10 +19,10 @@ from rgd.geodata import models
 def download_file(request, model, id, field):
     model_class = ''.join([part[:1].upper() + part[1:] for part in model.split('_')])
     if not hasattr(models, model_class):
-        raise Exception('No such model (%s)' % model)
+        raise AttributeError('No such model (%s)' % model)
     model_inst = get_object_or_404(getattr(models, model_class), pk=id)
     if not isinstance(getattr(model_inst, field, None), FieldFile):
-        raise Exception('No such file (%s)' % field)
+        raise AttributeError('No such file (%s)' % field)
     file = getattr(model_inst, field)
     filename = os.path.basename(file.name)
     if not filename:
@@ -45,7 +45,7 @@ def download_file(request, model, id, field):
 )
 @api_view(['GET'])
 def download_arbitrary_file(request, pk):
-    instance = models.common.ArbitraryFile.objects.get(id=pk)
+    instance = models.common.ArbitraryFile.objects.get(pk=pk)
     reponse = HttpResponseRedirect(instance.file.url)
     return reponse
 
@@ -56,18 +56,18 @@ def download_arbitrary_file(request, pk):
 )
 @api_view(['GET'])
 def download_image_entry_file(request, pk):
-    instance = models.imagery.ImageEntry.objects.get(id=pk)
-    url = instance.imagefile.file.url
-    reponse = HttpResponseRedirect(url)
-    return reponse
+    instance = models.imagery.ImageEntry.objects.get(pk=pk)
+    url = instance.image_file.imagefile.file.url
+    return HttpResponseRedirect(url)
 
 
 @swagger_auto_schema(
     method='GET',
-    operation_summary='Download the associated ImageFile data for this ImageEntry directly from S3.',
+    operation_summary='Download the associated ArbitraryFile data for this ConvertedImageFile directly from S3.',
 )
 @api_view(['GET'])
 def download_cog_file(request, pk):
-    instance = models.imagery.ConvertedImageFile.objects.get(id=pk)
+    instance = models.imagery.ConvertedImageFile.objects.get(pk=pk)
     af_id = instance.converted_file.id
-    return download_arbitrary_file(request, af_id)
+    instance = models.common.ArbitraryFile.objects.get(pk=af_id)
+    return HttpResponseRedirect(instance.file.url)
