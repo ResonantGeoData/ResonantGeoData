@@ -27,5 +27,5 @@ class GetArbitraryFile(RetrieveAPIView):
 
 class GetSpatialEntry(RetrieveAPIView):
     serializer_class = serializers.SpatialEntrySerializer
-    lookup_field = 'pk'
+    lookup_field = 'spatial_id'
     queryset = SpatialEntry.objects.all()

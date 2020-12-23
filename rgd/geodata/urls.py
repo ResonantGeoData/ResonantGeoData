@@ -63,7 +63,7 @@ urlpatterns = [
     path('api/geodata/search', api.search.SearchSpatialEntryView.as_view()),
     # Other
     path(
-        'api/geodata/common/arbitraty_file/<int:pk>/',
+        'api/geodata/common/arbitrary_file/<int:pk>/',
         api.get.GetArbitraryFile.as_view(),
         name='arbitrary-file',
     ),
@@ -78,7 +78,7 @@ urlpatterns = [
         name='image-entry-data',
     ),
     path(
-        'api/geodata/common/spatial_entry/<int:pk>/',
+        'api/geodata/common/spatial_entry/<int:spatial_id>/',
         api.get.GetSpatialEntry.as_view(),
         name='spatial-entry',
     ),
