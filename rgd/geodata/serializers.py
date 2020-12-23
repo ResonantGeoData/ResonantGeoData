@@ -11,6 +11,7 @@ class SpatialEntrySerializer(serializers.ModelSerializer):
     def to_representation(self, value):
         ret = super().to_representation(value)
         ret['footprint'] = json.loads(value.footprint.geojson)
+        ret['outline'] = json.loads(value.outline.geojson)
         return ret
 
     class Meta:
