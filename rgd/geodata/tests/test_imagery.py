@@ -1,8 +1,9 @@
 import pytest
 
 from rgd.geodata.models.imagery.annotation import RLESegmentation
-from rgd.geodata.models.imagery.base import ConvertedImageFile, ImageEntry
+from rgd.geodata.models.imagery.base import ConvertedImageFile, ImageEntry, SubsampledImage
 from rgd.geodata.models.imagery.etl import populate_image_entry
+from rgd.geodata.models.imagery.subsample import populate_subsampled_image
 
 from . import factories
 from .datastore import datastore
@@ -160,3 +161,44 @@ def test_cog_image_conversion():
     # Task should complete synchronously
     c.refresh_from_db()
     assert c.converted_file
+
+
+@pytest.mark.django_db(transaction=True)
+def test_subsampling():
+    name = 'Elevation.tif'
+    image_file = factories.ImageFileFactory(
+        file__filename=name,
+        file__from_path=datastore.fetch(name),
+    )
+    img = ImageEntry.objects.get(image_file=image_file)
+
+    def create_subsampled(sample_type, params):
+        sub = SubsampledImage()
+        sub.source_image = img
+        sub.sample_type = sample_type
+        sub.sample_parameters = params
+        sub.skip_signal = True
+        sub.save()
+        populate_subsampled_image(sub)
+        sub.refresh_from_db()
+        return sub
+
+    # Test with bbox
+    sub = create_subsampled('pixel box', {'umax': 100, 'umin': 0, 'vmax': 200, 'vmin': 0})
+    assert sub.data
+    # Test with GeoJSON
+    geojson = {
+        'type': 'Polygon',
+        'coordinates': [
+            [
+                [-107.08212524738178, 39.01040379702808],
+                [-106.96182164246767, 39.03110215679572],
+                [-106.90895466037738, 38.98387516880551],
+                [-106.9805540376965, 38.91038429753703],
+                [-107.07130208569401, 38.952157178475225],
+                [-107.08212524738178, 39.01040379702808],
+            ]
+        ],
+    }
+    sub = create_subsampled('geojson', geojson)
+    assert sub.data
