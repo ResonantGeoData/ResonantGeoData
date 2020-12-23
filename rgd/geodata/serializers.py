@@ -36,6 +36,7 @@ class ArbitraryFileSerializer(serializers.ModelSerializer):
     class Meta:
         model = models.ArbitraryFile
         fields = [
+            'pk',
             'file',
             'validate_checksum',
             'name',
@@ -44,7 +45,7 @@ class ArbitraryFileSerializer(serializers.ModelSerializer):
             'modified',
             'created',
         ]
-        read_only_fields = ['checksum', 'last_validation', 'modified', 'created']
+        read_only_fields = ['pk', 'checksum', 'last_validation', 'modified', 'created']
 
 
 class SubsampledImageSerializer(serializers.ModelSerializer):
