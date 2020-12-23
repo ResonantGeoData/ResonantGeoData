@@ -49,6 +49,8 @@ def convert_to_cog(cog):
     """Populate ConvertedImageFile with COG file."""
     if not isinstance(cog, ConvertedImageFile):
         cog = ConvertedImageFile.objects.get(id=cog)
+    else:
+        cog.refresh_from_db()
     cog.converted_file = ArbitraryFile()
     src = cog.source_image.image_file.imagefile.file
     output = cog.converted_file.file
@@ -96,9 +98,12 @@ def _subsample_with_geojson(source_field, output_field, geojson, prefix=''):
     return
 
 
-def populate_subsampled_image(subsampled_id):
-    sub = SubsampledImage.objects.get(id=subsampled_id)
-    image_entry = sub.source_image
+def populate_subsampled_image(subsampled):
+    if not isinstance(subsampled, SubsampledImage):
+        subsampled = SubsampledImage.objects.get(id=subsampled)
+    else:
+        subsampled.refresh_from_db()
+    image_entry = subsampled.source_image
 
     # If COG of source isn't available, create it.
     try:
@@ -111,23 +116,23 @@ def populate_subsampled_image(subsampled_id):
         convert_to_cog(cog)
 
     # Create kwargs based on subsample type
-    logger.info(f'Subsample parameters: {sub.sample_parameters}')
-    kwargs = sub.to_kwargs()
+    logger.info(f'Subsample parameters: {subsampled.sample_parameters}')
+    kwargs = subsampled.to_kwargs()
 
     source_field = cog.converted_file.file
-    if not sub.data:
-        sub.data = ArbitraryFile()
+    if not subsampled.data:
+        subsampled.data = ArbitraryFile()
 
-    if sub.sample_type == SubsampledImage.SampleTypes.GEOJSON:
-        _subsample_with_geojson(source_field, sub.data.file, kwargs, prefix='subsampled_')
+    if subsampled.sample_type == SubsampledImage.SampleTypes.GEOJSON:
+        _subsample_with_geojson(source_field, subsampled.data.file, kwargs, prefix='subsampled_')
     else:
-        _gdal_translate_fields(source_field, sub.data.file, prefix='subsampled_', **kwargs)
+        _gdal_translate_fields(source_field, subsampled.data.file, prefix='subsampled_', **kwargs)
 
-    sub.data.save()
-    sub.save(
+    subsampled.data.save()
+    subsampled.save(
         update_fields=[
             'data',
         ]
     )
-    logger.info(f'Produced subsampled image in ArbitraryFile: {sub.data.id}')
-    return sub.id
+    logger.info(f'Produced subsampled image in ArbitraryFile: {subsampled.data.id}')
+    return subsampled.id
