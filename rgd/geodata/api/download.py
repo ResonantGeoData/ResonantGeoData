@@ -1,7 +1,7 @@
 import os
 
 from django.db.models.fields.files import FieldFile
-from django.http import HttpResponse, HttpResponseRedirect
+from django.http import HttpResponse, HttpResponseRedirect, JsonResponse
 from django.shortcuts import get_object_or_404  # , render
 from django.utils.encoding import smart_str
 from drf_yasg2.utils import swagger_auto_schema
@@ -71,3 +71,38 @@ def download_cog_file(request, pk):
     af_id = instance.converted_file.id
     instance = models.common.ArbitraryFile.objects.get(pk=af_id)
     return HttpResponseRedirect(instance.file.url)
+
+
+def _get_status_response(request, model, pk):
+    model_class = ''.join([part[:1].upper() + part[1:] for part in model.split('_')])
+    if not hasattr(models, model_class):
+        raise AttributeError('No such model (%s)' % model)
+    instance = get_object_or_404(getattr(models, model_class), pk=pk)
+    if not hasattr(instance, 'status'):
+        raise AttributeError(f'Model ({model}) has no attribute (status).')
+    data = {
+        'pk': instance.pk,
+        'model': model,
+        'status': instance.status,
+    }
+    return JsonResponse(data)
+
+
+@swagger_auto_schema(
+    method='GET',
+    operation_summary='Check the status.',
+)
+@api_view(['GET'])
+def get_status(request, model, pk):
+    """Get the status of any TaskEventMixin model."""
+    return _get_status_response(request, model, pk)
+
+
+@swagger_auto_schema(
+    method='GET',
+    operation_summary='Check the status of SubsampledImage.',
+)
+@api_view(['GET'])
+def get_status_subsampled_image(request, pk):
+    """Get the status of any SubsampledImage model."""
+    return _get_status_response(request, 'SubsampledImage', pk)

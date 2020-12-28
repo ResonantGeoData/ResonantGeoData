@@ -39,6 +39,11 @@ urlpatterns = [
         api.download.download_file,
         name='download-file',
     ),
+    path(
+        'api/geodata/status/<model>/<int:pk>',
+        api.download.get_status,
+        name='get-status',
+    ),
     # Search
     path('api/geodata/near_point', api.search.search_near_point),
     path('api/geodata/raster/near_point', api.search.search_near_point_raster),
@@ -101,5 +106,10 @@ urlpatterns = [
         'api/geodata/imagery/subsample/<int:pk>/',
         api.get.GetSubsampledImage.as_view(),
         name='subsampled',
+    ),
+    path(
+        'api/geodata/imagery/subsample/<int:pk>/status',
+        api.download.get_status_subsampled_image,
+        name='subsampled-status',
     ),
 ]

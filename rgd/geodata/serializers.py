@@ -1,6 +1,7 @@
 import json
 
 from rest_framework import serializers
+from rest_framework.reverse import reverse
 
 from rgd import utility
 
@@ -53,6 +54,12 @@ class SubsampledImageSerializer(serializers.ModelSerializer):
     data = serializers.HyperlinkedRelatedField(
         many=False, read_only=True, view_name='arbitrary-file-data'
     )
+
+    def to_representation(self, value):
+        ret = super().to_representation(value)
+        # TODO: fix domain
+        ret['status'] = reverse('subsampled-status', args=[value.id])
+        return ret
 
     class Meta:
         model = models.SubsampledImage

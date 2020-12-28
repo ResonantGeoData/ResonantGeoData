@@ -57,6 +57,16 @@ def test_download_file(client, arbitrary_file):
 
 
 @pytest.mark.django_db(transaction=True)
+def test_get_status(client, elevation_image):
+    model = 'ImageFile'
+    id = elevation_image.image_file.imagefile.id
+    result = client.get(f'/api/geodata/status/{model}/{id}')
+    assert result.status_code == 200
+    with pytest.raises(AttributeError):
+        client.get(f'/api/geodata/status/Foo/{id}')
+
+
+@pytest.mark.django_db(transaction=True)
 def test_download_arbitry_file(client, arbitrary_file):
     pk = arbitrary_file.pk
     result = client.get(f'/api/geodata/common/arbitrary_file/{pk}/data')
