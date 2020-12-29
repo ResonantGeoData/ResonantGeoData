@@ -21,9 +21,11 @@ RASTER_FILES = [
     'paris_france_10.tiff',
     'rgb_geotiff.tiff',
     'RomanColosseum_WV2mulitband_10.tif',
-    ['LC08_L1TP_034032_20200429_20200509_01_T1_sr_band1.tif',
-     'LC08_L1TP_034032_20200429_20200509_01_T1_sr_band2.tif',
-     'LC08_L1TP_034032_20200429_20200509_01_T1_sr_band3.tif'],
+    [
+        'LC08_L1TP_034032_20200429_20200509_01_T1_sr_band1.tif',
+        'LC08_L1TP_034032_20200429_20200509_01_T1_sr_band2.tif',
+        'LC08_L1TP_034032_20200429_20200509_01_T1_sr_band3.tif',
+    ],
     'Elevation.tif',
 ]
 SHAPE_FILES = [
@@ -67,7 +69,9 @@ class Command(BaseCommand):
         ids = []
         for pks in imentries:
             if not isinstance(pks, (list, tuple)):
-                pks = [pks,]
+                pks = [
+                    pks,
+                ]
             images = models.ImageEntry.objects.filter(pk__in=pks).all()
             imset = models.ImageSet()
             imset.save()  # Have to save before adding to ManyToManyField
