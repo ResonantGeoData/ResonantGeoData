@@ -24,6 +24,7 @@ setup(
         'docker',
         'drf-yasg2',
         'gputil',
+        'pooch',
         'psycopg2',
         'python-magic',
         'rich',
