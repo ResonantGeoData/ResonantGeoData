@@ -7,9 +7,12 @@ from . import factories
 from .datastore import datastore
 
 
+@pytest.mark.parametrize(
+    'sample_file',
+    ['Streams.zip', 'dlwatersan.zip'],
+)
 @pytest.mark.django_db(transaction=True)
-def test_geometry_etl():
-    sample_file = 'Streams.zip'
+def test_geometry_etl(sample_file):
     geom_archive = factories.GeometryArchiveFactory(
         file__filename=sample_file,
         file__from_path=datastore.fetch(sample_file),
