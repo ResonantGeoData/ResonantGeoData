@@ -31,7 +31,8 @@
   <script>
     // Initialize the map
     let map = geo.map({
-      node: '#map'
+      node: '#map',
+      clampBoundsX: true
     })
     basemapLayer = map.createLayer('osm', {
       source: 'osm',
@@ -59,6 +60,32 @@
 
     // Annotation layer
     var annotationLayer = map.createLayer('annotation', {clickToEdit: true, showLabels: false});
+
+    // Position the map to show data extents. If none present, the position
+    //   should have been set by the search parameters
+    function setBounds(extent, setMax=false) {
+      if (extent != undefined) {
+        map.bounds({
+          left: extent.xmin,
+          right: extent.xmax,
+          top: extent.ymax,
+          bottom: extent.ymin
+        });
+        if (setMax) {
+          console.log('setting bounds')
+          let xc = (extent.xmax - extent.xmin) * 0.2
+          let yc = (extent.ymax - extent.ymin) * 0.2
+          map.maxBounds({
+            left: extent.xmin - xc,
+            right: extent.xmax + xc,
+            top: extent.ymax + yc,
+            bottom: extent.ymin - yc
+          })
+        } else {
+          map.zoom(map.zoom() - 0.25);
+        }
+      }
+    }
 
   </script>
 {% endblock %}
