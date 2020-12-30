@@ -11,9 +11,8 @@ from celery import shared_task
 from celery.utils.log import get_task_logger
 from django.db.models.fields.files import FieldFile
 import docker
+from girder_utils.files import field_file_to_local_path
 import magic
-
-from rgd.utility import _field_file_to_local_path
 
 from .models import Algorithm, AlgorithmJob, AlgorithmResult, ScoreAlgorithm, ScoreJob, ScoreResult
 
@@ -141,7 +140,7 @@ def _run_scoring(score_job):
             except docker.errors.ImageNotFound:
                 pass
         if not image:
-            with _field_file_to_local_path(score_algorithm_file) as score_algorithm_path:
+            with field_file_to_local_path(score_algorithm_file) as score_algorithm_path:
                 logger.info('Loading docker image %s' % score_algorithm_path)
                 image = client.images.load(open(score_algorithm_path, 'rb'))
                 if len(image) != 1:
@@ -150,9 +149,9 @@ def _run_scoring(score_job):
                 score_job.score_algorithm.docker_image_id = image.attrs['Id']
                 score_job.score_algorithm.save(update_fields=['docker_image_id'])
                 logger.info('Loaded docker image %r' % score_job.score_algorithm.docker_image_id)
-        with _field_file_to_local_path(
+        with field_file_to_local_path(
             algorithm_result_file
-        ) as algorithm_result_path, _field_file_to_local_path(groundtruth_file) as groundtruth_path:
+        ) as algorithm_result_path, field_file_to_local_path(groundtruth_file) as groundtruth_path:
             logger.info(
                 'Running image %s with groundtruth %s and results %s'
                 % (

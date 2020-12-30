@@ -15,10 +15,10 @@ setup(
         'django-cors-headers',
         'django-crispy-forms',
         'django-extensions',
-        'django-girders',
         'django-filter',
+        'django-girder-utils',
         'django-model-utils',
-        'django-s3-file-field>=0.0.14',
+        'django-s3-file-field',
         'djangorestframework',
         'djproxy',
         'docker',
@@ -37,7 +37,7 @@ setup(
         'sentry-sdk',
         # Development-only
         'django-debug-toolbar',
-        'django-minio-storage',
+        'django-minio-storage>=0.3.10',
         # GeoData
         'GDAL',
         'numpy',

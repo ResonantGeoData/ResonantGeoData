@@ -19,6 +19,7 @@ from django.contrib.gis.geos import (
 )
 from django.core.exceptions import ObjectDoesNotExist
 from django.core.files.base import ContentFile
+from girder_utils.files import field_file_to_local_path
 import kwcoco
 import kwimage
 import matplotlib.pyplot as plt
@@ -27,8 +28,6 @@ from osgeo import gdal
 import rasterio
 import rasterio.features
 import rasterio.warp
-
-from rgd.utility import _field_file_to_local_path
 
 from ..constants import DB_SRID
 from ..geometry.transform import transform_geometry
@@ -161,7 +160,7 @@ def populate_image_entry(image_file_id):
     """
     # Fetch the raster file this Layer corresponds to
     ife = ImageFile.objects.get(id=image_file_id)
-    with _field_file_to_local_path(ife.file) as file_path:
+    with field_file_to_local_path(ife.file) as file_path:
 
         logger.info(f'The image file path: {file_path}')
 
@@ -237,7 +236,7 @@ def _extract_raster_outline_and_footprint(image_file_entry):
     This operates on the assumption that the image file is a valid raster.
 
     """
-    with _field_file_to_local_path(image_file_entry.file) as file_path:
+    with field_file_to_local_path(image_file_entry.file) as file_path:
         # There is a potential conflict between rasterio and whatever GDAL
         # is available.  Rastio has an older form of GDAL and conflicts
         # with a system GDAL if the version is different.  So far, the only
@@ -431,7 +430,7 @@ def load_kwcoco_dataset(kwcoco_dataset_id):
         # TODO: how should we download data from specified URLs?
 
     # Load the KWCOCO JSON spec and make annotations on the images
-    with _field_file_to_local_path(ds_entry.spec_file.file) as file_path:
+    with field_file_to_local_path(ds_entry.spec_file.file) as file_path:
         ds = kwcoco.CocoDataset(str(file_path))
         # Set the root dir to where the images were extracted / the temp dir
         # If images are coming from URL, they will download to here
