@@ -39,6 +39,7 @@
     {% for image in object.image_set.images.all %}
       <option value="{{ image.id }}">{{ image.name }}</option>
     {% endfor %}
+    <option value="-1">None</option>
   </select>
 
 {% endblock %}
@@ -73,12 +74,17 @@
     function updateBandThumbnail () {
       selector = document.getElementById('band-selector')
       var image_id = Number(selector.value);
-      var src = extents['thumbnails'][image_id];
+      console.log(image_id)
+      let image = null;
+      if (image_id >= 0) {
+        var src = extents['thumbnails'][image_id];
+        image = createImage(src);
+      }
       quad.data([
         {
           ll: {x: extents.extent.xmin, y: extents.extent.ymin },
           ur: {x: extents.extent.xmax, y: extents.extent.ymax },
-          image: createImage(src),
+          image: image,
         },
       ]).draw()
     }
