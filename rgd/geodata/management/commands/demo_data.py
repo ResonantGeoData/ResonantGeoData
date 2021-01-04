@@ -1,8 +1,7 @@
 import os
 
 from django.conf import settings
-from django.core.management.base import BaseCommand, CommandError
-import pooch
+from django.core.management.base import BaseCommand  # , CommandError
 
 from rgd.geodata import models
 from rgd.geodata.tests.datastore import datastore
@@ -108,20 +107,13 @@ class Command(BaseCommand):
 
     def _load_fmv_files(self):
         raise NotImplementedError('FMV ETL with Docker is still broken.')
-        ids = []
-        for fmvfile in FMV_FILES:
-            ...
-        return ids
 
     def _load_kwcoco_archives(self):
-        ids = []
-        for archive in KWCOCO_ARCHIVES:
-            raise NotImplementedError()
-        return ids
+        raise NotImplementedError()
 
     def handle(self, *args, **options):
-        # self._load_image_files(IMAGE_FILES)
-        # self._load_raster_files()
+        self._load_image_files(IMAGE_FILES)
+        self._load_raster_files()
         self._load_shape_files()
         # self._load_fmv_files()
         # self._load_kwcoco_archives()
