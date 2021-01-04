@@ -62,3 +62,23 @@ def make_raster_for_each_image_entry(modeladmin, request, queryset):
         )
         rasters.append(_make_raster_from_image_set(imset))
     return rasters
+
+
+def reprocess_image_files(modeladmin, request, queryset):
+    """Trigger the save event task for each ImageFile.
+
+    This will recreate the Thumbnail and imageEntry.
+    """
+    for imf in queryset.all():
+        imf.save()
+    return
+
+
+def reprocess_raster_entries(modeladmin, request, queryset):
+    """Trigger the save event task for each RasterEntry.
+
+    This will repopulate the spatial fields.
+    """
+    for rast in queryset.all():
+        rast.save()
+    return

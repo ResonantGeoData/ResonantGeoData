@@ -8,7 +8,6 @@ import zipfile
 import PIL.Image
 from celery.utils.log import get_task_logger
 from django.conf import settings
-from django.contrib.gis.gdal import SpatialReference
 from django.contrib.gis.geos import (
     GEOSGeometry,
     LineString,
@@ -28,9 +27,9 @@ from osgeo import gdal
 import rasterio
 import rasterio.features
 import rasterio.warp
+from rasterio.warp import Resampling, calculate_default_transform, reproject
 
-from ..constants import DB_SRID
-from ..geometry.transform import transform_geometry
+from ..constants import DB_SRID, WEB_MERCATOR
 from .annotation import Annotation, PolygonSegmentation, RLESegmentation, Segmentation
 from .base import (
     BandMetaEntry,
@@ -81,6 +80,46 @@ def _create_thumbnail_image(src):
     return ContentFile(byte_im)
 
 
+def _reproject_raster(src, epsg):
+    """Reproject an open raster to given spatial reference.
+
+    This will return an open rasterio handle.
+
+    """
+    workdir = getattr(settings, 'GEODATA_WORKDIR', None)
+    tmpdir = tempfile.mkdtemp(dir=workdir)
+    # If raster is NTIF format, convert first
+    if src.driver == 'NITF':
+        f = src.files[0]
+        output_path = os.path.join(tmpdir, os.path.basename(f)) + '.tiff'
+        ds = gdal.Open(f)
+        ds = gdal.Translate(output_path, ds, options=['-of', 'GTiff'])
+        ds = None
+        src = rasterio.open(output_path, 'r')
+
+    dst_crs = rasterio.crs.CRS.from_epsg(epsg)
+    transform, width, height = calculate_default_transform(
+        src.crs, dst_crs, src.width, src.height, *src.bounds
+    )
+    kwargs = src.meta.copy()
+    kwargs.update({'crs': dst_crs, 'transform': transform, 'width': width, 'height': height})
+
+    path = os.path.join(tmpdir, os.path.basename(src.name))
+    with rasterio.open(path, 'w', **kwargs) as dst:
+        for i in range(1, src.count + 1):
+            reproject(
+                source=rasterio.band(src, i),
+                destination=rasterio.band(dst, i),
+                src_transform=src.transform,
+                src_crs=src.crs,
+                dst_transform=transform,
+                dst_crs=dst_crs,
+                resampling=Resampling.nearest,
+            )
+        dst.colorinterp = src.colorinterp
+    return rasterio.open(path, 'r')
+
+
 def _read_image_to_entry(image_entry, image_file_path):
 
     thumbnail_query = Thumbnail.objects.filter(image_entry=image_entry)
@@ -104,7 +143,10 @@ def _read_image_to_entry(image_entry, image_file_path):
         # A catch-all metadata feild:
         # TODO: image_entry.metadata =
 
-        thumb_image = _create_thumbnail_image(src)
+        if src.crs:
+            thumb_image = _create_thumbnail_image(_reproject_raster(src, WEB_MERCATOR))
+        else:
+            thumb_image = _create_thumbnail_image(src)
 
         # These are things I couldn't figure out how to get with gdal directly
         dtypes = src.dtypes
@@ -217,14 +259,10 @@ def _get_valid_data_footprint(src, band_num):
     mask = src.dataset_mask()
 
     # Extract feature shapes and values from the array.
+    # Assumes already working in correct spatial reference
     for geom, val in rasterio.features.shapes(mask, transform=src.transform):
         # Ignore the 0-feature and only return on valid data feature
         if val:
-            # Transform shapes from the dataset's own coordinate
-            # reference system to the DB coordinate system
-            geom = rasterio.warp.transform_geom(
-                src.crs, 'EPSG:{:d}'.format(DB_SRID), geom, precision=6
-            )
             return GEOSGeometry(json.dumps(geom))
 
     raise ValueError('No valid raster footprint found.')
@@ -237,35 +275,26 @@ def _extract_raster_outline_and_footprint(image_file_entry):
 
     """
     with field_file_to_local_path(image_file_entry.file) as file_path:
-        # There is a potential conflict between rasterio and whatever GDAL
-        # is available.  Rastio has an older form of GDAL and conflicts
-        # with a system GDAL if the version is different.  So far, the only
-        # issue seems to be with rastio's <source>.crs.  We can work around
-        # this by using GDAL directly.
-        gsrc = gdal.Open(str(file_path))
-        spatial_ref_wkt = gsrc.GetSpatialRef().ExportToWkt()
-        spatial_ref = SpatialReference(spatial_ref_wkt)
-
-        with rasterio.open(file_path) as src:
-            coords = np.array(
-                (
-                    (src.bounds.left, src.bounds.top),
-                    (src.bounds.right, src.bounds.top),
-                    (src.bounds.right, src.bounds.bottom),
-                    (src.bounds.left, src.bounds.bottom),
-                    (src.bounds.left, src.bounds.top),  # Close the loop
-                )
+        # Reproject the raster to the DB SRID using rasterio directly rather
+        #  than transforming the extracted geometry which had issues.
+        src = _reproject_raster(rasterio.open(file_path), DB_SRID)
+        coords = np.array(
+            (
+                (src.bounds.left, src.bounds.top),
+                (src.bounds.right, src.bounds.top),
+                (src.bounds.right, src.bounds.bottom),
+                (src.bounds.left, src.bounds.bottom),
+                (src.bounds.left, src.bounds.top),  # Close the loop
             )
+        )
 
-            logger.info(f'Raster footprint SRID: {spatial_ref.srid}')
-            # This will convert the Polygon to the DB's SRID
-            outline = transform_geometry(Polygon(coords, srid=spatial_ref.srid), spatial_ref_wkt)
-            try:
-                # Only implement for first band for now
-                footprint = _get_valid_data_footprint(src, 1)
-            except Exception as e:  # TODO: be more clever about this
-                logger.info(f'Issue computing valid data footprint: {e}')
-                footprint = outline
+        outline = Polygon(coords, srid=DB_SRID)
+        try:
+            # Only implement for first band for now
+            footprint = _get_valid_data_footprint(src, 1)
+        except Exception as e:  # TODO: be more clever about this
+            logger.info(f'Issue computing valid data footprint: {e}')
+            footprint = outline
 
     return outline, footprint
 
