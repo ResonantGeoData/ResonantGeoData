@@ -20,7 +20,11 @@ COG_OPTIONS = [
     '-co',
     'COMPRESS=LZW',
     '-co',
-    'TILED=YES',
+    'PREDICTOR=YES',
+    '-of',
+    'COG',
+    '-co',
+    'BLOCKSIZE=256',
 ]
 
 

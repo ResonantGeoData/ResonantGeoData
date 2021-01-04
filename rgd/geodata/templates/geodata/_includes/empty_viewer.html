@@ -5,14 +5,38 @@
 
   <div id="map" style="width: 100%; height: calc(100vh - 128px);"></div>
 
+  <style>
+  .basemapTool {
+    background-color: #DCDCDC;
+    padding: 2px;
+    border: 2px solid #000;
+    text-align: left;
+    border-radius: 10px;
+  }
+  </style>
+
+  <div id="basemapTool" class="basemapTool">
+    <label for="basemapDropdown">Choose a basemap:</label>
+    <select id="basemapDropdown" onChange='changeBasemap();'>
+      <option>osm</option>
+      <option>stamen-terrain</option>
+      <option>stamen-terrain-background</option>
+      <option>nationalmap-satellite</option>
+      <option>stamen-toner</option>
+      <option>stamen-toner-lite</option>
+      <option>wikimedia</option>
+    </select>
+  </div>
+
   <script>
     // Initialize the map
     let map = geo.map({
       node: '#map'
     })
-    map.createLayer('osm', {
-      source: 'osm'
-    }); // stamen-terrain
+    basemapLayer = map.createLayer('osm', {
+      source: 'osm',
+      gcs: 'EPSG:3857' // web mercator
+    });
 
     // Feature/data layer
     let layer = map.createLayer('feature', {
@@ -24,6 +48,14 @@
 
     // Create a zoom slider widget
     ui.createWidget('slider', {position: {left: 40, top: 40}});
+    var basemapTool = ui.createWidget('dom', {position: {right: 20, top: 20}});
+    basemapTool.canvas().appendChild(document.getElementById("basemapTool"))
+
+    function changeBasemap() {
+      var dropdown = document.getElementById("basemapDropdown")
+      console.log(dropdown.value)
+      basemapLayer.source(dropdown.value)
+    }
 
     // Annotation layer
     var annotationLayer = map.createLayer('annotation', {clickToEdit: true, showLabels: false});
