@@ -86,6 +86,10 @@ def _reproject_raster(src, epsg):
     This will return an open rasterio handle.
 
     """
+    dst_crs = rasterio.crs.CRS.from_epsg(epsg)
+    if src.crs == dst_crs:
+        # If raster already in desired CRS, return itself
+        return src
     workdir = getattr(settings, 'GEODATA_WORKDIR', None)
     tmpdir = tempfile.mkdtemp(dir=workdir)
     # If raster is NTIF format, convert first
@@ -97,7 +101,6 @@ def _reproject_raster(src, epsg):
         ds = None
         src = rasterio.open(output_path, 'r')
 
-    dst_crs = rasterio.crs.CRS.from_epsg(epsg)
     transform, width, height = calculate_default_transform(
         src.crs, dst_crs, src.width, src.height, *src.bounds
     )
