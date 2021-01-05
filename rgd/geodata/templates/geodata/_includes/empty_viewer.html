@@ -39,6 +39,12 @@
       gcs: 'EPSG:3857' // web mercator
     });
 
+    // Increase zoom range from default of 16
+    map.zoomRange({
+      min: 0,
+      max: 20,
+    })
+
     // Feature/data layer
     let layer = map.createLayer('feature', {
       features: ['polygon', 'marker']
@@ -72,7 +78,6 @@
           bottom: extent.ymin
         });
         if (setMax) {
-          console.log('setting bounds')
           let xc = (extent.xmax - extent.xmin) * 0.2
           let yc = (extent.ymax - extent.ymin) * 0.2
           map.maxBounds({
