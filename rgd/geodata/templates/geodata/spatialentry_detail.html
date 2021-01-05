@@ -46,18 +46,7 @@
       .draw();
     });
 
-    // Position the map to show data extents. If none present, the position
-    //   should have been set by the search parameters
-    if (extents.extent != undefined) {
-      map.bounds({
-        left: extents.extent.xmin,
-        right: extents.extent.xmax,
-        top: extents.extent.ymax,
-        bottom: extents.extent.ymin
-      });
-    }
-    // One final zoom out for polishing
-    map.zoom(map.zoom() - 0.25);
+    setBounds(extents.extent, true)
   </script>
 
 {% endblock %}

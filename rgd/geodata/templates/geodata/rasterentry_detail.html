@@ -58,11 +58,14 @@
       return img
     }
 
+    var outline = JSON.parse(extents['outline'])["coordinates"][0]
     var quad = layer.createFeature('quad')
       .data([
         {
-          ll: {x: extents.extent.xmin, y: extents.extent.ymin },
-          ur: {x: extents.extent.xmax, y: extents.extent.ymax },
+          ul: {x: outline[0][0], y: outline[0][1]},
+          ur: {x: outline[1][0], y: outline[1][1]},
+          lr: {x: outline[2][0], y: outline[2][1]},
+          ll: {x: outline[3][0], y: outline[3][1]},
         },
       ])
       .style({
@@ -81,9 +84,11 @@
       }
       quad.data([
         {
-          ll: {x: extents.extent.xmin, y: extents.extent.ymin },
-          ur: {x: extents.extent.xmax, y: extents.extent.ymax },
-          image: image,
+          ul: {x: outline[0][0], y: outline[0][1]},
+          ur: {x: outline[1][0], y: outline[1][1]},
+          lr: {x: outline[2][0], y: outline[2][1]},
+          ll: {x: outline[3][0], y: outline[3][1]},
+          image: image
         },
       ]).draw()
     }
@@ -102,18 +107,7 @@
       .draw();
     });
 
-    // Position the map to show data extents. If none present, the position
-    //   should have been set by the search parameters
-    if (extents.extent != undefined) {
-      map.bounds({
-        left: extents.extent.xmin,
-        right: extents.extent.xmax,
-        top: extents.extent.ymax,
-        bottom: extents.extent.ymin
-      });
-    }
-    // One final zoom out for polishing
-    map.zoom(map.zoom() - 0.25);
+    setBounds(extents.extent, true)
   </script>
 
 {% endblock %}

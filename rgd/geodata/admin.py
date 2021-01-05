@@ -171,6 +171,7 @@ class RasterEntryAdmin(OSMGeoAdmin):
         'created',
     ) + TASK_EVENT_READONLY
     inlines = (RasterMetaEntryInline,)
+    actions = (actions.reprocess_raster_entries,)
 
 
 class SegmentationInline(admin.StackedInline):
@@ -233,6 +234,7 @@ class ImageFileAdmin(OSMGeoAdmin):
         'image_data_link',
     )
     readonly_fields = ('modified', 'created', 'checksum', 'last_validation') + TASK_EVENT_READONLY
+    actions = (actions.reprocess_image_files,)
 
 
 @admin.register(ConvertedImageFile)

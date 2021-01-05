@@ -35,7 +35,11 @@ def convert_to_cog(cog_id):
         '-co',
         'COMPRESS=LZW',
         '-co',
-        'TILED=YES',
+        'PREDICTOR=YES',
+        '-of',
+        'COG',
+        '-co',
+        'BLOCKSIZE=256',
     ]
     cog = ConvertedImageFile.objects.get(id=cog_id)
     cog.converted_file = ArbitraryFile()
