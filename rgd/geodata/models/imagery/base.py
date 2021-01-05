@@ -136,6 +136,12 @@ class RasterEntry(ModifiableEntry, TaskEventMixin):
             n += im.number_of_bands
         return n
 
+    def image_tag(self):
+        return self.image_set.images.first().thumbnail.image_tag()
+
+    def icon_tag(self):
+        return self.image_set.images.first().thumbnail.icon_tag()
+
 
 class RasterMetaEntry(ModifiableEntry, SpatialEntry):
 

@@ -163,6 +163,7 @@ class RasterMetaEntryInline(admin.StackedInline):
 @admin.register(RasterEntry)
 class RasterEntryAdmin(OSMGeoAdmin):
     list_display = (
+        'icon_tag',
         'id',
         'name',
         'status',
