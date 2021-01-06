@@ -1,5 +1,3 @@
-import pytest
-
 from rgd.geodata import datastore
 
 
