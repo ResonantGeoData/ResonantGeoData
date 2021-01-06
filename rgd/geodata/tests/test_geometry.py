@@ -1,10 +1,10 @@
 import pytest
 
 from rgd.geodata import models
+from rgd.geodata.datastore import datastore
 from rgd.geodata.models.geometry.etl import read_geometry_archive
 
 from . import factories
-from .datastore import datastore
 
 
 @pytest.mark.parametrize(

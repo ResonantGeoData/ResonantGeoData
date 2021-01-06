@@ -3,8 +3,9 @@ import json
 
 import pytest
 
+from rgd.geodata.datastore import datastore
+
 from . import factories
-from .datastore import datastore
 
 SampleFiles = [
     {'name': '20091021202517-01000100-VIS_0001.ntf'},

@@ -4,7 +4,7 @@ from django.conf import settings
 from django.core.management.base import BaseCommand  # , CommandError
 
 from rgd.geodata import models
-from rgd.geodata.tests.datastore import datastore
+from rgd.geodata.datastore import datastore
 
 # Run all tasks synchronously
 settings.CELERY_TASK_ALWAYS_EAGER = True
@@ -38,6 +38,7 @@ RASTER_FILES = [
     # 'US_eMAH_NDVI.2020.350-356.1KM.VI_ACQI.006.2020359165956.tif',
     # 'US_eMAH_NDVI.2020.350-356.1KM.VI_NDVI.006.2020359165956.tif',
     # 'US_eMAH_NDVI.2020.350-356.1KM.VI_QUAL.006.2020359165956.tif',
+    'TC_NG_SFBay_US_Geo.tif',
 ]
 SHAPE_FILES = [
     'Streams.zip',
