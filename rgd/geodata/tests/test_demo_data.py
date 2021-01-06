@@ -1,7 +1,7 @@
 from io import StringIO
-import pytest
 
 from django.core.management import call_command
+import pytest
 
 from rgd.geodata.management.commands.demo_data import SUCCESS_MSG
 
@@ -9,7 +9,7 @@ from rgd.geodata.management.commands.demo_data import SUCCESS_MSG
 def _call_command(*args, **kwargs):
     out = StringIO()
     call_command(
-        "demo_data",
+        'demo_data',
         *args,
         stdout=out,
         stderr=StringIO(),
