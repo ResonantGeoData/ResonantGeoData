@@ -6,10 +6,6 @@ from django.core.management.base import BaseCommand  # , CommandError
 from rgd.geodata import models
 from rgd.geodata.datastore import datastore
 
-# Run all tasks synchronously
-settings.CELERY_TASK_ALWAYS_EAGER = True
-settings.CELERY_TASK_EAGER_PROPAGATES = True
-
 SUCCESS_MSG = 'Finished loading all demo data.'
 
 # Names of files in the datastore
@@ -115,9 +111,20 @@ class Command(BaseCommand):
         raise NotImplementedError()
 
     def handle(self, *args, **options):
+        # Set celery to run all tasks synchronously
+        eager = getattr(settings, 'CELERY_TASK_ALWAYS_EAGER', False)
+        prop = getattr(settings, 'CELERY_TASK_EAGER_PROPAGATES', False)
+        settings.CELERY_TASK_ALWAYS_EAGER = True
+        settings.CELERY_TASK_EAGER_PROPAGATES = True
+
+        # Run the command
         self._load_image_files(IMAGE_FILES)
         self._load_raster_files()
         self._load_shape_files()
         # self._load_fmv_files()
         # self._load_kwcoco_archives()
         self.stdout.write(self.style.SUCCESS(SUCCESS_MSG))
+
+        # Reset celery to previous settings
+        settings.CELERY_TASK_ALWAYS_EAGER = eager
+        settings.CELERY_TASK_EAGER_PROPAGATES = prop
