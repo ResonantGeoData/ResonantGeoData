@@ -10,6 +10,8 @@ from rgd.geodata.datastore import datastore
 settings.CELERY_TASK_ALWAYS_EAGER = True
 settings.CELERY_TASK_EAGER_PROPAGATES = True
 
+SUCCESS_MSG = 'Finished loading all demo data.'
+
 # Names of files in the datastore
 IMAGE_FILES = []
 RASTER_FILES = [
@@ -118,4 +120,4 @@ class Command(BaseCommand):
         self._load_shape_files()
         # self._load_fmv_files()
         # self._load_kwcoco_archives()
-        self.stdout.write(self.style.SUCCESS('Finished loading all demo data.'))
+        self.stdout.write(self.style.SUCCESS(SUCCESS_MSG))
