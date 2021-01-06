@@ -57,8 +57,12 @@ class SubsampledImageSerializer(serializers.ModelSerializer):
 
     def to_representation(self, value):
         ret = super().to_representation(value)
-        # TODO: fix domain
-        ret['status'] = reverse('subsampled-status', args=[value.id])
+        realtive_status_uri = reverse('subsampled-status', args=[value.id])
+        if 'request' in self.context:
+            request = self.context['request']
+            ret['status'] = request.build_absolute_uri(realtive_status_uri)
+        else:
+            ret['status'] = realtive_status_uri
         return ret
 
     class Meta:
