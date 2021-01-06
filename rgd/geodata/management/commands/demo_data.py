@@ -9,7 +9,11 @@ from rgd.geodata.datastore import datastore
 SUCCESS_MSG = 'Finished loading all demo data.'
 
 # Names of files in the datastore
-IMAGE_FILES = []
+IMAGE_FILES = [
+    'astro.png',
+    'carl.png',
+    'stars.png',
+]
 RASTER_FILES = [
     '20091021202517-01000100-VIS_0001.ntf',
     'aerial_rgba_000003.tiff',
