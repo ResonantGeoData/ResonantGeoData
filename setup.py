@@ -42,7 +42,7 @@ setup(
         'django-allauth',
         'django-cleanup',
         'django-composed-configuration[dev,prod]>=0.10.0',
-        'django-configurations',
+        'django-configurations[database,email]',
         'django-crispy-forms',
         'django-extensions',
         'django-filter',
