@@ -1,9 +1,9 @@
 import pytest
 
+from rgd.geodata.datastore import datastore
 from rgd.geodata.models.fmv.base import FMVEntry
 
 from . import factories
-from .datastore import datastore
 
 
 @pytest.mark.django_db(transaction=True)

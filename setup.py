@@ -55,6 +55,7 @@ setup(
         'docker',
         'drf-yasg',
         'gputil',
+        'pooch',
         'python-magic',
         'rules',
         'uritemplate',

@@ -49,9 +49,14 @@ def read_geometry_archive(archive_id):
         with zipfile.ZipFile(archive_file_obj, 'r') as zip_ref:
             zip_ref.extractall(tmpdir)
 
+    msg = 'There must be one and only one shapefile in the archive. Found ({})'
     shape_files = glob(os.path.join(tmpdir, '*.shp'))
-    if len(shape_files) != 1:
-        raise ValidationError('There must be one and only one shapefile in the archive.')
+    if len(shape_files) > 1:
+        raise ValidationError(msg.format(len(shape_files)))
+    elif len(shape_files) == 0:
+        shape_files = glob(os.path.join(tmpdir, '**/*.shp'))
+        if len(shape_files) != 1:
+            raise ValidationError(msg.format(len(shape_files)))
     shape_file = shape_files[0]
 
     # load each shapefile using fiona
