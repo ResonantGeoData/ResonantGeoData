@@ -65,7 +65,6 @@ KWCOCO_ARCHIVES = []
 
 
 def _get_or_create_file_model(model, name):
-
     def download_and_create():
         # Create the ImageFile entry
         path = datastore.fetch(name)
