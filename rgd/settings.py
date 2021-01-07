@@ -13,7 +13,7 @@ from composed_configuration import (
 from configurations import values
 
 
-class GeoDjangoConfig(ConfigMixin):
+class GeoDjangoMixin(ConfigMixin):
     @staticmethod
     def before_binding(configuration: Type[ComposedConfiguration]):
         configuration.INSTALLED_APPS += ['django.contrib.gis']
@@ -36,20 +36,20 @@ class GeoDjangoConfig(ConfigMixin):
             pass
 
 
-class SwaggerConfig(ConfigMixin):
+class SwaggerMixin(ConfigMixin):
     REFETCH_SCHEMA_WITH_AUTH = True
     REFETCH_SCHEMA_ON_LOGOUT = True
     OPERATIONS_SORTER = 'alpha'
     DEEP_LINKING = True
 
 
-class CrispyFormsConfig(ConfigMixin):
+class CrispyFormsMixin(ConfigMixin):
     @staticmethod
     def before_binding(configuration: Type[ComposedConfiguration]):
         configuration.INSTALLED_APPS += ['crispy_forms']
 
 
-class RgdConfig(CrispyFormsConfig, GeoDjangoConfig, SwaggerConfig, ConfigMixin):
+class RgdMixin(CrispyFormsMixin, GeoDjangoMixin, SwaggerMixin, ConfigMixin):
     WSGI_APPLICATION = 'rgd.wsgi.application'
     ROOT_URLCONF = 'rgd.urls'
 
@@ -67,7 +67,7 @@ class RgdConfig(CrispyFormsConfig, GeoDjangoConfig, SwaggerConfig, ConfigMixin):
             raise Exception('RgdConfig must be loaded after AllauthConfig.')
         # We also want our apps to be before any apps that we want to override
         # the templates of
-        for key in {'drf_yasg2'}:
+        for key in {'drf_yasg'}:
             if key in configuration.INSTALLED_APPS:
                 insert_index = min(insert_index, configuration.INSTALLED_APPS.index(key))
         configuration.INSTALLED_APPS.insert(insert_index, 'rgd.geodata.apps.GeodataConfig')
@@ -98,20 +98,20 @@ class RgdConfig(CrispyFormsConfig, GeoDjangoConfig, SwaggerConfig, ConfigMixin):
     CELERY_WORKER_SEND_TASK_EVENTS = True
 
 
-class DevelopmentConfiguration(RgdConfig, DevelopmentBaseConfiguration):
+class DevelopmentConfiguration(RgdMixin, DevelopmentBaseConfiguration):
     pass
 
 
-class TestingConfiguration(RgdConfig, TestingBaseConfiguration):
+class TestingConfiguration(RgdMixin, TestingBaseConfiguration):
     CELERY_TASK_ALWAYS_EAGER = True
     CELERY_TASK_EAGER_PROPAGATES = True
 
 
-class ProductionConfiguration(RgdConfig, ProductionBaseConfiguration):
+class ProductionConfiguration(RgdMixin, ProductionBaseConfiguration):
     pass
 
 
-class HerokuProductionConfiguration(RgdConfig, HerokuProductionBaseConfiguration):
+class HerokuProductionConfiguration(RgdMixin, HerokuProductionBaseConfiguration):
     # Use different env var names (with no DJANGO_ prefix) for services that Heroku auto-injects
     DATABASES = values.DatabaseURLValue(
         environ_name='DATABASE_URL',
