@@ -1,10 +1,13 @@
+from functools import reduce
 import os
 
 from django.conf import settings
 from django.core.management.base import BaseCommand  # , CommandError
+from django.db.models import Count
 
 from rgd.geodata import models
-from rgd.geodata.datastore import datastore
+from rgd.geodata.datastore import datastore, registry
+from rgd.utility import compute_checksum
 
 SUCCESS_MSG = 'Finished loading all demo data.'
 
@@ -61,6 +64,29 @@ FMV_FILES = []
 KWCOCO_ARCHIVES = []
 
 
+def _get_or_create_file_model(model, name):
+
+    def download_and_create():
+        # Create the ImageFile entry
+        path = datastore.fetch(name)
+        entry = model()
+        entry.name = name
+        entry.file.save(os.path.basename(path), open(path, 'rb'))
+        return entry
+
+    # Check if there is already an image file with this name
+    #  to avoid duplicating data (and check sha512)
+    sha = registry[name].split(':')[1]  # NOTE: assumes sha512
+    q = model.objects.filter(name=name)
+    entry = None
+    for entry in q:
+        if compute_checksum(entry.file, sha512=True) == sha:
+            break
+    if entry is None:
+        entry = download_and_create()
+    return entry
+
+
 class Command(BaseCommand):
     help = 'Populate database with demo data.'
 
@@ -70,11 +96,8 @@ class Command(BaseCommand):
             if isinstance(imfile, (list, tuple)):
                 result = self._load_image_files(imfile)
             else:
-                path = datastore.fetch(imfile)
-                model = models.imagery.ImageFile()
-                model.file.save(os.path.basename(path), open(path, 'rb'))
-                # Wait for ETL tasks to finish and get the ImageEntry ID
-                result = model.baseimagefile_ptr.imageentry.pk
+                entry = _get_or_create_file_model(models.ImageFile, imfile)
+                result = entry.baseimagefile_ptr.imageentry.pk
             ids.append(result)
         return ids
 
@@ -86,26 +109,35 @@ class Command(BaseCommand):
                 pks = [
                     pks,
                 ]
-            images = models.ImageEntry.objects.filter(pk__in=pks).all()
-            imset = models.ImageSet()
-            imset.save()  # Have to save before adding to ManyToManyField
-            for image in images:
-                imset.images.add(image)
-            imset.save()
+            # Check if an ImageSet already exists containing all of these images
+            q = models.ImageSet.objects.annotate(count=Count('images')).filter(count=len(pks))
+            imsets = reduce(lambda p, id: q.filter(images=id), pks, q).values()
+            if len(imsets) > 0:
+                # Grab first, could be N-many
+                imset = models.ImageSet.objects.get(id=imsets[0]['id'])
+            else:
+                images = models.ImageEntry.objects.filter(pk__in=pks).all()
+                imset = models.ImageSet()
+                imset.save()  # Have to save before adding to ManyToManyField
+                for image in images:
+                    imset.images.add(image)
+                imset.save()
             # Make raster of that image set
-            raster = models.RasterEntry()
-            raster.image_set = imset
-            raster.save()
+            # Check if raster exists with that ImageSet
+            try:
+                raster = models.RasterEntry.objects.get(image_set__pk=imset.pk)
+            except models.RasterEntry.DoesNotExist:
+                raster = models.RasterEntry()
+                raster.image_set = imset
+                raster.save()
             ids.append(raster.pk)
         return ids
 
     def _load_shape_files(self):
         ids = []
         for shpfile in SHAPE_FILES:
-            path = datastore.fetch(shpfile)
-            model = models.GeometryArchive()
-            model.file.save(os.path.basename(path), open(path, 'rb'))
-            ids.append(model.geometryentry.pk)
+            entry = _get_or_create_file_model(models.GeometryArchive, shpfile)
+            ids.append(entry.geometryentry.pk)
         return ids
 
     def _load_fmv_files(self):
