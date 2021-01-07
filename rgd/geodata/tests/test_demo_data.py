@@ -31,5 +31,12 @@ def test_entries_in_datastore():
         if isinstance(f, (list, tuple)):
             return all([is_in_datastore(i) for i in f])
         return f in registry
-    for f in demo_data.IMAGE_FILES + demo_data.RASTER_FILES + demo_data.SHAPE_FILES + demo_data.FMV_FILES + demo_data.KWCOCO_ARCHIVES:
+
+    for f in (
+        demo_data.IMAGE_FILES
+        + demo_data.RASTER_FILES
+        + demo_data.SHAPE_FILES
+        + demo_data.FMV_FILES
+        + demo_data.KWCOCO_ARCHIVES
+    ):
         assert is_in_datastore(f), f'`{f}` not in registry.'
