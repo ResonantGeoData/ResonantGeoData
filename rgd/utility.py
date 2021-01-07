@@ -10,12 +10,15 @@ from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import parsers, serializers, viewsets
 
 
-def compute_checksum(field_file: FieldFile, chunk_num_blocks=128):
-    sha256 = hashlib.sha256()
+def compute_checksum(field_file: FieldFile, chunk_num_blocks=128, sha512=False):
+    if sha512:
+        sha = hashlib.sha512()
+    else:
+        sha = hashlib.sha256()
     with field_file.open() as f:
-        while chunk := f.read(chunk_num_blocks * sha256.block_size):
-            sha256.update(chunk)
-    return sha256.hexdigest()
+        while chunk := f.read(chunk_num_blocks * sha.block_size):
+            sha.update(chunk)
+    return sha.hexdigest()
 
 
 def _link_url(root, name, obj, field):
