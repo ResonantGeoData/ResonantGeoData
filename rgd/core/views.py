@@ -10,7 +10,7 @@ from django.utils import timezone
 from django.utils.encoding import smart_str
 from django.views.decorators.http import require_http_methods
 from django.views.generic import CreateView, DeleteView, DetailView
-from drf_yasg2.utils import swagger_auto_schema
+from drf_yasg.utils import swagger_auto_schema
 from rest_framework.decorators import api_view
 
 from . import models
