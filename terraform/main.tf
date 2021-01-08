@@ -44,4 +44,6 @@ module "django" {
   }
   # This defaults to 1, but may be changed
   heroku_worker_dyno_quantity = 1
+  heroku_web_dyno_size = "standard-1x"
+  heroku_worker_dyno_size = "standard-2x"
 }
