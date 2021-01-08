@@ -1,9 +1,11 @@
 import json
+import time
 
 import pytest
 
 from rgd.geodata import models
 from rgd.geodata.datastore import datastore
+from rgd.geodata.models.mixins import Status
 
 from . import factories
 
@@ -113,7 +115,7 @@ def test_get_spatial_entry(client, landsat_raster):
 @pytest.mark.django_db(transaction=True)
 def test_create_get_subsampled_image(client, astro_image):
     """Test POST and GET for SubsampledImage model."""
-    client.post(
+    response = client.post(
         '/api/geodata/imagery/subsample',
         {
             'source_image': astro_image.id,
@@ -121,7 +123,15 @@ def test_create_get_subsampled_image(client, astro_image):
             'sample_parameters': {'umax': 100, 'umin': 0, 'vmax': 200, 'vmin': 0},
         },
     )
-    # TODO: wait for the task kicked of by POST to complete?
+    assert response.status_code == 201  # TODO: why is it returning 301?
+    content = json.loads(response.content)
+    # wait for the task kicked of by POST to complete. This isn't ideal...
+    status_url = content['status']
+    check = lambda: json.loads(client.get(status_url).content)['status']
+    while check() not in (Status.SUCCEEDED, Status.FAILED):
+        time.sleep(0.5)
+    # Make sure the task succeeded
+    assert check() == Status.SUCCEEDED
     sub = models.imagery.SubsampledImage.objects.get(source_image=landsat_image.id)
     assert sub.data
     # Test the GET
