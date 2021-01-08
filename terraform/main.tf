@@ -20,7 +20,7 @@ provider "heroku" {
 }
 
 data "heroku_team" "common" {
-  name = "resonantgeodata"
+  name = "kitware"
 }
 
 resource "aws_route53_zone" "common" {
