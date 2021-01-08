@@ -1,11 +1,9 @@
 import json
-import time
 
 import pytest
 
 from rgd.geodata import models
 from rgd.geodata.datastore import datastore
-from rgd.geodata.models.mixins import Status
 
 from . import factories
 
@@ -127,10 +125,11 @@ def test_create_get_subsampled_image(client, astro_image):
     )
     assert response.status_code == 201, response.content
     content = json.loads(response.content)
-    sub = models.imagery.SubsampledImage.objects.get(source_image=astro_image.id)
+    pk = content['pk']
+    sub = models.imagery.SubsampledImage.objects.get(pk=pk)
     assert sub.data
     # Test the GET
-    response = client.get(f'/api/geodata/imagery/subsample/{sub.id}')
+    response = client.get(f'/api/geodata/imagery/subsample/{pk}')
     assert response.status_code == 200, response.content
 
 
