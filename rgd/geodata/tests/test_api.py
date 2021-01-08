@@ -3,9 +3,9 @@ import json
 import pytest
 
 from rgd.geodata import models
+from rgd.geodata.datastore import datastore
 
 from . import factories
-from .datastore import datastore
 
 
 @pytest.fixture()
