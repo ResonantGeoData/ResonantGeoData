@@ -2,6 +2,7 @@
 from django.contrib.gis.db import models
 from django.contrib.postgres import fields
 from django.utils.html import escape, mark_safe
+from django.utils.translation import gettext_lazy as _
 
 from ... import tasks
 from ..common import ArbitraryFile, ModifiableEntry, SpatialEntry
@@ -32,6 +33,12 @@ class ImageEntry(ModifiableEntry):
     number_of_bands = models.PositiveIntegerField()
     metadata = models.JSONField(null=True)
 
+    def image_tag(self):
+        return self.thumbnail.image_tag()
+
+    def icon_tag(self):
+        return self.thumbnail.icon_tag()
+
 
 class Thumbnail(ModifiableEntry):
     """Thumbnail model and utility for ImageEntry."""
@@ -47,6 +54,14 @@ class Thumbnail(ModifiableEntry):
 
     image_tag.short_description = 'Image'
     image_tag.allow_tags = True
+
+    def icon_tag(self):
+        return mark_safe(
+            u'<img src="%s" id="icon" height="100px"/>' % escape(self.base_thumbnail.url)
+        )
+
+    icon_tag.short_description = 'Icon'
+    icon_tag.allow_tags = True
 
 
 class ImageSet(ModifiableEntry):
@@ -121,6 +136,12 @@ class RasterEntry(ModifiableEntry, TaskEventMixin):
             n += im.number_of_bands
         return n
 
+    def image_tag(self):
+        return self.image_set.images.first().thumbnail.image_tag()
+
+    def icon_tag(self):
+        return self.image_set.images.first().thumbnail.icon_tag()
+
 
 class RasterMetaEntry(ModifiableEntry, SpatialEntry):
 
@@ -162,6 +183,48 @@ class ConvertedImageFile(ModifiableEntry, TaskEventMixin):
     failure_reason = models.TextField(null=True)
     status = models.CharField(max_length=20, default=Status.CREATED, choices=Status.choices)
     source_image = models.OneToOneField(ImageEntry, on_delete=models.CASCADE)
+
+
+class SubsampledImage(ModifiableEntry, TaskEventMixin):
+    """A subsample of an ImageEntry."""
+
+    task_func = tasks.task_populate_subsampled_image
+
+    class SampleTypes(models.TextChoices):
+        PIXEL_BOX = 'pixel box', _('Pixel bounding box')
+        GEO_BOX = 'geographic box', _('Geographic bounding box')
+        GEOJSON = 'geojson', _('GeoJSON feature')
+
+    source_image = models.ForeignKey(ImageEntry, on_delete=models.CASCADE)
+    sample_type = models.CharField(
+        max_length=20, default=SampleTypes.PIXEL_BOX, choices=SampleTypes.choices
+    )
+    sample_parameters = models.JSONField()
+
+    data = models.OneToOneField(ArbitraryFile, on_delete=models.CASCADE, null=True)
+
+    failure_reason = models.TextField(null=True)
+    status = models.CharField(max_length=20, default=Status.CREATED, choices=Status.choices)
+
+    def to_kwargs(self):
+        """Convert ``sample_parameters`` to kwargs ready for GDAL.
+
+        Note
+        ----
+        A ``KeyError`` could be raised if the sample parameters are illformed.
+
+        """
+        p = self.sample_parameters
+        if self.sample_type == SubsampledImage.SampleTypes.PIXEL_BOX:
+            # -srcwin <xoff> <yoff> <xsize> <ysize>
+            return dict(srcWin=[p['umin'], p['vmin'], p['umax'] - p['umin'], p['vmax'] - p['vmin']])
+        elif self.sample_type == SubsampledImage.SampleTypes.GEO_BOX:
+            # -projwin ulx uly lrx lry
+            return dict(projWin=[p['xmin'], p['ymax'], p['xmax'], p['ymin']])
+        elif self.sample_type == SubsampledImage.SampleTypes.GEOJSON:
+            return p
+        else:
+            raise ValueError('Sample type ({}) unknown.'.format(self.sample_type))
 
 
 class KWCOCOArchive(ModifiableEntry, TaskEventMixin):
