@@ -68,7 +68,7 @@ urlpatterns = [
     path('api/geodata/search', api.search.SearchSpatialEntryView.as_view()),
     # Other
     path(
-        'api/geodata/common/arbitrary_file/<int:pk>/',
+        'api/geodata/common/arbitrary_file/<int:pk>',
         api.get.GetArbitraryFile.as_view(),
         name='arbitrary-file',
     ),
@@ -83,13 +83,13 @@ urlpatterns = [
         name='image-entry-data',
     ),
     path(
-        'api/geodata/common/spatial_entry/<int:spatial_id>/',
+        'api/geodata/common/spatial_entry/<int:spatial_id>',
         api.get.GetSpatialEntry.as_view(),
         name='spatial-entry',
     ),
     path('api/geodata/imagery/cog', api.post.CreateConvertedImageFile.as_view()),
     path(
-        'api/geodata/imagery/cog/<int:pk>/',
+        'api/geodata/imagery/cog/<int:pk>',
         api.get.GetConvertedImageStatus.as_view(),
         name='cog',
     ),
@@ -103,7 +103,7 @@ urlpatterns = [
         api.post.CreateSubsampledImage.as_view(),
     ),
     path(
-        'api/geodata/imagery/subsample/<int:pk>/',
+        'api/geodata/imagery/subsample/<int:pk>',
         api.get.GetSubsampledImage.as_view(),
         name='subsampled',
     ),

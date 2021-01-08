@@ -95,7 +95,7 @@ def test_download_image_entry_file(client, astro_image):
 @pytest.mark.django_db(transaction=True)
 def test_get_arbitrary_file(client, arbitrary_file):
     pk = arbitrary_file.pk
-    content = json.loads(client.get(f'/api/geodata/common/arbitrary_file/{pk}/').content)
+    content = json.loads(client.get(f'/api/geodata/common/arbitrary_file/{pk}').content)
     assert content
     # Check that a hyperlink is given to the file data
     # NOTE: tried using the URLValidator from django but it thinks this URL is invalid
@@ -106,7 +106,7 @@ def test_get_arbitrary_file(client, arbitrary_file):
 def test_get_spatial_entry(client, landsat_raster):
     """Test individual GET for SpatialEntry model."""
     pk = landsat_raster.rastermetaentry.spatial_id
-    response = client.get(f'/api/geodata/common/spatial_entry/{pk}/')
+    response = client.get(f'/api/geodata/common/spatial_entry/{pk}')
     assert response.status_code == 200, response.content
     content = json.loads(response.content)
     assert content
@@ -130,7 +130,7 @@ def test_create_get_subsampled_image(client, astro_image):
     sub = models.imagery.SubsampledImage.objects.get(source_image=astro_image.id)
     assert sub.data
     # Test the GET
-    response = client.get(f'/api/geodata/imagery/subsample/{sub.id}/')
+    response = client.get(f'/api/geodata/imagery/subsample/{sub.id}')
     assert response.status_code == 200, response.content
 
 
