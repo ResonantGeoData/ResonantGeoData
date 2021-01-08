@@ -1,12 +1,12 @@
 import pytest
 
+from rgd.geodata.datastore import datastore
 from rgd.geodata.models.imagery.annotation import RLESegmentation
 from rgd.geodata.models.imagery.base import ConvertedImageFile, ImageEntry, SubsampledImage
 from rgd.geodata.models.imagery.etl import populate_image_entry
 from rgd.geodata.models.imagery.subsample import populate_subsampled_image
 
 from . import factories
-from .datastore import datastore
 
 SampleFiles = [
     {'name': '20091021202517-01000100-VIS_0001.ntf', 'centroid': {'x': -84.1110, 'y': 39.781}},

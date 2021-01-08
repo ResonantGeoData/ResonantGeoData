@@ -4,7 +4,7 @@ from django.db.models.fields.files import FieldFile
 from django.http import HttpResponse, HttpResponseRedirect, JsonResponse
 from django.shortcuts import get_object_or_404  # , render
 from django.utils.encoding import smart_str
-from drf_yasg2.utils import swagger_auto_schema
+from drf_yasg.utils import swagger_auto_schema
 from rest_framework.decorators import api_view
 
 from rgd.geodata import models
