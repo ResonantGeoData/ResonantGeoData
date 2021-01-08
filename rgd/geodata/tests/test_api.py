@@ -58,8 +58,8 @@ def test_download_file(client, arbitrary_file):
     model = 'ArbitraryFile'
     id = arbitrary_file.id
     field = 'file'
-    result = client.get(f'/api/geodata/download/{model}/{id}/{field}')
-    assert result.status_code == 200
+    response = client.get(f'/api/geodata/download/{model}/{id}/{field}')
+    assert response.status_code == 200, response.content
     with pytest.raises(AttributeError):
         # Test bad model
         client.get('/api/geodata/download/Foo/0/file')
@@ -72,8 +72,8 @@ def test_download_file(client, arbitrary_file):
 def test_get_status(client, astro_image):
     model = 'ImageFile'
     id = astro_image.image_file.imagefile.id
-    result = client.get(f'/api/geodata/status/{model}/{id}')
-    assert result.status_code == 200
+    response = client.get(f'/api/geodata/status/{model}/{id}')
+    assert response.status_code == 200, response.content
     with pytest.raises(AttributeError):
         client.get(f'/api/geodata/status/Foo/{id}')
 
@@ -81,15 +81,15 @@ def test_get_status(client, astro_image):
 @pytest.mark.django_db(transaction=True)
 def test_download_arbitry_file(client, arbitrary_file):
     pk = arbitrary_file.pk
-    result = client.get(f'/api/geodata/common/arbitrary_file/{pk}/data')
-    assert result.status_code == 302 or result.status_code == 200
+    response = client.get(f'/api/geodata/common/arbitrary_file/{pk}/data')
+    assert response.status_code == 302 or response.status_code == 200, response.content
 
 
 @pytest.mark.django_db(transaction=True)
 def test_download_image_entry_file(client, astro_image):
     pk = astro_image.pk
-    result = client.get(f'/api/geodata/imagery/image_entry/{pk}/data')
-    assert result.status_code == 302 or result.status_code == 200
+    response = client.get(f'/api/geodata/imagery/image_entry/{pk}/data')
+    assert response.status_code == 302 or response.status_code == 200, response.content
 
 
 @pytest.mark.django_db(transaction=True)
@@ -106,7 +106,9 @@ def test_get_arbitrary_file(client, arbitrary_file):
 def test_get_spatial_entry(client, landsat_raster):
     """Test individual GET for SpatialEntry model."""
     pk = landsat_raster.rastermetaentry.spatial_id
-    content = json.loads(client.get(f'/api/geodata/common/spatial_entry/{pk}/').content)
+    response = client.get(f'/api/geodata/common/spatial_entry/{pk}/')
+    assert response.status_code == 200, response.content
+    content = json.loads(response.content)
     assert content
     assert content['footprint']
     assert content['outline']
@@ -118,39 +120,33 @@ def test_create_get_subsampled_image(client, astro_image):
     response = client.post(
         '/api/geodata/imagery/subsample',
         {
-            'source_image': astro_image.id,
+            'source_image': astro_image.pk,
             'sample_type': 'pixel box',
-            'sample_parameters': {'umax': 100, 'umin': 0, 'vmax': 200, 'vmin': 0},
+            'sample_parameters': json.dumps({'umax': 100, 'umin': 0, 'vmax': 200, 'vmin': 0}),
         },
     )
-    assert response.status_code == 201  # TODO: why is it returning 301?
+    assert response.status_code == 201, response.content
     content = json.loads(response.content)
-    # wait for the task kicked of by POST to complete. This isn't ideal...
-    status_url = content['status']
-    check = lambda: json.loads(client.get(status_url).content)['status']
-    while check() not in (Status.SUCCEEDED, Status.FAILED):
-        time.sleep(0.5)
-    # Make sure the task succeeded
-    assert check() == Status.SUCCEEDED
     sub = models.imagery.SubsampledImage.objects.get(source_image=astro_image.id)
     assert sub.data
     # Test the GET
-    content = json.loads(client.get(f'/api/geodata/imagery/subsample/{sub.id}/').content)
-    assert content
+    response = client.get(f'/api/geodata/imagery/subsample/{sub.id}/')
+    assert response.status_code == 200, response.content
 
 
 @pytest.mark.django_db(transaction=True)
 def test_create_and_download_cog(client, landsat_image):
     """Test POST for ConvertedImageFile model."""
-    client.post(
+    response = client.post(
         '/api/geodata/imagery/cog',
         {'source_image': landsat_image.id},
     )
+    assert response.status_code == 201, response.content
     # Check that a COG was generated
     cog = models.imagery.ConvertedImageFile.objects.get(source_image=landsat_image.id)
     # NOTE: This doesn't actually verify the file is in COG format. Assumed.
     assert cog.converted_file
     # Also test download endpoint here:
     pk = cog.pk
-    result = client.get(f'/api/geodata/imagery/cog/{pk}/data')
-    assert result.status_code == 302 or result.status_code == 200
+    response = client.get(f'/api/geodata/imagery/cog/{pk}/data')
+    assert response.status_code == 302 or response.status_code == 200, response.content

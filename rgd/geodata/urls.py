@@ -99,7 +99,7 @@ urlpatterns = [
         name='cog-data',
     ),
     path(
-        'api/geodata/imagery/subsample/',
+        'api/geodata/imagery/subsample',
         api.post.CreateSubsampledImage.as_view(),
     ),
     path(
