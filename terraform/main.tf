@@ -43,7 +43,7 @@ module "django" {
     DJANGO_SENTRY_DSN = "https://b3dac135af6c42fea439998200656ca3@o267860.ingest.sentry.io/5458973"
   }
   # This defaults to 1, but may be changed
-  heroku_worker_dyno_quantity = 1
-  heroku_web_dyno_size = "standard-1x"
-  heroku_worker_dyno_size = "standard-2x"
+  heroku_worker_dyno_quantity = 0
+  heroku_web_dyno_size = "hobby"
+  heroku_worker_dyno_size = "hobby"
 }
