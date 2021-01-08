@@ -100,7 +100,6 @@ def test_get_spatial_entry(client, elevation_raster):
     assert content['outline']
 
 
-@pytest.mark.skip  # TODO: This is not working... task doesn't complete in time
 @pytest.mark.django_db(transaction=True)
 def test_create_get_subsampled_image(client, elevation_image):
     """Test POST and GET for SubsampledImage model."""
@@ -112,6 +111,7 @@ def test_create_get_subsampled_image(client, elevation_image):
             'sample_parameters': {'umax': 100, 'umin': 0, 'vmax': 200, 'vmin': 0},
         },
     )
+    # TODO: wait for the task kicked of by POST to complete?
     sub = models.imagery.SubsampledImage.objects.get(source_image=elevation_image.id)
     assert sub.data
     # Test the GET
