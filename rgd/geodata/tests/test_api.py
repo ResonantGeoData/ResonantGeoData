@@ -132,7 +132,7 @@ def test_create_get_subsampled_image(client, astro_image):
         time.sleep(0.5)
     # Make sure the task succeeded
     assert check() == Status.SUCCEEDED
-    sub = models.imagery.SubsampledImage.objects.get(source_image=landsat_image.id)
+    sub = models.imagery.SubsampledImage.objects.get(source_image=astro_image.id)
     assert sub.data
     # Test the GET
     content = json.loads(client.get(f'/api/geodata/imagery/subsample/{sub.id}/').content)
