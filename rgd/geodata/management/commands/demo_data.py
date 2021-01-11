@@ -131,7 +131,7 @@ class Command(BaseCommand):
     def _load_shape_files(self):
         ids = []
         for shpfile in SHAPE_FILES:
-            entry = (models.GeometryArchive, shpfile)
+            entry = _get_or_create_file_model(models.GeometryArchive, shpfile)
             ids.append(entry.geometryentry.pk)
         return ids
 
