@@ -15,6 +15,7 @@ from .models.imagery.base import (
     BandMetaEntry,
     ConvertedImageFile,
     ImageEntry,
+    ImageFile,
     ImageSet,
     KWCOCOArchive,
     RasterEntry,
@@ -22,7 +23,6 @@ from .models.imagery.base import (
     SubsampledImage,
     Thumbnail,
 )
-from .models.imagery.ifiles import BaseImageFile, ImageArchiveFile, ImageFile
 
 SPATIAL_ENTRY_FILTERS = (
     'acquisition_date',
@@ -217,20 +217,10 @@ class AnnotationAdmin(OSMGeoAdmin):
     inlines = (SegmentationInline, PolygonSegmentationInline, RLESegmentationInline)
 
 
-@admin.register(BaseImageFile)
-class BaseImageFileAdmin(OSMGeoAdmin):
-    list_display = ('image_file_id',)
-
-
-@admin.register(ImageArchiveFile)
-class ImageArchiveFileAdmin(OSMGeoAdmin):
-    list_display = ('image_file_id',)
-
-
 @admin.register(ImageFile)
 class ImageFileAdmin(OSMGeoAdmin):
     list_display = (
-        'image_file_id',
+        'id',
         'name',
         'status',
         'modified',

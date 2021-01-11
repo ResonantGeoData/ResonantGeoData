@@ -35,13 +35,13 @@ from .base import (
     BandMetaEntry,
     ConvertedImageFile,
     ImageEntry,
+    ImageFile,
     ImageSet,
     KWCOCOArchive,
     RasterEntry,
     RasterMetaEntry,
     Thumbnail,
 )
-from .ifiles import ImageArchiveFile, ImageFile
 
 logger = get_task_logger(__name__)
 
@@ -196,19 +196,19 @@ def _read_image_to_entry(image_entry, image_file_path):
     return
 
 
-def populate_image_entry(image_file_id):
+def populate_image_entry(ife):
     """Image ingestion routine.
 
     This helper will open an image file from ``ImageFile`` and create a
     ``ImageEntry`` and collection of ``BandMetaEntry`` entries.
 
     """
-    # Fetch the raster file this Layer corresponds to
-    ife = ImageFile.objects.get(id=image_file_id)
+    # Fetch the image file this Layer corresponds to
+    if not isinstance(ife, ImageFile):
+        ife = ImageFile.objects.get(id=ife)
+
     with field_file_to_local_path(ife.file) as file_path:
-
         logger.info(f'The image file path: {file_path}')
-
         image_query = ImageEntry.objects.filter(image_file=ife)
         if len(image_query) < 1:
             image_entry = ImageEntry()
@@ -227,7 +227,7 @@ def populate_image_entry(image_file_id):
         # image_entry.modifier = ife.modifier
         _read_image_to_entry(image_entry, file_path)
 
-    return True
+    return image_entry
 
 
 def _extract_raster_meta(image_file_entry):
@@ -428,6 +428,13 @@ def _fill_annotation_segmentation(annotation_entry, ann_json):
 def load_kwcoco_dataset(kwcoco_dataset_id):
     logger.info('Starting KWCOCO ETL routine')
     ds_entry = KWCOCOArchive.objects.get(id=kwcoco_dataset_id)
+    if not ds_entry.name:
+        ds_entry.name = os.path.basename(ds_entry.spec_file.name)
+        ds_entry.save(
+            update_fields=[
+                'name',
+            ]
+        )
 
     # TODO: add a setting like this:
     workdir = getattr(settings, 'GEODATA_WORKDIR', None)
@@ -474,17 +481,13 @@ def load_kwcoco_dataset(kwcoco_dataset_id):
             img = ds.imgs[imgid]
             anns = [ds.anns[k] for k in ak]
             # Create the ImageFile entry to track each image's location
-            image_file = ImageArchiveFile()
-            image_file.archive = ds_entry.image_archive
-            image_file.path = img['file_name']
-            image_file.save()
-            # Create a new ImageEntry
             image_file_abs_path = os.path.join(ds.img_root, img['file_name'])
-            image_entry = ImageEntry()
-            image_entry.name = os.path.basename(image_file_abs_path)
-            image_entry.image_file = image_file
-            _read_image_to_entry(image_entry, image_file_abs_path)
-            image_entry.save()
+            name = os.path.basename(image_file_abs_path)
+            image_file = ImageFile()
+            image_file.skip_task = True
+            image_file.file.save(name, open(image_file_abs_path, 'rb'))
+            # Create a new ImageEntry
+            image_entry = populate_image_entry(image_file)
             # Add ImageEntry to ImageSet
             ds_entry.image_set.images.add(image_entry)
             # Create annotations that link to that ImageEntry

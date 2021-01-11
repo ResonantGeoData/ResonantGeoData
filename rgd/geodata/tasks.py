@@ -36,8 +36,8 @@ def _run_with_failure_reason(model, func, *args, **kwargs):
 
 @shared_task(time_limit=86400)
 def task_read_image_file(file_id):
+    from .models.imagery.base import ImageFile
     from .models.imagery.etl import populate_image_entry
-    from .models.imagery.ifiles import ImageFile
 
     image_file = ImageFile.objects.get(id=file_id)
     _run_with_failure_reason(image_file, populate_image_entry, file_id)

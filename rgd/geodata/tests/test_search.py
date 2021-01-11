@@ -25,7 +25,7 @@ def _load_sample_files():
             file__from_path=datastore.fetch(testfile['name']),
         )
         image_set = factories.ImageSetFactory(
-            images=[imagefile.baseimagefile_ptr.imageentry.id],
+            images=[imagefile.imageentry.id],
         )
         factories.RasterEntryFactory(
             name=testfile['name'],

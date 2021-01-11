@@ -3,11 +3,35 @@ from django.contrib.gis.db import models
 from django.contrib.postgres import fields
 from django.utils.html import escape, mark_safe
 from django.utils.translation import gettext_lazy as _
+from s3_file_field import S3FileField
+
+from rgd.utility import _link_url
 
 from ... import tasks
-from ..common import ArbitraryFile, ModifiableEntry, SpatialEntry
+from ..common import ArbitraryFile, ChecksumFile, ModifiableEntry, SpatialEntry
 from ..mixins import Status, TaskEventMixin
-from .ifiles import BaseImageFile
+
+
+class ImageFile(ChecksumFile, TaskEventMixin):
+    """This is a standalone DB entry for image files.
+
+    This points to a single image file in an S3 file field.
+
+    This will automatically generate an ``ImageEntry`` on the ``post_save``
+    event. This points to data in its original location and the generated
+    ``ImageEntry`` points to this.
+
+    """
+
+    task_func = tasks.task_read_image_file
+    failure_reason = models.TextField(null=True)
+    status = models.CharField(max_length=20, default=Status.CREATED, choices=Status.choices)
+    file = S3FileField()
+
+    def image_data_link(self):
+        return _link_url('geodata', 'image_file', self, 'file')
+
+    image_data_link.allow_tags = True
 
 
 class ImageEntry(ModifiableEntry):
@@ -26,7 +50,7 @@ class ImageEntry(ModifiableEntry):
         help_text='The instrumentation used to acquire these data.',
     )
 
-    image_file = models.OneToOneField(BaseImageFile, on_delete=models.CASCADE)
+    image_file = models.OneToOneField(ImageFile, on_delete=models.CASCADE)
     driver = models.CharField(max_length=100)
     height = models.PositiveIntegerField()
     width = models.PositiveIntegerField()

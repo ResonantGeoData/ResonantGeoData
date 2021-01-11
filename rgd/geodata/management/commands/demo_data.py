@@ -12,11 +12,7 @@ from rgd.utility import compute_checksum
 SUCCESS_MSG = 'Finished loading all demo data.'
 
 # Names of files in the datastore
-IMAGE_FILES = [
-    'astro.png',
-    'carl.png',
-    'stars.png',
-]
+IMAGE_FILES = []
 RASTER_FILES = [
     '20091021202517-01000100-VIS_0001.ntf',
     'aerial_rgba_000003.tiff',
@@ -61,7 +57,7 @@ SHAPE_FILES = [
     'AG_lease.zip',
 ]
 FMV_FILES = []
-KWCOCO_ARCHIVES = []
+KWCOCO_ARCHIVES = [['demo.kwcoco.json', 'demodata.zip'], ['demo_rle.kwcoco.json', 'demo_rle.zip']]
 
 
 def _get_or_create_file_model(model, name):
@@ -96,7 +92,7 @@ class Command(BaseCommand):
                 result = self._load_image_files(imfile)
             else:
                 entry = _get_or_create_file_model(models.ImageFile, imfile)
-                result = entry.baseimagefile_ptr.imageentry.pk
+                result = entry.imageentry.pk
             ids.append(result)
         return ids
 
@@ -143,7 +139,16 @@ class Command(BaseCommand):
         raise NotImplementedError('FMV ETL with Docker is still broken.')
 
     def _load_kwcoco_archives(self):
-        raise NotImplementedError()
+        ids = []
+        for fspec, farch in KWCOCO_ARCHIVES:
+            spec = _get_or_create_file_model(models.ArbitraryFile, fspec)
+            arch = _get_or_create_file_model(models.ArbitraryFile, farch)
+            ds = models.KWCOCOArchive()
+            ds.spec_file = spec
+            ds.image_archive = arch
+            ds.save()
+            ids.append(ds.id)
+        return ids
 
     def handle(self, *args, **options):
         # Set celery to run all tasks synchronously
@@ -157,7 +162,7 @@ class Command(BaseCommand):
         self._load_raster_files()
         self._load_shape_files()
         # self._load_fmv_files()
-        # self._load_kwcoco_archives()
+        self._load_kwcoco_archives()
         self.stdout.write(self.style.SUCCESS(SUCCESS_MSG))
 
         # Reset celery to previous settings
