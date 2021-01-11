@@ -1,7 +1,7 @@
 import pytest
 
 from rgd.geodata.datastore import datastore
-from rgd.geodata.models.imagery.annotation import RLESegmentation
+from rgd.geodata.models.imagery.annotation import Annotation, RLESegmentation
 from rgd.geodata.models.imagery.base import ConvertedImageFile, ImageEntry, SubsampledImage
 from rgd.geodata.models.imagery.etl import populate_image_entry
 from rgd.geodata.models.imagery.subsample import populate_subsampled_image
@@ -170,9 +170,8 @@ def test_subsampling():
         file__filename=name,
         file__from_path=datastore.fetch(name),
     )
-    img = ImageEntry.objects.get(image_file=image_file)
 
-    def create_subsampled(sample_type, params):
+    def create_subsampled(img, sample_type, params):
         sub = SubsampledImage()
         sub.source_image = img
         sub.sample_type = sample_type
@@ -183,8 +182,10 @@ def test_subsampling():
         sub.refresh_from_db()
         return sub
 
+    img = ImageEntry.objects.get(image_file=image_file)
+
     # Test with bbox
-    sub = create_subsampled('pixel box', {'umax': 100, 'umin': 0, 'vmax': 200, 'vmin': 0})
+    sub = create_subsampled(img, 'pixel box', {'umax': 100, 'umin': 0, 'vmax': 200, 'vmin': 0})
     assert sub.data
     # Test with GeoJSON
     geojson = {
@@ -200,5 +201,17 @@ def test_subsampling():
             ]
         ],
     }
-    sub = create_subsampled('geojson', geojson)
+    sub = create_subsampled(img, 'geojson', geojson)
+    assert sub.data
+    # Test with annotations
+    demo = {
+        'archive': 'demo_rle.zip',
+        'spec': 'demo_rle.kwcoco.json',
+    }
+    _ = _run_kwcoco_import(demo)
+    img = ImageEntry.objects.get(name='000000242287.jpg')  # bicycle
+    a = Annotation.objects.get(image=img.id)  # Should be only one
+    sub = create_subsampled(img, 'annotation', {'id': a.id})
+    assert sub.data
+    sub = create_subsampled(img, 'annotation', {'id': a.id, 'outline': True})
     assert sub.data

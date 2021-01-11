@@ -127,9 +127,14 @@ def populate_subsampled_image(subsampled):
     if not subsampled.data:
         subsampled.data = ArbitraryFile()
 
-    if subsampled.sample_type == SubsampledImage.SampleTypes.GEOJSON:
+    if subsampled.sample_type == SubsampledImage.SampleTypes.GEOJSON or (
+        subsampled.sample_type == SubsampledImage.SampleTypes.ANNOTATION
+        and kwargs.get('type', None)
+    ):
+        logger.info('Subsampling with GeoJSON feature.')
         _subsample_with_geojson(source_field, subsampled.data.file, kwargs, prefix='subsampled_')
     else:
+        logger.info('Subsampling with bounding box feature.')
         _gdal_translate_fields(source_field, subsampled.data.file, prefix='subsampled_', **kwargs)
 
     subsampled.data.save()
