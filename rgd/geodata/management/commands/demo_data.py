@@ -96,7 +96,7 @@ class Command(BaseCommand):
                 result = self._load_image_files(imfile)
             else:
                 entry = _get_or_create_file_model(models.ImageFile, imfile)
-                result = entry.baseimagefile_ptr.imageentry.pk
+                result = entry.imageentry.pk
             ids.append(result)
         return ids
 

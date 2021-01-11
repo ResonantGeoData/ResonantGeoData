@@ -34,7 +34,7 @@ def test_imagefile_to_rasterentry_centroids(testfile):
         file__from_path=datastore.fetch(testfile['name']),
     )
     image_set = factories.ImageSetFactory(
-        images=[imagefile.baseimagefile_ptr.imageentry.id],
+        images=[imagefile.imageentry.id],
     )
     raster = factories.RasterEntryFactory(
         name=testfile['name'],
@@ -75,9 +75,9 @@ def test_multi_file_raster():
     )
     image_set = factories.ImageSetFactory(
         images=[
-            b1.baseimagefile_ptr.imageentry.id,
-            b2.baseimagefile_ptr.imageentry.id,
-            b3.baseimagefile_ptr.imageentry.id,
+            b1.imageentry.id,
+            b2.imageentry.id,
+            b3.imageentry.id,
         ],
     )
     # Create a RasterEntry from the three band image entries

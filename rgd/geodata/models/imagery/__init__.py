@@ -12,6 +12,7 @@ from .base import (
     BandMetaEntry,
     ConvertedImageFile,
     ImageEntry,
+    ImageFile,
     ImageSet,
     KWCOCOArchive,
     RasterEntry,
@@ -19,4 +20,3 @@ from .base import (
     SubsampledImage,
     Thumbnail,
 )
-from .ifiles import ImageFile

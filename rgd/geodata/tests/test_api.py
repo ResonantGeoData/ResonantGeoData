@@ -20,7 +20,7 @@ def landsat_image():
         file__filename=name,
         file__from_path=datastore.fetch(name),
     )
-    return imagefile.baseimagefile_ptr.imageentry
+    return imagefile.imageentry
 
 
 @pytest.fixture()
@@ -30,7 +30,7 @@ def astro_image():
         file__filename=name,
         file__from_path=datastore.fetch(name),
     )
-    return imagefile.baseimagefile_ptr.imageentry
+    return imagefile.imageentry
 
 
 @pytest.fixture()
@@ -41,7 +41,7 @@ def landsat_raster():
         file__from_path=datastore.fetch(name),
     )
     image_set = factories.ImageSetFactory(
-        images=[imagefile.baseimagefile_ptr.imageentry.id],
+        images=[imagefile.imageentry.id],
     )
     raster = factories.RasterEntryFactory(
         name=name,
