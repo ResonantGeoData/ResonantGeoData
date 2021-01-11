@@ -218,6 +218,7 @@ class SubsampledImage(ModifiableEntry, TaskEventMixin):
         PIXEL_BOX = 'pixel box', _('Pixel bounding box')
         GEO_BOX = 'geographic box', _('Geographic bounding box')
         GEOJSON = 'geojson', _('GeoJSON feature')
+        ANNOTATION = 'annotation', _('Annotation entry')
 
     source_image = models.ForeignKey(ImageEntry, on_delete=models.CASCADE)
     sample_type = models.CharField(
@@ -247,6 +248,13 @@ class SubsampledImage(ModifiableEntry, TaskEventMixin):
             return dict(projWin=[p['xmin'], p['ymax'], p['xmax'], p['ymin']])
         elif self.sample_type == SubsampledImage.SampleTypes.GEOJSON:
             return p
+        elif self.sample_type == SubsampledImage.SampleTypes.ANNOTATION:
+            from .annotation import Annotation
+
+            ann_id = p['id']
+            outline = p.get('outline', False)
+            ann = Annotation.objects.get(id=ann_id)
+            return ann.segmentation.get_subsample_args(outline=outline)
         else:
             raise ValueError('Sample type ({}) unknown.'.format(self.sample_type))
 
