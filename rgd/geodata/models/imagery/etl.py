@@ -428,6 +428,13 @@ def _fill_annotation_segmentation(annotation_entry, ann_json):
 def load_kwcoco_dataset(kwcoco_dataset_id):
     logger.info('Starting KWCOCO ETL routine')
     ds_entry = KWCOCOArchive.objects.get(id=kwcoco_dataset_id)
+    if not ds_entry.name:
+        ds_entry.name = os.path.basename(ds_entry.spec_file.name)
+        ds_entry.save(
+            update_fields=[
+                'name',
+            ]
+        )
 
     # TODO: add a setting like this:
     workdir = getattr(settings, 'GEODATA_WORKDIR', None)
