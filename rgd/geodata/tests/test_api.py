@@ -120,10 +120,7 @@ def test_create_get_subsampled_image(client, astro_image):
         'sample_type': 'pixel box',
         'sample_parameters': json.dumps({'umax': 100, 'umin': 0, 'vmax': 200, 'vmin': 0}),
     }
-    response = client.post(
-        '/api/geodata/imagery/subsample',
-        payload
-    )
+    response = client.post('/api/geodata/imagery/subsample', payload)
     assert response.status_code == 201, response.content
     content = json.loads(response.content)
     pk = content['pk']
@@ -133,13 +130,11 @@ def test_create_get_subsampled_image(client, astro_image):
     response = client.get(f'/api/geodata/imagery/subsample/{pk}')
     assert response.status_code == 200, response.content
     # Now test to make sure the serializer prevents duplicates
-    response = client.post(
-        '/api/geodata/imagery/subsample',
-        payload
-    )
+    response = client.post('/api/geodata/imagery/subsample', payload)
     assert response.status_code == 201, response.content
     content = json.loads(response.content)
     assert pk == content['pk']  # Compare against original PK
+
 
 @pytest.mark.django_db(transaction=True)
 def test_create_and_download_cog(client, landsat_image):
