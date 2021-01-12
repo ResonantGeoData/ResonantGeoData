@@ -232,29 +232,29 @@ def _populate_fmv_entry(entry):
 
 
 def read_fmv_file(fmv_file_id):
-    fmv_file = FMVFile.objects.filter(id=fmv_file_id).first()
+    logger.info(f'Entered `read_fmv_file` for ID: {fmv_file_id}')
+    fmv_file = FMVFile.objects.get(id=fmv_file_id)
 
     validation = fmv_file.validate()
     # Only extraxt the KLV data if it does not exist or the checksum of the video has changed
     if not fmv_file.klv_file or not validation:
         _extract_klv_with_docker(fmv_file)
+    else:
+        logger.info(f'Found existing KLV file: `{fmv_file.klv_file}`')
     if not fmv_file.web_video_file or not validation:
         _convert_video_to_mp4(fmv_file)
+    else:
+        logger.info(f'Found existing eb video file: `{fmv_file.web_video_file}`')
 
-    # create a model entry for that shapefile
-    entry_query = FMVEntry.objects.filter(fmv_file=fmv_file_id)
-    if len(entry_query) < 1:
+    # create a model entry for that FMVFile
+    try:
+        entry = FMVEntry.objects.get(fmv_file=fmv_file_id)
+    except FMVEntry.DoesNotExist:
         entry = FMVEntry()
         # geometry_entry.creator = archive.creator
         entry.name = fmv_file.name
         entry.fmv_file = fmv_file
-    elif len(entry_query) == 1:
-        entry = entry_query.first()
-    else:
-        # This should never happen because it is a foreign key
-        raise RuntimeError('multiple FMV entries found for this file.')  # pragma: no cover
 
     _populate_fmv_entry(entry)
-    entry.save()
 
     return

@@ -2,6 +2,7 @@ import pytest
 
 from rgd.geodata.datastore import datastore
 from rgd.geodata.models.fmv.base import FMVEntry
+from rgd.geodata.models.mixins import Status
 
 from . import factories
 
@@ -26,8 +27,12 @@ def test_full_fmv_etl():
     fmv_file = factories.FMVFileFactory(
         file__filename='test_fmv.ts',
         file__from_path=datastore.fetch('test_fmv.ts'),
+        klv_file=None,
+        web_video_file=None,
     )
 
-    fmv_entry = FMVEntry.objects.filter(fmv_file=fmv_file).first()
+    assert fmv_file.status == Status.SUCCEEDED, fmv_file.failure_reason
+
+    fmv_entry = FMVEntry.objects.get(fmv_file=fmv_file)
 
     assert fmv_entry.ground_frames is not None
