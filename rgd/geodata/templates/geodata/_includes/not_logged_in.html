@@ -1,0 +1,27 @@
+{% block not_logged_in_message %}
+  <div class="card has-text-centered mw-480 my-6 p-0">
+    <header class="card-header">
+      <p class="card-header-title">You are not logged in</p>
+    </header>
+    <div class="card-content">
+      <div class="content pb-4">
+        Uh oh! It appears you aren't logged in. You can not see this content until you've done so. You may either log in to an existing account or sign up to create a new one.
+      </div>
+    </div>
+    <footer class="card-footer">
+      <a href="/accounts/signup/" class="card-footer-item is-primary">
+        <i class="material-icons mr-1">
+          meeting_room
+        </i>
+        Sign Up
+      </a>
+      <a href="/accounts/login/" class="card-footer-item is-secondary">
+        <i class="material-icons mr-1">
+          login
+        </i>
+        Log In
+      </a>
+    </footer>
+
+  </div>
+{% endblock %}

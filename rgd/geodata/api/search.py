@@ -3,18 +3,21 @@ import json
 
 import dateutil.parser
 from django.contrib.gis.db.models import Collect, Extent
-from django.contrib.gis.geos import Point, Polygon
+from django.contrib.gis.geos import GEOSGeometry, Point, Polygon
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db.models import Max, Min, Q
 from django.db.models.functions import Coalesce
 from django.http import HttpResponse, JsonResponse
 from django.utils.timezone import make_aware
-from drf_yasg2.utils import swagger_auto_schema
+from django_filters.rest_framework import DjangoFilterBackend
+from drf_yasg.utils import swagger_auto_schema
 from rest_framework import serializers as rfserializers
 from rest_framework.decorators import api_view
+from rest_framework.generics import ListAPIView
 
-from . import serializers
-from .models import GeometryEntry, RasterEntry, SpatialEntry
+from rgd.geodata import serializers
+from rgd.geodata.filters import SpatialEntryFilter
+from rgd.geodata.models import GeometryEntry, RasterMetaEntry, SpatialEntry
 
 
 class NearPointSerializer(rfserializers.Serializer):
@@ -57,6 +60,25 @@ class BoundingBoxSerializer(rfserializers.Serializer):
     # maximum_altitude = rfserializers.FloatField(
     #     allow_null=True, required=False, help_text='Altitude in meters'
     # )
+    start_time = rfserializers.DateTimeField(allow_null=True, required=False)
+    end_time = rfserializers.DateTimeField(allow_null=True, required=False)
+    timefield = rfserializers.CharField(
+        required=False,
+        default='acquisition',
+        help_text='A comma-separated list of fields to search.  This can include acquisition, created, modified.',
+    )
+
+
+class GeoJsonSerializer(rfserializers.Serializer):
+    geojson = rfserializers.CharField(
+        required=False,
+        help_text='A URL-encoded text of a GeoJSON Geometry object describing a geometry to search.',
+    )
+    within = rfserializers.BooleanField(
+        default=False,
+        allow_null=True,
+        help_text='Return data entirely within (rather than intersecting) the provided geometry.',
+    )
     start_time = rfserializers.DateTimeField(allow_null=True, required=False)
     end_time = rfserializers.DateTimeField(allow_null=True, required=False)
     timefield = rfserializers.CharField(
@@ -157,6 +179,37 @@ def search_bounding_box_filter(params, has_created=False):
     return query
 
 
+def search_geojson_filter(params, has_created=False):
+    """
+    Get a filter object that can be used when searching SpatialEntry models.
+
+    :param params: a dictionary of parameters, optionally including
+        geojson, within, start_time, end_time, and timefield.
+    :param has_created: if True, searching acquisition time will fallback to
+        include created times.
+    :raises ValueError: String input unrecognized as WKT EWKT, and HEXEWKB.
+    :returns: a Django query (Q) object.
+    """
+    query = Q()
+    if params.get('geojson') is not None:
+        geom = GEOSGeometry(params.get('geojson'))
+        if 'within' in params and params['within'] not in ('0', 'false', 'False', 'no', 'n'):
+            query.add(Q(footprint__within=(geom)), Q.AND)
+        else:
+            query.add(Q(footprint__intersects=(geom)), Q.AND)
+    if params.get('start_time') is not None or params.get('end_time') is not None:
+        if params.get('start_time') is not None:
+            starttime = dateutil.parser.isoparser().isoparse(params['start_time'])
+        if params.get('end_time') is not None:
+            endtime = dateutil.parser.isoparser().isoparse(params['end_time'])
+        else:
+            endtime = starttime
+        if params.get('start_time') is None:
+            starttime = endtime
+        _add_time_to_query(query, params.get('timefield', ''), starttime, endtime, has_created)
+    return query
+
+
 @swagger_auto_schema(
     method='GET',
     operation_summary='List geospatial datasets near a point',
@@ -179,8 +232,8 @@ def search_near_point(request, *args, **kwargs):
 @api_view(['GET'])
 def search_near_point_raster(request, *args, **kwargs):
     params = request.query_params
-    results = RasterEntry.objects.filter(search_near_point_filter(params, True))
-    return JsonResponse(serializers.RasterEntrySerializer(results, many=True).data, safe=False)
+    results = RasterMetaEntry.objects.filter(search_near_point_filter(params, True))
+    return JsonResponse(serializers.RasterMetaEntrySerializer(results, many=True).data, safe=False)
 
 
 @swagger_auto_schema(
@@ -218,8 +271,8 @@ def search_bounding_box(request, *args, **kwargs):
 @api_view(['GET'])
 def search_bounding_box_raster(request, *args, **kwargs):
     params = request.query_params
-    results = RasterEntry.objects.filter(search_bounding_box_filter(params, True))
-    return JsonResponse(serializers.RasterEntrySerializer(results, many=True).data, safe=False)
+    results = RasterMetaEntry.objects.filter(search_bounding_box_filter(params, True))
+    return JsonResponse(serializers.RasterMetaEntrySerializer(results, many=True).data, safe=False)
 
 
 @swagger_auto_schema(
@@ -232,6 +285,45 @@ def search_bounding_box_raster(request, *args, **kwargs):
 def search_bounding_box_geometry(request, *args, **kwargs):
     params = request.query_params
     results = GeometryEntry.objects.filter(search_bounding_box_filter(params))
+    return JsonResponse(serializers.GeometryEntrySerializer(results, many=True).data, safe=False)
+
+
+@swagger_auto_schema(
+    method='GET',
+    operation_summary='List geospatial datasets in a GeoJSON geometry',
+    operation_description='List geospatial datasets that intersect or lie entirely within a GeoJSON geometry',
+    query_serializer=GeoJsonSerializer,
+)
+@api_view(['GET'])
+def search_geojson(request, *args, **kwargs):
+    params = request.query_params
+    results = SpatialEntry.objects.filter(search_geojson_filter(params))
+    return JsonResponse(serializers.SpatialEntrySerializer(results, many=True).data, safe=False)
+
+
+@swagger_auto_schema(
+    method='GET',
+    operation_summary='List raster datasets in a GeoJSON geometry',
+    operation_description='List geospatial raster datasets that intersect or lie entirely within a GeoJSON geometry',
+    query_serializer=GeoJsonSerializer,
+)
+@api_view(['GET'])
+def search_geojson_raster(request, *args, **kwargs):
+    params = request.query_params
+    results = RasterMetaEntry.objects.filter(search_geojson_filter(params, True))
+    return JsonResponse(serializers.RasterMetaEntrySerializer(results, many=True).data, safe=False)
+
+
+@swagger_auto_schema(
+    method='GET',
+    operation_summary='List geometry datasets in a GeoJSON geometry',
+    operation_description='List geospatial geometry datasets that intersect or lie entirely within a GeoJSON geometry',
+    query_serializer=GeoJsonSerializer,
+)
+@api_view(['GET'])
+def search_geojson_geometry(request, *args, **kwargs):
+    params = request.query_params
+    results = GeometryEntry.objects.filter(search_geojson_filter(params))
     return JsonResponse(serializers.GeometryEntrySerializer(results, many=True).data, safe=False)
 
 
@@ -390,7 +482,7 @@ def search_near_point_extent(request, *args, **kwargs):
 @api_view(['GET'])
 def search_near_point_extent_raster(request, *args, **kwargs):
     params = request.query_params
-    found = RasterEntry.objects.filter(search_near_point_filter(params, True))
+    found = RasterMetaEntry.objects.filter(search_near_point_filter(params, True))
     return extent_summary_http(found, True)
 
 
@@ -429,7 +521,7 @@ def search_bounding_box_extent(request, *args, **kwargs):
 @api_view(['GET'])
 def search_bounding_box_extent_raster(request, *args, **kwargs):
     params = request.query_params
-    found = RasterEntry.objects.filter(search_bounding_box_filter(params, True))
+    found = RasterMetaEntry.objects.filter(search_bounding_box_filter(params, True))
     return extent_summary_http(found, True)
 
 
@@ -444,3 +536,49 @@ def search_bounding_box_extent_geometry(request, *args, **kwargs):
     params = request.query_params
     found = GeometryEntry.objects.filter(search_bounding_box_filter(params))
     return extent_summary_http(found)
+
+
+@swagger_auto_schema(
+    method='GET',
+    operation_summary='Extents of geospatial datasets in a GeoJSON geometry',
+    operation_description='Get the convex hull and time range for geospatial datasets that intersect or lie entirely within a GeoJSON geometry',
+    query_serializer=GeoJsonSerializer,
+)
+@api_view(['GET'])
+def search_geojson_extent(request, *args, **kwargs):
+    params = request.query_params
+    found = SpatialEntry.objects.filter(search_geojson_filter(params))
+    return extent_summary_http(found)
+
+
+@swagger_auto_schema(
+    method='GET',
+    operation_summary='Extents of raster datasets in a GeoJSON geometry',
+    operation_description='Get the convex hull and time range for geospatial raster datasets that intersect or lie entirely within a GeoJSON geometry',
+    query_serializer=GeoJsonSerializer,
+)
+@api_view(['GET'])
+def search_geojson_extent_raster(request, *args, **kwargs):
+    params = request.query_params
+    found = RasterMetaEntry.objects.filter(search_geojson_filter(params, True))
+    return extent_summary_http(found, True)
+
+
+@swagger_auto_schema(
+    method='GET',
+    operation_summary='Extents of geometry datasets in a GeoJSON geometry',
+    operation_description='Get the convex hull and time range for geospatial geometry datasets that intersect or lie entirely within a GeoJSON geometry',
+    query_serializer=GeoJsonSerializer,
+)
+@api_view(['GET'])
+def search_geojson_extent_geometry(request, *args, **kwargs):
+    params = request.query_params
+    found = GeometryEntry.objects.filter(search_geojson_filter(params))
+    return extent_summary_http(found)
+
+
+class SearchSpatialEntryView(ListAPIView):
+    queryset = SpatialEntry.objects.all()
+    serializer_class = serializers.SpatialEntrySerializer
+    filter_backends = [DjangoFilterBackend]
+    filterset_class = SpatialEntryFilter

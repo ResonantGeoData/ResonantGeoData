@@ -1,18 +1,20 @@
 import pytest
 
-from rgd.geodata.models.imagery.annotation import RLESegmentation
+from rgd.geodata.datastore import datastore
+from rgd.geodata.models.imagery.annotation import Annotation, RLESegmentation
+from rgd.geodata.models.imagery.base import ConvertedImageFile, ImageEntry, SubsampledImage
 from rgd.geodata.models.imagery.etl import populate_image_entry
+from rgd.geodata.models.imagery.subsample import populate_subsampled_image
 
 from . import factories
-from .datastore import datastore
 
 SampleFiles = [
     {'name': '20091021202517-01000100-VIS_0001.ntf', 'centroid': {'x': -84.1110, 'y': 39.781}},
-    {'name': 'aerial_rgba_000003.tiff', 'centroid': {'x': -122.0050, 'y': 37.3359}},
-    {'name': 'cclc_schu_100.tif', 'centroid': {'x': -76.8638, 'y': 42.3869}},
-    {'name': 'landcover_sample_2000.tif', 'centroid': {'x': -75.4412, 'y': 42.6694}},
+    {'name': 'aerial_rgba_000003.tiff', 'centroid': {'x': -122.0050, 'y': 37.3362}},
+    {'name': 'cclc_schu_100.tif', 'centroid': {'x': -76.8746, 'y': 42.3933}},
+    {'name': 'landcover_sample_2000.tif', 'centroid': {'x': -75.5988, 'y': 42.9230}},
     {'name': 'paris_france_10.tiff', 'centroid': {'x': 2.5485, 'y': 49.0039}},
-    {'name': 'rgb_geotiff.tiff', 'centroid': {'x': -117.1872, 'y': 33.1712}},
+    {'name': 'rgb_geotiff.tiff', 'centroid': {'x': -117.1900, 'y': 33.1713}},
     {'name': 'RomanColosseum_WV2mulitband_10.tif', 'centroid': {'x': 12.4923, 'y': 41.8902}},
 ]
 
@@ -31,10 +33,15 @@ def test_imagefile_to_rasterentry_centroids(testfile):
         file__filename=testfile['name'],
         file__from_path=datastore.fetch(testfile['name']),
     )
-    raster = factories.RasterEntryFactory(
-        name=testfile['name'], images=[imagefile.baseimagefile_ptr.imageentry.id]
+    image_set = factories.ImageSetFactory(
+        images=[imagefile.imageentry.id],
     )
-    centroid = raster.footprint.centroid
+    raster = factories.RasterEntryFactory(
+        name=testfile['name'],
+        image_set=image_set,
+    )
+    meta = raster.rastermetaentry
+    centroid = meta.footprint.centroid
     assert centroid.x == pytest.approx(testfile['centroid']['x'], abs=2e-4)
     assert centroid.y == pytest.approx(testfile['centroid']['y'], abs=2e-4)
 
@@ -66,17 +73,21 @@ def test_multi_file_raster():
         file__filename=LandsatFiles[2],
         file__from_path=datastore.fetch(LandsatFiles[2]),
     )
+    image_set = factories.ImageSetFactory(
+        images=[
+            b1.imageentry.id,
+            b2.imageentry.id,
+            b3.imageentry.id,
+        ],
+    )
     # Create a RasterEntry from the three band image entries
     raster = factories.RasterEntryFactory(
         name='Multi File Test',
-        images=[
-            b1.baseimagefile_ptr.imageentry.id,
-            b2.baseimagefile_ptr.imageentry.id,
-            b3.baseimagefile_ptr.imageentry.id,
-        ],
+        image_set=image_set,
     )
-    assert raster.count == 3
-    assert raster.crs is not None
+    meta = raster.rastermetaentry
+    assert raster.image_set.count == 3
+    assert meta.crs is not None
 
 
 def _run_kwcoco_import(demo):
@@ -135,3 +146,72 @@ def test_kwcoco_rle_demo():
 
     mask = seg.to_mask()
     assert mask.shape == (seg.height, seg.width)
+
+
+@pytest.mark.django_db(transaction=True)
+def test_cog_image_conversion():
+    image_file = factories.ImageFileFactory(
+        file__filename=SampleFiles[0]['name'],
+        file__from_path=datastore.fetch(SampleFiles[0]['name']),
+    )
+    img = ImageEntry.objects.get(image_file=image_file)
+    c = ConvertedImageFile()
+    c.source_image = img
+    c.save()
+    # Task should complete synchronously
+    c.refresh_from_db()
+    assert c.converted_file
+
+
+@pytest.mark.django_db(transaction=True)
+def test_subsampling():
+    name = 'Elevation.tif'
+    image_file = factories.ImageFileFactory(
+        file__filename=name,
+        file__from_path=datastore.fetch(name),
+    )
+
+    def create_subsampled(img, sample_type, params):
+        sub = SubsampledImage()
+        sub.source_image = img
+        sub.sample_type = sample_type
+        sub.sample_parameters = params
+        sub.skip_signal = True
+        sub.save()
+        populate_subsampled_image(sub)
+        sub.refresh_from_db()
+        return sub
+
+    img = ImageEntry.objects.get(image_file=image_file)
+
+    # Test with bbox
+    sub = create_subsampled(img, 'pixel box', {'umax': 100, 'umin': 0, 'vmax': 200, 'vmin': 0})
+    assert sub.data
+    # Test with GeoJSON
+    geojson = {
+        'type': 'Polygon',
+        'coordinates': [
+            [
+                [-107.08212524738178, 39.01040379702808],
+                [-106.96182164246767, 39.03110215679572],
+                [-106.90895466037738, 38.98387516880551],
+                [-106.9805540376965, 38.91038429753703],
+                [-107.07130208569401, 38.952157178475225],
+                [-107.08212524738178, 39.01040379702808],
+            ]
+        ],
+    }
+    sub = create_subsampled(img, 'geojson', geojson)
+    assert sub.data
+    # Test with annotations
+    demo = {
+        'archive': 'demo_rle.zip',
+        'spec': 'demo_rle.kwcoco.json',
+    }
+    _ = _run_kwcoco_import(demo)
+    img = ImageEntry.objects.get(name='000000242287.jpg')  # bicycle
+    a = Annotation.objects.get(image=img.id)  # Should be only one
+    sub = create_subsampled(img, 'annotation', {'id': a.id})
+    assert sub.data
+    sub = create_subsampled(img, 'annotation', {'id': a.id, 'outline': True})
+    assert sub.data

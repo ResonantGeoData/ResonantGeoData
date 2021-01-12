@@ -10,18 +10,17 @@
       <thead class="thead-dark">
         <tr>
           <th>Name (ID)</th>
-          <th>Size</th>
           <th>Number of Bands</th>
           <th>Resolution</th>
         </tr>
       </thead>
       <tbody>
-        {% for raster in rasters %}
+        {% for meta in raster_metas %}
           <tr>
-            <td><a href="{% url 'raster-entry-detail' raster.pk %}">{{ raster.name }} ({{ raster.id }})</a></td>
-            <td>{{ raster.width }} x {{ raster.height }}</td>
-            <td>{{ raster.image_bands }}</td>
-            <td>{{ raster.resolution }}</td>
+            <td>{{ meta.parent_raster.icon_tag }}</td>
+            <td><a href="{% url 'raster-entry-detail' meta.parent_raster.pk %}">{{ meta.parent_raster.name }} ({{ meta.parent_raster.id }})</a></td>
+            <td>{{ meta.parent_raster.count }}</td>
+            <td>{{ meta.resolution }}</td>
           </tr>
         {% endfor %}
       </tbody>

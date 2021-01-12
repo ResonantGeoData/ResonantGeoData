@@ -1,6 +1,7 @@
 from django.contrib import admin
 from django.contrib.gis.admin import OSMGeoAdmin
 
+from . import actions
 from .models.common import ArbitraryFile
 from .models.fmv.base import FMVEntry, FMVFile
 from .models.geometry.base import GeometryArchive, GeometryEntry
@@ -14,16 +15,24 @@ from .models.imagery.base import (
     BandMetaEntry,
     ConvertedImageFile,
     ImageEntry,
+    ImageFile,
     ImageSet,
     KWCOCOArchive,
     RasterEntry,
+    RasterMetaEntry,
+    SubsampledImage,
     Thumbnail,
 )
-from .models.imagery.ifiles import BaseImageFile, ImageArchiveFile, ImageFile
 
 SPATIAL_ENTRY_FILTERS = (
     'acquisition_date',
     'modified',
+    'created',
+)
+
+TASK_EVENT_READONLY = (
+    'failure_reason',
+    'status',
 )
 
 
@@ -32,7 +41,10 @@ class ArbitraryFileAdmin(OSMGeoAdmin):
     list_display = (
         'id',
         'name',
+        'modified',
+        'created',
     )
+    readonly_fields = ('checksum',)
 
 
 @admin.register(KWCOCOArchive)
@@ -40,8 +52,11 @@ class KWCOCOArchiveAdmin(OSMGeoAdmin):
     list_display = (
         'id',
         'name',
+        'status',
+        'modified',
+        'created',
     )
-    readonly_fields = ('image_set',)
+    readonly_fields = ('image_set',) + TASK_EVENT_READONLY
 
 
 @admin.register(ImageSet)
@@ -50,64 +65,36 @@ class ImageSetAdmin(OSMGeoAdmin):
         'id',
         'name',
         'count',
-    )
-
-
-@admin.register(ImageEntry)
-class ImageEntryAdmin(OSMGeoAdmin):
-    list_display = (
-        'id',
-        'name',
-        'image_file',
-        'modified',
-    )
-    readonly_fields = (
-        'number_of_bands',
-        'image_file',
-        'height',
-        'width',
-        'driver',
-        'metadata',
         'modified',
         'created',
-    )  # 'thumbnail')
-    list_filter = ('instrumentation', 'number_of_bands', 'driver')
+    )
+    actions = (actions.make_raster_from_image_set,)
 
 
-@admin.register(RasterEntry)
-class RasterEntryAdmin(OSMGeoAdmin):
+class ThumbnailInline(admin.TabularInline):
+    model = Thumbnail
+    fk_name = 'image_entry'
     list_display = (
         'id',
-        'name',
-        'status',
-        'modified',
+        'image_entry',
     )
-    readonly_fields = (
-        'crs',
-        'origin',
-        'extent',
-        'resolution',
-        'transform',
-        'modified',
-        'created',
-        'failure_reason',
-    )  # 'thumbnail')
-    list_filter = SPATIAL_ENTRY_FILTERS + ('crs',)
-    modifiable = False  # To still show the footprint and outline
+    fields = ('image_tag',)
+    readonly_fields = ('image_tag',)
 
-    def status(self, obj):
-        return not obj.failure_reason
-
-    status.boolean = True
+    def has_add_permission(self, request, obj=None):
+        """Prevent user from adding more."""
+        return False
 
 
-@admin.register(BandMetaEntry)
-class BandMetaEntryAdmin(OSMGeoAdmin):
+class BandMetaEntryInline(admin.StackedInline):
+    model = BandMetaEntry
+    fk_name = 'parent_image'
+
     list_display = (
         'id',
         'parent_image',
         'modified',
-        # 'parent_image',  # TODO: this prevents the list view from working
+        'created',
     )
     readonly_fields = (
         'mean',
@@ -119,6 +106,7 @@ class BandMetaEntryAdmin(OSMGeoAdmin):
         'std',
         'nodata_value',
         'dtype',
+        'band_number',
     )
     list_filter = (
         'parent_image',
@@ -126,15 +114,90 @@ class BandMetaEntryAdmin(OSMGeoAdmin):
         'dtype',
     )
 
+    def has_add_permission(self, request, obj=None):
+        """Prevent user from adding more."""
+        return False
 
-@admin.register(Segmentation)
-class SegmentationAdmin(OSMGeoAdmin):
+
+@admin.register(ImageEntry)
+class ImageEntryAdmin(OSMGeoAdmin):
+    list_display = (
+        'icon_tag',
+        'id',
+        'name',
+        'image_file',
+        'modified',
+        'created',
+    )
+    readonly_fields = (
+        'number_of_bands',
+        'image_file',
+        'height',
+        'width',
+        'driver',
+        'metadata',
+        'modified',
+        'created',
+    )
+    list_filter = ('instrumentation', 'number_of_bands', 'driver')
+    actions = (
+        actions.make_image_set_from_image_entries,
+        actions.make_raster_from_image_entries,
+        actions.make_raster_for_each_image_entry,
+    )
+    inlines = (ThumbnailInline, BandMetaEntryInline)
+
+
+class RasterMetaEntryInline(admin.StackedInline):
+    model = RasterMetaEntry
+    fk_name = 'parent_raster'
+    list_display = (
+        'id',
+        'modified',
+        'created',
+    )
+    readonly_fields = (
+        'crs',
+        'origin',
+        'extent',
+        'resolution',
+        'transform',
+        'modified',
+        'created',
+        'parent_raster',
+    )
+    list_filter = SPATIAL_ENTRY_FILTERS + ('crs',)
+    modifiable = False  # To still show the footprint and outline
+
+
+@admin.register(RasterEntry)
+class RasterEntryAdmin(OSMGeoAdmin):
+    list_display = (
+        'icon_tag',
+        'id',
+        'name',
+        'status',
+        'modified',
+        'created',
+    )
+    readonly_fields = (
+        'modified',
+        'created',
+    ) + TASK_EVENT_READONLY
+    inlines = (RasterMetaEntryInline,)
+    actions = (actions.reprocess_raster_entries,)
+
+
+class SegmentationInline(admin.StackedInline):
+    model = Segmentation
+    fk_name = 'annotation'
     list_display = ('id',)
     readonly_fields = ('outline',)
 
 
-@admin.register(PolygonSegmentation)
-class PolygonSegmentationAdmin(OSMGeoAdmin):
+class PolygonSegmentationInline(admin.StackedInline):
+    model = PolygonSegmentation
+    fk_name = 'annotation'
     list_display = ('id',)
     readonly_fields = (
         'outline',
@@ -142,8 +205,9 @@ class PolygonSegmentationAdmin(OSMGeoAdmin):
     )
 
 
-@admin.register(RLESegmentation)
-class RLESegmentationAdmin(OSMGeoAdmin):
+class RLESegmentationInline(admin.StackedInline):
+    model = RLESegmentation
+    fk_name = 'annotation'
     list_display = ('id',)
     readonly_fields = ('outline', 'width', 'height', 'blob')
 
@@ -153,73 +217,67 @@ class AnnotationAdmin(OSMGeoAdmin):
     list_display = (
         'id',
         'caption',
+        'label',
+        'annotator',
+        'segmentation_type',
+        'modified',
+        'created',
     )
-
-
-@admin.register(BaseImageFile)
-class BaseImageFileAdmin(OSMGeoAdmin):
-    list_display = ('image_file_id',)
-
-
-@admin.register(ImageArchiveFile)
-class ImageArchiveFileAdmin(OSMGeoAdmin):
-    list_display = ('image_file_id',)
+    readonly_fields = (
+        'keypoints',
+        'line',
+    )
+    inlines = (SegmentationInline, PolygonSegmentationInline, RLESegmentationInline)
 
 
 @admin.register(ImageFile)
 class ImageFileAdmin(OSMGeoAdmin):
     list_display = (
-        'image_file_id',
+        'id',
         'name',
         'status',
         'modified',
+        'created',
         'image_data_link',
     )
-    readonly_fields = ('failure_reason', 'modified', 'created', 'checksum', 'last_validation')
-
-    def status(self, obj):
-        return not obj.failure_reason
-
-    status.boolean = True
-
-
-@admin.register(Thumbnail)
-class ThumbnailAdmin(OSMGeoAdmin):
-    list_display = (
-        'id',
-        'image_entry',
-    )
-    fields = ('image_tag',)
-    readonly_fields = ('image_tag',)
+    readonly_fields = ('modified', 'created', 'checksum', 'last_validation') + TASK_EVENT_READONLY
+    actions = (actions.reprocess_image_files,)
 
 
 @admin.register(ConvertedImageFile)
 class ConvertedImageFileAdmin(OSMGeoAdmin):
     list_display = (
         'id',
-        'name',
         'source_image',
         'status',
         'modified',
+        'created',
     )
-    readonly_fields = (
-        'failure_reason',
-        'file',
+    readonly_fields = ('converted_file',) + TASK_EVENT_READONLY
+
+
+@admin.register(SubsampledImage)
+class SubsampledImageAdmin(OSMGeoAdmin):
+    list_display = (
+        'id',
+        'source_image',
+        'sample_type',
+        'status',
+        'modified',
+        'created',
     )
-
-    def status(self, obj):
-        return not obj.failure_reason
-
-    status.boolean = True
+    readonly_fields = ('data',) + TASK_EVENT_READONLY
 
 
-@admin.register(GeometryEntry)
-class GeometryEntryAdmin(OSMGeoAdmin):
+class GeometryEntryInline(admin.StackedInline):
+    model = GeometryEntry
+    fk_name = 'geometry_archive'
     list_display = (
         'id',
         'name',
         'geometry_archive',
         'modified',
+        'created',
     )
     list_filter = SPATIAL_ENTRY_FILTERS
     readonly_fields = (
@@ -227,6 +285,7 @@ class GeometryEntryAdmin(OSMGeoAdmin):
         'created',
         'geometry_archive',
     )
+    modifiable = False  # To still show the footprint and outline
 
 
 @admin.register(GeometryArchive)
@@ -236,20 +295,32 @@ class GeometryArchiveAdmin(OSMGeoAdmin):
         'name',
         'status',
         'modified',
+        'created',
         'archive_data_link',
     )
     readonly_fields = (
-        'failure_reason',
         'modified',
         'created',
         'last_validation',
         'checksum',
+    ) + TASK_EVENT_READONLY
+    inlines = (GeometryEntryInline,)
+
+
+class FMVEntryInline(admin.StackedInline):
+    model = FMVEntry
+    fk_name = 'fmv_file'
+    list_display = (
+        'id',
+        'name',
+        'fmv_file',
+        'modified',
+        'created',
     )
-
-    def status(self, obj):
-        return not obj.failure_reason
-
-    status.boolean = True
+    readonly_fields = (
+        'modified',
+        'created',
+    )
 
 
 @admin.register(FMVFile)
@@ -259,18 +330,17 @@ class FMVFileAdmin(OSMGeoAdmin):
         'name',
         'status',
         'modified',
+        'created',
         'fmv_data_link',
+        'klv_data_link',
     )
-    readonly_fields = ('failure_reason', 'modified', 'created', 'checksum', 'last_validation')
-
-    def status(self, obj):
-        return not obj.failure_reason
-
-    status.boolean = True
-
-
-@admin.register(FMVEntry)
-class FMVEntryAdmin(OSMGeoAdmin):
-    list_display = ('id', 'name', 'klv_data_link')
-
-    readonly_fields = ('modified', 'created', 'klv_file', 'fmv_file')
+    readonly_fields = (
+        'modified',
+        'created',
+        'checksum',
+        'last_validation',
+        'klv_file',
+        'web_video_file',
+        'frame_rate',
+    ) + TASK_EVENT_READONLY
+    inlines = (FMVEntryInline,)

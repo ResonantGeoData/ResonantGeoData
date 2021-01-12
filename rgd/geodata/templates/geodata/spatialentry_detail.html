@@ -1,0 +1,52 @@
+{% extends "geodata/_base/detail.html" %}
+
+{% block meta_table_body %}
+
+  <tr>
+    <td>Acquisition Date</td>
+    <td>{{ object.acquisition_date }}</td>
+  </tr>
+  <tr>
+    <td>Area</td>
+    <td>{{ object.footprint.area | floatformat:-2 }}</td>
+  </tr>
+
+{% endblock %}
+
+
+{% block detail %}
+
+
+  {% include 'geodata/_includes/empty_viewer.html' %}
+
+  <script>
+    let extents = JSON.parse('{{ extents|escapejs }}');
+
+    // Add collected polygons to map
+    let reader = geo.createFileReader('geojsonReader', {
+      'layer': layer
+    });
+
+    // Reads the boundary
+    reader.read(extents.collect, (features) => {
+      features[0].style({
+        strokeColor: '#6586c9',
+        fillColor: '#6586c9',
+        fill: true,
+        opacity: 0.75,
+      })
+      .draw();
+    });
+
+    reader.read(extents.outline, (features) => {
+      features[0].style({
+        strokeColor: '#FF0000',
+        fill: false,
+      })
+      .draw();
+    });
+
+    setBounds(extents.extent, true)
+  </script>
+
+{% endblock %}

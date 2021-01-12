@@ -11,7 +11,7 @@
   </tr>
   <tr>
     <td>KLV Metadata</td>
-    <td>{{ object.klv_data_link }}</td>
+    <td>{{ object.fmv_file.klv_data_link }}</td>
   </tr>
   <tr>
     <td>Original FMV Video</td>
@@ -20,13 +20,15 @@
 
 {% endblock %}
 
+{% block extra_meta %}
+
+  <video width="320" height="240" autobuffer="autobuffer" autoplay="autoplay" loop="loop" controls="controls" id="fmv_video">
+    <source src="{{ object.fmv_file.web_video_file.url }}" type='video/mp4; codecs="avc1.42E01E, mp4a.40.2"'>
+  </video>
+
+{% endblock %}
+
 {% block detail %}
-
-    <video width="320" height="240" autobuffer="autobuffer" autoplay="autoplay" loop="loop" controls="controls" id="fmv_video">
-      <source src="{{ object.web_video_file.url }}" type='video/mp4; codecs="avc1.42E01E, mp4a.40.2"'>
-    </video>
-
-    <p/>
 
     {% include 'geodata/_includes/viewer.html' %}
 
@@ -34,13 +36,17 @@
       let frameRate = JSON.parse('{{ frame_rate|escapejs }}');
       var video = document.getElementById("fmv_video");
 
+      // Move video to UI layer in map
+      var videoFrame = ui.createWidget('dom', {position: {left: 10, bottom: 10}});
+      // videoFrame.canvas().appendChild(video)
+
       if (extents.ground_frames !== undefined) {
         let polys = JSON.parse(extents.ground_frames);
         let frameNumbers = extents.frame_numbers;
 
-        var frameFootprint = layer.createFeature('polygon')
+        var frameFootprint = layer.createFeature('quad')
           .style({
-            fillColor: 'red',
+            color: 'red',
             opacity: 0.5
           })
 
@@ -49,13 +55,13 @@
           let index = frameNumbers.indexOf(frame);
           if (index > -1) {
             var coords = polys.coordinates[index][0]
-            var data = [[
-              {x: coords[0][0], y: coords[0][1]},
-              {x: coords[1][0], y: coords[1][1]},
-              {x: coords[2][0], y: coords[2][1]},
-              {x: coords[3][0], y: coords[3][1]},
-              {x: coords[4][0], y: coords[4][1]}
-            ]]
+            var data = [{
+              ll: {x: coords[0][0], y: coords[0][1]},
+              lr: {x: coords[1][0], y: coords[1][1]},
+              ur: {x: coords[2][0], y: coords[2][1]},
+              ul: {x: coords[3][0], y: coords[3][1]},
+              // video: video,
+            }]
 
             frameFootprint.data(data).draw();
           }

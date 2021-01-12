@@ -1,7 +1,9 @@
 import base64
+import json
 import pickle
 
 from django.contrib.gis.db import models
+from django.core.exceptions import ObjectDoesNotExist
 import numpy as np
 
 from ..common import ModifiableEntry
@@ -20,6 +22,10 @@ class Annotation(ModifiableEntry):
 
     keypoints = models.MultiPointField(null=True, srid=0)
     line = models.LineStringField(null=True, srid=0)
+
+    def segmentation_type(self):
+        """Get type of segmentation."""
+        return self.segmentation.get_type()
 
 
 class Segmentation(models.Model):
@@ -45,6 +51,45 @@ class Segmentation(models.Model):
     # This should come from the COCO format rather than be autopopulated by us
     outline = models.PolygonField(srid=0, null=True, help_text='The bounding box')
 
+    def get_type(self):
+        """Get type of segmentation."""
+        try:
+            _ = self.polygonsegmentation
+            return 'PolygonSegmentation'
+        except ObjectDoesNotExist:
+            pass
+        try:
+            _ = self.rlesegmentation
+            return 'RLE'
+        except ObjectDoesNotExist:
+            pass
+        return 'Oultine/BBox'
+
+    def get_subsample_args(self, outline=False):
+        """Get the GDAL arguments for subsampling with this Segmentation.
+
+        Defaults to returning the Outline/BBox in pixel coordinates.
+
+        Parameters
+        ----------
+        outline : bool, optional
+            Force use of outline/bbox as geometry.
+
+        """
+        if not outline:
+            try:
+                polyseg = self.polygonsegmentation
+                return polyseg.get_subsample_args()
+            except ObjectDoesNotExist:
+                pass
+        points = np.array(self.outline.coords).reshape((-1, 2))
+        umin = min(points[:, 0])
+        umax = max(points[:, 0])
+        vmin = min(points[:, 1])
+        vmax = max(points[:, 1])
+        # -srcwin <xoff> <yoff> <xsize> <ysize>
+        return dict(srcWin=[umin, vmin, umax - umin, vmax - vmin])
+
 
 class PolygonSegmentation(Segmentation):
     """one/many shape(s) in pixel coordinates (can be decimal).
@@ -57,6 +102,11 @@ class PolygonSegmentation(Segmentation):
     """
 
     feature = models.MultiPolygonField(srid=0, null=True)
+
+    def get_subsample_args(self):
+        """Get the GDAL arguments for subsampling with this Segmentation."""
+        # If the image is Geospatial, traslate this geometry into that SRID
+        return json.loads(self.feature.geojson)
 
 
 class RLESegmentation(Segmentation):

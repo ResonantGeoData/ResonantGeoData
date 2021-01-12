@@ -48,3 +48,11 @@ services:
   flower:
     image: mher/flower
     command: ["--broker=amqp://rabbitmq:5672/", "--url_prefix=flower"]
+
+  sass:
+    build:
+      context: ./dev
+      dockerfile: ./sass.Dockerfile
+    volumes:
+      # Must point to top level, image will compile things in `sass/ su`
+      - ./rgd/geodata/static/geodata/css/:/src

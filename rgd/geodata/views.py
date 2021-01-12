@@ -1,19 +1,13 @@
 import json
-import os
 
-from django.db.models.fields.files import FieldFile
-from django.http import HttpResponse
-from django.shortcuts import get_object_or_404  # , render
-from django.utils.encoding import smart_str
 from django.views import generic
 from django.views.generic import DetailView
-from drf_yasg2.utils import swagger_auto_schema
-from rest_framework.decorators import api_view
 
-from . import models, search
+from .api import search
 from .models.common import SpatialEntry
 from .models.fmv.base import FMVEntry
-from .models.imagery.base import RasterEntry, Thumbnail
+from .models.geometry import GeometryEntry
+from .models.imagery.base import RasterEntry, RasterMetaEntry
 
 
 class _SpatialListView(generic.ListView):
@@ -36,6 +30,9 @@ class _SpatialListView(generic.ListView):
             method = search.search_near_point_filter
         elif all(k in self.search_params for k in bbox):
             method = search.search_bounding_box_filter
+        elif 'geojson' in self.request.GET:
+            self.search_params = self.request.GET
+            method = search.search_geojson_filter
 
         return self.model.objects.filter(method(self.search_params))
 
@@ -45,14 +42,21 @@ class _SpatialListView(generic.ListView):
     def get_context_data(self, *args, **kwargs):
         # The returned query set is in self.object_list, not self.queryset
         context = super().get_context_data(*args, **kwargs)
-        context['extents'] = json.dumps(self._get_extent_summary())
+        summary = self._get_extent_summary()
+        context['extents'] = json.dumps(summary)
         context['search_params'] = json.dumps(self.search_params)
+        # Have a smaller dict of meta fields to parse for menu bar
+        # This keeps us from parsing long GeoJSON fields twice
+        meta = {
+            'count': summary['count'],
+        }
+        context['extents_meta'] = json.dumps(meta)
         return context
 
 
 class RasterEntriesListView(_SpatialListView):
-    model = RasterEntry
-    context_object_name = 'rasters'
+    model = RasterMetaEntry
+    context_object_name = 'raster_metas'
     template_name = 'geodata/raster_entries.html'
 
 
@@ -60,6 +64,12 @@ class SpatialEntriesListView(_SpatialListView):
     model = SpatialEntry
     context_object_name = 'spatial_entries'
     template_name = 'geodata/spatial_entries.html'
+
+
+class GeometryEntriesListView(_SpatialListView):
+    model = GeometryEntry
+    context_object_name = 'geometries'
+    template_name = 'geodata/geometry_entries.html'
 
 
 class FMVEntriesListView(_SpatialListView):
@@ -104,10 +114,10 @@ class RasterEntryDetailView(_SpatialDetailView):
     def _get_extent(self):
         extent = super()._get_extent()
         # Add a thumbnail of the first image in the raster set
-        image_entries = self.object.images.all()
+        image_entries = self.object.image_set.images.all()
         image_urls = {}
         for image_entry in image_entries:
-            thumbnail = Thumbnail.objects.filter(image_entry=image_entry).first()
+            thumbnail = image_entry.thumbnail
             image_urls[thumbnail.image_entry.id] = thumbnail.base_thumbnail.url
         extent['thumbnails'] = image_urls
         return extent
@@ -127,34 +137,18 @@ class FMVEntryDetailView(_SpatialDetailView):
 
     def get_context_data(self, *args, **kwargs):
         context = super().get_context_data(*args, **kwargs)
-        context['frame_rate'] = json.dumps(self.object.frame_rate)
+        context['frame_rate'] = json.dumps(self.object.fmv_file.frame_rate)
         return context
 
 
-@swagger_auto_schema(
-    method='GET',
-    operation_summary='Download a model file',
-    operation_description='Download a model file through the server instead of from the assetstore',
-)
-@api_view(['GET'])
-def download_file(request, model, id, field):
-    model_class = ''.join([part[:1].upper() + part[1:] for part in model.split('_')])
-    if not hasattr(models, model_class):
-        raise Exception('No such model (%s)' % model)
-    model_inst = get_object_or_404(getattr(models, model_class), pk=id)
-    if not isinstance(getattr(model_inst, field, None), FieldFile):
-        raise Exception('No such file (%s)' % field)
-    file = getattr(model_inst, field)
-    filename = os.path.basename(file.name)
-    if not filename:
-        filename = '%s_%s_%s.dat' % (model, id, field)
-    mimetype = getattr(
-        model_inst,
-        '%s_mimetype' % field,
-        'text/plain' if field == 'log' else 'application/octet-stream',
-    )
-    response = HttpResponse(file.chunks(), content_type=mimetype)
-    response['Content-Disposition'] = smart_str(u'attachment; filename=%s' % filename)
-    if len(file) is not None:
-        response['Content-Length'] = len(file)
-    return response
+class GeometryEntryDetailView(_SpatialDetailView):
+    model = GeometryEntry
+
+    def _get_extent(self):
+        extent = super()._get_extent()
+        extent['data'] = self.object.data.json
+        return extent
+
+
+class SpatialEntryDetailView(_SpatialDetailView):
+    model = SpatialEntry

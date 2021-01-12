@@ -1,12 +1,6 @@
-from contextlib import contextmanager
 import hashlib
 import inspect
-from pathlib import Path, PurePath
-import shutil
-import tempfile
-from typing import Generator
 
-from django.core.files import File
 from django.db.models import fields
 from django.db.models.fields import AutoField
 from django.db.models.fields.files import FieldFile, FileField
@@ -14,31 +8,17 @@ from django.http import QueryDict
 from django.utils.safestring import mark_safe
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import parsers, serializers, viewsets
-from storages.backends.s3boto3 import S3Boto3StorageFile
 
 
-@contextmanager
-def _field_file_to_local_path(field_file: FieldFile) -> Generator[Path, None, None]:
-    with field_file.open('rb'):
-        file_obj: File = field_file.file
-
-        if not Path(file_obj.name).exists() or isinstance(file_obj, S3Boto3StorageFile):
-            field_file_basename = PurePath(field_file.name).name
-            with tempfile.NamedTemporaryFile('wb', suffix=field_file_basename) as dest_stream:
-                shutil.copyfileobj(file_obj, dest_stream)
-                dest_stream.flush()
-
-                yield Path(dest_stream.name)
-        else:
-            yield Path(file_obj.name)
-
-
-def compute_checksum(field_file: FieldFile, chunk_num_blocks=128):
-    sha256 = hashlib.sha256()
+def compute_checksum(field_file: FieldFile, chunk_num_blocks=128, sha512=False):
+    if sha512:
+        sha = hashlib.sha512()
+    else:
+        sha = hashlib.sha256()
     with field_file.open() as f:
-        while chunk := f.read(chunk_num_blocks * sha256.block_size):
-            sha256.update(chunk)
-    return sha256.hexdigest()
+        while chunk := f.read(chunk_num_blocks * sha.block_size):
+            sha.update(chunk)
+    return sha.hexdigest()
 
 
 def _link_url(root, name, obj, field):

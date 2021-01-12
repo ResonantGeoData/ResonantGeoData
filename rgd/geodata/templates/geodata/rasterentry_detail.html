@@ -12,40 +12,39 @@
   </tr>
   <tr>
     <td>Resolution</td>
-    <td>{{ object.resolution }}</td>
-  </tr>
-  <tr>
-    <td>Height, Width</td>
-    <td>{{ object.height }}, {{ object.width }}</td>
+    <td>{{ object.rastermetaentry.resolution }}</td>
   </tr>
   <tr>
     <td>Origin</td>
-    <td>{{ object.origin }}</td>
+    <td>{{ object.rastermetaentry.origin }}</td>
   </tr>
   <tr>
     <td>Extent</td>
-    <td>{{ object.extent }}</td>
+    <td>{{ object.rastermetaentry.extent }}</td>
   </tr>
   <tr>
     <td>Transform</td>
-    <td>{{ object.transform }}</td>
+    <td>{{ object.rastermetaentry.transform }}</td>
   </tr>
   <tr>
     <td>PROJ4 String</td>
-    <td>{{ object.crs }}</td>
+    <td>{{ object.rastermetaentry.crs }}</td>
   </tr>
 
 {% endblock %}
 
-
-{% block detail %}
-
+{% block extra_meta %}
 
   <select id="band-selector" onchange="updateBandThumbnail()">
-    {% for image in object.images.all %}
+    {% for image in object.image_set.images.all %}
       <option value="{{ image.id }}">{{ image.name }}</option>
     {% endfor %}
+    <option value="-1">None</option>
   </select>
+
+{% endblock %}
+
+{% block detail %}
 
   {% include 'geodata/_includes/empty_viewer.html' %}
 
@@ -59,11 +58,14 @@
       return img
     }
 
+    var outline = JSON.parse(extents['outline'])["coordinates"][0]
     var quad = layer.createFeature('quad')
       .data([
         {
-          ll: {x: extents.extent.xmin, y: extents.extent.ymin },
-          ur: {x: extents.extent.xmax, y: extents.extent.ymax },
+          ul: {x: outline[0][0], y: outline[0][1]},
+          ur: {x: outline[1][0], y: outline[1][1]},
+          lr: {x: outline[2][0], y: outline[2][1]},
+          ll: {x: outline[3][0], y: outline[3][1]},
         },
       ])
       .style({
@@ -75,12 +77,18 @@
     function updateBandThumbnail () {
       selector = document.getElementById('band-selector')
       var image_id = Number(selector.value);
-      var src = extents['thumbnails'][image_id];
+      let image = null;
+      if (image_id >= 0) {
+        var src = extents['thumbnails'][image_id];
+        image = createImage(src);
+      }
       quad.data([
         {
-          ll: {x: extents.extent.xmin, y: extents.extent.ymin },
-          ur: {x: extents.extent.xmax, y: extents.extent.ymax },
-          image: createImage(src),
+          ul: {x: outline[0][0], y: outline[0][1]},
+          ur: {x: outline[1][0], y: outline[1][1]},
+          lr: {x: outline[2][0], y: outline[2][1]},
+          ll: {x: outline[3][0], y: outline[3][1]},
+          image: image
         },
       ]).draw()
     }
@@ -99,18 +107,7 @@
       .draw();
     });
 
-    // Position the map to show data extents. If none present, the position
-    //   should have been set by the search parameters
-    if (extents.extent != undefined) {
-      map.bounds({
-        left: extents.extent.xmin,
-        right: extents.extent.xmax,
-        top: extents.extent.ymax,
-        bottom: extents.extent.ymin
-      });
-    }
-    // One final zoom out for polishing
-    map.zoom(map.zoom() - 0.25);
+    setBounds(extents.extent, true)
   </script>
 
 {% endblock %}

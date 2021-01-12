@@ -21,14 +21,13 @@ class ImageFileFactory(factory.django.DjangoModelFactory):
 
     name = factory.Faker('sentence', nb_words=2)
     file = factory.django.FileField(filename='sample.dat')
-    compute_checksum = True
     # creator = factory.SubFactory(UserFactory)
     # modifier = factory.SubFactory(UserFactory)
 
 
-class RasterEntryFactory(factory.django.DjangoModelFactory):
+class ImageSetFactory(factory.django.DjangoModelFactory):
     class Meta:
-        model = models.RasterEntry
+        model = models.ImageSet
 
     name = factory.Faker('sentence', nb_words=2)
 
@@ -39,6 +38,14 @@ class RasterEntryFactory(factory.django.DjangoModelFactory):
         if extracted:
             for image in extracted:
                 self.images.add(image)
+
+
+class RasterEntryFactory(factory.django.DjangoModelFactory):
+    class Meta:
+        model = models.RasterEntry
+
+    name = factory.Faker('sentence', nb_words=2)
+    image_set = factory.SubFactory(ImageSetFactory)
 
     # If we have an on_commit or post_save method that modifies the model, we
     # need to refresh it afterwards.
@@ -54,7 +61,6 @@ class GeometryArchiveFactory(factory.django.DjangoModelFactory):
 
     name = factory.Faker('sentence', nb_words=2)
     file = factory.django.FileField(filename='sample.dat')
-    compute_checksum = True
 
 
 class ArbitraryFileFactory(factory.django.DjangoModelFactory):
@@ -62,6 +68,13 @@ class ArbitraryFileFactory(factory.django.DjangoModelFactory):
         model = models.ArbitraryFile
 
     file = factory.django.FileField(filename='sample.dat')
+
+    # If we have an on_commit or post_save method that modifies the model, we
+    # need to refresh it afterwards.
+    @classmethod
+    def _after_postgeneration(cls, instance, *args, **kwargs):
+        super()._after_postgeneration(instance, *args, **kwargs)
+        instance.refresh_from_db()
 
 
 class KWCOCOArchiveFactory(factory.django.DjangoModelFactory):
@@ -86,6 +99,9 @@ class FMVFileFactory(factory.django.DjangoModelFactory):
 
     name = factory.Faker('sentence', nb_words=2)
     file = factory.django.FileField(filename='sample.mpeg')
+    klv_file = factory.django.FileField(filename='sample.klv')
+    web_video_file = factory.django.FileField(filename='sample.mp4')
+    frame_rate = 30
 
     # If we have an on_commit or post_save method that modifies the model, we
     # need to refresh it afterwards.
@@ -93,16 +109,6 @@ class FMVFileFactory(factory.django.DjangoModelFactory):
     def _after_postgeneration(cls, instance, *args, **kwargs):
         super()._after_postgeneration(instance, *args, **kwargs)
         instance.refresh_from_db()
-
-
-class FMVEntryFactory(factory.django.DjangoModelFactory):
-    class Meta:
-        model = models.FMVEntry
-
-    name = factory.Faker('sentence', nb_words=2)
-    # fmv_file = factory.SubFactory(FMVFileFactory)
-    klv_file = factory.django.FileField(filename='sample.klv')
-    web_video_file = factory.django.FileField(filename='sample.mp4')
 
 
 # https://factoryboy.readthedocs.io/en/latest/recipes.html#simple-many-to-many-relationship

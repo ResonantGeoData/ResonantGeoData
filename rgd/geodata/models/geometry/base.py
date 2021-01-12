@@ -1,8 +1,5 @@
 from django.contrib.gis.db import models
 from django.core.exceptions import ValidationError
-from django.db import transaction
-from django.db.models.signals import post_save
-from django.dispatch import receiver
 import magic
 from s3_file_field import S3FileField
 
@@ -11,7 +8,7 @@ from rgd.utility import _link_url
 from ... import tasks
 from ..common import ChecksumFile, ModifiableEntry, SpatialEntry
 from ..constants import DB_SRID
-from ..mixins import TaskEventMixin
+from ..mixins import Status, TaskEventMixin
 
 
 def validate_archive(field_file):
@@ -37,11 +34,10 @@ class GeometryArchive(ChecksumFile, TaskEventMixin):
         help_text='This must be an archive (`.zip` or `.tar`) of a single shape (`.shp`, `.dbf`, `.shx`, etc.).',
     )
 
-    failure_reason = models.TextField(null=True, blank=True)
+    failure_reason = models.TextField(null=True)
+    status = models.CharField(max_length=20, default=Status.CREATED, choices=Status.choices)
 
     def save(self, *args, **kwargs):
-        if not self.name:
-            self.name = self.file.name
         super(GeometryArchive, self).save(*args, **kwargs)
 
     def archive_data_link(self):
@@ -53,15 +49,11 @@ class GeometryArchive(ChecksumFile, TaskEventMixin):
 class GeometryEntry(ModifiableEntry, SpatialEntry):
     """A holder for geometry vector data."""
 
-    name = models.CharField(max_length=100, blank=True, null=True)
+    name = models.CharField(max_length=100, blank=True)
     description = models.TextField(null=True, blank=True)
 
     data = models.GeometryCollectionField(srid=DB_SRID)  # Can be one or many features
     # The actual collection is iterable so access is super easy
 
+    # Can be null if not generated from uploaded ZIP file but something else
     geometry_archive = models.OneToOneField(GeometryArchive, null=True, on_delete=models.CASCADE)
-
-
-@receiver(post_save, sender=GeometryArchive)
-def _post_save_geometry_archive(sender, instance, *args, **kwargs):
-    transaction.on_commit(lambda: instance._post_save_event_task(*args, **kwargs))
