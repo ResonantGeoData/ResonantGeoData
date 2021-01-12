@@ -27,6 +27,7 @@ from .models.imagery.base import (
 SPATIAL_ENTRY_FILTERS = (
     'acquisition_date',
     'modified',
+    'created',
 )
 
 TASK_EVENT_READONLY = (
@@ -40,6 +41,8 @@ class ArbitraryFileAdmin(OSMGeoAdmin):
     list_display = (
         'id',
         'name',
+        'modified',
+        'created',
     )
     readonly_fields = ('checksum',)
 
@@ -50,6 +53,8 @@ class KWCOCOArchiveAdmin(OSMGeoAdmin):
         'id',
         'name',
         'status',
+        'modified',
+        'created',
     )
     readonly_fields = ('image_set',) + TASK_EVENT_READONLY
 
@@ -60,6 +65,8 @@ class ImageSetAdmin(OSMGeoAdmin):
         'id',
         'name',
         'count',
+        'modified',
+        'created',
     )
     actions = (actions.make_raster_from_image_set,)
 
@@ -87,6 +94,7 @@ class BandMetaEntryInline(admin.StackedInline):
         'id',
         'parent_image',
         'modified',
+        'created',
     )
     readonly_fields = (
         'mean',
@@ -119,6 +127,7 @@ class ImageEntryAdmin(OSMGeoAdmin):
         'name',
         'image_file',
         'modified',
+        'created',
     )
     readonly_fields = (
         'number_of_bands',
@@ -145,6 +154,7 @@ class RasterMetaEntryInline(admin.StackedInline):
     list_display = (
         'id',
         'modified',
+        'created',
     )
     readonly_fields = (
         'crs',
@@ -168,6 +178,7 @@ class RasterEntryAdmin(OSMGeoAdmin):
         'name',
         'status',
         'modified',
+        'created',
     )
     readonly_fields = (
         'modified',
@@ -209,6 +220,8 @@ class AnnotationAdmin(OSMGeoAdmin):
         'label',
         'annotator',
         'segmentation_type',
+        'modified',
+        'created',
     )
     readonly_fields = (
         'keypoints',
@@ -224,6 +237,7 @@ class ImageFileAdmin(OSMGeoAdmin):
         'name',
         'status',
         'modified',
+        'created',
         'image_data_link',
     )
     readonly_fields = ('modified', 'created', 'checksum', 'last_validation') + TASK_EVENT_READONLY
@@ -237,6 +251,7 @@ class ConvertedImageFileAdmin(OSMGeoAdmin):
         'source_image',
         'status',
         'modified',
+        'created',
     )
     readonly_fields = ('converted_file',) + TASK_EVENT_READONLY
 
@@ -249,6 +264,7 @@ class SubsampledImageAdmin(OSMGeoAdmin):
         'sample_type',
         'status',
         'modified',
+        'created',
     )
     readonly_fields = ('data',) + TASK_EVENT_READONLY
 
@@ -261,6 +277,7 @@ class GeometryEntryInline(admin.StackedInline):
         'name',
         'geometry_archive',
         'modified',
+        'created',
     )
     list_filter = SPATIAL_ENTRY_FILTERS
     readonly_fields = (
@@ -278,6 +295,7 @@ class GeometryArchiveAdmin(OSMGeoAdmin):
         'name',
         'status',
         'modified',
+        'created',
         'archive_data_link',
     )
     readonly_fields = (
@@ -292,7 +310,13 @@ class GeometryArchiveAdmin(OSMGeoAdmin):
 class FMVEntryInline(admin.StackedInline):
     model = FMVEntry
     fk_name = 'fmv_file'
-    list_display = ('id', 'name', 'fmv_file')
+    list_display = (
+        'id',
+        'name',
+        'fmv_file',
+        'modified',
+        'created',
+    )
     readonly_fields = (
         'modified',
         'created',
@@ -306,6 +330,7 @@ class FMVFileAdmin(OSMGeoAdmin):
         'name',
         'status',
         'modified',
+        'created',
         'fmv_data_link',
         'klv_data_link',
     )
