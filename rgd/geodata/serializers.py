@@ -100,6 +100,8 @@ class SubsampledImageSerializer(serializers.ModelSerializer):
             obj = models.SubsampledImage.objects.create(**validated_data)
         else:
             obj = q.first()
+            # Trigger a reprocessing
+            obj.save()
         return obj
 
 
