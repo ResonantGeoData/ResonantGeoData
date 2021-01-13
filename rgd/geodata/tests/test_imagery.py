@@ -2,7 +2,12 @@ import pytest
 
 from rgd.geodata.datastore import datastore
 from rgd.geodata.models.imagery.annotation import Annotation, RLESegmentation
-from rgd.geodata.models.imagery.base import ConvertedImageFile, ImageEntry, SubsampledImage
+from rgd.geodata.models.imagery.base import (
+    ConvertedImageFile,
+    ImageEntry,
+    ImageFile,
+    SubsampledImage,
+)
 from rgd.geodata.models.imagery.etl import populate_image_entry
 from rgd.geodata.models.imagery.subsample import populate_subsampled_image
 
@@ -116,7 +121,18 @@ def test_kwcoco_basic_demo():
     assert kwds.image_set.count == demo['n_images']
     annotations = [a for anns in kwds.image_set.get_all_annotations().values() for a in anns]
     assert len(annotations) == demo['n_annotations']
+    # Trigger save event and make sure original images were deleted
+    image_file_ids = [im.image_file.id for im in kwds.image_set.images.all()]
+    kwds.save()
+    for id in image_file_ids:
+        with pytest.raises(ImageFile.DoesNotExist):
+            ImageFile.objects.get(id=id)
+    # Now do same for delete
+    image_file_ids = [im.image_file.id for im in kwds.image_set.images.all()]
     kwds.delete()
+    for id in image_file_ids:
+        with pytest.raises(ImageFile.DoesNotExist):
+            ImageFile.objects.get(id=id)
 
 
 @pytest.mark.django_db(transaction=True)

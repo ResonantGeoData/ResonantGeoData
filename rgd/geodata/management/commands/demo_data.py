@@ -120,13 +120,7 @@ class Command(BaseCommand):
                     imset.images.add(image)
                 imset.save()
             # Make raster of that image set
-            # Check if raster exists with that ImageSet
-            try:
-                raster = models.RasterEntry.objects.get(image_set__pk=imset.pk)
-            except models.RasterEntry.DoesNotExist:
-                raster = models.RasterEntry()
-                raster.image_set = imset
-                raster.save()
+            raster = models.RasterEntry.objects.get_or_create(image_set=imset)
             ids.append(raster.pk)
         return ids
 

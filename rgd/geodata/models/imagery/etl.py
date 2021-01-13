@@ -16,7 +16,6 @@ from django.contrib.gis.geos import (
     Point,
     Polygon,
 )
-from django.core.exceptions import ObjectDoesNotExist
 from django.core.files.base import ContentFile
 from girder_utils.files import field_file_to_local_path
 import kwcoco
@@ -28,6 +27,8 @@ import rasterio
 import rasterio.features
 import rasterio.warp
 from rasterio.warp import Resampling, calculate_default_transform, reproject
+
+from rgd.utility import get_or_create_no_commit
 
 from ..constants import DB_SRID, WEB_MERCATOR
 from .annotation import Annotation, PolygonSegmentation, RLESegmentation, Segmentation
@@ -125,17 +126,7 @@ def _reproject_raster(src, epsg):
 
 def _read_image_to_entry(image_entry, image_file_path):
 
-    thumbnail_query = Thumbnail.objects.filter(image_entry=image_entry)
-    if len(thumbnail_query) < 1:
-        thumbnail = Thumbnail()
-        # image_entry.creator = ife.creator
-    elif len(thumbnail_query) == 1:
-        thumbnail = thumbnail_query.first()
-    else:
-        # This should never happen because it is a OneToOneField
-        raise RuntimeError('multiple thumbnail entries found for this image.')  # pragma: no cover
-
-    thumbnail.image_entry = image_entry
+    thumbnail, created = get_or_create_no_commit(Thumbnail, image_entry=image_entry)
 
     with rasterio.open(image_file_path) as src:
         image_entry.number_of_bands = src.count
@@ -209,22 +200,15 @@ def populate_image_entry(ife):
 
     with field_file_to_local_path(ife.file) as file_path:
         logger.info(f'The image file path: {file_path}')
-        image_query = ImageEntry.objects.filter(image_file=ife)
-        if len(image_query) < 1:
-            image_entry = ImageEntry()
-            image_entry.name = ife.name
-            # image_entry.creator = ife.creator
-        elif len(image_query) == 1:
-            image_entry = image_query.first()
+
+        image_entry, created = get_or_create_no_commit(
+            ImageEntry, defaults=dict(name=ife.name), image_file=ife
+        )
+        if not created:
             # Clear out associated entries because they could be invalid
             BandMetaEntry.objects.filter(parent_image=image_entry).delete()
             ConvertedImageFile.objects.filter(source_image=image_entry).delete()
-        else:
-            # This should never happen because it is a foreign key
-            raise RuntimeError('multiple image entries found for this file.')  # pragma: no cover
 
-        image_entry.image_file = ife
-        # image_entry.modifier = ife.modifier
         _read_image_to_entry(image_entry, file_path)
 
     return image_entry
@@ -360,11 +344,8 @@ def populate_raster_entry(raster_id):
                 'name',
             ]
         )
-    try:
-        raster_meta = raster_entry.rastermetaentry
-    except ObjectDoesNotExist:
-        raster_meta = RasterMetaEntry()
-        raster_meta.parent_raster = raster_entry
+    raster_meta, created = get_or_create_no_commit(RasterMetaEntry, parent_raster=raster_entry)
+    # Not using `defaults` here because we want `meta` to always get updated.
     for k, v in meta.items():
         # Yeah. This is sketchy, but it works.
         setattr(raster_meta, k, v)
@@ -443,7 +424,8 @@ def load_kwcoco_dataset(kwcoco_dataset_id):
     if ds_entry.image_set:
         # Delete all previously existing data
         # This should cascade to all the annotations
-        ds_entry.image_set.images.all().delete()
+        for imageentry in ds_entry.image_set.images.all():
+            imageentry.image_file.delete()
     else:
         ds_entry.image_set = ImageSet()
     ds_entry.image_set.name = ds_entry.name

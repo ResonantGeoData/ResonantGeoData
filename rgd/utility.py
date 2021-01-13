@@ -131,3 +131,13 @@ def make_serializers(serializer_scope, models):
             serializer_name = serializer_class.__name__
             if serializer_name not in serializer_scope:
                 serializer_scope[serializer_name] = serializer_class
+
+
+def get_or_create_no_commit(model, defaults=None, **kwargs):
+    try:
+        return model.objects.get(**kwargs), False
+    except model.DoesNotExist:
+        if not defaults:
+            defaults = {}
+        defaults.update(kwargs)
+        return model(**defaults), True

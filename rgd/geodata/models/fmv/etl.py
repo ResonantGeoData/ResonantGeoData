@@ -11,6 +11,8 @@ import docker
 from girder_utils.files import field_file_to_local_path
 import numpy as np
 
+from rgd.utility import get_or_create_no_commit
+
 from .base import FMVEntry, FMVFile
 
 logger = get_task_logger(__name__)
@@ -246,14 +248,10 @@ def read_fmv_file(fmv_file_id):
     else:
         logger.info(f'Found existing eb video file: `{fmv_file.web_video_file}`')
 
-    # create a model entry for that FMVFile
-    try:
-        entry = FMVEntry.objects.get(fmv_file=fmv_file_id)
-    except FMVEntry.DoesNotExist:
-        entry = FMVEntry()
-        # geometry_entry.creator = archive.creator
-        entry.name = fmv_file.name
-        entry.fmv_file = fmv_file
+    # create a model entry for that shapefile
+    entry, created = get_or_create_no_commit(
+        FMVEntry, defaults=dict(name=fmv_file.name), fmv_file=fmv_file
+    )
 
     _populate_fmv_entry(entry)
 
