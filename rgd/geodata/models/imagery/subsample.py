@@ -4,11 +4,12 @@ import tempfile
 
 from celery.utils.log import get_task_logger
 from django.conf import settings
-from django.core.exceptions import ObjectDoesNotExist
 from girder_utils.files import field_file_to_local_path
 from osgeo import gdal
 import rasterio
 from rasterio.mask import mask
+
+from rgd.utility import get_or_create_no_commit
 
 from ..common import ArbitraryFile
 from .base import ConvertedImageFile, SubsampledImage
@@ -109,12 +110,8 @@ def populate_subsampled_image(subsampled):
         subsampled.refresh_from_db()
     image_entry = subsampled.source_image
 
-    # If COG of source isn't available, create it.
-    try:
-        cog = image_entry.convertedimagefile
-    except ObjectDoesNotExist:
-        cog = ConvertedImageFile()
-        cog.source_image = image_entry
+    cog, created = get_or_create_no_commit(ConvertedImageFile, source_image=image_entry)
+    if created:
         cog.skip_signal = True  # Run conversion synchronously
         cog.save()
         convert_to_cog(cog)

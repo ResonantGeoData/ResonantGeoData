@@ -13,6 +13,8 @@ import fiona
 from shapely.geometry import shape
 from shapely.wkb import dumps
 
+from rgd.utility import get_or_create_no_commit
+
 from .base import GeometryArchive, GeometryEntry
 from .transform import transform_geometry
 
@@ -62,20 +64,9 @@ def read_geometry_archive(archive_id):
     # load each shapefile using fiona
     shapes = fiona.open(shape_file)
 
-    # create a model entry for that shapefile
-    geometry_query = GeometryEntry.objects.filter(geometry_archive=archive)
-    if len(geometry_query) < 1:
-        geometry_entry = GeometryEntry()
-        # geometry_entry.creator = archive.creator
-        geometry_entry.name = archive.name
-        geometry_entry.geometry_archive = archive
-    elif len(geometry_query) == 1:
-        geometry_entry = geometry_query.first()
-    else:
-        # This should never happen because it is a foreign key
-        raise RuntimeError('multiple geometry entries found for this file.')  # pragma: no cover
-
-    # geometry_entry.modifier = archive.modifier
+    geometry_entry, created = get_or_create_no_commit(
+        GeometryEntry, defaults=dict(name=archive.name), geometry_archive=archive
+    )
 
     shapes.meta  # TODO: dump this JSON into the model entry
 
