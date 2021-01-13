@@ -11,6 +11,8 @@ import docker
 from girder_utils.files import field_file_to_local_path
 import numpy as np
 
+from rgd.utility import get_or_create_no_commit
+
 from .base import FMVEntry, FMVFile
 
 logger = get_task_logger(__name__)
@@ -242,17 +244,9 @@ def read_fmv_file(fmv_file_id):
         _convert_video_to_mp4(fmv_file)
 
     # create a model entry for that shapefile
-    entry_query = FMVEntry.objects.filter(fmv_file=fmv_file_id)
-    if len(entry_query) < 1:
-        entry = FMVEntry()
-        # geometry_entry.creator = archive.creator
-        entry.name = fmv_file.name
-        entry.fmv_file = fmv_file
-    elif len(entry_query) == 1:
-        entry = entry_query.first()
-    else:
-        # This should never happen because it is a foreign key
-        raise RuntimeError('multiple FMV entries found for this file.')  # pragma: no cover
+    entry, created = get_or_create_no_commit(
+        FMVEntry, defaults=dict(name=fmv_file.name), fmv_file=fmv_file
+    )
 
     _populate_fmv_entry(entry)
     entry.save()
