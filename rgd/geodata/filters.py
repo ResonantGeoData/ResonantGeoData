@@ -174,8 +174,8 @@ class SpatialEntryFilter(filters.FilterSet):
             if value.stop is not None:
                 queryset = queryset.filter(
                     (
-                        Q(acquisition_date__gte=value)
-                        | Q(rasterentrymeta__parent_raster__created__gte=value)
+                        Q(acquisition_date__lte=value)
+                        | Q(rasterentrymeta__parent_raster__created__lte=value)
                     )
                 )
         return queryset
