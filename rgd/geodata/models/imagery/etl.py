@@ -443,7 +443,8 @@ def load_kwcoco_dataset(kwcoco_dataset_id):
     if ds_entry.image_set:
         # Delete all previously existing data
         # This should cascade to all the annotations
-        ds_entry.image_set.images.all().delete()
+        for imageentry in ds_entry.image_set.images.all():
+            imageentry.image_file.delete()
     else:
         ds_entry.image_set = ImageSet()
     ds_entry.image_set.name = ds_entry.name
