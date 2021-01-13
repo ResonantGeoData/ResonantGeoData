@@ -56,7 +56,9 @@ SHAPE_FILES = [
     'Solid_Mineral_lease_1.zip',
     'AG_lease.zip',
 ]
-FMV_FILES = []
+FMV_FILES = [
+    '09172008flight1tape3_2.mpg',
+]
 KWCOCO_ARCHIVES = [['demo.kwcoco.json', 'demodata.zip'], ['demo_rle.kwcoco.json', 'demo_rle.zip']]
 
 
@@ -136,7 +138,11 @@ class Command(BaseCommand):
         return ids
 
     def _load_fmv_files(self):
-        raise NotImplementedError('FMV ETL with Docker is still broken.')
+        ids = []
+        for videof in FMV_FILES:
+            fmv_file = _get_or_create_file_model(models.FMVFile, videof)
+            ids.append(fmv_file.id)
+        return ids
 
     def _load_kwcoco_archives(self):
         ids = []
@@ -161,7 +167,7 @@ class Command(BaseCommand):
         self._load_image_files(IMAGE_FILES)
         self._load_raster_files()
         self._load_shape_files()
-        # self._load_fmv_files()
+        self._load_fmv_files()
         self._load_kwcoco_archives()
         self.stdout.write(self.style.SUCCESS(SUCCESS_MSG))
 
