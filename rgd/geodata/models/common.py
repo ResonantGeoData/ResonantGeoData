@@ -6,6 +6,7 @@ from django.utils import timezone
 from model_utils.managers import InheritanceManager
 from s3_file_field import S3FileField
 
+from rgd.geodata.models.collection import Collection
 from rgd.utility import compute_checksum
 
 from .constants import DB_SRID
@@ -70,6 +71,14 @@ class ChecksumFile(ModifiableEntry):
         default=False
     )  # a flag to validate the checksum against the saved checksum
     last_validation = models.BooleanField(default=True)
+    collection = models.ForeignKey(
+        Collection,
+        on_delete=models.SET_NULL,
+        related_name='%(class)ss',
+        related_query_name='%(class)ss',
+        editable=False,
+        null=True,
+    )
 
     class Meta:
         abstract = True
