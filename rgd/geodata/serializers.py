@@ -84,23 +84,10 @@ class SubsampledImageSerializer(serializers.ModelSerializer):
         ]
 
     def create(self, validated_data):
-        """Prevent duplicated subsamples from being created.
-
-        This will check to see if an existing model matches the
-        ``sample_parameters`` for the given image ID and return that object
-        instead of creating another.
-
-        """
-        sample_parameters = validated_data['sample_parameters']
-        source_image = validated_data['source_image']
-        q = models.SubsampledImage.objects.filter(
-            sample_parameters=sample_parameters, source_image=source_image
-        )
-        if q.count() == 0:
-            obj = models.SubsampledImage.objects.create(**validated_data)
-        else:
-            obj = q.first()
-            # Trigger a reprocessing
+        """Prevent duplicated subsamples from being created."""
+        obj, created = models.SubsampledImage.objects.get_or_create(**validated_data)
+        if not created:
+            # Trigger save event to reprocess the subsampling
             obj.save()
         return obj
 
