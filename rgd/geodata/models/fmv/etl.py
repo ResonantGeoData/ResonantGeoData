@@ -29,7 +29,7 @@ def _extract_klv_with_docker(fmv_file_entry):
         with field_file_to_local_path(video_file) as dataset_path:
             logger.info('Running dump-klv with data %s' % (dataset_path))
             tmpdir = tempfile.mkdtemp()
-            output_path = os.path.join(tmpdir, os.path.basename(dataset_path) + '.klv')
+            output_path = os.path.join(tmpdir, os.path.basename(video_file.name) + '.klv')
             stderr_path = os.path.join(tmpdir, 'stderr.dat')
             cmd = [
                 'docker',
@@ -61,12 +61,7 @@ def _extract_klv_with_docker(fmv_file_entry):
                 raise exc
             logger.info('Finished running image with result %r' % result)
             # Store result
-            fmv_file_entry.klv_file.save(
-                '%s.klv' % os.path.basename(dataset_path), open(output_path, 'rb')
-            )
-            # entry.log.save(
-            #     '%s_log.dat' % os.path.basename(dataset_path), open(stderr_path, 'rb')
-            # )
+            fmv_file_entry.klv_file.save(os.path.basename(output_path), open(output_path, 'rb'))
             fmv_file_entry.save(
                 update_fields=[
                     'klv_file',
@@ -171,7 +166,7 @@ def _convert_video_to_mp4(fmv_file_entry):
     with field_file_to_local_path(video_file) as dataset_path:
         logger.info('Converting video file: %s' % (dataset_path))
         tmpdir = tempfile.mkdtemp()
-        output_path = os.path.join(tmpdir, os.path.basename(dataset_path) + '.mp4')
+        output_path = os.path.join(tmpdir, os.path.basename(video_file.name) + '.mp4')
 
         cmd = [
             'ffmpeg',
@@ -198,7 +193,7 @@ def _convert_video_to_mp4(fmv_file_entry):
             result = 0
             # Store result
             fmv_file_entry.web_video_file.save(
-                '%s.mp4' % os.path.basename(dataset_path), open(output_path, 'rb')
+                os.path.basename(output_path), open(output_path, 'rb')
             )
             fmv_file_entry.frame_rate = _get_frame_rate_of_video(dataset_path)
             fmv_file_entry.save()

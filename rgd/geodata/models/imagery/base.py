@@ -203,10 +203,14 @@ class ConvertedImageFile(ModifiableEntry, TaskEventMixin):
     """A model to store converted versions of a raster entry."""
 
     task_func = tasks.task_convert_to_cog
-    converted_file = models.OneToOneField(ArbitraryFile, on_delete=models.CASCADE, null=True)
+    converted_file = models.OneToOneField(ArbitraryFile, on_delete=models.SET_NULL, null=True)
     failure_reason = models.TextField(null=True)
     status = models.CharField(max_length=20, default=Status.CREATED, choices=Status.choices)
     source_image = models.OneToOneField(ImageEntry, on_delete=models.CASCADE)
+
+    def _post_delete(self, *args, **kwargs):
+        # Cleanup the associated ArbitraryFile
+        self.converted_file.delete()
 
 
 class SubsampledImage(ModifiableEntry, TaskEventMixin):
@@ -226,7 +230,7 @@ class SubsampledImage(ModifiableEntry, TaskEventMixin):
     )
     sample_parameters = models.JSONField()
 
-    data = models.OneToOneField(ArbitraryFile, on_delete=models.CASCADE, null=True)
+    data = models.OneToOneField(ArbitraryFile, on_delete=models.SET_NULL, null=True)
 
     failure_reason = models.TextField(null=True)
     status = models.CharField(max_length=20, default=Status.CREATED, choices=Status.choices)
@@ -258,6 +262,10 @@ class SubsampledImage(ModifiableEntry, TaskEventMixin):
         else:
             raise ValueError('Sample type ({}) unknown.'.format(self.sample_type))
 
+    def _post_delete(self, *args, **kwargs):
+        # Cleanup the associated ArbitraryFile
+        self.data.delete()
+
 
 class KWCOCOArchive(ModifiableEntry, TaskEventMixin):
     """A container for holding imported KWCOCO datasets.
@@ -286,7 +294,7 @@ class KWCOCOArchive(ModifiableEntry, TaskEventMixin):
         help_text='An archive (.tar or .zip) of the images referenced by the spec file (optional).',
     )
     # Allowed null because model must be saved before task can populate this
-    image_set = models.OneToOneField(ImageSet, on_delete=models.DO_NOTHING, null=True)
+    image_set = models.OneToOneField(ImageSet, on_delete=models.SET_NULL, null=True)
 
     def _post_delete(self, *args, **kwargs):
         # Frist delete all the images in the image set
