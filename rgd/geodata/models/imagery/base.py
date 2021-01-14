@@ -203,10 +203,14 @@ class ConvertedImageFile(ModifiableEntry, TaskEventMixin):
     """A model to store converted versions of a raster entry."""
 
     task_func = tasks.task_convert_to_cog
-    converted_file = models.OneToOneField(ArbitraryFile, on_delete=models.CASCADE, null=True)
+    converted_file = models.OneToOneField(ArbitraryFile, on_delete=models.DO_NOTHING, null=True)
     failure_reason = models.TextField(null=True)
     status = models.CharField(max_length=20, default=Status.CREATED, choices=Status.choices)
     source_image = models.OneToOneField(ImageEntry, on_delete=models.CASCADE)
+
+    def _post_delete(self, *args, **kwargs):
+        # Cleanup the associated ArbitraryFile
+        self.converted_file.delete()
 
 
 class SubsampledImage(ModifiableEntry, TaskEventMixin):
@@ -226,7 +230,7 @@ class SubsampledImage(ModifiableEntry, TaskEventMixin):
     )
     sample_parameters = models.JSONField()
 
-    data = models.OneToOneField(ArbitraryFile, on_delete=models.CASCADE, null=True)
+    data = models.OneToOneField(ArbitraryFile, on_delete=models.DO_NOTHING, null=True)
 
     failure_reason = models.TextField(null=True)
     status = models.CharField(max_length=20, default=Status.CREATED, choices=Status.choices)
@@ -257,6 +261,10 @@ class SubsampledImage(ModifiableEntry, TaskEventMixin):
             return ann.segmentation.get_subsample_args(outline=outline)
         else:
             raise ValueError('Sample type ({}) unknown.'.format(self.sample_type))
+
+    def _post_delete(self, *args, **kwargs):
+        # Cleanup the associated ArbitraryFile
+        self.data.delete()
 
 
 class KWCOCOArchive(ModifiableEntry, TaskEventMixin):

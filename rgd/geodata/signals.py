@@ -90,3 +90,15 @@ def _post_save_converted_image_file(sender, instance, *args, **kwargs):
 @skip_signal()
 def _post_save_subsampled_image(sender, instance, *args, **kwargs):
     transaction.on_commit(lambda: instance._post_save_event_task(*args, **kwargs))
+
+
+@receiver(post_delete, sender=ConvertedImageFile)
+@skip_signal()
+def _post_delete_converted_image_file(sender, instance, *args, **kwargs):
+    transaction.on_commit(lambda: instance._post_delete(*args, **kwargs))
+
+
+@receiver(post_delete, sender=SubsampledImage)
+@skip_signal()
+def _post_delete_subsampled_image(sender, instance, *args, **kwargs):
+    transaction.on_commit(lambda: instance._post_delete(*args, **kwargs))
