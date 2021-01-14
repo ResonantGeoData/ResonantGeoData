@@ -61,9 +61,7 @@ def _extract_klv_with_docker(fmv_file_entry):
                 raise exc
             logger.info('Finished running image with result %r' % result)
             # Store result
-            fmv_file_entry.klv_file.save(
-                os.path.basename(output_path), open(output_path, 'rb')
-            )
+            fmv_file_entry.klv_file.save(os.path.basename(output_path), open(output_path, 'rb'))
             fmv_file_entry.save(
                 update_fields=[
                     'klv_file',
