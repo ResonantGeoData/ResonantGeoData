@@ -41,7 +41,7 @@ def _gdal_translate_fields(source_field, output_field, prefix='', **kwargs):
 
     with field_file_to_local_path(source_field) as file_path:
         logger.info(f'The image file path: {file_path}')
-        output_path = os.path.join(tmpdir, prefix + os.path.basename(file_path))
+        output_path = os.path.join(tmpdir, prefix + os.path.basename(source_field.name))
         _gdal_translate(file_path, output_path, **kwargs)
 
     output_field.save(os.path.basename(output_path), open(output_path, 'rb'))
@@ -55,7 +55,8 @@ def convert_to_cog(cog):
         cog = ConvertedImageFile.objects.get(id=cog)
     else:
         cog.refresh_from_db()
-    cog.converted_file = ArbitraryFile()
+    if not cog.converted_file:
+        cog.converted_file = ArbitraryFile()
     src = cog.source_image.image_file.imagefile.file
     output = cog.converted_file.file
     _gdal_translate_fields(src, output, prefix='cog_', options=COG_OPTIONS)
@@ -78,7 +79,7 @@ def _subsample_with_geojson(source_field, output_field, geojson, prefix=''):
         f.write(json.dumps(geojson))
 
     with field_file_to_local_path(source_field) as file_path:
-        output_path = os.path.join(tmpdir, prefix + os.path.basename(file_path))
+        output_path = os.path.join(tmpdir, prefix + os.path.basename(source_field.name))
 
         ds = gdal.Warp(output_path, file_path, cutlineDSName=geojson_path)
         ds = None
