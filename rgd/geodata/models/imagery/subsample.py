@@ -1,13 +1,12 @@
 """Tasks for subsampling images with GDAL."""
 import os
+import json
 import tempfile
 
 from celery.utils.log import get_task_logger
 from django.conf import settings
 from girder_utils.files import field_file_to_local_path
 from osgeo import gdal
-import rasterio
-from rasterio.mask import mask
 
 from rgd.utility import get_or_create_no_commit
 
@@ -74,31 +73,19 @@ def _subsample_with_geojson(source_field, output_field, geojson, prefix=''):
     workdir = getattr(settings, 'GEODATA_WORKDIR', None)
     tmpdir = tempfile.mkdtemp(dir=workdir)
 
-    with field_file_to_local_path(source_field) as file_path:
-        # load the raster, mask it by the polygon and crop it
-        with rasterio.open(file_path) as src:
-            out_image, out_transform = mask(src, [geojson], crop=True)
-            out_meta = src.meta.copy()
-            driver = src.driver
+    geojson_path = os.path.join(tmpdir, 'feature.geojson')
+    with open(geojson_path, 'w') as f:
+        f.write(json.dumps(geojson))
 
+    with field_file_to_local_path(source_field) as file_path:
         output_path = os.path.join(tmpdir, prefix + os.path.basename(file_path))
 
-    # save the resulting raster
-    out_meta.update(
-        {
-            'driver': driver,
-            'height': out_image.shape[1],
-            'width': out_image.shape[2],
-            'transform': out_transform,
-        }
-    )
-
-    with rasterio.open(output_path, 'w', **out_meta) as dest:
-        dest.write(out_image)
+        ds = gdal.Warp(output_path, file_path, cutlineDSName=geojson_path)
+        ds = None
 
     # Convert subsampled to COG
     # NOTE: this cannot subsampling produce a COG because it is irregular
-    # _gdal_translate(output_path, output_path, options=COG_OPTIONS)
+    _gdal_translate(output_path, output_path, options=COG_OPTIONS)
     output_field.save(os.path.basename(output_path), open(output_path, 'rb'))
     return
 
