@@ -29,7 +29,7 @@ export DOCKER_CMD=/usr/local/bin/docker
 Occasionally, new package dependencies or schema changes will necessitate
 maintenance. To non-destructively update your development stack at any time:
 1. Run `docker-compose pull`
-2. Run `docker-compose build`
+2. Run `docker-compose build --pull --no-cache`
 3. Run `docker-compose run --rm django ./manage.py migrate`
 
 ## Develop Natively (advanced)
@@ -43,17 +43,17 @@ but allows developers to run Python code on their native system.
    [`psycopg2` build prerequisites](https://www.psycopg.org/docs/install.html#build-prerequisites)
 4. Create and activate a new Python virtualenv
 5. Run: `pip install -e .[dev]`
-6. Run `source ./dev/source-native-env.sh`
+6. Run `source ./dev/export-env.sh`
 7. Run `./manage.py migrate`
 8. Run `./manage.py createsuperuser` and follow the prompts to create your own user
 
 ### Run Application
 1.  Ensure `docker-compose -f ./docker-compose.yml up -d` is still active
 2. Run:
-   1. `source ./dev/source-native-env.sh`
+   1. `source ./dev/export-env.sh`
    2. `./manage.py runserver`
 3. Run in a separate terminal:
-   1. `source ./dev/source-native-env.sh`
+   1. `source ./dev/export-env.sh`
    2. `celery --app rgd.celery worker --loglevel INFO --without-heartbeat`
 4. When finished, run `docker-compose stop`
 
