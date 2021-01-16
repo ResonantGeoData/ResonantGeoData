@@ -7,7 +7,7 @@ from django.db.models import Count
 
 from rgd.geodata import models
 from rgd.geodata.datastore import datastore, registry
-from rgd.utility import compute_checksum
+from rgd.utility import compute_checksum, get_or_create_no_commit
 
 SUCCESS_MSG = 'Finished loading all demo data.'
 
@@ -118,7 +118,7 @@ class Command(BaseCommand):
                     imset.images.add(image)
                 imset.save()
             # Make raster of that image set
-            raster = models.RasterEntry.objects.get_or_create(image_set=imset)
+            raster, _ = models.RasterEntry.objects.get_or_create(image_set=imset)
             ids.append(raster.pk)
         return ids
 
@@ -137,9 +137,9 @@ class Command(BaseCommand):
         for fspec, farch in KWCOCO_ARCHIVES:
             spec = _get_or_create_file_model(models.ArbitraryFile, fspec)
             arch = _get_or_create_file_model(models.ArbitraryFile, farch)
-            ds = models.KWCOCOArchive()
-            ds.spec_file = spec
-            ds.image_archive = arch
+            ds, _ = get_or_create_no_commit(
+                models.KWCOCOArchive, spec_file=spec, image_archive=arch
+            )
             ds.save()
             ids.append(ds.id)
         return ids
