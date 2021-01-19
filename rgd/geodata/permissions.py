@@ -68,10 +68,9 @@ def filter_read_perm(user, queryset):
     # Check permissions
     user_path = (path + '__' if path != '' else path) + 'user'
     role_path = (path + '__' if path != '' else path) + 'role'
-    return queryset.filter(
+    return queryset.filter(**{user_path: user}).exclude(
         **{
-            user_path: user,
-            role_path + '__gte': models.CollectionMembership.READER,
+            role_path + '__lt': models.CollectionMembership.READER,
         }
     )
 
@@ -94,10 +93,9 @@ def filter_write_perm(user, queryset):
     # Check permissions
     user_path = (path + '__' if path != '' else path) + 'user'
     role_path = (path + '__' if path != '' else path) + 'role'
-    return queryset.filter(
+    return queryset.filter(**{user_path: user}).exclude(
         **{
-            user_path: user,
-            role_path + '__gte': models.CollectionMembership.OWNER,
+            role_path + '__lt': models.CollectionMembership.OWNER,
         }
     )
 
