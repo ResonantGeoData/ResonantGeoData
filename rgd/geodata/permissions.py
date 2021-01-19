@@ -50,6 +50,32 @@ def get_collection_membership_path(model):
     return None
 
 
+def filter_read_perm(user, queryset):
+    """Filter a queryset to what the user may see."""
+    # Called outside of view
+    if user is None:
+        return queryset
+    path = get_collection_membership_path(queryset.model)
+    # No relationship to collection
+    if path is None:
+        return queryset
+    # Must be logged in
+    if not user.is_active or user.is_anonymous:
+        return queryset.none()
+    # Admins can see all
+    if user.is_active and (user.is_staff or user.is_superuser):
+        return queryset
+    # Check permissions
+    user_path = (path + '__' if path != '' else path) + 'user'
+    role_path = (path + '__' if path != '' else path) + 'role'
+    return queryset.filter(
+        **{
+            user_path: user,
+            role_path + '__gte': models.CollectionMembership.READER,
+        }
+    )
+
+
 class CollectionAuthorizationBackend(BaseBackend):
     def has_perm(self, user, perm, obj=None):
         """Returns `True` if the user has the specified permission, where perm is in the format
