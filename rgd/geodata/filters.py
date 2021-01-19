@@ -120,7 +120,7 @@ class SpatialEntryFilter(filters.FilterSet):
 
     def filter_predicate(self, queryset, name, value):
         """Filter the spatial entries by the chosen predicate."""
-        if value != '':
+        if value:
             geom = self.form.cleaned_data['q']
             return queryset.filter(**{f'footprint__{value}': geom})
         return queryset
