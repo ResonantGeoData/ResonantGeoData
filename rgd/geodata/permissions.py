@@ -100,6 +100,21 @@ def filter_write_perm(user, queryset):
     )
 
 
+def check_read_perm(user, obj):
+    """Raises 'PermissionDenied' error if user does not have read permissions."""
+    model = type(obj)
+    if not filter_read_perm(user, model.objects.filter(pk=obj.pk)).exists():
+        raise PermissionDenied
+
+
+def check_write_perm(user, obj):
+    """Raises 'PermissionDenied' error if user does not have write permissions."""
+    # Called outside of view
+    model = type(obj)
+    if not filter_write_perm(user, model.objects.filter(pk=obj.pk)).exists():
+        raise PermissionDenied
+
+
 class CollectionAuthorizationBackend(BaseBackend):
     def has_perm(self, user, perm, obj=None):
         """Returns `True` if the user has the specified permission, where perm is in the format
