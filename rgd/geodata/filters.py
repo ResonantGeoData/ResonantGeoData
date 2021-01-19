@@ -10,6 +10,7 @@ from rgd.geodata.models.common import SpatialEntry
 
 class GeometryFilter(filters.Filter):
     field_class = forms.GeometryField
+    # Ensures GeoJSON objects are converted to correct SRID
     field_class.widget.map_srid = 4326
 
 
