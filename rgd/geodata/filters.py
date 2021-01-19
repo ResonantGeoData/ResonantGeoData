@@ -120,14 +120,14 @@ class SpatialEntryFilter(filters.FilterSet):
 
     def filter_predicate(self, queryset, name, value):
         """Filter the spatial entries by the chosen predicate."""
-        if value is not None:
+        if value != '':
             geom = self.form.cleaned_data['q']
             return queryset.filter(**{f'footprint__{value}': geom})
         return queryset
 
     def filter_relates(self, queryset, name, value):
         """Filter the spatial entries by the chosen DE-9IM."""
-        if value is not None:
+        if value != '':
             geom = self.form.cleaned_data['q']
             return queryset.filter(footprint__relates=(geom, value))
         return queryset
