@@ -10,6 +10,7 @@ from rgd.geodata.models.common import SpatialEntry
 
 class GeometryFilter(filters.Filter):
     field_class = forms.GeometryField
+    field_class.widget.map_srid = 4326
 
 
 class SpatialEntryFilter(filters.FilterSet):
