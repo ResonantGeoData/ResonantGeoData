@@ -3,6 +3,8 @@ import json
 from django.views import generic
 from django.views.generic import DetailView
 
+from rgd.geodata import permissions
+
 from .api import search
 from .models.common import SpatialEntry
 from .models.fmv.base import FMVEntry
@@ -33,8 +35,8 @@ class _SpatialListView(generic.ListView):
         elif 'geojson' in self.request.GET:
             self.search_params = self.request.GET
             method = search.search_geojson_filter
-
-        return self.model.objects.filter(method(self.search_params))
+        queryset = self.model.objects.filter(method(self.search_params))
+        return permissions.filter_read_perm(self.request.user, queryset)
 
     def _get_extent_summary(self):
         return search.extent_summary_spatial(self.object_list)
