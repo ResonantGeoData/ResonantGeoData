@@ -75,3 +75,18 @@ def test_raster_intersects(sample_raster_a, sample_raster_b):
     assert filterset.is_valid()
     qs = filterset.filter_queryset(SpatialEntry.objects.all())
     assert qs.count() == 1
+
+
+@pytest.mark.django_db(transaction=True)
+def test_geojson_intersects(sample_raster_a, sample_raster_b):
+    assert SpatialEntry.objects.count() == 2
+    filterset = SpatialEntryFilter(
+        data={
+            'q': f'{sample_raster_a.footprint.geojson}',
+            'predicate': 'intersects',
+        }
+    )
+    assert filterset.is_valid()
+    qs = filterset.filter_queryset(SpatialEntry.objects.all())
+    assert qs.count() == 1
+    assert qs.first().spatial_id == sample_raster_a.spatial_id
