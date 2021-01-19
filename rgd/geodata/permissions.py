@@ -128,22 +128,7 @@ class CollectionAuthorizationBackend(BaseBackend):
         # Permissions only apply to 'geodata' app
         if app_label != 'geodata':
             return False
-        # Only the collection "owner" can alter their own `CollectionMembership` and `Collection` objects.
-        if (
-            isinstance(obj, models.CollectionMembership)
-            and not models.CollectionMembership.objects.filter(
-                collection=obj.collection,
-                user=user,
-                role=models.CollectionMembership.OWNER,
-            ).exists()
-        ):
-            raise PermissionDenied
-        if (
-            isinstance(obj, models.Collection)
-            and not models.CollectionMembership.objects.filter(
-                collection=obj,
-                user=user,
-                role=models.CollectionMembership.OWNER,
-            ).exists()
-        ):
-            raise PermissionDenied
+        if codename.startswith('read'):
+            check_read_perm(user, obj)
+        if codename.startswith('add') or codename.startswith('change'):
+            check_write_perm(user, obj)
