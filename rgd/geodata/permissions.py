@@ -4,6 +4,52 @@ from django.core.exceptions import PermissionDenied
 from rgd.geodata import models
 
 
+def get_collection_membership_path(model):
+    """Get the path to the 'CollectionMembership' model.
+
+    Relationships are represented as 'dunder's ('__').
+    """
+    # Collection
+    if issubclass(model, models.CollectionMembership):
+        return ''
+    if issubclass(model, models.Collection):
+        return 'collection_memberships'
+    # Common
+    if issubclass(model, models.ChecksumFile):
+        return 'collection__collection_memberships'
+    # Imagery
+    if issubclass(model, models.ImageEntry):
+        return 'image_file__collection__collection_memberships'
+    if issubclass(model, models.Thumbnail):
+        return 'image_entry__image_file__collection__collection_memberships'
+    if issubclass(model, models.ImageSet):
+        return 'images__image_file__collection__collection_memberships'
+    if issubclass(model, models.RasterEntry):
+        return 'image_set__images__image_file__collection__collection_memberships'
+    if issubclass(model, models.RasterMetaEntry):
+        return 'parent_raster__image_set__images__image_file__collection__collection_memberships'
+    if issubclass(model, models.BandMetaEntry):
+        return 'parent_image__image_file__collection__collection_memberships'
+    if issubclass(model, models.ConvertedImageFile):
+        return 'source_image__image_file__collection__collection_memberships'
+    if issubclass(model, models.SubsampledImage):
+        return 'source_image__image_file__collection__collection_memberships'
+    if issubclass(model, models.KWCOCOArchive):
+        return 'spec_file__collection__collection_memberships'
+    # Annotation
+    if issubclass(model, models.Annotation):
+        return 'image__image_file__collection__collection_memberships'
+    if issubclass(model, models.Segmentation):
+        return 'annotation__image__image_file__collection__collection_memberships'
+    # Geometry
+    if issubclass(model, models.GeometryEntry):
+        return 'geometry_archive__collection__collection_memberships'
+    # FMV
+    if issubclass(model, models.FMVEntry):
+        return 'fmv_file__collection__collection_memberships'
+    return None
+
+
 class CollectionAuthorizationBackend(BaseBackend):
     def has_perm(self, user, perm, obj=None):
         """Returns `True` if the user has the specified permission, where perm is in the format
