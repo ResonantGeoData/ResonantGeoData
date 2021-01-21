@@ -142,24 +142,6 @@ class ImageEntrySerializer(serializers.ModelSerializer):
         ]
 
 
-class AnnotationSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = models.Annotation
-        fields = [
-            'pk',
-            'modified',
-            'created',
-            'image',
-            'caption',
-            'label',
-            'annotator',
-            'notes',
-            'keypoints',
-            'line',
-        ]
-        read_only_fields = ['pk', 'modified', 'created']
-
-
 class PolygonSegmentationSerializer(serializers.ModelSerializer):
     class Meta:
         model = models.PolygonSegmentation
@@ -188,6 +170,24 @@ class RLESegmentationSerializer(serializers.ModelSerializer):
         read_only_fields = [
             'pk',
         ]
+
+
+class AnnotationSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = models.Annotation
+        fields = [
+            'pk',
+            'modified',
+            'created',
+            'image',
+            'caption',
+            'label',
+            'annotator',
+            'notes',
+            'keypoints',
+            'line',
+        ]
+        read_only_fields = ['pk', 'modified', 'created']
 
 
 class KWCOCOArchiveSerializer(serializers.ModelSerializer):
