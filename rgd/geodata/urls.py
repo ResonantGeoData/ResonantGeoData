@@ -112,4 +112,19 @@ urlpatterns = [
         api.download.get_status_subsampled_image,
         name='subsampled-status',
     ),
+    path(
+        'api/geodata/imagery/kwcoco/<int:pk>',
+        api.get.GetKWCOCOArchive.as_view(),
+        name='kwcoco',
+    ),
+    path(
+        'api/geodata/imagery/image_entry/<int:pk>',
+        api.get.GetImageEntry.as_view(),
+        name='image-entry',
+    ),
+    path(
+        'api/geodata/imagery/annotation/<int:pk>',
+        api.get.GetAnnotation.as_view(),
+        name='annotation',
+    ),
 ]

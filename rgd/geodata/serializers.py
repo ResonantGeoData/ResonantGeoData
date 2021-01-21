@@ -1,11 +1,19 @@
 import json
 
+from django.core.exceptions import ObjectDoesNotExist
 from rest_framework import serializers
 from rest_framework.reverse import reverse
 
 from rgd import utility
 
 from . import models
+
+
+def _build_related_url(context, relative_uri):
+    if 'request' in context:
+        request = context['request']
+        relative_uri = request.build_absolute_uri(relative_uri)
+    return relative_uri
 
 
 class SpatialEntrySerializer(serializers.ModelSerializer):
@@ -57,12 +65,8 @@ class SubsampledImageSerializer(serializers.ModelSerializer):
 
     def to_representation(self, value):
         ret = super().to_representation(value)
-        realtive_status_uri = reverse('subsampled-status', args=[value.id])
-        if 'request' in self.context:
-            request = self.context['request']
-            ret['status'] = request.build_absolute_uri(realtive_status_uri)
-        else:
-            ret['status'] = realtive_status_uri
+        relative_status_uri = reverse('subsampled-status', args=[value.id])
+        ret['status'] = _build_related_url(self.context, relative_status_uri)
         return ret
 
     class Meta:
@@ -74,12 +78,16 @@ class SubsampledImageSerializer(serializers.ModelSerializer):
             'pk',
             'status',
             'failure_reason',
+            'modified',
+            'created',
             'data',
         ]
         read_only_fields = [
             'pk',
             'status',
             'failure_reason',
+            'modified',
+            'created',
             'data',
         ]
 
@@ -90,6 +98,132 @@ class SubsampledImageSerializer(serializers.ModelSerializer):
             # Trigger save event to reprocess the subsampling
             obj.save()
         return obj
+
+
+class ImageEntrySerializer(serializers.ModelSerializer):
+    annotation_set = serializers.PrimaryKeyRelatedField(
+        many=True, queryset=models.Annotation.objects.all(), allow_null=True
+    )
+
+    def to_representation(self, value):
+        ret = super().to_representation(value)
+        relative_data_uri = reverse('image-entry-data', args=[value.id])
+        ret['data'] = _build_related_url(self.context, relative_data_uri)
+        return ret
+
+    class Meta:
+        model = models.ImageEntry
+        fields = [
+            'pk',
+            'modified',
+            'created',
+            'name',
+            'description',
+            'instrumentation',
+            'image_file',
+            'driver',
+            'height',
+            'width',
+            'number_of_bands',
+            'metadata',
+            'annotation_set',
+        ]
+        read_only_fields = [
+            'pk',
+            'modified',
+            'created',
+            'image_file',
+            'driver',
+            'height',
+            'width',
+            'number_of_bands',
+            'metadata',
+            'annotation_set',
+        ]
+
+
+class AnnotationSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = models.Annotation
+        fields = [
+            'pk',
+            'modified',
+            'created',
+            'image',
+            'caption',
+            'label',
+            'annotator',
+            'notes',
+            'keypoints',
+            'line',
+        ]
+        read_only_fields = ['pk', 'modified', 'created']
+
+
+class PolygonSegmentationSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = models.PolygonSegmentation
+        fields = [
+            'pk',
+            'annotation',
+            'outline',
+            'feature',
+        ]
+        read_only_fields = [
+            'pk',
+        ]
+
+
+class RLESegmentationSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = models.RLESegmentation
+        fields = [
+            'pk',
+            'annotation',
+            'outline',
+            'blob',
+            'height',
+            'width',
+        ]
+        read_only_fields = [
+            'pk',
+        ]
+
+
+class KWCOCOArchiveSerializer(serializers.ModelSerializer):
+    def to_representation(self, value):
+        ret = super().to_representation(value)
+        relative_status_uri = reverse('get-status', args=['KWCOCOArchive', value.id])
+        ret['status'] = _build_related_url(self.context, relative_status_uri)
+        # Now add images
+        try:
+            ret['count'] = value.image_set.count
+            ret['images'] = [im.pk for im in value.image_set.images.all()]
+        except ObjectDoesNotExist:
+            pass
+        return ret
+
+    class Meta:
+        model = models.KWCOCOArchive
+        fields = [
+            'pk',
+            'modified',
+            'created',
+            'name',
+            'failure_reason',
+            'status',
+            'spec_file',
+            'image_archive',
+            'image_set',
+        ]
+        read_only_fields = [
+            'pk',
+            'modified',
+            'created',
+            'image_set',
+            'failure_reason',
+            'status',
+        ]
 
 
 utility.make_serializers(globals(), models)
