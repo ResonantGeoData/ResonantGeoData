@@ -61,11 +61,10 @@ class FileSourceType(models.IntegerChoices):
 
 
 class ChecksumFile(ModifiableEntry):
-    """A base class for tracking files.
+    """The main class for user-uploaded files.
 
-    Child class must implement a file field called ``file``! This ensures the
-    field is initialized with coorect options like uplaod location and
-    validators.
+    This has support for manually uploading files or specifing a URL to a file
+    (for example in an existing S3 bucket).
 
     """
 
@@ -83,7 +82,7 @@ class ChecksumFile(ModifiableEntry):
     class Meta:
         constraints = [
             models.CheckConstraint(
-                name="%(app_label)s_%(class)s_file_source_value_matches_type",
+                name='%(app_label)s_%(class)s_file_source_value_matches_type',
                 check=(
                     models.Q(
                         type=FileSourceType.FILE_FIELD,
