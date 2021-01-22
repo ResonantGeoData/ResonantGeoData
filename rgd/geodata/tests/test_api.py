@@ -113,8 +113,9 @@ def test_get_spatial_entry(client, landsat_raster):
 
 
 @pytest.mark.django_db(transaction=True)
-def test_create_get_subsampled_image(client, astro_image):
+def test_create_get_subsampled_image(authenticated_api_client, astro_image):
     """Test POST and GET for SubsampledImage model."""
+    client = authenticated_api_client
     payload = {
         'source_image': astro_image.pk,
         'sample_type': 'pixel box',
@@ -137,8 +138,9 @@ def test_create_get_subsampled_image(client, astro_image):
 
 
 @pytest.mark.django_db(transaction=True)
-def test_create_and_download_cog(client, landsat_image):
+def test_create_and_download_cog(authenticated_api_client, landsat_image):
     """Test POST for ConvertedImageFile model."""
+    client = authenticated_api_client
     response = client.post(
         '/api/geodata/imagery/cog',
         {'source_image': landsat_image.id},
