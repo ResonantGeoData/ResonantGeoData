@@ -135,8 +135,8 @@ class Command(BaseCommand):
     def _load_kwcoco_archives(self):
         ids = []
         for fspec, farch in KWCOCO_ARCHIVES:
-            spec = _get_or_create_file_model(models.ArbitraryFile, fspec)
-            arch = _get_or_create_file_model(models.ArbitraryFile, farch)
+            spec = _get_or_create_file_model(models.ChecksumFile, fspec)
+            arch = _get_or_create_file_model(models.ChecksumFile, farch)
             ds, _ = get_or_create_no_commit(
                 models.KWCOCOArchive, spec_file=spec, image_archive=arch
             )

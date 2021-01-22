@@ -41,11 +41,11 @@ def download_file(request, model, id, field):
 
 @swagger_auto_schema(
     method='GET',
-    operation_summary='Download ArbitraryFile data directly from S3.',
+    operation_summary='Download ChecksumFile data directly from S3.',
 )
 @api_view(['GET'])
-def download_arbitrary_file(request, pk):
-    instance = models.common.ArbitraryFile.objects.get(pk=pk)
+def download_checksum_file(request, pk):
+    instance = models.common.ChecksumFile.objects.get(pk=pk)
     reponse = HttpResponseRedirect(instance.file.url)
     return reponse
 
@@ -63,13 +63,13 @@ def download_image_entry_file(request, pk):
 
 @swagger_auto_schema(
     method='GET',
-    operation_summary='Download the associated ArbitraryFile data for this ConvertedImageFile directly from S3.',
+    operation_summary='Download the associated ChecksumFile data for this ConvertedImageFile directly from S3.',
 )
 @api_view(['GET'])
 def download_cog_file(request, pk):
     instance = models.imagery.ConvertedImageFile.objects.get(pk=pk)
     af_id = instance.converted_file.id
-    instance = models.common.ArbitraryFile.objects.get(pk=af_id)
+    instance = models.common.ChecksumFile.objects.get(pk=af_id)
     return HttpResponseRedirect(instance.file.url)
 
 

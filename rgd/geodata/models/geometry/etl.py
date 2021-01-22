@@ -44,8 +44,8 @@ def read_geometry_archive(archive_id):
     workdir = getattr(settings, 'GEODATA_WORKDIR', None)
     tmpdir = tempfile.mkdtemp(dir=workdir)
 
-    with archive.file.open() as archive_file_obj:
-        logger.info(f'The geometry archive: {archive.file}')
+    with archive.file.file.open() as archive_file_obj:
+        logger.info(f'The geometry archive: {archive.file.file}')
 
         # Unzip the contents to the working dir
         with zipfile.ZipFile(archive_file_obj, 'r') as zip_ref:
@@ -65,7 +65,7 @@ def read_geometry_archive(archive_id):
     shapes = fiona.open(shape_file)
 
     geometry_entry, created = get_or_create_no_commit(
-        GeometryEntry, defaults=dict(name=archive.name), geometry_archive=archive
+        GeometryEntry, defaults=dict(name=archive.file.name), geometry_archive=archive
     )
 
     shapes.meta  # TODO: dump this JSON into the model entry

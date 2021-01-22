@@ -11,7 +11,7 @@ from rasterio.mask import mask
 
 from rgd.utility import get_or_create_no_commit
 
-from ..common import ArbitraryFile
+from ..common import ChecksumFile
 from .base import ConvertedImageFile, SubsampledImage
 
 logger = get_task_logger(__name__)
@@ -57,8 +57,8 @@ def convert_to_cog(cog):
     else:
         cog.refresh_from_db()
     if not cog.converted_file:
-        cog.converted_file = ArbitraryFile()
-    src = cog.source_image.image_file.imagefile.file
+        cog.converted_file = ChecksumFile()
+    src = cog.source_image.image_file.imagefile.file.file
     output = cog.converted_file.file
     _gdal_translate_fields(src, output, prefix='cog_', options=COG_OPTIONS)
     cog.converted_file.save()
@@ -67,7 +67,7 @@ def convert_to_cog(cog):
             'converted_file',
         ]
     )
-    logger.info(f'Produced COG in ArbitraryFile: {cog.converted_file.id}')
+    logger.info(f'Produced COG in ChecksumFile: {cog.converted_file.id}')
     return cog.id
 
 
@@ -121,9 +121,9 @@ def populate_subsampled_image(subsampled):
     logger.info(f'Subsample parameters: {subsampled.sample_parameters}')
     kwargs = subsampled.to_kwargs()
 
-    source_field = cog.converted_file.file
+    source_field = cog.converted_file.file.file
     if not subsampled.data:
-        subsampled.data = ArbitraryFile()
+        subsampled.data = ChecksumFile()
 
     if subsampled.sample_type == SubsampledImage.SampleTypes.GEOJSON or (
         subsampled.sample_type == SubsampledImage.SampleTypes.ANNOTATION
@@ -141,5 +141,5 @@ def populate_subsampled_image(subsampled):
             'data',
         ]
     )
-    logger.info(f'Produced subsampled image in ArbitraryFile: {subsampled.data.id}')
+    logger.info(f'Produced subsampled image in ChecksumFile: {subsampled.data.id}')
     return subsampled.id

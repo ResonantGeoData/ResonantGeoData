@@ -30,6 +30,7 @@ from rasterio.warp import Resampling, calculate_default_transform, reproject
 
 from rgd.utility import get_or_create_no_commit
 
+from ..common import ChecksumFile
 from ..constants import DB_SRID, WEB_MERCATOR
 from .annotation import Annotation, PolygonSegmentation, RLESegmentation, Segmentation
 from .base import (
@@ -198,11 +199,11 @@ def populate_image_entry(ife):
     if not isinstance(ife, ImageFile):
         ife = ImageFile.objects.get(id=ife)
 
-    with field_file_to_local_path(ife.file) as file_path:
+    with field_file_to_local_path(ife.file.file) as file_path:
         logger.info(f'The image file path: {file_path}')
 
         image_entry, created = get_or_create_no_commit(
-            ImageEntry, defaults=dict(name=ife.name), image_file=ife
+            ImageEntry, defaults=dict(name=ife.file.name), image_file=ife
         )
         if not created:
             # Clear out associated entries because they could be invalid
@@ -222,7 +223,7 @@ def _extract_raster_meta(image_file_entry):
 
     """
     raster_meta = dict()
-    with image_file_entry.file.open() as file_obj:
+    with image_file_entry.file.file.open() as file_obj:
         with rasterio.open(file_obj) as src:
             raster_meta['crs'] = src.crs.to_proj4()
             raster_meta['origin'] = [src.bounds.left, src.bounds.bottom]
@@ -261,7 +262,7 @@ def _extract_raster_outline_and_footprint(image_file_entry):
     This operates on the assumption that the image file is a valid raster.
 
     """
-    with field_file_to_local_path(image_file_entry.file) as file_path:
+    with field_file_to_local_path(image_file_entry.file.file) as file_path:
         # Reproject the raster to the DB SRID using rasterio directly rather
         #  than transforming the extracted geometry which had issues.
         src = _reproject_raster(rasterio.open(file_path), DB_SRID)
@@ -467,7 +468,9 @@ def load_kwcoco_dataset(kwcoco_dataset_id):
             name = os.path.basename(image_file_abs_path)
             image_file = ImageFile()
             image_file.skip_task = True
-            image_file.file.save(name, open(image_file_abs_path, 'rb'))
+            image_file.file = ChecksumFile()
+            image_file.file.file.save(name, open(image_file_abs_path, 'rb'))
+            image_file.save()
             # Create a new ImageEntry
             image_entry = populate_image_entry(image_file)
             # Add ImageEntry to ImageSet

@@ -2,7 +2,7 @@ from django.contrib import admin
 from django.contrib.gis.admin import OSMGeoAdmin
 
 from . import actions
-from .models.common import ArbitraryFile
+from .models.common import ChecksumFile
 from .models.fmv.base import FMVEntry, FMVFile
 from .models.geometry.base import GeometryArchive, GeometryEntry
 from .models.imagery.annotation import (
@@ -36,15 +36,19 @@ TASK_EVENT_READONLY = (
 )
 
 
-@admin.register(ArbitraryFile)
-class ArbitraryFileAdmin(OSMGeoAdmin):
+@admin.register(ChecksumFile)
+class ChecksumFileAdmin(OSMGeoAdmin):
     list_display = (
         'id',
         'name',
         'modified',
         'created',
+        'type',
     )
-    readonly_fields = ('checksum',)
+    readonly_fields = (
+        'checksum',
+        'last_validation',
+    )
 
 
 @admin.register(KWCOCOArchive)
@@ -234,13 +238,15 @@ class AnnotationAdmin(OSMGeoAdmin):
 class ImageFileAdmin(OSMGeoAdmin):
     list_display = (
         'id',
-        'name',
         'status',
         'modified',
         'created',
         'image_data_link',
     )
-    readonly_fields = ('modified', 'created', 'checksum', 'last_validation') + TASK_EVENT_READONLY
+    readonly_fields = (
+        'modified',
+        'created',
+    ) + TASK_EVENT_READONLY
     actions = (actions.reprocess_image_files,)
 
 
@@ -292,7 +298,6 @@ class GeometryEntryInline(admin.StackedInline):
 class GeometryArchiveAdmin(OSMGeoAdmin):
     list_display = (
         'id',
-        'name',
         'status',
         'modified',
         'created',
@@ -301,8 +306,6 @@ class GeometryArchiveAdmin(OSMGeoAdmin):
     readonly_fields = (
         'modified',
         'created',
-        'last_validation',
-        'checksum',
     ) + TASK_EVENT_READONLY
     inlines = (GeometryEntryInline,)
 
@@ -327,7 +330,6 @@ class FMVEntryInline(admin.StackedInline):
 class FMVFileAdmin(OSMGeoAdmin):
     list_display = (
         'id',
-        'name',
         'status',
         'modified',
         'created',
@@ -337,8 +339,6 @@ class FMVFileAdmin(OSMGeoAdmin):
     readonly_fields = (
         'modified',
         'created',
-        'checksum',
-        'last_validation',
         'klv_file',
         'web_video_file',
         'frame_rate',

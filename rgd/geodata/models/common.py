@@ -55,6 +55,11 @@ class SpatialEntry(models.Model):
         return 'Spatial ID: {} (type: {})'.format(self.spatial_id, type(self))
 
 
+class FileSourceType(models.IntegerChoices):
+    FILE_FIELD = 1, 'FileField'
+    URL = 2, 'URL'
+
+
 class ChecksumFile(ModifiableEntry):
     """A base class for tracking files.
 
@@ -71,8 +76,28 @@ class ChecksumFile(ModifiableEntry):
     )  # a flag to validate the checksum against the saved checksum
     last_validation = models.BooleanField(default=True)
 
+    type = models.IntegerField(choices=FileSourceType.choices, default=FileSourceType.FILE_FIELD)
+    file = S3FileField(null=True)
+    url = models.TextField(null=True)
+
     class Meta:
-        abstract = True
+        constraints = [
+            models.CheckConstraint(
+                name="%(app_label)s_%(class)s_file_source_value_matches_type",
+                check=(
+                    models.Q(
+                        type=FileSourceType.FILE_FIELD,
+                        file__isnull=False,
+                        url__isnull=True,
+                    )
+                    | models.Q(
+                        type=FileSourceType.URL,
+                        file__isnull=True,
+                        url__isnull=False,
+                    )
+                ),
+            )
+        ]
 
     def update_checksum(self):
         self.checksum = compute_checksum(self.file)
@@ -120,8 +145,11 @@ class ChecksumFile(ModifiableEntry):
                 ]
             )
 
-
-class ArbitraryFile(ChecksumFile):
-    """Container for arbitrary file uploads."""
-
-    file = S3FileField()
+    def get_local_path(self):
+        """Fetch the file from its source to a local path on disk."""
+        if self.type == FileSourceType.FILE_FIELD:
+            # Use field_file_to_local_path
+            ...
+        elif self.type == FileSourceType.URL:
+            # Check if http<s>:// or s3://
+            ...

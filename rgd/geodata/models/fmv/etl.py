@@ -21,7 +21,7 @@ logger = get_task_logger(__name__)
 def _extract_klv_with_docker(fmv_file_entry):
     logger.info('Entered `_extract_klv_with_docker`')
     image_name = 'banesullivan/kwiver:dump-klv'
-    video_file = fmv_file_entry.file
+    video_file = fmv_file_entry.file.file
     try:
         client = docker.from_env(version='auto', timeout=3600)
         _ = client.images.pull(image_name)
@@ -162,7 +162,7 @@ def _get_frame_rate_of_video(file_path):
 
 
 def _convert_video_to_mp4(fmv_file_entry):
-    video_file = fmv_file_entry.file
+    video_file = fmv_file_entry.file.file
     with field_file_to_local_path(video_file) as dataset_path:
         logger.info('Converting video file: %s' % (dataset_path))
         tmpdir = tempfile.mkdtemp()
@@ -229,9 +229,9 @@ def _populate_fmv_entry(entry):
 
 
 def read_fmv_file(fmv_file_id):
-    fmv_file = FMVFile.objects.filter(id=fmv_file_id).first()
+    fmv_file = FMVFile.objects.get(id=fmv_file_id)
 
-    validation = fmv_file.validate()
+    validation = fmv_file.file.validate()
     # Only extraxt the KLV data if it does not exist or the checksum of the video has changed
     if not fmv_file.klv_file or not validation:
         _extract_klv_with_docker(fmv_file)
@@ -240,7 +240,7 @@ def read_fmv_file(fmv_file_id):
 
     # create a model entry for that shapefile
     entry, created = get_or_create_no_commit(
-        FMVEntry, defaults=dict(name=fmv_file.name), fmv_file=fmv_file
+        FMVEntry, defaults=dict(name=fmv_file.file.name), fmv_file=fmv_file
     )
 
     _populate_fmv_entry(entry)
