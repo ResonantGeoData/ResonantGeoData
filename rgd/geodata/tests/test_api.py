@@ -52,48 +52,48 @@ def landsat_raster():
 
 
 @pytest.mark.django_db(transaction=True)
-def test_download_file(client, arbitrary_file):
+def test_download_file(api_client, arbitrary_file):
     model = 'ArbitraryFile'
     id = arbitrary_file.id
     field = 'file'
-    response = client.get(f'/api/geodata/download/{model}/{id}/{field}')
+    response = api_client.get(f'/api/geodata/download/{model}/{id}/{field}')
     assert response.status_code == 200, response.content
     with pytest.raises(AttributeError):
         # Test bad model
-        client.get('/api/geodata/download/Foo/0/file')
+        api_client.get('/api/geodata/download/Foo/0/file')
     with pytest.raises(AttributeError):
         # Test good model, bad field
-        client.get(f'/api/geodata/download/{model}/{id}/foo')
+        api_client.get(f'/api/geodata/download/{model}/{id}/foo')
 
 
 @pytest.mark.django_db(transaction=True)
-def test_get_status(client, astro_image):
+def test_get_status(api_client, astro_image):
     model = 'ImageFile'
     id = astro_image.image_file.imagefile.id
-    response = client.get(f'/api/geodata/status/{model}/{id}')
+    response = api_client.get(f'/api/geodata/status/{model}/{id}')
     assert response.status_code == 200, response.content
     with pytest.raises(AttributeError):
-        client.get(f'/api/geodata/status/Foo/{id}')
+        api_client.get(f'/api/geodata/status/Foo/{id}')
 
 
 @pytest.mark.django_db(transaction=True)
-def test_download_arbitry_file(client, arbitrary_file):
+def test_download_arbitry_file(api_client, arbitrary_file):
     pk = arbitrary_file.pk
-    response = client.get(f'/api/geodata/common/arbitrary_file/{pk}/data')
+    response = api_client.get(f'/api/geodata/common/arbitrary_file/{pk}/data')
     assert response.status_code == 302 or response.status_code == 200, response.content
 
 
 @pytest.mark.django_db(transaction=True)
-def test_download_image_entry_file(client, astro_image):
+def test_download_image_entry_file(api_client, astro_image):
     pk = astro_image.pk
-    response = client.get(f'/api/geodata/imagery/image_entry/{pk}/data')
+    response = api_client.get(f'/api/geodata/imagery/image_entry/{pk}/data')
     assert response.status_code == 302 or response.status_code == 200, response.content
 
 
 @pytest.mark.django_db(transaction=True)
-def test_get_arbitrary_file(client, arbitrary_file):
+def test_get_arbitrary_file(api_client, arbitrary_file):
     pk = arbitrary_file.pk
-    content = json.loads(client.get(f'/api/geodata/common/arbitrary_file/{pk}').content)
+    content = json.loads(api_client.get(f'/api/geodata/common/arbitrary_file/{pk}').content)
     assert content
     # Check that a hyperlink is given to the file data
     # NOTE: tried using the URLValidator from django but it thinks this URL is invalid
@@ -101,10 +101,10 @@ def test_get_arbitrary_file(client, arbitrary_file):
 
 
 @pytest.mark.django_db(transaction=True)
-def test_get_spatial_entry(client, landsat_raster):
+def test_get_spatial_entry(api_client, landsat_raster):
     """Test individual GET for SpatialEntry model."""
     pk = landsat_raster.rastermetaentry.spatial_id
-    response = client.get(f'/api/geodata/common/spatial_entry/{pk}')
+    response = api_client.get(f'/api/geodata/common/spatial_entry/{pk}')
     assert response.status_code == 200, response.content
     content = json.loads(response.content)
     assert content
