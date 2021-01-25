@@ -31,6 +31,7 @@ class ConvertedImageFileSerializer(serializers.ModelSerializer):
     def validate_source_image(self, value):
         if 'request' in self.context:
             check_write_perm(self.context['request'].user, value)
+        return value
 
     class Meta:
         model = models.ConvertedImageFile
@@ -63,6 +64,7 @@ class SubsampledImageSerializer(serializers.ModelSerializer):
     def validate_source_image(self, value):
         if 'request' in self.context:
             check_write_perm(self.context['request'].user, value)
+        return value
 
     def to_representation(self, value):
         ret = super().to_representation(value)
