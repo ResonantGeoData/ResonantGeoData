@@ -99,7 +99,9 @@ def check_write_perm(user, obj):
 
 class CollectionAuthorizationBackend(BaseBackend):
     def has_perm(self, user, perm, obj=None):
-        """Returns `True` if the user has the specified permission, where perm is in the format
+        """Supplement default Django permission backend.
+
+        Returns `True` if the user has the specified permission, where perm is in the format
         `"<app label>.<permission codename>"`. If the user is
         inactive, this method will always return False. For an active superuser, this method
         will always return `True`.
