@@ -84,6 +84,11 @@ class FMVEntriesListView(_SpatialListView):
 
 
 class _SpatialDetailView(DetailView):
+    def get_object(self):
+        obj = super().get_object()
+        permissions.check_read_perm(obj)
+        return obj
+
     def _get_extent(self):
         if self.object.footprint is None:
             extent = {
