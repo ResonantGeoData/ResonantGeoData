@@ -1,11 +1,12 @@
 import os
 
 from django.db.models.fields.files import FieldFile
-from django.http import HttpResponse, HttpResponseRedirect, JsonResponse
+from django.http import HttpResponse, HttpResponseRedirect
 from django.shortcuts import get_object_or_404  # , render
 from django.utils.encoding import smart_str
 from drf_yasg.utils import swagger_auto_schema
 from rest_framework.decorators import api_view
+from rest_framework.response import Response
 
 from rgd.geodata import models
 
@@ -85,7 +86,7 @@ def _get_status_response(request, model, pk):
         'model': model,
         'status': instance.status,
     }
-    return JsonResponse(data)
+    return Response(data)
 
 
 @swagger_auto_schema(

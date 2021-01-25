@@ -7,13 +7,13 @@ from django.contrib.gis.geos import GEOSGeometry, Point, Polygon
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db.models import Max, Min, Q
 from django.db.models.functions import Coalesce
-from django.http import HttpResponse, JsonResponse
 from django.utils.timezone import make_aware
 from django_filters.rest_framework import DjangoFilterBackend
 from drf_yasg.utils import swagger_auto_schema
 from rest_framework import serializers as rfserializers
 from rest_framework.decorators import api_view
 from rest_framework.generics import ListAPIView
+from rest_framework.response import Response
 
 from rgd.geodata import serializers
 from rgd.geodata.filters import SpatialEntryFilter
@@ -220,7 +220,7 @@ def search_geojson_filter(params, has_created=False):
 def search_near_point(request, *args, **kwargs):
     params = request.query_params
     results = SpatialEntry.objects.filter(search_near_point_filter(params))
-    return JsonResponse(serializers.SpatialEntrySerializer(results, many=True).data, safe=False)
+    return Response(serializers.SpatialEntrySerializer(results, many=True).data)
 
 
 @swagger_auto_schema(
@@ -233,7 +233,7 @@ def search_near_point(request, *args, **kwargs):
 def search_near_point_raster(request, *args, **kwargs):
     params = request.query_params
     results = RasterMetaEntry.objects.filter(search_near_point_filter(params, True))
-    return JsonResponse(serializers.RasterMetaEntrySerializer(results, many=True).data, safe=False)
+    return Response(serializers.RasterMetaEntrySerializer(results, many=True).data)
 
 
 @swagger_auto_schema(
@@ -246,7 +246,7 @@ def search_near_point_raster(request, *args, **kwargs):
 def search_near_point_geometry(request, *args, **kwargs):
     params = request.query_params
     results = GeometryEntry.objects.filter(search_near_point_filter(params))
-    return JsonResponse(serializers.GeometryEntrySerializer(results, many=True).data, safe=False)
+    return Response(serializers.GeometryEntrySerializer(results, many=True).data)
 
 
 @swagger_auto_schema(
@@ -259,7 +259,7 @@ def search_near_point_geometry(request, *args, **kwargs):
 def search_bounding_box(request, *args, **kwargs):
     params = request.query_params
     results = SpatialEntry.objects.filter(search_bounding_box_filter(params))
-    return JsonResponse(serializers.SpatialEntrySerializer(results, many=True).data, safe=False)
+    return Response(serializers.SpatialEntrySerializer(results, many=True).data)
 
 
 @swagger_auto_schema(
@@ -272,7 +272,7 @@ def search_bounding_box(request, *args, **kwargs):
 def search_bounding_box_raster(request, *args, **kwargs):
     params = request.query_params
     results = RasterMetaEntry.objects.filter(search_bounding_box_filter(params, True))
-    return JsonResponse(serializers.RasterMetaEntrySerializer(results, many=True).data, safe=False)
+    return Response(serializers.RasterMetaEntrySerializer(results, many=True).data)
 
 
 @swagger_auto_schema(
@@ -285,7 +285,7 @@ def search_bounding_box_raster(request, *args, **kwargs):
 def search_bounding_box_geometry(request, *args, **kwargs):
     params = request.query_params
     results = GeometryEntry.objects.filter(search_bounding_box_filter(params))
-    return JsonResponse(serializers.GeometryEntrySerializer(results, many=True).data, safe=False)
+    return Response(serializers.GeometryEntrySerializer(results, many=True).data)
 
 
 @swagger_auto_schema(
@@ -298,7 +298,7 @@ def search_bounding_box_geometry(request, *args, **kwargs):
 def search_geojson(request, *args, **kwargs):
     params = request.query_params
     results = SpatialEntry.objects.filter(search_geojson_filter(params))
-    return JsonResponse(serializers.SpatialEntrySerializer(results, many=True).data, safe=False)
+    return Response(serializers.SpatialEntrySerializer(results, many=True).data)
 
 
 @swagger_auto_schema(
@@ -311,7 +311,7 @@ def search_geojson(request, *args, **kwargs):
 def search_geojson_raster(request, *args, **kwargs):
     params = request.query_params
     results = RasterMetaEntry.objects.filter(search_geojson_filter(params, True))
-    return JsonResponse(serializers.RasterMetaEntrySerializer(results, many=True).data, safe=False)
+    return Response(serializers.RasterMetaEntrySerializer(results, many=True).data)
 
 
 @swagger_auto_schema(
@@ -324,7 +324,7 @@ def search_geojson_raster(request, *args, **kwargs):
 def search_geojson_geometry(request, *args, **kwargs):
     params = request.query_params
     results = GeometryEntry.objects.filter(search_geojson_filter(params))
-    return JsonResponse(serializers.GeometryEntrySerializer(results, many=True).data, safe=False)
+    return Response(serializers.GeometryEntrySerializer(results, many=True).data)
 
 
 def extent_summary_spatial(found):
@@ -454,10 +454,10 @@ def extent_summary_http(found, has_created=False):
     Given a query set of items, return an http response with the summary.
 
     :param found: a query set with SpatialEntry results.
-    :returns: an HttpResponse.
+    :returns: a DRF Response.
     """
     results = extent_summary(found, has_created)
-    return HttpResponse(json.dumps(results), content_type='application/json')
+    return Response(results)
 
 
 @swagger_auto_schema(
