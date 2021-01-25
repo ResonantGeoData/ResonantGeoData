@@ -113,33 +113,33 @@ def test_get_spatial_entry(api_client, landsat_raster):
 
 
 @pytest.mark.django_db(transaction=True)
-def test_create_get_subsampled_image(authenticated_api_client, astro_image):
+def test_create_get_subsampled_image(api_client, astro_image):
     """Test POST and GET for SubsampledImage model."""
     payload = {
         'source_image': astro_image.pk,
         'sample_type': 'pixel box',
         'sample_parameters': json.dumps({'umax': 100, 'umin': 0, 'vmax': 200, 'vmin': 0}),
     }
-    response = authenticated_api_client.post('/api/geodata/imagery/subsample', payload)
+    response = api_client.post('/api/geodata/imagery/subsample', payload)
     assert response.status_code == 201, response.content
     content = json.loads(response.content)
     pk = content['pk']
     sub = models.imagery.SubsampledImage.objects.get(pk=pk)
     assert sub.data
     # Test the GET
-    response = authenticated_api_client.get(f'/api/geodata/imagery/subsample/{pk}')
+    response = api_client.get(f'/api/geodata/imagery/subsample/{pk}')
     assert response.status_code == 200, response.content
     # Now test to make sure the serializer prevents duplicates
-    response = authenticated_api_client.post('/api/geodata/imagery/subsample', payload)
+    response = api_client.post('/api/geodata/imagery/subsample', payload)
     assert response.status_code == 201, response.content
     content = json.loads(response.content)
     assert pk == content['pk']  # Compare against original PK
 
 
 @pytest.mark.django_db(transaction=True)
-def test_create_and_download_cog(authenticated_api_client, landsat_image):
+def test_create_and_download_cog(api_client, landsat_image):
     """Test POST for ConvertedImageFile model."""
-    response = authenticated_api_client.post(
+    response = api_client.post(
         '/api/geodata/imagery/cog',
         {'source_image': landsat_image.id},
     )
@@ -150,5 +150,5 @@ def test_create_and_download_cog(authenticated_api_client, landsat_image):
     assert cog.converted_file
     # Also test download endpoint here:
     pk = cog.pk
-    response = authenticated_api_client.get(f'/api/geodata/imagery/cog/{pk}/data')
+    response = api_client.get(f'/api/geodata/imagery/cog/{pk}/data')
     assert response.status_code == 302 or response.status_code == 200, response.content
