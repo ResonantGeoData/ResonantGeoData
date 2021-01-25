@@ -65,7 +65,6 @@ def task_populate_raster_entry(raster_id):
 
 @shared_task(time_limit=86400)
 def task_load_kwcoco_dataset(kwcoco_dataset_id):
-    logger.exception('running task_load_kwcoco_dataset')
     from .models.imagery.base import KWCOCOArchive
     from .models.imagery.etl import load_kwcoco_dataset
 

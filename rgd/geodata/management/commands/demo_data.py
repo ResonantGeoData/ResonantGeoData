@@ -60,25 +60,31 @@ FMV_FILES = []
 KWCOCO_ARCHIVES = [['demo.kwcoco.json', 'demodata.zip'], ['demo_rle.kwcoco.json', 'demo_rle.zip']]
 
 
-def _get_or_create_file_model(model, name):
-    def download_and_create():
-        # Create the ImageFile entry
-        path = datastore.fetch(name)
-        entry = model()
-        entry.name = name
-        entry.file.save(os.path.basename(path), open(path, 'rb'))
-        return entry
-
+def _get_or_download_checksum_file(name):
     # Check if there is already an image file with this name
     #  to avoid duplicating data (and check sha512)
     sha = registry[name].split(':')[1]  # NOTE: assumes sha512
-    q = model.objects.filter(name=name)
-    entry = None
-    for entry in q:
-        if compute_checksum(entry.file, sha512=True) == sha:
+    q = models.ChecksumFile.objects.filter(name=name)
+    file_entry = None
+    for file_entry in q:
+        if compute_checksum(file_entry.file, sha512=True) == sha:
             break
-    if entry is None:
-        entry = download_and_create()
+    if file_entry is None:
+        path = datastore.fetch(name)
+        file_entry = models.ChecksumFile()
+        file_entry.name = name
+        file_entry.file.save(os.path.basename(path), open(path, 'rb'))
+        file_entry.save()
+    return file_entry
+
+
+def _get_or_create_file_model(model, name):
+    # For models that point to a `ChecksumFile`
+    file_entry = _get_or_download_checksum_file(name)
+    entry, _ = model.objects.get_or_create(file=file_entry)
+    # In case the last population failed
+    if entry.status != models.mixins.Status.SUCCEEDED:
+        entry.save()
     return entry
 
 
@@ -135,8 +141,8 @@ class Command(BaseCommand):
     def _load_kwcoco_archives(self):
         ids = []
         for fspec, farch in KWCOCO_ARCHIVES:
-            spec = _get_or_create_file_model(models.ChecksumFile, fspec)
-            arch = _get_or_create_file_model(models.ChecksumFile, farch)
+            spec = _get_or_download_checksum_file(fspec)
+            arch = _get_or_download_checksum_file(farch)
             ds, _ = get_or_create_no_commit(
                 models.KWCOCOArchive, spec_file=spec, image_archive=arch
             )
