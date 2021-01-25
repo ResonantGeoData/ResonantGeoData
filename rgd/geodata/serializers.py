@@ -83,5 +83,13 @@ class SubsampledImageSerializer(serializers.ModelSerializer):
             'data',
         ]
 
+    def create(self, validated_data):
+        """Prevent duplicated subsamples from being created."""
+        obj, created = models.SubsampledImage.objects.get_or_create(**validated_data)
+        if not created:
+            # Trigger save event to reprocess the subsampling
+            obj.save()
+        return obj
+
 
 utility.make_serializers(globals(), models)

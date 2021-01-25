@@ -10,6 +10,8 @@ from rgd.geodata.models.common import SpatialEntry
 
 class GeometryFilter(filters.Filter):
     field_class = forms.GeometryField
+    # Ensures GeoJSON objects are converted to correct SRID
+    field_class.widget.map_srid = 4326
 
 
 class SpatialEntryFilter(filters.FilterSet):
@@ -102,7 +104,7 @@ class SpatialEntryFilter(filters.FilterSet):
         method='filter_resolution',
     )
     frame_rate = filters.RangeFilter(
-        field_name='fmv_entry__fmv_file',
+        field_name='fmventry__fmv_file',
         fields=(forms.IntegerField(), forms.IntegerField()),
         help_text='The frame rate of the video.',
         label='Frame rate',
@@ -120,14 +122,14 @@ class SpatialEntryFilter(filters.FilterSet):
 
     def filter_predicate(self, queryset, name, value):
         """Filter the spatial entries by the chosen predicate."""
-        if value is not None:
+        if value:
             geom = self.form.cleaned_data['q']
             return queryset.filter(**{f'footprint__{value}': geom})
         return queryset
 
     def filter_relates(self, queryset, name, value):
         """Filter the spatial entries by the chosen DE-9IM."""
-        if value is not None:
+        if value:
             geom = self.form.cleaned_data['q']
             return queryset.filter(footprint__relates=(geom, value))
         return queryset
@@ -152,7 +154,7 @@ class SpatialEntryFilter(filters.FilterSet):
         if value == 'geometry':
             return queryset.filter(geometryentry__isnull=False)
         if value == 'raster':
-            return queryset.filter(rasterentrymeta__isnull=False)
+            return queryset.filter(rastermetaentry__isnull=False)
         if value == 'fmv':
             return queryset.filter(fmventry__isnull=False)
         return queryset
@@ -168,14 +170,14 @@ class SpatialEntryFilter(filters.FilterSet):
                 queryset = queryset.filter(
                     (
                         Q(acquisition_date__gte=value)
-                        | Q(rasterentrymeta__parent_raster__created=value)
+                        | Q(rastermetaentry__parent_raster__created__gte=value)
                     )
                 )
             if value.stop is not None:
                 queryset = queryset.filter(
                     (
-                        Q(acquisition_date__gte=value)
-                        | Q(rasterentrymeta__parent_raster__created=value)
+                        Q(acquisition_date__lte=value)
+                        | Q(rastermetaentry__parent_raster__created__lte=value)
                     )
                 )
         return queryset
@@ -186,17 +188,17 @@ class SpatialEntryFilter(filters.FilterSet):
             if value.start is not None:
                 queryset = queryset.filter(
                     (
-                        Q(geometryentry__parent_raster__created__gte=value)
+                        Q(geometryentry__created__gte=value)
                         | Q(fmventry__created__gte=value)
-                        | Q(rasterentrymeta__parent_raster__created__gte=value)
+                        | Q(rastermetaentry__parent_raster__created__gte=value)
                     )
                 )
             if value.stop is not None:
                 queryset = queryset.filter(
                     (
-                        Q(geometryentry__parent_raster__created__lte=value)
+                        Q(geometryentry__created__lte=value)
                         | Q(fmventry__created__lte=value)
-                        | Q(rasterentrymeta__parent_raster__created__lte=value)
+                        | Q(rastermetaentry__parent_raster__created__lte=value)
                     )
                 )
         return queryset
@@ -207,17 +209,17 @@ class SpatialEntryFilter(filters.FilterSet):
             if value.start is not None:
                 queryset = queryset.filter(
                     (
-                        Q(geometryentry__parent_raster__modified__gte=value)
+                        Q(geometryentry__modified__gte=value)
                         | Q(fmventry__modified__gte=value)
-                        | Q(rasterentrymeta__parent_raster__modified__gte=value)
+                        | Q(rastermetaentry__parent_raster__modified__gte=value)
                     )
                 )
             if value.stop is not None:
                 queryset = queryset.filter(
                     (
-                        Q(geometryentry__parent_raster__modified__lte=value)
+                        Q(geometryentry__modified__lte=value)
                         | Q(fmventry__modified__lte=value)
-                        | Q(rasterentrymeta__parent_raster__modified__lte=value)
+                        | Q(rastermetaentry__parent_raster__modified__lte=value)
                     )
                 )
         return queryset

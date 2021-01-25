@@ -4,11 +4,12 @@ import tempfile
 
 from celery.utils.log import get_task_logger
 from django.conf import settings
-from django.core.exceptions import ObjectDoesNotExist
 from girder_utils.files import field_file_to_local_path
 from osgeo import gdal
 import rasterio
 from rasterio.mask import mask
+
+from rgd.utility import get_or_create_no_commit
 
 from ..common import ArbitraryFile
 from .base import ConvertedImageFile, SubsampledImage
@@ -41,7 +42,7 @@ def _gdal_translate_fields(source_field, output_field, prefix='', **kwargs):
 
     with field_file_to_local_path(source_field) as file_path:
         logger.info(f'The image file path: {file_path}')
-        output_path = os.path.join(tmpdir, prefix + os.path.basename(file_path))
+        output_path = os.path.join(tmpdir, prefix + os.path.basename(source_field.name))
         _gdal_translate(file_path, output_path, **kwargs)
 
     output_field.save(os.path.basename(output_path), open(output_path, 'rb'))
@@ -55,7 +56,8 @@ def convert_to_cog(cog):
         cog = ConvertedImageFile.objects.get(id=cog)
     else:
         cog.refresh_from_db()
-    cog.converted_file = ArbitraryFile()
+    if not cog.converted_file:
+        cog.converted_file = ArbitraryFile()
     src = cog.source_image.image_file.imagefile.file
     output = cog.converted_file.file
     _gdal_translate_fields(src, output, prefix='cog_', options=COG_OPTIONS)
@@ -80,7 +82,7 @@ def _subsample_with_geojson(source_field, output_field, geojson, prefix=''):
             out_meta = src.meta.copy()
             driver = src.driver
 
-        output_path = os.path.join(tmpdir, prefix + os.path.basename(file_path))
+        output_path = os.path.join(tmpdir, prefix + os.path.basename(source_field.name))
 
     # save the resulting raster
     out_meta.update(
@@ -109,12 +111,8 @@ def populate_subsampled_image(subsampled):
         subsampled.refresh_from_db()
     image_entry = subsampled.source_image
 
-    # If COG of source isn't available, create it.
-    try:
-        cog = image_entry.convertedimagefile
-    except ObjectDoesNotExist:
-        cog = ConvertedImageFile()
-        cog.source_image = image_entry
+    cog, created = get_or_create_no_commit(ConvertedImageFile, source_image=image_entry)
+    if created:
         cog.skip_signal = True  # Run conversion synchronously
         cog.save()
         convert_to_cog(cog)

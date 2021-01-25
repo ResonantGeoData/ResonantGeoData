@@ -11,6 +11,8 @@ import docker
 from girder_utils.files import field_file_to_local_path
 import numpy as np
 
+from rgd.utility import get_or_create_no_commit
+
 from .base import FMVEntry, FMVFile
 
 logger = get_task_logger(__name__)
@@ -27,7 +29,7 @@ def _extract_klv_with_docker(fmv_file_entry):
         with field_file_to_local_path(video_file) as dataset_path:
             logger.info('Running dump-klv with data %s' % (dataset_path))
             tmpdir = tempfile.mkdtemp()
-            output_path = os.path.join(tmpdir, os.path.basename(dataset_path) + '.klv')
+            output_path = os.path.join(tmpdir, os.path.basename(video_file.name) + '.klv')
             stderr_path = os.path.join(tmpdir, 'stderr.dat')
             cmd = [
                 'docker',
@@ -59,12 +61,7 @@ def _extract_klv_with_docker(fmv_file_entry):
                 raise exc
             logger.info('Finished running image with result %r' % result)
             # Store result
-            fmv_file_entry.klv_file.save(
-                '%s.klv' % os.path.basename(dataset_path), open(output_path, 'rb')
-            )
-            # entry.log.save(
-            #     '%s_log.dat' % os.path.basename(dataset_path), open(stderr_path, 'rb')
-            # )
+            fmv_file_entry.klv_file.save(os.path.basename(output_path), open(output_path, 'rb'))
             fmv_file_entry.save(
                 update_fields=[
                     'klv_file',
@@ -169,7 +166,7 @@ def _convert_video_to_mp4(fmv_file_entry):
     with field_file_to_local_path(video_file) as dataset_path:
         logger.info('Converting video file: %s' % (dataset_path))
         tmpdir = tempfile.mkdtemp()
-        output_path = os.path.join(tmpdir, os.path.basename(dataset_path) + '.mp4')
+        output_path = os.path.join(tmpdir, os.path.basename(video_file.name) + '.mp4')
 
         cmd = [
             'ffmpeg',
@@ -196,7 +193,7 @@ def _convert_video_to_mp4(fmv_file_entry):
             result = 0
             # Store result
             fmv_file_entry.web_video_file.save(
-                '%s.mp4' % os.path.basename(dataset_path), open(output_path, 'rb')
+                os.path.basename(output_path), open(output_path, 'rb')
             )
             fmv_file_entry.frame_rate = _get_frame_rate_of_video(dataset_path)
             fmv_file_entry.save()
@@ -242,17 +239,9 @@ def read_fmv_file(fmv_file_id):
         _convert_video_to_mp4(fmv_file)
 
     # create a model entry for that shapefile
-    entry_query = FMVEntry.objects.filter(fmv_file=fmv_file_id)
-    if len(entry_query) < 1:
-        entry = FMVEntry()
-        # geometry_entry.creator = archive.creator
-        entry.name = fmv_file.name
-        entry.fmv_file = fmv_file
-    elif len(entry_query) == 1:
-        entry = entry_query.first()
-    else:
-        # This should never happen because it is a foreign key
-        raise RuntimeError('multiple FMV entries found for this file.')  # pragma: no cover
+    entry, created = get_or_create_no_commit(
+        FMVEntry, defaults=dict(name=fmv_file.name), fmv_file=fmv_file
+    )
 
     _populate_fmv_entry(entry)
     entry.save()
