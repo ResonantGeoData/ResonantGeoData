@@ -221,6 +221,7 @@ def search_geojson_filter(params, has_created=False):
 def search_near_point(request, *args, **kwargs):
     params = request.query_params
     results = SpatialEntry.objects.filter(search_near_point_filter(params))
+    results = filter_read_perm(request.user, results)
     return JsonResponse(serializers.SpatialEntrySerializer(results, many=True).data, safe=False)
 
 
@@ -234,6 +235,7 @@ def search_near_point(request, *args, **kwargs):
 def search_near_point_raster(request, *args, **kwargs):
     params = request.query_params
     results = RasterMetaEntry.objects.filter(search_near_point_filter(params, True))
+    results = filter_read_perm(request.user, results)
     return JsonResponse(serializers.RasterMetaEntrySerializer(results, many=True).data, safe=False)
 
 
@@ -247,6 +249,7 @@ def search_near_point_raster(request, *args, **kwargs):
 def search_near_point_geometry(request, *args, **kwargs):
     params = request.query_params
     results = GeometryEntry.objects.filter(search_near_point_filter(params))
+    results = filter_read_perm(request.user, results)
     return JsonResponse(serializers.GeometryEntrySerializer(results, many=True).data, safe=False)
 
 
@@ -260,6 +263,7 @@ def search_near_point_geometry(request, *args, **kwargs):
 def search_bounding_box(request, *args, **kwargs):
     params = request.query_params
     results = SpatialEntry.objects.filter(search_bounding_box_filter(params))
+    results = filter_read_perm(request.user, results)
     return JsonResponse(serializers.SpatialEntrySerializer(results, many=True).data, safe=False)
 
 
@@ -273,6 +277,7 @@ def search_bounding_box(request, *args, **kwargs):
 def search_bounding_box_raster(request, *args, **kwargs):
     params = request.query_params
     results = RasterMetaEntry.objects.filter(search_bounding_box_filter(params, True))
+    results = filter_read_perm(request.user, results)
     return JsonResponse(serializers.RasterMetaEntrySerializer(results, many=True).data, safe=False)
 
 
@@ -286,6 +291,7 @@ def search_bounding_box_raster(request, *args, **kwargs):
 def search_bounding_box_geometry(request, *args, **kwargs):
     params = request.query_params
     results = GeometryEntry.objects.filter(search_bounding_box_filter(params))
+    results = filter_read_perm(request.user, results)
     return JsonResponse(serializers.GeometryEntrySerializer(results, many=True).data, safe=False)
 
 
@@ -299,6 +305,7 @@ def search_bounding_box_geometry(request, *args, **kwargs):
 def search_geojson(request, *args, **kwargs):
     params = request.query_params
     results = SpatialEntry.objects.filter(search_geojson_filter(params))
+    results = filter_read_perm(request.user, results)
     return JsonResponse(serializers.SpatialEntrySerializer(results, many=True).data, safe=False)
 
 
@@ -312,6 +319,7 @@ def search_geojson(request, *args, **kwargs):
 def search_geojson_raster(request, *args, **kwargs):
     params = request.query_params
     results = RasterMetaEntry.objects.filter(search_geojson_filter(params, True))
+    results = filter_read_perm(request.user, results)
     return JsonResponse(serializers.RasterMetaEntrySerializer(results, many=True).data, safe=False)
 
 
@@ -325,6 +333,7 @@ def search_geojson_raster(request, *args, **kwargs):
 def search_geojson_geometry(request, *args, **kwargs):
     params = request.query_params
     results = GeometryEntry.objects.filter(search_geojson_filter(params))
+    results = filter_read_perm(request.user, results)
     return JsonResponse(serializers.GeometryEntrySerializer(results, many=True).data, safe=False)
 
 
