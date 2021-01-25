@@ -50,65 +50,47 @@ def get_collection_membership_path(model):
     return None
 
 
-def filter_read_perm(user, queryset):
-    """Filter a queryset to what the user may see."""
+def filter_perm(user, queryset, role):
+    """Filter a queryset."""
     # Called outside of view
     if user is None:
         return queryset
-    path = get_collection_membership_path(queryset.model)
+    # Admins can see all
+    if user.is_active and (user.is_staff or user.is_superuser):
+        return queryset
     # No relationship to collection
+    path = get_collection_membership_path(queryset.model)
     if path is None:
         return queryset
     # Must be logged in
     if not user.is_active or user.is_anonymous:
         return queryset.none()
-    # Admins can see all
-    if user.is_active and (user.is_staff or user.is_superuser):
-        return queryset
     # Check permissions
+    # `path` can be an empty string (meaning queryset is `CollectionMembership`)
     user_path = (path + '__' if path != '' else path) + 'user'
     role_path = (path + '__' if path != '' else path) + 'role'
-    return queryset.filter(**{user_path: user}).exclude(
-        **{
-            role_path + '__lt': models.CollectionMembership.READER,
-        }
-    )
+    return queryset.filter(**{user_path: user}).exclude(**{role_path + '__lt': role})
+
+
+def filter_read_perm(user, queryset):
+    """Filter a queryset to what the user may edit."""
+    return filter_perm(user, queryset, models.CollectionMembership.READER)
 
 
 def filter_write_perm(user, queryset):
     """Filter a queryset to what the user may edit."""
-    # Called outside of view
-    if user is None:
-        return queryset
-    path = get_collection_membership_path(queryset.model)
-    # No relationship to collection
-    if path is None:
-        return queryset
-    # Must be logged in
-    if not user.is_active or user.is_anonymous:
-        return queryset.none()
-    # Admins can see all
-    if user.is_active and (user.is_staff or user.is_superuser):
-        return queryset
-    # Check permissions
-    user_path = (path + '__' if path != '' else path) + 'user'
-    role_path = (path + '__' if path != '' else path) + 'role'
-    return queryset.filter(**{user_path: user}).exclude(
-        **{
-            role_path + '__lt': models.CollectionMembership.OWNER,
-        }
-    )
+    return filter_perm(user, queryset, models.CollectionMembership.OWNER)
 
 
 def check_read_perm(user, obj):
-    """Raises 'PermissionDenied' error if user does not have read permissions."""
+    """Raise 'PermissionDenied' error if user does not have read permissions."""
     model = type(obj)
     if not filter_read_perm(user, model.objects.filter(pk=obj.pk)).exists():
         raise PermissionDenied
 
 
 def check_write_perm(user, obj):
-    """Raises 'PermissionDenied' error if user does not have write permissions."""
+    """Raise 'PermissionDenied' error if user does not have write permissions."""
     # Called outside of view
     model = type(obj)
     if not filter_write_perm(user, model.objects.filter(pk=obj.pk)).exists():
@@ -125,10 +107,12 @@ class CollectionAuthorizationBackend(BaseBackend):
         https://docs.djangoproject.com/en/3.1/ref/contrib/auth/#django.contrib.auth.models.User.has_perm
         """
         app_label, codename = perm.split('.')
-        # Permissions only apply to 'geodata' app
-        if app_label != 'geodata':
-            return False
-        if codename.startswith('read'):
-            check_read_perm(user, obj)
-        if codename.startswith('add') or codename.startswith('change'):
-            check_write_perm(user, obj)
+        if app_label == 'geodata':
+            if codename.startswith('view'):
+                check_read_perm(user, obj)
+            if (
+                codename.startswith('add')
+                or codename.startswith('delete')
+                or codename.startswith('change')
+            ):
+                check_write_perm(user, obj)
