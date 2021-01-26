@@ -7,7 +7,7 @@ from django.db.models import Count
 
 from rgd.geodata import models
 from rgd.geodata.datastore import datastore, registry
-from rgd.utility import compute_checksum_file, get_or_create_no_commit
+from rgd.utility import get_or_create_no_commit
 
 SUCCESS_MSG = 'Finished loading all demo data.'
 
@@ -64,12 +64,9 @@ def _get_or_download_checksum_file(name):
     # Check if there is already an image file with this name
     #  to avoid duplicating data (and check sha512)
     sha = registry[name].split(':')[1]  # NOTE: assumes sha512
-    q = models.ChecksumFile.objects.filter(name=name)
-    file_entry = None
-    for file_entry in q:
-        if compute_checksum_file(file_entry.file, sha512=True) == sha:
-            break
-    if file_entry is None:
+    try:
+        file_entry = models.ChecksumFile.objects.get(checksum=sha)
+    except models.ChecksumFile.DoesNotExist:
         path = datastore.fetch(name)
         file_entry = models.ChecksumFile()
         file_entry.name = name

@@ -70,7 +70,7 @@ class ChecksumFile(ModifiableEntry):
     """
 
     name = models.CharField(max_length=100, blank=True)
-    checksum = models.CharField(max_length=64)
+    checksum = models.CharField(max_length=128)  # sha512
     validate_checksum = models.BooleanField(
         default=False
     )  # a flag to validate the checksum against the saved checksum
@@ -87,12 +87,12 @@ class ChecksumFile(ModifiableEntry):
                 check=(
                     models.Q(
                         type=FileSourceType.FILE_FIELD,
-                        file__isnull=False,
+                        # file__regex=r'/.*\S.*/',
                         url__isnull=True,
                     )
                     | models.Q(
                         type=FileSourceType.URL,
-                        file__isnull=True,
+                        file__in=['', None],
                         url__isnull=False,
                     )
                 ),
@@ -134,7 +134,8 @@ class ChecksumFile(ModifiableEntry):
             if self.type == FileSourceType.FILE_FIELD:
                 self.name = os.path.basename(self.file.name)
             elif self.type == FileSourceType.URL:
-                self.name = urlparse(self.url).path
+                # TODO: this isn't the best approach
+                self.name = os.path.basename(urlparse(self.url).path)
         # Must save the model with the file before accessing it for the checksum
         super(ChecksumFile, self).save(*args, **kwargs)
         # Checksum is additional step after saving everything else - simply update these fields.
