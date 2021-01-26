@@ -1,6 +1,7 @@
 import json
 
 import pytest
+from rest_framework import status
 
 from rgd.geodata import models
 from rgd.geodata.datastore import datastore
@@ -66,16 +67,14 @@ def test_get_status(api_client, astro_image):
 def test_download_arbitry_file(api_client, arbitrary_file):
     pk = arbitrary_file.pk
     response = api_client.get(f'/api/geodata/common/arbitrary_file/{pk}/data')
-    assert response.status_code == 302 or response.status_code == 200
-    assert response.data
+    assert status.is_redirect(response.status_code)
 
 
 @pytest.mark.django_db(transaction=True)
 def test_download_image_entry_file(api_client, astro_image):
     pk = astro_image.pk
     response = api_client.get(f'/api/geodata/imagery/image_entry/{pk}/data')
-    assert response.status_code == 302 or response.status_code == 200
-    assert response.data
+    assert status.is_redirect(response.status_code)
 
 
 @pytest.mark.django_db(transaction=True)
@@ -140,5 +139,4 @@ def test_create_and_download_cog(authenticated_api_client, landsat_image):
     # Also test download endpoint here:
     pk = cog.pk
     response = authenticated_api_client.get(f'/api/geodata/imagery/cog/{pk}/data')
-    assert response.status_code == 302 or response.status_code == 200
-    assert response.data
+    assert status.is_redirect(response.status_code)
