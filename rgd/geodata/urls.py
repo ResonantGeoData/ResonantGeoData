@@ -35,11 +35,6 @@ urlpatterns = [
     ),
     #############
     path(
-        'api/geodata/download/<model>/<int:id>/<field>',
-        api.download.download_file,
-        name='download-file',
-    ),
-    path(
         'api/geodata/status/<model>/<int:pk>',
         api.download.get_status,
         name='get-status',
