@@ -36,6 +36,13 @@ TASK_EVENT_READONLY = (
 )
 
 
+class _FileGetNameMixin:
+    def get_name(self, obj):
+        return obj.file.name
+    get_name.short_description = 'Name'
+    get_name.admin_order_field = 'file__name'
+
+
 @admin.register(ChecksumFile)
 class ChecksumFileAdmin(OSMGeoAdmin):
     list_display = (
@@ -236,9 +243,10 @@ class AnnotationAdmin(OSMGeoAdmin):
 
 
 @admin.register(ImageFile)
-class ImageFileAdmin(OSMGeoAdmin):
+class ImageFileAdmin(OSMGeoAdmin, _FileGetNameMixin):
     list_display = (
         'id',
+        'get_name',
         'status',
         'modified',
         'created',
@@ -296,9 +304,10 @@ class GeometryEntryInline(admin.StackedInline):
 
 
 @admin.register(GeometryArchive)
-class GeometryArchiveAdmin(OSMGeoAdmin):
+class GeometryArchiveAdmin(OSMGeoAdmin, _FileGetNameMixin):
     list_display = (
         'id',
+        'get_name',
         'status',
         'modified',
         'created',
@@ -328,9 +337,10 @@ class FMVEntryInline(admin.StackedInline):
 
 
 @admin.register(FMVFile)
-class FMVFileAdmin(OSMGeoAdmin):
+class FMVFileAdmin(OSMGeoAdmin, _FileGetNameMixin):
     list_display = (
         'id',
+        'get_name',
         'status',
         'modified',
         'created',
