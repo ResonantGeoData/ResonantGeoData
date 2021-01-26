@@ -7,7 +7,7 @@ from django.utils import timezone
 from model_utils.managers import InheritanceManager
 from s3_file_field import S3FileField
 
-from rgd.utility import compute_checksum_file, compute_checksum_url
+from rgd.utility import compute_checksum_file, compute_checksum_url, _link_url
 
 from .constants import DB_SRID
 
@@ -169,3 +169,8 @@ class ChecksumFile(ModifiableEntry):
             return self.file.url
         elif self.type == FileSourceType.URL:
             return self.url
+
+    def data_link(self):
+        return _link_url('geodata', 'image_file', self, 'get_url')
+
+    data_link.allow_tags = True

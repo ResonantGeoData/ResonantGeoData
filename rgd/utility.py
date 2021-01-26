@@ -32,7 +32,11 @@ def compute_checksum_url(url: str, chunk_num_blocks=128):
 def _link_url(root, name, obj, field):
     if not getattr(obj, field, None):
         return 'No attachment'
-    url = getattr(obj, field).url
+    attr = getattr(obj, field)
+    if hasattr(attr, '__call__'):
+        url = attr()
+    else:
+        url = attr.url
     return mark_safe('<a href="%s" download>Download</a>' % (url,))
 
 
