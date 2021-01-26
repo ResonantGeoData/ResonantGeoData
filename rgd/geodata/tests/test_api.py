@@ -52,22 +52,6 @@ def landsat_raster():
 
 
 @pytest.mark.django_db(transaction=True)
-def test_download_file(api_client, arbitrary_file):
-    model = 'ArbitraryFile'
-    id = arbitrary_file.id
-    field = 'file'
-    response = api_client.get(f'/api/geodata/download/{model}/{id}/{field}')
-    assert response.status_code == 200
-    assert response.data
-    with pytest.raises(AttributeError):
-        # Test bad model
-        api_client.get('/api/geodata/download/Foo/0/file')
-    with pytest.raises(AttributeError):
-        # Test good model, bad field
-        api_client.get(f'/api/geodata/download/{model}/{id}/foo')
-
-
-@pytest.mark.django_db(transaction=True)
 def test_get_status(api_client, astro_image):
     model = 'ImageFile'
     id = astro_image.image_file.imagefile.id
