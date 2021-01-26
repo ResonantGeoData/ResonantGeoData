@@ -1,4 +1,5 @@
 import os
+from urllib.parse import urlparse
 
 # from django.contrib.auth import get_user_model
 from django.contrib.gis.db import models
@@ -6,7 +7,7 @@ from django.utils import timezone
 from model_utils.managers import InheritanceManager
 from s3_file_field import S3FileField
 
-from rgd.utility import compute_checksum
+from rgd.utility import compute_checksum_file, compute_checksum_url
 
 from .constants import DB_SRID
 
@@ -76,8 +77,8 @@ class ChecksumFile(ModifiableEntry):
     last_validation = models.BooleanField(default=True)
 
     type = models.IntegerField(choices=FileSourceType.choices, default=FileSourceType.FILE_FIELD)
-    file = S3FileField(null=True)
-    url = models.TextField(null=True)
+    file = S3FileField(null=True, blank=True)
+    url = models.TextField(null=True, blank=True)
 
     class Meta:
         constraints = [
@@ -98,8 +99,17 @@ class ChecksumFile(ModifiableEntry):
             )
         ]
 
+    def get_checksum(self):
+        """Compute a new checksum without saving it."""
+        if self.type == FileSourceType.FILE_FIELD:
+            return compute_checksum_file(self.file)
+        elif self.type == FileSourceType.URL:
+            return compute_checksum_url(self.url)
+        else:
+            raise NotImplementedError(f'Type ({self.type}) not supported.')
+
     def update_checksum(self):
-        self.checksum = compute_checksum(self.file)
+        self.checksum = self.get_checksum()
         # Simple update save - not full save
         super(ChecksumFile, self).save(
             update_fields=[
@@ -120,11 +130,11 @@ class ChecksumFile(ModifiableEntry):
         return self.last_validation
 
     def save(self, *args, **kwargs):
-        # TODO: is there a cleaner way to enforce child class has `file` field?
-        if not hasattr(self, 'file'):
-            raise AttributeError('Child class of `ChecksumFile` must have a `file` field.')
         if not self.name:
-            self.name = os.path.basename(self.file.name)
+            if self.type == FileSourceType.FILE_FIELD:
+                self.name = os.path.basename(self.file.name)
+            elif self.type == FileSourceType.URL:
+                self.name = urlparse(self.url).path
         # Must save the model with the file before accessing it for the checksum
         super(ChecksumFile, self).save(*args, **kwargs)
         # Checksum is additional step after saving everything else - simply update these fields.

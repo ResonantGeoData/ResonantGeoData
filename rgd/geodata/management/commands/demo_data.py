@@ -7,7 +7,7 @@ from django.db.models import Count
 
 from rgd.geodata import models
 from rgd.geodata.datastore import datastore, registry
-from rgd.utility import compute_checksum, get_or_create_no_commit
+from rgd.utility import compute_checksum_file, get_or_create_no_commit
 
 SUCCESS_MSG = 'Finished loading all demo data.'
 
@@ -67,7 +67,7 @@ def _get_or_download_checksum_file(name):
     q = models.ChecksumFile.objects.filter(name=name)
     file_entry = None
     for file_entry in q:
-        if compute_checksum(file_entry.file, sha512=True) == sha:
+        if compute_checksum_file(file_entry.file, sha512=True) == sha:
             break
     if file_entry is None:
         path = datastore.fetch(name)
