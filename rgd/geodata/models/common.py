@@ -162,3 +162,10 @@ class ChecksumFile(ModifiableEntry):
         elif self.type == FileSourceType.URL:
             # Check if http<s>:// or s3://
             ...
+
+    def get_url(self):
+        """Get the URL of the stored resource."""
+        if self.type == FileSourceType.FILE_FIELD:
+            return self.file.url
+        elif self.type == FileSourceType.URL:
+            return self.url
