@@ -86,14 +86,13 @@ class ChecksumFile(ModifiableEntry):
                 name='%(app_label)s_%(class)s_file_source_value_matches_type',
                 check=(
                     models.Q(
-                        type=FileSourceType.FILE_FIELD,
-                        # file__regex=r'/.*\S.*/',
-                        url__isnull=True,
+                        models.Q(type=FileSourceType.FILE_FIELD, file__regex=r'.+')
+                        & models.Q(models.Q(url__in=['', None]) | models.Q(url__isnull=True))
                     )
                     | models.Q(
-                        type=FileSourceType.URL,
-                        file__in=['', None],
-                        url__isnull=False,
+                        models.Q(type=FileSourceType.URL)
+                        & models.Q(models.Q(url__isnull=False) & models.Q(url__regex=r'.+'))
+                        & models.Q(models.Q(file__in=['', None]) | models.Q(file__isnull=True))
                     )
                 ),
             )

@@ -7,19 +7,23 @@ from rgd.geodata.models import common
 FILENAME = 'stars.png'
 
 
+@pytest.fixture
+def file_path():
+    return datastore.fetch(FILENAME)
+
+
 @pytest.mark.django_db(transaction=True)
-def test_checksumfile_file():
-    path = datastore.fetch(FILENAME)
+def test_checksumfile_file_create(file_path):
     model = common.ChecksumFile()
     model.type = common.FileSourceType.FILE_FIELD
-    model.file.save(FILENAME, open(path, 'rb'))
+    model.file.save(FILENAME, open(file_path, 'rb'))
     model.save()
     assert model.checksum == registry[FILENAME].split(':')[1]
     assert model.name
 
 
 @pytest.mark.django_db(transaction=True)
-def test_checksumfile_url():
+def test_checksumfile_url_create():
     model = common.ChecksumFile()
     model.type = common.FileSourceType.URL
     model.url = datastore.get_url(FILENAME)
@@ -29,16 +33,51 @@ def test_checksumfile_url():
 
 
 @pytest.mark.django_db(transaction=True)
-def test_checksumfile_constraint():
+def test_checksumfile_constraint_mismatch_a():
     with pytest.raises(IntegrityError):
         model = common.ChecksumFile()
         model.name = 'foo'
         model.type = common.FileSourceType.FILE_FIELD
         model.url = datastore.get_url(FILENAME)
         model.save()
+
+
+@pytest.mark.django_db(transaction=True)
+def test_checksumfile_constraint_mismatch_b(file_path):
     with pytest.raises(IntegrityError):
-        path = datastore.fetch(FILENAME)
         model = common.ChecksumFile()
         model.name = 'foo'
         model.type = common.FileSourceType.URL
-        model.file.save(FILENAME, open(path, 'rb'))
+        model.file.save(FILENAME, open(file_path, 'rb'))
+
+
+@pytest.mark.django_db(transaction=True)
+def test_checksumfile_constraint_url_null():
+    with pytest.raises(IntegrityError):
+        model = common.ChecksumFile()
+        model.name = 'foo'
+        model.type = common.FileSourceType.URL
+        model.save()
+
+
+@pytest.mark.django_db(transaction=True)
+def test_checksumfile_constraint_url_empty():
+    with pytest.raises(IntegrityError):
+        model = common.ChecksumFile()
+        model.name = 'foo'
+        model.type = common.FileSourceType.URL
+        model.url = ''
+        model.save()
+
+
+@pytest.mark.django_db(transaction=True)
+def test_checksumfile_constraint_file_with_empty_url(file_path):
+    # Make sure the constraint passes when an empty string URL is given with
+    #   the FileField choice. This happens when adding files in the admin interface
+    model = common.ChecksumFile()
+    model.name = 'foo'
+    model.type = common.FileSourceType.FILE_FIELD
+    model.url = ''
+    model.file.save(FILENAME, open(file_path, 'rb'))
+    assert not model.url
+    assert model.file.name
