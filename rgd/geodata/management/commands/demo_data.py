@@ -1,13 +1,7 @@
-from functools import reduce
-import os
-
 from django.conf import settings
 from django.core.management.base import BaseCommand  # , CommandError
-from django.db.models import Count
 
-from rgd.geodata import models
-from rgd.geodata.datastore import datastore, registry
-from rgd.utility import get_or_create_no_commit
+from . import _data_helper as helper
 
 SUCCESS_MSG = 'Finished loading all demo data.'
 
@@ -58,94 +52,11 @@ SHAPE_FILES = [
 ]
 FMV_FILES = []
 KWCOCO_ARCHIVES = [['demo.kwcoco.json', 'demodata.zip'], ['demo_rle.kwcoco.json', 'demo_rle.zip']]
-
-
-def _get_or_download_checksum_file(name):
-    # Check if there is already an image file with this name
-    #  to avoid duplicating data (and check sha512)
-    sha = registry[name].split(':')[1]  # NOTE: assumes sha512
-    try:
-        file_entry = models.ChecksumFile.objects.get(checksum=sha)
-    except models.ChecksumFile.DoesNotExist:
-        path = datastore.fetch(name)
-        file_entry = models.ChecksumFile()
-        file_entry.name = name
-        file_entry.file.save(os.path.basename(path), open(path, 'rb'))
-        file_entry.save()
-    return file_entry
-
-
-def _get_or_create_file_model(model, name):
-    # For models that point to a `ChecksumFile`
-    file_entry = _get_or_download_checksum_file(name)
-    entry, _ = model.objects.get_or_create(file=file_entry)
-    # In case the last population failed
-    if entry.status != models.mixins.Status.SUCCEEDED:
-        entry.save()
-    return entry
+RASTER_URLS = []
 
 
 class Command(BaseCommand):
     help = 'Populate database with demo data.'
-
-    def _load_image_files(self, images):
-        ids = []
-        for imfile in images:
-            if isinstance(imfile, (list, tuple)):
-                result = self._load_image_files(imfile)
-            else:
-                entry = _get_or_create_file_model(models.ImageFile, imfile)
-                result = entry.imageentry.pk
-            ids.append(result)
-        return ids
-
-    def _load_raster_files(self):
-        imentries = self._load_image_files(RASTER_FILES)
-        ids = []
-        for pks in imentries:
-            if not isinstance(pks, (list, tuple)):
-                pks = [
-                    pks,
-                ]
-            # Check if an ImageSet already exists containing all of these images
-            q = models.ImageSet.objects.annotate(count=Count('images')).filter(count=len(pks))
-            imsets = reduce(lambda p, id: q.filter(images=id), pks, q).values()
-            if len(imsets) > 0:
-                # Grab first, could be N-many
-                imset = models.ImageSet.objects.get(id=imsets[0]['id'])
-            else:
-                images = models.ImageEntry.objects.filter(pk__in=pks).all()
-                imset = models.ImageSet()
-                imset.save()  # Have to save before adding to ManyToManyField
-                for image in images:
-                    imset.images.add(image)
-                imset.save()
-            # Make raster of that image set
-            raster, _ = models.RasterEntry.objects.get_or_create(image_set=imset)
-            ids.append(raster.pk)
-        return ids
-
-    def _load_shape_files(self):
-        ids = []
-        for shpfile in SHAPE_FILES:
-            entry = _get_or_create_file_model(models.GeometryArchive, shpfile)
-            ids.append(entry.geometryentry.pk)
-        return ids
-
-    def _load_fmv_files(self):
-        raise NotImplementedError('FMV ETL with Docker is still broken.')
-
-    def _load_kwcoco_archives(self):
-        ids = []
-        for fspec, farch in KWCOCO_ARCHIVES:
-            spec = _get_or_download_checksum_file(fspec)
-            arch = _get_or_download_checksum_file(farch)
-            ds, _ = get_or_create_no_commit(
-                models.KWCOCOArchive, spec_file=spec, image_archive=arch
-            )
-            ds.save()
-            ids.append(ds.id)
-        return ids
 
     def handle(self, *args, **options):
         # Set celery to run all tasks synchronously
@@ -155,11 +66,11 @@ class Command(BaseCommand):
         settings.CELERY_TASK_EAGER_PROPAGATES = True
 
         # Run the command
-        self._load_image_files(IMAGE_FILES)
-        self._load_raster_files()
-        self._load_shape_files()
-        # self._load_fmv_files()
-        self._load_kwcoco_archives()
+        helper.load_image_files(IMAGE_FILES)
+        helper.load_raster_files(RASTER_FILES)
+        helper.load_shape_files(SHAPE_FILES)
+        # self._load_fmv_files(FMV_FILES)
+        helper.load_kwcoco_archives(KWCOCO_ARCHIVES)
         self.stdout.write(self.style.SUCCESS(SUCCESS_MSG))
 
         # Reset celery to previous settings
