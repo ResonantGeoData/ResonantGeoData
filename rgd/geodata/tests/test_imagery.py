@@ -1,6 +1,7 @@
 import pytest
 
 from rgd.geodata.datastore import datastore
+from rgd.geodata.models.common import FileSourceType
 from rgd.geodata.models.imagery.annotation import Annotation, RLESegmentation
 from rgd.geodata.models.imagery.base import (
     ConvertedImageFile,
@@ -47,6 +48,31 @@ def test_imagefile_to_rasterentry_centroids(testfile):
     )
     meta = raster.rastermetaentry
     centroid = meta.footprint.centroid
+    assert centroid.x == pytest.approx(testfile['centroid']['x'], abs=2e-4)
+    assert centroid.y == pytest.approx(testfile['centroid']['y'], abs=2e-4)
+
+
+@pytest.mark.parametrize('testfile', SampleFiles)
+@pytest.mark.django_db(transaction=True)
+def test_imagefile_url_to_rasterentry_centroids(testfile):
+    imagefile = factories.ImageFileFactory(
+        file__file=None,
+        file__url=datastore.get_url(testfile['name']),
+        file__type=FileSourceType.URL,
+    )
+    image_set = factories.ImageSetFactory(
+        images=[imagefile.imageentry.id],
+    )
+    raster = factories.RasterEntryFactory(
+        name=testfile['name'],
+        image_set=image_set,
+    )
+    meta = raster.rastermetaentry
+    centroid = meta.footprint.centroid
+    # Sanity check
+    assert imagefile.file.url
+    assert imagefile.file.type == FileSourceType.URL
+    # Make sure the file contents were read correctly
     assert centroid.x == pytest.approx(testfile['centroid']['x'], abs=2e-4)
     assert centroid.y == pytest.approx(testfile['centroid']['y'], abs=2e-4)
 
