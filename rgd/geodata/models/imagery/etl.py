@@ -17,7 +17,6 @@ from django.contrib.gis.geos import (
     Polygon,
 )
 from django.core.files.base import ContentFile
-from girder_utils.files import field_file_to_local_path
 import kwcoco
 import kwimage
 import matplotlib.pyplot as plt
@@ -199,7 +198,7 @@ def populate_image_entry(ife):
     if not isinstance(ife, ImageFile):
         ife = ImageFile.objects.get(id=ife)
 
-    with field_file_to_local_path(ife.file.file) as file_path:
+    with ife.file.yield_local_path() as file_path:
         logger.info(f'The image file path: {file_path}')
 
         image_entry, created = get_or_create_no_commit(
@@ -223,8 +222,8 @@ def _extract_raster_meta(image_file_entry):
 
     """
     raster_meta = dict()
-    with image_file_entry.file.file.open() as file_obj:
-        with rasterio.open(file_obj) as src:
+    with image_file_entry.file.yield_local_path() as path:
+        with rasterio.open(path) as src:
             raster_meta['crs'] = src.crs.to_proj4()
             raster_meta['origin'] = [src.bounds.left, src.bounds.bottom]
             raster_meta['extent'] = [
@@ -262,7 +261,7 @@ def _extract_raster_outline_and_footprint(image_file_entry):
     This operates on the assumption that the image file is a valid raster.
 
     """
-    with field_file_to_local_path(image_file_entry.file.file) as file_path:
+    with image_file_entry.file.yield_local_path() as file_path:
         # Reproject the raster to the DB SRID using rasterio directly rather
         #  than transforming the extracted geometry which had issues.
         src = _reproject_raster(rasterio.open(file_path), DB_SRID)
@@ -452,7 +451,7 @@ def load_kwcoco_dataset(kwcoco_dataset_id):
         # TODO: how should we download data from specified URLs?
 
     # Load the KWCOCO JSON spec and make annotations on the images
-    with field_file_to_local_path(ds_entry.spec_file.file) as file_path:
+    with ds_entry.spec_file.yield_local_path() as file_path:
         ds = kwcoco.CocoDataset(str(file_path))
         # Set the root dir to where the images were extracted / the temp dir
         # If images are coming from URL, they will download to here

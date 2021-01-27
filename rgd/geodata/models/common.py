@@ -4,10 +4,16 @@ from urllib.parse import urlparse
 # from django.contrib.auth import get_user_model
 from django.contrib.gis.db import models
 from django.utils import timezone
+from girder_utils.files import field_file_to_local_path
 from model_utils.managers import InheritanceManager
 from s3_file_field import S3FileField
 
-from rgd.utility import compute_checksum_file, compute_checksum_url, _link_url
+from rgd.utility import (
+    _link_url,
+    compute_checksum_file,
+    compute_checksum_url,
+    url_file_to_local_path,
+)
 
 from .constants import DB_SRID
 
@@ -154,14 +160,13 @@ class ChecksumFile(ModifiableEntry):
                 ]
             )
 
-    def get_local_path(self):
+    def yield_local_path(self):
         """Fetch the file from its source to a local path on disk."""
         if self.type == FileSourceType.FILE_FIELD:
             # Use field_file_to_local_path
-            ...
+            return field_file_to_local_path(self.file)
         elif self.type == FileSourceType.URL:
-            # Check if http<s>:// or s3://
-            ...
+            return url_file_to_local_path(self.url)
 
     def get_url(self):
         """Get the URL of the stored resource."""

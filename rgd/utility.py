@@ -1,5 +1,10 @@
+from contextlib import contextmanager
 import hashlib
 import inspect
+import os
+from pathlib import Path, PurePath
+import tempfile
+from typing import Generator
 from urllib.request import urlopen
 
 from django.db.models import fields
@@ -33,7 +38,7 @@ def _link_url(root, name, obj, field):
     if not getattr(obj, field, None):
         return 'No attachment'
     attr = getattr(obj, field)
-    if hasattr(attr, '__call__'):
+    if callable(attr):
         url = attr()
     else:
         url = attr.url
@@ -153,3 +158,15 @@ def get_or_create_no_commit(model, defaults=None, **kwargs):
             defaults = {}
         defaults.update(kwargs)
         return model(**defaults), True
+
+
+@contextmanager
+def url_file_to_local_path(url: str, num_blocks=128, block_size=128) -> Generator[Path, None, None]:
+    # Eventually we need to re-work this for https://github.com/ResonantGeoData/ResonantGeoData/issues/237
+    remote = urlopen(url)
+    field_file_basename = PurePath(os.path.basename(url)).name
+    with tempfile.NamedTemporaryFile('wb', suffix=field_file_basename) as dest_stream:
+        while chunk := remote.read(num_blocks * block_size):
+            dest_stream.write(chunk)
+            dest_stream.flush()
+        yield Path(dest_stream.name)

@@ -4,7 +4,6 @@ import tempfile
 
 from celery.utils.log import get_task_logger
 from django.conf import settings
-from girder_utils.files import field_file_to_local_path
 from osgeo import gdal
 import rasterio
 from rasterio.mask import mask
@@ -36,13 +35,13 @@ def _gdal_translate(src_path, dest_path, **kwargs):
     return dest_path
 
 
-def _gdal_translate_fields(source_field, output_field, prefix='', **kwargs):
+def _gdal_translate_helper(source, output_field, prefix='', **kwargs):
     workdir = getattr(settings, 'GEODATA_WORKDIR', None)
     tmpdir = tempfile.mkdtemp(dir=workdir)
 
-    with field_file_to_local_path(source_field) as file_path:
+    with source.yield_local_path() as file_path:
         logger.info(f'The image file path: {file_path}')
-        output_path = os.path.join(tmpdir, prefix + os.path.basename(source_field.name))
+        output_path = os.path.join(tmpdir, prefix + os.path.basename(source.name))
         _gdal_translate(file_path, output_path, **kwargs)
 
     output_field.save(os.path.basename(output_path), open(output_path, 'rb'))
@@ -58,9 +57,9 @@ def convert_to_cog(cog):
         cog.refresh_from_db()
     if not cog.converted_file:
         cog.converted_file = ChecksumFile()
-    src = cog.source_image.image_file.imagefile.file.file
+    src = cog.source_image.image_file.imagefile.file
     output = cog.converted_file.file
-    _gdal_translate_fields(src, output, prefix='cog_', options=COG_OPTIONS)
+    _gdal_translate_helper(src, output, prefix='cog_', options=COG_OPTIONS)
     cog.converted_file.save()
     cog.save(
         update_fields=[
@@ -71,18 +70,18 @@ def convert_to_cog(cog):
     return cog.id
 
 
-def _subsample_with_geojson(source_field, output_field, geojson, prefix=''):
+def _subsample_with_geojson(source, output_field, geojson, prefix=''):
     workdir = getattr(settings, 'GEODATA_WORKDIR', None)
     tmpdir = tempfile.mkdtemp(dir=workdir)
 
-    with field_file_to_local_path(source_field) as file_path:
+    with source.yield_local_path() as file_path:
         # load the raster, mask it by the polygon and crop it
         with rasterio.open(file_path) as src:
             out_image, out_transform = mask(src, [geojson], crop=True)
             out_meta = src.meta.copy()
             driver = src.driver
 
-        output_path = os.path.join(tmpdir, prefix + os.path.basename(source_field.name))
+        output_path = os.path.join(tmpdir, prefix + os.path.basename(source.name))
 
     # save the resulting raster
     out_meta.update(
@@ -121,7 +120,7 @@ def populate_subsampled_image(subsampled):
     logger.info(f'Subsample parameters: {subsampled.sample_parameters}')
     kwargs = subsampled.to_kwargs()
 
-    source_field = cog.converted_file.file.file
+    source = cog.converted_file
     if not subsampled.data:
         subsampled.data = ChecksumFile()
 
@@ -130,10 +129,10 @@ def populate_subsampled_image(subsampled):
         and kwargs.get('type', None)
     ):
         logger.info('Subsampling with GeoJSON feature.')
-        _subsample_with_geojson(source_field, subsampled.data.file, kwargs, prefix='subsampled_')
+        _subsample_with_geojson(source, subsampled.data.file, kwargs, prefix='subsampled_')
     else:
         logger.info('Subsampling with bounding box feature.')
-        _gdal_translate_fields(source_field, subsampled.data.file, prefix='subsampled_', **kwargs)
+        _gdal_translate_helper(source, subsampled.data.file, prefix='subsampled_', **kwargs)
 
     subsampled.data.save()
     subsampled.save(

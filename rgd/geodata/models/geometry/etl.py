@@ -44,11 +44,11 @@ def read_geometry_archive(archive_id):
     workdir = getattr(settings, 'GEODATA_WORKDIR', None)
     tmpdir = tempfile.mkdtemp(dir=workdir)
 
-    with archive.file.file.open() as archive_file_obj:
-        logger.info(f'The geometry archive: {archive.file.file}')
+    with archive.file.yield_local_path() as archive_path:
+        logger.info(f'The geometry archive: {archive_path}')
 
         # Unzip the contents to the working dir
-        with zipfile.ZipFile(archive_file_obj, 'r') as zip_ref:
+        with zipfile.ZipFile(archive_path, 'r') as zip_ref:
             zip_ref.extractall(tmpdir)
 
     msg = 'There must be one and only one shapefile in the archive. Found ({})'

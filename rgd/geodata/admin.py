@@ -39,6 +39,7 @@ TASK_EVENT_READONLY = (
 class _FileGetNameMixin:
     def get_name(self, obj):
         return obj.file.name
+
     get_name.short_description = 'Name'
     get_name.admin_order_field = 'file__name'
 

@@ -8,7 +8,6 @@ import tempfile
 from celery.utils.log import get_task_logger
 from django.contrib.gis.geos import MultiPoint, MultiPolygon, Point, Polygon
 import docker
-from girder_utils.files import field_file_to_local_path
 import numpy as np
 
 from rgd.utility import get_or_create_no_commit
@@ -21,15 +20,15 @@ logger = get_task_logger(__name__)
 def _extract_klv_with_docker(fmv_file_entry):
     logger.info('Entered `_extract_klv_with_docker`')
     image_name = 'banesullivan/kwiver:dump-klv'
-    video_file = fmv_file_entry.file.file
+    video_file = fmv_file_entry.file
     try:
         client = docker.from_env(version='auto', timeout=3600)
         _ = client.images.pull(image_name)
 
-        with field_file_to_local_path(video_file) as dataset_path:
+        with video_file.yield_local_path() as dataset_path:
             logger.info('Running dump-klv with data %s' % (dataset_path))
             tmpdir = tempfile.mkdtemp()
-            output_path = os.path.join(tmpdir, os.path.basename(video_file.name) + '.klv')
+            output_path = os.path.join(tmpdir, os.path.basename(video_file.file.name) + '.klv')
             stderr_path = os.path.join(tmpdir, 'stderr.dat')
             cmd = [
                 'docker',
@@ -162,11 +161,11 @@ def _get_frame_rate_of_video(file_path):
 
 
 def _convert_video_to_mp4(fmv_file_entry):
-    video_file = fmv_file_entry.file.file
-    with field_file_to_local_path(video_file) as dataset_path:
+    video_file = fmv_file_entry.file
+    with video_file.yield_local_path() as dataset_path:
         logger.info('Converting video file: %s' % (dataset_path))
         tmpdir = tempfile.mkdtemp()
-        output_path = os.path.join(tmpdir, os.path.basename(video_file.name) + '.mp4')
+        output_path = os.path.join(tmpdir, os.path.basename(video_file.file.name) + '.mp4')
 
         cmd = [
             'ffmpeg',

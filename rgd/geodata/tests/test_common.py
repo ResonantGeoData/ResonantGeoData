@@ -1,3 +1,5 @@
+import os
+
 from django.db import IntegrityError
 import pytest
 
@@ -81,3 +83,38 @@ def test_checksumfile_constraint_file_with_empty_url(file_path):
     model.file.save(FILENAME, open(file_path, 'rb'))
     assert not model.url
     assert model.file.name
+
+
+@pytest.mark.django_db(transaction=True)
+def test_checksumfile_file_yield_local_path(file_path):
+    model = common.ChecksumFile()
+    model.type = common.FileSourceType.FILE_FIELD
+    model.file.save(FILENAME, open(file_path, 'rb'))
+    model.save()
+    path = model.yield_local_path()
+    with model.yield_local_path() as path:
+        assert os.path.exists(path)
+    # Make sure it is cleaned up afer context ends
+    assert not os.path.exists(path)
+    # Now test that is gets cleaned up during an exception
+    with pytest.raises(ValueError):
+        with model.yield_local_path() as path:
+            raise ValueError()
+    assert not os.path.exists(path)
+
+
+@pytest.mark.django_db(transaction=True)
+def test_checksumfile_url_yield_local_path():
+    model = common.ChecksumFile()
+    model.type = common.FileSourceType.URL
+    model.url = datastore.get_url(FILENAME)
+    model.save()
+    with model.yield_local_path() as path:
+        assert os.path.exists(path)
+    # Make sure it is cleaned up afer context ends
+    assert not os.path.exists(path)
+    # Now test that is gets cleaned up during an exception
+    with pytest.raises(ValueError):
+        with model.yield_local_path() as path:
+            raise ValueError()
+    assert not os.path.exists(path)
