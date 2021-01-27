@@ -58,29 +58,36 @@ def load_image_files(image_files):
 
 
 def load_raster_files(raster_files):
-    imentries = load_image_files(raster_files)
     ids = []
-    for pks in imentries:
-        if not isinstance(pks, (list, tuple)):
-            pks = [
-                pks,
+    for rf in raster_files:
+        imentries = load_image_files(
+            [
+                rf,
             ]
-        # Check if an ImageSet already exists containing all of these images
-        q = models.ImageSet.objects.annotate(count=Count('images')).filter(count=len(pks))
-        imsets = reduce(lambda p, id: q.filter(images=id), pks, q).values()
-        if len(imsets) > 0:
-            # Grab first, could be N-many
-            imset = models.ImageSet.objects.get(id=imsets[0]['id'])
-        else:
-            images = models.ImageEntry.objects.filter(pk__in=pks).all()
-            imset = models.ImageSet()
-            imset.save()  # Have to save before adding to ManyToManyField
-            for image in images:
-                imset.images.add(image)
-            imset.save()
-        # Make raster of that image set
-        raster, _ = models.RasterEntry.objects.get_or_create(image_set=imset)
-        ids.append(raster.pk)
+        )
+        for pks in imentries:
+            if not isinstance(pks, (list, tuple)):
+                pks = [
+                    pks,
+                ]
+            # Check if an ImageSet already exists containing all of these images
+            q = models.ImageSet.objects.annotate(count=Count('images')).filter(count=len(pks))
+            imsets = reduce(lambda p, id: q.filter(images=id), pks, q).values()
+            if len(imsets) > 0:
+                # Grab first, could be N-many
+                imset = models.ImageSet.objects.get(id=imsets[0]['id'])
+            else:
+                images = models.ImageEntry.objects.filter(pk__in=pks).all()
+                imset = models.ImageSet()
+                imset.save()  # Have to save before adding to ManyToManyField
+                for image in images:
+                    imset.images.add(image)
+                imset.save()
+            # Make raster of that image set
+            raster, created = models.RasterEntry.objects.get_or_create(image_set=imset)
+            if not created and raster.status != models.mixins.Status.SUCCEEDED:
+                raster.save()
+            ids.append(raster.pk)
     return ids
 
 
