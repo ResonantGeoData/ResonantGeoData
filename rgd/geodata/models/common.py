@@ -142,7 +142,7 @@ class ChecksumFile(ModifiableEntry, TaskEventMixin):
 
     def save(self, *args, **kwargs):
         if not self.name:
-            if self.type == FileSourceType.FILE_FIELD:
+            if self.type == FileSourceType.FILE_FIELD and self.file.name:
                 self.name = os.path.basename(self.file.name)
             elif self.type == FileSourceType.URL:
                 # TODO: this isn't the best approach

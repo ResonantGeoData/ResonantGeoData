@@ -22,7 +22,7 @@ def test_checksumfile_file_create(file_path):
     model.save()
     model.refresh_from_db()
     assert model.checksum == registry[FILENAME].split(':')[1]
-    assert model.name
+    assert model.name == FILENAME
 
 
 @pytest.mark.django_db(transaction=True)
@@ -40,7 +40,6 @@ def test_checksumfile_url_create():
 def test_checksumfile_constraint_mismatch_a():
     with pytest.raises(IntegrityError):
         model = common.ChecksumFile()
-        model.name = 'foo'
         model.type = common.FileSourceType.FILE_FIELD
         model.url = datastore.get_url(FILENAME)
         model.save()
@@ -50,7 +49,6 @@ def test_checksumfile_constraint_mismatch_a():
 def test_checksumfile_constraint_mismatch_b(file_path):
     with pytest.raises(IntegrityError):
         model = common.ChecksumFile()
-        model.name = 'foo'
         model.type = common.FileSourceType.URL
         model.file.save(FILENAME, open(file_path, 'rb'))
 
@@ -59,7 +57,6 @@ def test_checksumfile_constraint_mismatch_b(file_path):
 def test_checksumfile_constraint_url_null():
     with pytest.raises(IntegrityError):
         model = common.ChecksumFile()
-        model.name = 'foo'
         model.type = common.FileSourceType.URL
         model.save()
 
@@ -68,7 +65,6 @@ def test_checksumfile_constraint_url_null():
 def test_checksumfile_constraint_url_empty():
     with pytest.raises(IntegrityError):
         model = common.ChecksumFile()
-        model.name = 'foo'
         model.type = common.FileSourceType.URL
         model.url = ''
         model.save()
@@ -79,7 +75,6 @@ def test_checksumfile_constraint_file_with_empty_url(file_path):
     # Make sure the constraint passes when an empty string URL is given with
     #   the FileField choice. This happens when adding files in the admin interface
     model = common.ChecksumFile()
-    model.name = 'foo'
     model.type = common.FileSourceType.FILE_FIELD
     model.url = ''
     model.file.save(FILENAME, open(file_path, 'rb'))
