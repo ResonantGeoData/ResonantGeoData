@@ -57,12 +57,12 @@ class RgdMixin(CrispyFormsMixin, GeoDjangoMixin, SwaggerMixin, ConfigMixin):
 
     @staticmethod
     def before_binding(configuration: Type[ComposedConfiguration]):
-        # The allauth app also defines a base.html file, so core must be loaded
-        # before allauth.
+        # The girder_style app also defines a base.html file, so core must be loaded
+        # before girder_style.
         # Accordingly, RgdConfig must be loaded after AllauthConfig, so it can
         # find the existing entry and insert accordingly.
         try:
-            insert_index = configuration.INSTALLED_APPS.index('allauth')
+            insert_index = configuration.INSTALLED_APPS.index('girder_style')
         except ValueError:
             raise Exception('RgdConfig must be loaded after AllauthConfig.')
         # We also want our apps to be before any apps that we want to override
