@@ -2,7 +2,7 @@ from django.contrib import admin
 from django.contrib.gis.admin import OSMGeoAdmin
 
 from . import actions
-from .models.common import ArbitraryFile
+from .models.common import ChecksumFile
 from .models.fmv.base import FMVEntry, FMVFile
 from .models.geometry.base import GeometryArchive, GeometryEntry
 from .models.imagery.annotation import (
@@ -36,15 +36,28 @@ TASK_EVENT_READONLY = (
 )
 
 
-@admin.register(ArbitraryFile)
-class ArbitraryFileAdmin(OSMGeoAdmin):
+class _FileGetNameMixin:
+    def get_name(self, obj):
+        return obj.file.name
+
+    get_name.short_description = 'Name'
+    get_name.admin_order_field = 'file__name'
+
+
+@admin.register(ChecksumFile)
+class ChecksumFileAdmin(OSMGeoAdmin):
     list_display = (
         'id',
         'name',
         'modified',
         'created',
+        'type',
+        'data_link',
     )
-    readonly_fields = ('checksum',)
+    readonly_fields = (
+        'checksum',
+        'last_validation',
+    )
 
 
 @admin.register(KWCOCOArchive)
@@ -231,16 +244,19 @@ class AnnotationAdmin(OSMGeoAdmin):
 
 
 @admin.register(ImageFile)
-class ImageFileAdmin(OSMGeoAdmin):
+class ImageFileAdmin(OSMGeoAdmin, _FileGetNameMixin):
     list_display = (
         'id',
-        'name',
+        'get_name',
         'status',
         'modified',
         'created',
         'image_data_link',
     )
-    readonly_fields = ('modified', 'created', 'checksum', 'last_validation') + TASK_EVENT_READONLY
+    readonly_fields = (
+        'modified',
+        'created',
+    ) + TASK_EVENT_READONLY
     actions = (actions.reprocess_image_files,)
 
 
@@ -289,10 +305,10 @@ class GeometryEntryInline(admin.StackedInline):
 
 
 @admin.register(GeometryArchive)
-class GeometryArchiveAdmin(OSMGeoAdmin):
+class GeometryArchiveAdmin(OSMGeoAdmin, _FileGetNameMixin):
     list_display = (
         'id',
-        'name',
+        'get_name',
         'status',
         'modified',
         'created',
@@ -301,8 +317,6 @@ class GeometryArchiveAdmin(OSMGeoAdmin):
     readonly_fields = (
         'modified',
         'created',
-        'last_validation',
-        'checksum',
     ) + TASK_EVENT_READONLY
     inlines = (GeometryEntryInline,)
 
@@ -324,10 +338,10 @@ class FMVEntryInline(admin.StackedInline):
 
 
 @admin.register(FMVFile)
-class FMVFileAdmin(OSMGeoAdmin):
+class FMVFileAdmin(OSMGeoAdmin, _FileGetNameMixin):
     list_display = (
         'id',
-        'name',
+        'get_name',
         'status',
         'modified',
         'created',
@@ -337,8 +351,6 @@ class FMVFileAdmin(OSMGeoAdmin):
     readonly_fields = (
         'modified',
         'created',
-        'checksum',
-        'last_validation',
         'klv_file',
         'web_video_file',
         'frame_rate',

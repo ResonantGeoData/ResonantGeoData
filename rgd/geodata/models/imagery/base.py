@@ -3,16 +3,15 @@ from django.contrib.gis.db import models
 from django.contrib.postgres import fields
 from django.utils.html import escape, mark_safe
 from django.utils.translation import gettext_lazy as _
-from s3_file_field import S3FileField
 
 from rgd.utility import _link_url
 
 from ... import tasks
-from ..common import ArbitraryFile, ChecksumFile, ModifiableEntry, SpatialEntry
+from ..common import ChecksumFile, ModifiableEntry, SpatialEntry
 from ..mixins import Status, TaskEventMixin
 
 
-class ImageFile(ChecksumFile, TaskEventMixin):
+class ImageFile(ModifiableEntry, TaskEventMixin):
     """This is a standalone DB entry for image files.
 
     This points to a single image file in an S3 file field.
@@ -26,7 +25,7 @@ class ImageFile(ChecksumFile, TaskEventMixin):
     task_func = tasks.task_read_image_file
     failure_reason = models.TextField(null=True)
     status = models.CharField(max_length=20, default=Status.CREATED, choices=Status.choices)
-    file = S3FileField()
+    file = models.ForeignKey(ChecksumFile, on_delete=models.CASCADE)
 
     def image_data_link(self):
         return _link_url('geodata', 'image_file', self, 'file')
@@ -203,13 +202,13 @@ class ConvertedImageFile(ModifiableEntry, TaskEventMixin):
     """A model to store converted versions of a raster entry."""
 
     task_func = tasks.task_convert_to_cog
-    converted_file = models.OneToOneField(ArbitraryFile, on_delete=models.SET_NULL, null=True)
+    converted_file = models.OneToOneField(ChecksumFile, on_delete=models.SET_NULL, null=True)
     failure_reason = models.TextField(null=True)
     status = models.CharField(max_length=20, default=Status.CREATED, choices=Status.choices)
     source_image = models.OneToOneField(ImageEntry, on_delete=models.CASCADE)
 
     def _post_delete(self, *args, **kwargs):
-        # Cleanup the associated ArbitraryFile
+        # Cleanup the associated ChecksumFile
         self.converted_file.delete()
 
 
@@ -230,7 +229,7 @@ class SubsampledImage(ModifiableEntry, TaskEventMixin):
     )
     sample_parameters = models.JSONField()
 
-    data = models.OneToOneField(ArbitraryFile, on_delete=models.SET_NULL, null=True)
+    data = models.OneToOneField(ChecksumFile, on_delete=models.SET_NULL, null=True)
 
     failure_reason = models.TextField(null=True)
     status = models.CharField(max_length=20, default=Status.CREATED, choices=Status.choices)
@@ -263,7 +262,7 @@ class SubsampledImage(ModifiableEntry, TaskEventMixin):
             raise ValueError('Sample type ({}) unknown.'.format(self.sample_type))
 
     def _post_delete(self, *args, **kwargs):
-        # Cleanup the associated ArbitraryFile
+        # Cleanup the associated ChecksumFile
         self.data.delete()
 
 
@@ -281,13 +280,13 @@ class KWCOCOArchive(ModifiableEntry, TaskEventMixin):
     failure_reason = models.TextField(null=True)
     status = models.CharField(max_length=20, default=Status.CREATED, choices=Status.choices)
     spec_file = models.OneToOneField(
-        ArbitraryFile,
+        ChecksumFile,
         on_delete=models.CASCADE,
         related_name='kwcoco_spec_file',
         help_text='The JSON spec file.',
     )
     image_archive = models.OneToOneField(
-        ArbitraryFile,
+        ChecksumFile,
         null=True,
         on_delete=models.CASCADE,
         related_name='kwcoco_image_archive',

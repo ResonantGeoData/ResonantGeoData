@@ -1,5 +1,11 @@
+from contextlib import contextmanager
 import hashlib
 import inspect
+import os
+from pathlib import Path, PurePath
+import tempfile
+from typing import Generator
+from urllib.request import urlopen
 
 from django.db.models import fields
 from django.db.models.fields import AutoField
@@ -10,21 +16,32 @@ from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import parsers, serializers, viewsets
 
 
-def compute_checksum(field_file: FieldFile, chunk_num_blocks=128, sha512=False):
-    if sha512:
-        sha = hashlib.sha512()
-    else:
-        sha = hashlib.sha256()
-    with field_file.open() as f:
-        while chunk := f.read(chunk_num_blocks * sha.block_size):
-            sha.update(chunk)
+def _compute_hash(handle, chunk_num_blocks):
+    sha = hashlib.sha512()
+    while chunk := handle.read(chunk_num_blocks * sha.block_size):
+        sha.update(chunk)
     return sha.hexdigest()
+
+
+def compute_checksum_file(field_file: FieldFile, chunk_num_blocks=128):
+    with field_file.open() as f:
+        hash = _compute_hash(f, chunk_num_blocks)
+    return hash
+
+
+def compute_checksum_url(url: str, chunk_num_blocks=128):
+    remote = urlopen(url)
+    return _compute_hash(remote, chunk_num_blocks)
 
 
 def _link_url(root, name, obj, field):
     if not getattr(obj, field, None):
         return 'No attachment'
-    url = getattr(obj, field).url
+    attr = getattr(obj, field)
+    if callable(attr):
+        url = attr()
+    else:
+        url = attr.url
     return mark_safe('<a href="%s" download>Download</a>' % (url,))
 
 
@@ -141,3 +158,15 @@ def get_or_create_no_commit(model, defaults=None, **kwargs):
             defaults = {}
         defaults.update(kwargs)
         return model(**defaults), True
+
+
+@contextmanager
+def url_file_to_local_path(url: str, num_blocks=128, block_size=128) -> Generator[Path, None, None]:
+    # Eventually we need to re-work this for https://github.com/ResonantGeoData/ResonantGeoData/issues/237
+    remote = urlopen(url)
+    field_file_basename = PurePath(os.path.basename(url)).name
+    with tempfile.NamedTemporaryFile('wb', suffix=field_file_basename) as dest_stream:
+        while chunk := remote.read(num_blocks * block_size):
+            dest_stream.write(chunk)
+            dest_stream.flush()
+        yield Path(dest_stream.name)

@@ -3,7 +3,7 @@ from rest_framework.generics import RetrieveAPIView
 from rgd.geodata.permissions import check_read_perm
 
 from .. import serializers
-from ..models.common import ArbitraryFile, SpatialEntry
+from ..models.common import ChecksumFile, SpatialEntry
 from ..models.imagery import ConvertedImageFile, SubsampledImage
 
 
@@ -28,10 +28,10 @@ class GetSubsampledImage(RetrieveAPIView, _PermissionMixin):
     queryset = SubsampledImage.objects.all()
 
 
-class GetArbitraryFile(RetrieveAPIView, _PermissionMixin):
-    serializer_class = serializers.ArbitraryFileSerializer
+class GetChecksumFile(RetrieveAPIView, _PermissionMixin):
+    serializer_class = serializers.ChecksumFileSerializer
     lookup_field = 'pk'
-    queryset = ArbitraryFile.objects.all()
+    queryset = ChecksumFile.objects.all()
 
 
 class GetSpatialEntry(RetrieveAPIView, _PermissionMixin):

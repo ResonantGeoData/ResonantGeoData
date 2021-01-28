@@ -1,7 +1,6 @@
 from django.contrib.gis.db import models
 from django.core.exceptions import ValidationError
 import magic
-from s3_file_field import S3FileField
 
 from rgd.utility import _link_url
 
@@ -21,7 +20,7 @@ def validate_archive(field_file):
         raise ValidationError('Unsupported file archive.')
 
 
-class GeometryArchive(ChecksumFile, TaskEventMixin):
+class GeometryArchive(ModifiableEntry, TaskEventMixin):
     """Container for ``zip`` archives of a shapefile.
 
     When this model is created, it loads data from an archive into
@@ -29,10 +28,7 @@ class GeometryArchive(ChecksumFile, TaskEventMixin):
     """
 
     task_func = tasks.task_read_geometry_archive
-    file = S3FileField(
-        validators=[validate_archive],
-        help_text='This must be an archive (`.zip` or `.tar`) of a single shape (`.shp`, `.dbf`, `.shx`, etc.).',
-    )
+    file = models.ForeignKey(ChecksumFile, on_delete=models.CASCADE)
 
     failure_reason = models.TextField(null=True)
     status = models.CharField(max_length=20, default=Status.CREATED, choices=Status.choices)

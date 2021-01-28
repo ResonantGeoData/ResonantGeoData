@@ -1,15 +1,24 @@
 import os
+from urllib.parse import urlparse
 
 # from django.contrib.auth import get_user_model
 from django.contrib.gis.db import models
 from django.utils import timezone
+from girder_utils.files import field_file_to_local_path
 from model_utils.managers import InheritanceManager
 from s3_file_field import S3FileField
 
-from rgd.geodata.models.collection import Collection
-from rgd.utility import compute_checksum
+from rgd.utility import (
+    _link_url,
+    compute_checksum_file,
+    compute_checksum_url,
+    url_file_to_local_path,
+)
 
+from .. import tasks
+from .collection import Collection
 from .constants import DB_SRID
+from .mixins import Status, TaskEventMixin
 
 
 class ModifiableEntry(models.Model):
@@ -56,17 +65,21 @@ class SpatialEntry(models.Model):
         return 'Spatial ID: {} (type: {})'.format(self.spatial_id, type(self))
 
 
-class ChecksumFile(ModifiableEntry):
-    """A base class for tracking files.
+class FileSourceType(models.IntegerChoices):
+    FILE_FIELD = 1, 'FileField'
+    URL = 2, 'URL'
 
-    Child class must implement a file field called ``file``! This ensures the
-    field is initialized with coorect options like uplaod location and
-    validators.
+
+class ChecksumFile(ModifiableEntry, TaskEventMixin):
+    """The main class for user-uploaded files.
+
+    This has support for manually uploading files or specifing a URL to a file
+    (for example in an existing S3 bucket).
 
     """
 
     name = models.CharField(max_length=100, blank=True)
-    checksum = models.CharField(max_length=64)
+    checksum = models.CharField(max_length=128)  # sha512
     validate_checksum = models.BooleanField(
         default=False
     )  # a flag to validate the checksum against the saved checksum
@@ -80,11 +93,43 @@ class ChecksumFile(ModifiableEntry):
         null=True,
     )
 
+    type = models.IntegerField(choices=FileSourceType.choices, default=FileSourceType.FILE_FIELD)
+    file = S3FileField(null=True, blank=True)
+    url = models.TextField(null=True, blank=True)
+
+    task_func = tasks.task_checksum_file_post_save
+    failure_reason = models.TextField(null=True)
+    status = models.CharField(max_length=20, default=Status.CREATED, choices=Status.choices)
+
     class Meta:
-        abstract = True
+        constraints = [
+            models.CheckConstraint(
+                name='%(app_label)s_%(class)s_file_source_value_matches_type',
+                check=(
+                    models.Q(
+                        models.Q(type=FileSourceType.FILE_FIELD, file__regex=r'.+')
+                        & models.Q(models.Q(url__in=['', None]) | models.Q(url__isnull=True))
+                    )
+                    | models.Q(
+                        models.Q(type=FileSourceType.URL)
+                        & models.Q(models.Q(url__isnull=False) & models.Q(url__regex=r'.+'))
+                        & models.Q(models.Q(file__in=['', None]) | models.Q(file__isnull=True))
+                    )
+                ),
+            )
+        ]
+
+    def get_checksum(self):
+        """Compute a new checksum without saving it."""
+        if self.type == FileSourceType.FILE_FIELD:
+            return compute_checksum_file(self.file)
+        elif self.type == FileSourceType.URL:
+            return compute_checksum_url(self.url)
+        else:
+            raise NotImplementedError(f'Type ({self.type}) not supported.')
 
     def update_checksum(self):
-        self.checksum = compute_checksum(self.file)
+        self.checksum = self.get_checksum()
         # Simple update save - not full save
         super(ChecksumFile, self).save(
             update_fields=[
@@ -105,32 +150,31 @@ class ChecksumFile(ModifiableEntry):
         return self.last_validation
 
     def save(self, *args, **kwargs):
-        # TODO: is there a cleaner way to enforce child class has `file` field?
-        if not hasattr(self, 'file'):
-            raise AttributeError('Child class of `ChecksumFile` must have a `file` field.')
         if not self.name:
-            self.name = os.path.basename(self.file.name)
+            if self.type == FileSourceType.FILE_FIELD and self.file.name:
+                self.name = os.path.basename(self.file.name)
+            elif self.type == FileSourceType.URL:
+                # TODO: this isn't the best approach
+                self.name = os.path.basename(urlparse(self.url).path)
         # Must save the model with the file before accessing it for the checksum
         super(ChecksumFile, self).save(*args, **kwargs)
-        # Checksum is additional step after saving everything else - simply update these fields.
-        if not self.checksum or self.validate_checksum:
-            if self.validate_checksum:
-                self.validate()
-            else:
-                self.update_checksum()
-            # Reset the user flags
-            self.validate_checksum = False
-            # Simple update save - not full save
-            super(ChecksumFile, self).save(
-                update_fields=[
-                    'checksum',
-                    'last_validation',
-                    'validate_checksum',
-                ]
-            )
 
+    def yield_local_path(self):
+        """Fetch the file from its source to a local path on disk."""
+        if self.type == FileSourceType.FILE_FIELD:
+            # Use field_file_to_local_path
+            return field_file_to_local_path(self.file)
+        elif self.type == FileSourceType.URL:
+            return url_file_to_local_path(self.url)
 
-class ArbitraryFile(ChecksumFile):
-    """Container for arbitrary file uploads."""
+    def get_url(self):
+        """Get the URL of the stored resource."""
+        if self.type == FileSourceType.FILE_FIELD:
+            return self.file.url
+        elif self.type == FileSourceType.URL:
+            return self.url
 
-    file = S3FileField()
+    def data_link(self):
+        return _link_url('geodata', 'image_file', self, 'get_url')
+
+    data_link.allow_tags = True

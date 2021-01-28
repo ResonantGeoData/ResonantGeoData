@@ -10,8 +10,8 @@ from . import factories
 @pytest.fixture
 def sample_raster_a():
     imagefile = factories.ImageFileFactory(
-        file__filename='20091021202517-01000100-VIS_0001.ntf',
-        file__from_path=datastore.fetch('20091021202517-01000100-VIS_0001.ntf'),
+        file__file__filename='20091021202517-01000100-VIS_0001.ntf',
+        file__file__from_path=datastore.fetch('20091021202517-01000100-VIS_0001.ntf'),
     )
     image_set = factories.ImageSetFactory(
         images=[imagefile.imageentry.id],
@@ -26,8 +26,8 @@ def sample_raster_a():
 @pytest.fixture
 def sample_raster_b():
     imagefile = factories.ImageFileFactory(
-        file__filename='cclc_schu_100.tif',
-        file__from_path=datastore.fetch('cclc_schu_100.tif'),
+        file__file__filename='cclc_schu_100.tif',
+        file__file__from_path=datastore.fetch('cclc_schu_100.tif'),
     )
     image_set = factories.ImageSetFactory(
         images=[imagefile.imageentry.id],

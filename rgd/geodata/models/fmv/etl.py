@@ -8,7 +8,6 @@ import tempfile
 from celery.utils.log import get_task_logger
 from django.contrib.gis.geos import MultiPoint, MultiPolygon, Point, Polygon
 import docker
-from girder_utils.files import field_file_to_local_path
 import numpy as np
 
 from rgd.utility import get_or_create_no_commit
@@ -26,10 +25,10 @@ def _extract_klv_with_docker(fmv_file_entry):
         client = docker.from_env(version='auto', timeout=3600)
         _ = client.images.pull(image_name)
 
-        with field_file_to_local_path(video_file) as dataset_path:
+        with video_file.yield_local_path() as dataset_path:
             logger.info('Running dump-klv with data %s' % (dataset_path))
             tmpdir = tempfile.mkdtemp()
-            output_path = os.path.join(tmpdir, os.path.basename(video_file.name) + '.klv')
+            output_path = os.path.join(tmpdir, os.path.basename(video_file.file.name) + '.klv')
             stderr_path = os.path.join(tmpdir, 'stderr.dat')
             cmd = [
                 'docker',
@@ -163,10 +162,10 @@ def _get_frame_rate_of_video(file_path):
 
 def _convert_video_to_mp4(fmv_file_entry):
     video_file = fmv_file_entry.file
-    with field_file_to_local_path(video_file) as dataset_path:
+    with video_file.yield_local_path() as dataset_path:
         logger.info('Converting video file: %s' % (dataset_path))
         tmpdir = tempfile.mkdtemp()
-        output_path = os.path.join(tmpdir, os.path.basename(video_file.name) + '.mp4')
+        output_path = os.path.join(tmpdir, os.path.basename(video_file.file.name) + '.mp4')
 
         cmd = [
             'ffmpeg',
@@ -229,9 +228,9 @@ def _populate_fmv_entry(entry):
 
 
 def read_fmv_file(fmv_file_id):
-    fmv_file = FMVFile.objects.filter(id=fmv_file_id).first()
+    fmv_file = FMVFile.objects.get(id=fmv_file_id)
 
-    validation = fmv_file.validate()
+    validation = fmv_file.file.validate()
     # Only extraxt the KLV data if it does not exist or the checksum of the video has changed
     if not fmv_file.klv_file or not validation:
         _extract_klv_with_docker(fmv_file)
@@ -240,7 +239,7 @@ def read_fmv_file(fmv_file_id):
 
     # create a model entry for that shapefile
     entry, created = get_or_create_no_commit(
-        FMVEntry, defaults=dict(name=fmv_file.name), fmv_file=fmv_file
+        FMVEntry, defaults=dict(name=fmv_file.file.name), fmv_file=fmv_file
     )
 
     _populate_fmv_entry(entry)
