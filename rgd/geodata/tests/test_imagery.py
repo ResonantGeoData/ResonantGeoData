@@ -70,7 +70,6 @@ def test_imagefile_url_to_rasterentry_centroids(testfile):
     meta = raster.rastermetaentry
     centroid = meta.footprint.centroid
     # Sanity check
-    assert imagefile.file.url
     assert imagefile.file.type == FileSourceType.URL
     # Make sure the file contents were read correctly
     assert centroid.x == pytest.approx(testfile['centroid']['x'], abs=2e-4)

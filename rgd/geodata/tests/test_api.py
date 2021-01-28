@@ -15,6 +15,15 @@ def checksum_file():
 
 
 @pytest.fixture()
+def checksum_file_url():
+    return factories.ChecksumFileFactory(
+        file=None,
+        url=datastore.get_url('stars.png'),
+        type=models.FileSourceType.URL,
+    )
+
+
+@pytest.fixture()
 def landsat_image():
     name = 'LC08_L1TP_034032_20200429_20200509_01_T1_sr_band1.tif'
     imagefile = factories.ImageFileFactory(
@@ -66,6 +75,14 @@ def test_get_status(api_client, astro_image):
 @pytest.mark.django_db(transaction=True)
 def test_download_checksum_file(api_client, checksum_file):
     pk = checksum_file.pk
+    response = api_client.get(f'/api/geodata/common/checksum_file/{pk}/data')
+    assert status.is_redirect(response.status_code)
+    assert response.content
+
+
+@pytest.mark.django_db(transaction=True)
+def test_download_checksum_file_url(api_client, checksum_file_url):
+    pk = checksum_file_url.pk
     response = api_client.get(f'/api/geodata/common/checksum_file/{pk}/data')
     assert status.is_redirect(response.status_code)
 
