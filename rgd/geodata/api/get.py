@@ -20,10 +20,10 @@ class GetSubsampledImage(RetrieveAPIView):
     queryset = models.SubsampledImage.objects.all()
 
 
-class GetArbitraryFile(RetrieveAPIView):
-    serializer_class = serializers.ArbitraryFileSerializer
+class GetChecksumFile(RetrieveAPIView):
+    serializer_class = serializers.ChecksumFileSerializer
     lookup_field = 'pk'
-    queryset = models.ArbitraryFile.objects.all()
+    queryset = models.ChecksumFile.objects.all()
 
 
 class GetSpatialEntry(RetrieveAPIView):

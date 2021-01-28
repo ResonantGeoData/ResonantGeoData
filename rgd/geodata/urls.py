@@ -35,11 +35,6 @@ urlpatterns = [
     ),
     #############
     path(
-        'api/geodata/download/<model>/<int:id>/<field>',
-        api.download.download_file,
-        name='download-file',
-    ),
-    path(
         'api/geodata/status/<model>/<int:pk>',
         api.download.get_status,
         name='get-status',
@@ -68,14 +63,14 @@ urlpatterns = [
     path('api/geodata/search', api.search.SearchSpatialEntryView.as_view()),
     # Other
     path(
-        'api/geodata/common/arbitrary_file/<int:pk>',
-        api.get.GetArbitraryFile.as_view(),
-        name='arbitrary-file',
+        'api/geodata/common/checksum_file/<int:pk>',
+        api.get.GetChecksumFile.as_view(),
+        name='checksum-file',
     ),
     path(
-        'api/geodata/common/arbitrary_file/<int:pk>/data',
-        api.download.download_arbitrary_file,
-        name='arbitrary-file-data',
+        'api/geodata/common/checksum_file/<int:pk>/data',
+        api.download.download_checksum_file,
+        name='checksum-file-data',
     ),
     path(
         'api/geodata/imagery/image_entry/<int:pk>/data',

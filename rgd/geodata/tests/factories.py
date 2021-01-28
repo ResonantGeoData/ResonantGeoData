@@ -15,12 +15,25 @@ class UserFactory(factory.django.DjangoModelFactory):
     last_name = factory.Faker('last_name')
 
 
+class ChecksumFileFactory(factory.django.DjangoModelFactory):
+    class Meta:
+        model = models.ChecksumFile
+
+    file = factory.django.FileField(filename='sample.dat')
+
+    # If we have an on_commit or post_save method that modifies the model, we
+    # need to refresh it afterwards.
+    @classmethod
+    def _after_postgeneration(cls, instance, *args, **kwargs):
+        super()._after_postgeneration(instance, *args, **kwargs)
+        instance.refresh_from_db()
+
+
 class ImageFileFactory(factory.django.DjangoModelFactory):
     class Meta:
         model = models.ImageFile
 
-    name = factory.Faker('sentence', nb_words=2)
-    file = factory.django.FileField(filename='sample.dat')
+    file = factory.SubFactory(ChecksumFileFactory)
     # creator = factory.SubFactory(UserFactory)
     # modifier = factory.SubFactory(UserFactory)
 
@@ -59,22 +72,7 @@ class GeometryArchiveFactory(factory.django.DjangoModelFactory):
     class Meta:
         model = models.GeometryArchive
 
-    name = factory.Faker('sentence', nb_words=2)
-    file = factory.django.FileField(filename='sample.dat')
-
-
-class ArbitraryFileFactory(factory.django.DjangoModelFactory):
-    class Meta:
-        model = models.ArbitraryFile
-
-    file = factory.django.FileField(filename='sample.dat')
-
-    # If we have an on_commit or post_save method that modifies the model, we
-    # need to refresh it afterwards.
-    @classmethod
-    def _after_postgeneration(cls, instance, *args, **kwargs):
-        super()._after_postgeneration(instance, *args, **kwargs)
-        instance.refresh_from_db()
+    file = factory.SubFactory(ChecksumFileFactory)
 
 
 class KWCOCOArchiveFactory(factory.django.DjangoModelFactory):
@@ -82,8 +80,8 @@ class KWCOCOArchiveFactory(factory.django.DjangoModelFactory):
         model = models.KWCOCOArchive
 
     name = factory.Faker('sentence', nb_words=2)
-    spec_file = factory.SubFactory(ArbitraryFileFactory)
-    image_archive = factory.SubFactory(ArbitraryFileFactory)
+    spec_file = factory.SubFactory(ChecksumFileFactory)
+    image_archive = factory.SubFactory(ChecksumFileFactory)
 
     # If we have an on_commit or post_save method that modifies the model, we
     # need to refresh it afterwards.
@@ -97,8 +95,7 @@ class FMVFileFactory(factory.django.DjangoModelFactory):
     class Meta:
         model = models.FMVFile
 
-    name = factory.Faker('sentence', nb_words=2)
-    file = factory.django.FileField(filename='sample.mpeg')
+    file = factory.SubFactory(ChecksumFileFactory)
     klv_file = factory.django.FileField(filename='sample.klv')
     web_video_file = factory.django.FileField(filename='sample.mp4')
     frame_rate = 30

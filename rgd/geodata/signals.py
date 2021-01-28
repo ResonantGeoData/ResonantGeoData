@@ -5,6 +5,7 @@ from django.db import transaction
 from django.db.models.signals import m2m_changed, post_delete, post_save
 from django.dispatch import receiver
 
+from .models.common import ChecksumFile
 from .models.fmv import FMVFile
 from .models.geometry import GeometryArchive
 from .models.imagery import (
@@ -41,6 +42,12 @@ def _post_save_fmv_file(sender, instance, *args, **kwargs):
 @receiver(post_save, sender=GeometryArchive)
 @skip_signal()
 def _post_save_geometry_archive(sender, instance, *args, **kwargs):
+    transaction.on_commit(lambda: instance._post_save_event_task(*args, **kwargs))
+
+
+@receiver(post_save, sender=ChecksumFile)
+@skip_signal()
+def _post_save_checksum_file(sender, instance, *args, **kwargs):
     transaction.on_commit(lambda: instance._post_save_event_task(*args, **kwargs))
 
 
