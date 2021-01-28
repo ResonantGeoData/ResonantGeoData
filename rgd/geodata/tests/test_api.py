@@ -77,7 +77,6 @@ def test_download_checksum_file(api_client, checksum_file):
     pk = checksum_file.pk
     response = api_client.get(f'/api/geodata/common/checksum_file/{pk}/data')
     assert status.is_redirect(response.status_code)
-    assert response.content
 
 
 @pytest.mark.django_db(transaction=True)
