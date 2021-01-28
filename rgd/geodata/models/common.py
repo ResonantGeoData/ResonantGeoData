@@ -15,7 +15,9 @@ from rgd.utility import (
     url_file_to_local_path,
 )
 
+from .. import tasks
 from .constants import DB_SRID
+from .mixins import Status, TaskEventMixin
 
 
 class ModifiableEntry(models.Model):
@@ -67,7 +69,7 @@ class FileSourceType(models.IntegerChoices):
     URL = 2, 'URL'
 
 
-class ChecksumFile(ModifiableEntry):
+class ChecksumFile(ModifiableEntry, TaskEventMixin):
     """The main class for user-uploaded files.
 
     This has support for manually uploading files or specifing a URL to a file
@@ -85,6 +87,10 @@ class ChecksumFile(ModifiableEntry):
     type = models.IntegerField(choices=FileSourceType.choices, default=FileSourceType.FILE_FIELD)
     file = S3FileField(null=True, blank=True)
     url = models.TextField(null=True, blank=True)
+
+    task_func = tasks.task_checksum_file_post_save
+    failure_reason = models.TextField(null=True)
+    status = models.CharField(max_length=20, default=Status.CREATED, choices=Status.choices)
 
     class Meta:
         constraints = [
@@ -143,22 +149,6 @@ class ChecksumFile(ModifiableEntry):
                 self.name = os.path.basename(urlparse(self.url).path)
         # Must save the model with the file before accessing it for the checksum
         super(ChecksumFile, self).save(*args, **kwargs)
-        # Checksum is additional step after saving everything else - simply update these fields.
-        if not self.checksum or self.validate_checksum:
-            if self.validate_checksum:
-                self.validate()
-            else:
-                self.update_checksum()
-            # Reset the user flags
-            self.validate_checksum = False
-            # Simple update save - not full save
-            super(ChecksumFile, self).save(
-                update_fields=[
-                    'checksum',
-                    'last_validation',
-                    'validate_checksum',
-                ]
-            )
 
     def yield_local_path(self):
         """Fetch the file from its source to a local path on disk."""

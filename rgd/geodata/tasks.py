@@ -101,3 +101,30 @@ def task_populate_subsampled_image(subsampled_id):
     cog = SubsampledImage.objects.get(id=subsampled_id)
     _run_with_failure_reason(cog, populate_subsampled_image, subsampled_id)
     return
+
+
+@shared_task(time_limit=86400)
+def task_checksum_file_post_save(checksumfile_id):
+    from .models.common import ChecksumFile
+
+    obj = ChecksumFile.objects.get(id=checksumfile_id)
+
+    def _checksum_file_post_save(obj):
+        if not obj.checksum or obj.validate_checksum:
+            if obj.validate_checksum:
+                obj.validate()
+            else:
+                obj.update_checksum()
+            # Reset the user flags
+            obj.validate_checksum = False
+            # Simple update save - not full save
+            obj.save(
+                update_fields=[
+                    'checksum',
+                    'last_validation',
+                    'validate_checksum',
+                ]
+            )
+
+    _run_with_failure_reason(obj, _checksum_file_post_save, obj)
+    return

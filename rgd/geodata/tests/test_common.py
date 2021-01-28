@@ -20,6 +20,7 @@ def test_checksumfile_file_create(file_path):
     model.type = common.FileSourceType.FILE_FIELD
     model.file.save(FILENAME, open(file_path, 'rb'))
     model.save()
+    model.refresh_from_db()
     assert model.checksum == registry[FILENAME].split(':')[1]
     assert model.name
 
@@ -30,6 +31,7 @@ def test_checksumfile_url_create():
     model.type = common.FileSourceType.URL
     model.url = datastore.get_url(FILENAME)
     model.save()
+    model.refresh_from_db()
     assert model.checksum == registry[FILENAME].split(':')[1]
     assert model.name
 
