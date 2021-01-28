@@ -77,6 +77,7 @@ def test_download_checksum_file(api_client, checksum_file):
     pk = checksum_file.pk
     response = api_client.get(f'/api/geodata/common/checksum_file/{pk}/data')
     assert status.is_redirect(response.status_code)
+    assert response.content
 
 
 @pytest.mark.django_db(transaction=True)
@@ -84,6 +85,7 @@ def test_download_checksum_file_url(api_client, checksum_file_url):
     pk = checksum_file_url.pk
     response = api_client.get(f'/api/geodata/common/checksum_file/{pk}/data')
     assert status.is_redirect(response.status_code)
+    assert response.content
 
 
 @pytest.mark.django_db(transaction=True)
@@ -91,6 +93,7 @@ def test_download_image_entry_file(api_client, astro_image):
     pk = astro_image.pk
     response = api_client.get(f'/api/geodata/imagery/image_entry/{pk}/data')
     assert status.is_redirect(response.status_code)
+    assert response.content
 
 
 @pytest.mark.django_db(transaction=True)
@@ -156,3 +159,4 @@ def test_create_and_download_cog(authenticated_api_client, landsat_image):
     pk = cog.pk
     response = authenticated_api_client.get(f'/api/geodata/imagery/cog/{pk}/data')
     assert status.is_redirect(response.status_code)
+    assert response.content
