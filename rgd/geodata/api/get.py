@@ -1,7 +1,7 @@
 from rest_framework.generics import RetrieveAPIView
 
 from .. import serializers
-from ..models.common import ArbitraryFile, SpatialEntry
+from ..models.common import ChecksumFile, SpatialEntry
 from ..models.imagery import ConvertedImageFile, SubsampledImage
 
 
@@ -19,10 +19,10 @@ class GetSubsampledImage(RetrieveAPIView):
     queryset = SubsampledImage.objects.all()
 
 
-class GetArbitraryFile(RetrieveAPIView):
-    serializer_class = serializers.ArbitraryFileSerializer
+class GetChecksumFile(RetrieveAPIView):
+    serializer_class = serializers.ChecksumFileSerializer
     lookup_field = 'pk'
-    queryset = ArbitraryFile.objects.all()
+    queryset = ChecksumFile.objects.all()
 
 
 class GetSpatialEntry(RetrieveAPIView):

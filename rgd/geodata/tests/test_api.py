@@ -10,16 +10,25 @@ from . import factories
 
 
 @pytest.fixture()
-def arbitrary_file():
-    return factories.ArbitraryFileFactory()
+def checksum_file():
+    return factories.ChecksumFileFactory()
+
+
+@pytest.fixture()
+def checksum_file_url():
+    return factories.ChecksumFileFactory(
+        file=None,
+        url=datastore.get_url('stars.png'),
+        type=models.FileSourceType.URL,
+    )
 
 
 @pytest.fixture()
 def landsat_image():
     name = 'LC08_L1TP_034032_20200429_20200509_01_T1_sr_band1.tif'
     imagefile = factories.ImageFileFactory(
-        file__filename=name,
-        file__from_path=datastore.fetch(name),
+        file__file__filename=name,
+        file__file__from_path=datastore.fetch(name),
     )
     return imagefile.imageentry
 
@@ -28,8 +37,8 @@ def landsat_image():
 def astro_image():
     name = 'astro.png'
     imagefile = factories.ImageFileFactory(
-        file__filename=name,
-        file__from_path=datastore.fetch(name),
+        file__file__filename=name,
+        file__file__from_path=datastore.fetch(name),
     )
     return imagefile.imageentry
 
@@ -38,8 +47,8 @@ def astro_image():
 def landsat_raster():
     name = 'LC08_L1TP_034032_20200429_20200509_01_T1_sr_band1.tif'
     imagefile = factories.ImageFileFactory(
-        file__filename=name,
-        file__from_path=datastore.fetch(name),
+        file__file__filename=name,
+        file__file__from_path=datastore.fetch(name),
     )
     image_set = factories.ImageSetFactory(
         images=[imagefile.imageentry.id],
@@ -64,9 +73,16 @@ def test_get_status(api_client, astro_image):
 
 
 @pytest.mark.django_db(transaction=True)
-def test_download_arbitry_file(api_client, arbitrary_file):
-    pk = arbitrary_file.pk
-    response = api_client.get(f'/api/geodata/common/arbitrary_file/{pk}/data')
+def test_download_checksum_file(api_client, checksum_file):
+    pk = checksum_file.pk
+    response = api_client.get(f'/api/geodata/common/checksum_file/{pk}/data')
+    assert status.is_redirect(response.status_code)
+
+
+@pytest.mark.django_db(transaction=True)
+def test_download_checksum_file_url(api_client, checksum_file_url):
+    pk = checksum_file_url.pk
+    response = api_client.get(f'/api/geodata/common/checksum_file/{pk}/data')
     assert status.is_redirect(response.status_code)
 
 
@@ -78,9 +94,9 @@ def test_download_image_entry_file(api_client, astro_image):
 
 
 @pytest.mark.django_db(transaction=True)
-def test_get_arbitrary_file(api_client, arbitrary_file):
-    pk = arbitrary_file.pk
-    content = api_client.get(f'/api/geodata/common/arbitrary_file/{pk}').data
+def test_get_checksum_file(api_client, checksum_file):
+    pk = checksum_file.pk
+    content = api_client.get(f'/api/geodata/common/checksum_file/{pk}').data
     assert content
     # Check that a hyperlink is given to the file data
     # NOTE: tried using the URLValidator from django but it thinks this URL is invalid

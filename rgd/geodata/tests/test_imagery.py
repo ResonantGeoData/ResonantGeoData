@@ -1,6 +1,7 @@
 import pytest
 
 from rgd.geodata.datastore import datastore
+from rgd.geodata.models.common import FileSourceType
 from rgd.geodata.models.imagery.annotation import Annotation, RLESegmentation
 from rgd.geodata.models.imagery.base import (
     ConvertedImageFile,
@@ -35,8 +36,8 @@ LandsatFiles = [
 @pytest.mark.django_db(transaction=True)
 def test_imagefile_to_rasterentry_centroids(testfile):
     imagefile = factories.ImageFileFactory(
-        file__filename=testfile['name'],
-        file__from_path=datastore.fetch(testfile['name']),
+        file__file__filename=testfile['name'],
+        file__file__from_path=datastore.fetch(testfile['name']),
     )
     image_set = factories.ImageSetFactory(
         images=[imagefile.imageentry.id],
@@ -51,13 +52,37 @@ def test_imagefile_to_rasterentry_centroids(testfile):
     assert centroid.y == pytest.approx(testfile['centroid']['y'], abs=2e-4)
 
 
+@pytest.mark.parametrize('testfile', SampleFiles)
+@pytest.mark.django_db(transaction=True)
+def test_imagefile_url_to_rasterentry_centroids(testfile):
+    imagefile = factories.ImageFileFactory(
+        file__file=None,
+        file__url=datastore.get_url(testfile['name']),
+        file__type=FileSourceType.URL,
+    )
+    image_set = factories.ImageSetFactory(
+        images=[imagefile.imageentry.id],
+    )
+    raster = factories.RasterEntryFactory(
+        name=testfile['name'],
+        image_set=image_set,
+    )
+    meta = raster.rastermetaentry
+    centroid = meta.footprint.centroid
+    # Sanity check
+    assert imagefile.file.type == FileSourceType.URL
+    # Make sure the file contents were read correctly
+    assert centroid.x == pytest.approx(testfile['centroid']['x'], abs=2e-4)
+    assert centroid.y == pytest.approx(testfile['centroid']['y'], abs=2e-4)
+
+
 @pytest.mark.django_db(transaction=True)
 def test_repopulate_image_entry():
     """Only test with single image file."""
     testfile = SampleFiles[0]
     imagefile = factories.ImageFileFactory(
-        file__filename=testfile['name'],
-        file__from_path=datastore.fetch(testfile['name']),
+        file__file__filename=testfile['name'],
+        file__file__from_path=datastore.fetch(testfile['name']),
     )
     # Testing that we can repopulate an image entry
     populate_image_entry(imagefile.id)
@@ -67,16 +92,16 @@ def test_repopulate_image_entry():
 def test_multi_file_raster():
     """Test the use case where a raster is generated from multiple files."""
     b1 = factories.ImageFileFactory(
-        file__filename=LandsatFiles[0],
-        file__from_path=datastore.fetch(LandsatFiles[0]),
+        file__file__filename=LandsatFiles[0],
+        file__file__from_path=datastore.fetch(LandsatFiles[0]),
     )
     b2 = factories.ImageFileFactory(
-        file__filename=LandsatFiles[1],
-        file__from_path=datastore.fetch(LandsatFiles[1]),
+        file__file__filename=LandsatFiles[1],
+        file__file__from_path=datastore.fetch(LandsatFiles[1]),
     )
     b3 = factories.ImageFileFactory(
-        file__filename=LandsatFiles[2],
-        file__from_path=datastore.fetch(LandsatFiles[2]),
+        file__file__filename=LandsatFiles[2],
+        file__file__from_path=datastore.fetch(LandsatFiles[2]),
     )
     image_set = factories.ImageSetFactory(
         images=[
@@ -167,8 +192,8 @@ def test_kwcoco_rle_demo():
 @pytest.mark.django_db(transaction=True)
 def test_cog_image_conversion():
     image_file = factories.ImageFileFactory(
-        file__filename=SampleFiles[0]['name'],
-        file__from_path=datastore.fetch(SampleFiles[0]['name']),
+        file__file__filename=SampleFiles[0]['name'],
+        file__file__from_path=datastore.fetch(SampleFiles[0]['name']),
     )
     img = ImageEntry.objects.get(image_file=image_file)
     c = ConvertedImageFile()
@@ -183,8 +208,8 @@ def test_cog_image_conversion():
 def test_subsampling():
     name = 'Elevation.tif'
     image_file = factories.ImageFileFactory(
-        file__filename=name,
-        file__from_path=datastore.fetch(name),
+        file__file__filename=name,
+        file__file__from_path=datastore.fetch(name),
     )
 
     def create_subsampled(img, sample_type, params):

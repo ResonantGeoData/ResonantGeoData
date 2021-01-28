@@ -7,10 +7,10 @@ from rgd.geodata.datastore import registry
 from rgd.geodata.management.commands import demo_data
 
 
-def _call_command(*args, **kwargs):
+def _call_command(name, *args, **kwargs):
     out = StringIO()
     call_command(
-        'demo_data',
+        name,
         *args,
         stdout=out,
         stderr=StringIO(),
@@ -22,7 +22,7 @@ def _call_command(*args, **kwargs):
 @pytest.mark.skip
 @pytest.mark.django_db(transaction=True)
 def test_load_all_demo_data():
-    out = _call_command()
+    out = _call_command('demo_data')
     assert out == demo_data.SUCCESS_MSG + '\n'
 
 
@@ -40,3 +40,10 @@ def test_entries_in_datastore():
         + demo_data.KWCOCO_ARCHIVES
     ):
         assert is_in_datastore(f), f'`{f}` not in registry.'
+
+
+@pytest.mark.skip
+@pytest.mark.django_db(transaction=True)
+def test_demo_command_landsat():
+    out = _call_command('landsat_data', count=1)
+    assert out == demo_data.SUCCESS_MSG + '\n'

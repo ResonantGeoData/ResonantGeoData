@@ -33,12 +33,14 @@ class ConvertedImageFileSerializer(serializers.ModelSerializer):
         read_only_fields = ['pk', 'status', 'failure_reason']
 
 
-class ArbitraryFileSerializer(serializers.ModelSerializer):
+class ChecksumFileSerializer(serializers.ModelSerializer):
     class Meta:
-        model = models.ArbitraryFile
+        model = models.ChecksumFile
         fields = [
             'pk',
+            'type',
             'file',
+            'url',
             'validate_checksum',
             'name',
             'checksum',
@@ -52,7 +54,7 @@ class ArbitraryFileSerializer(serializers.ModelSerializer):
 class SubsampledImageSerializer(serializers.ModelSerializer):
 
     data = serializers.HyperlinkedRelatedField(
-        many=False, read_only=True, view_name='arbitrary-file-data'
+        many=False, read_only=True, view_name='checksum-file-data'
     )
 
     def to_representation(self, value):
