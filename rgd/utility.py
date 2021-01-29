@@ -5,6 +5,7 @@ import os
 from pathlib import Path, PurePath
 import tempfile
 from typing import Generator
+from urllib.parse import urlparse
 from urllib.request import urlopen
 
 from django.db.models import fields
@@ -162,11 +163,24 @@ def get_or_create_no_commit(model, defaults=None, **kwargs):
 
 @contextmanager
 def url_file_to_local_path(url: str, num_blocks=128, block_size=128) -> Generator[Path, None, None]:
-    # Eventually we need to re-work this for https://github.com/ResonantGeoData/ResonantGeoData/issues/237
-    remote = urlopen(url)
-    field_file_basename = PurePath(os.path.basename(url)).name
-    with tempfile.NamedTemporaryFile('wb', suffix=field_file_basename) as dest_stream:
-        while chunk := remote.read(num_blocks * block_size):
-            dest_stream.write(chunk)
-            dest_stream.flush()
-        yield Path(dest_stream.name)
+    # See https://github.com/ResonantGeoData/ResonantGeoData/issues/237
+    try:
+        import simple_httpfs
+
+        parsed = urlparse(url)
+        if parsed.scheme == 'https':
+            fuse_path = url.replace('https://', '/tmp/rgd/https/') + '..'
+            # Make sure path is accessible
+            with open(fuse_path, 'r') as f:
+                pass  # will raise OSError if not available
+            yield Path(fuse_path)
+        else:
+            raise ValueError(f'Scheme {parsed.scheme} not currently handled.')
+    except (ImportError, ValueError, OSError):
+        remote = urlopen(url)
+        field_file_basename = PurePath(os.path.basename(url)).name
+        with tempfile.NamedTemporaryFile('wb', suffix=field_file_basename) as dest_stream:
+            while chunk := remote.read(num_blocks * block_size):
+                dest_stream.write(chunk)
+                dest_stream.flush()
+            yield Path(dest_stream.name)
