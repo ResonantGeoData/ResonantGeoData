@@ -170,12 +170,14 @@ def url_file_to_local_path(url: str, num_blocks=128, block_size=128) -> Generato
         parsed = urlparse(url)
         if parsed.scheme == 'https':
             fuse_path = url.replace('https://', '/tmp/rgd/https/') + '..'
-            # Make sure path is accessible
-            with open(fuse_path, 'r') as f:
-                pass  # will raise OSError if not available
-            yield Path(fuse_path)
+        elif parsed.scheme == 'http':
+            fuse_path = url.replace('http://', '/tmp/rgd/http/') + '..'
         else:
             raise ValueError(f'Scheme {parsed.scheme} not currently handled.')
+        # Make sure path is accessible
+        with open(fuse_path, 'r') as f:
+            pass  # will raise OSError if not available
+        yield Path(fuse_path)
     except (ImportError, ValueError, OSError):
         remote = urlopen(url)
         field_file_basename = PurePath(os.path.basename(url)).name
