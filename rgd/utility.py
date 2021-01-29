@@ -165,7 +165,7 @@ def get_or_create_no_commit(model, defaults=None, **kwargs):
 def url_file_to_local_path(url: str, num_blocks=128, block_size=128) -> Generator[Path, None, None]:
     # See https://github.com/ResonantGeoData/ResonantGeoData/issues/237
     try:
-        import simple_httpfs
+        import simple_httpfs  # noqa
 
         parsed = urlparse(url)
         if parsed.scheme == 'https':
@@ -175,7 +175,7 @@ def url_file_to_local_path(url: str, num_blocks=128, block_size=128) -> Generato
         else:
             raise ValueError(f'Scheme {parsed.scheme} not currently handled.')
         # Make sure path is accessible
-        with open(fuse_path, 'r') as f:
+        with open(fuse_path, 'r') as _:
             pass  # will raise OSError if not available
         yield Path(fuse_path)
     except (ImportError, ValueError, OSError):
