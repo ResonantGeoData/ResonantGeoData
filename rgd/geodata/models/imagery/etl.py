@@ -1,4 +1,5 @@
 """Helper methods for creating a ``GDALRaster`` entry from a raster file."""
+from contextlib import contextmanager
 import io
 import json
 import os
@@ -23,6 +24,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 from osgeo import gdal
 import rasterio
+from rasterio import Affine, MemoryFile
 import rasterio.features
 import rasterio.warp
 from rasterio.warp import Resampling, calculate_default_transform, reproject
@@ -51,6 +53,42 @@ os.environ['GDAL_DATA'] = GDAL_DATA
 
 
 MAX_LOAD_SHAPE = (4000, 4000)
+
+
+@contextmanager
+def _yield_downsampled_raster(raster):
+    # https://gis.stackexchange.com/questions/329434/creating-an-in-memory-rasterio-dataset-from-numpy-array/329439#329439
+    max_n = np.product(MAX_LOAD_SHAPE)
+    n = raster.height * raster.width
+    scale = 1.0
+    if n > max_n:
+        scale = max_n / n
+
+    if scale == 1.0:
+        yield raster
+        return
+
+    t = raster.transform
+    # rescale the metadata
+    transform = Affine(t.a / scale, t.b, t.c, t.d, t.e / scale, t.f)
+    height = int(raster.height * scale)
+    width = int(raster.width * scale)
+
+    profile = raster.profile
+    profile.update(transform=transform, height=height, width=width)
+
+    data = raster.read(
+        out_shape=(raster.count, height, width),
+        resampling=Resampling.bilinear,
+    )
+
+    with MemoryFile() as memfile:
+        with memfile.open(**profile) as dataset:
+            dataset.write(data)
+            del data
+
+        with memfile.open() as dataset:  # Reopen as DatasetReader
+            yield dataset  # Note yield not return
 
 
 def _create_thumbnail_image(src):
@@ -91,36 +129,38 @@ def _reproject_raster(src, epsg):
     if src.crs == dst_crs:
         # If raster already in desired CRS, return itself
         return src
-    workdir = getattr(settings, 'GEODATA_WORKDIR', None)
-    tmpdir = tempfile.mkdtemp(dir=workdir)
-    # If raster is NTIF format, convert first
-    if src.driver == 'NITF':
-        f = src.files[0]
-        output_path = os.path.join(tmpdir, os.path.basename(f)) + '.tiff'
-        ds = gdal.Open(f)
-        ds = gdal.Translate(output_path, ds, options=['-of', 'GTiff'])
-        ds = None
-        src = rasterio.open(output_path, 'r')
 
-    transform, width, height = calculate_default_transform(
-        src.crs, dst_crs, src.width, src.height, *src.bounds
-    )
-    kwargs = src.meta.copy()
-    kwargs.update({'crs': dst_crs, 'transform': transform, 'width': width, 'height': height})
+    # Get a downsampled version of the original raster
+    with _yield_downsampled_raster(src) as src:
+        workdir = getattr(settings, 'GEODATA_WORKDIR', None)
+        tmpdir = tempfile.mkdtemp(dir=workdir)
+        # If raster is NTIF format, convert first
+        if src.driver == 'NITF':
+            f = src.files[0]
+            output_path = os.path.join(tmpdir, os.path.basename(f)) + '.tiff'
+            ds = gdal.Open(f)
+            ds = gdal.Translate(output_path, ds, options=['-of', 'GTiff'])
+            ds = None
+            src = rasterio.open(output_path, 'r')
 
-    path = os.path.join(tmpdir, os.path.basename(src.name))
-    with rasterio.open(path, 'w', **kwargs) as dst:
-        for i in range(1, src.count + 1):
-            reproject(
-                source=rasterio.band(src, i),
-                destination=rasterio.band(dst, i),
-                src_transform=src.transform,
-                src_crs=src.crs,
-                dst_transform=transform,
-                dst_crs=dst_crs,
-                resampling=Resampling.nearest,
-            )
-        dst.colorinterp = src.colorinterp
+        transform, width, height = calculate_default_transform(
+            src.crs, dst_crs, src.width, src.height, *src.bounds
+        )
+        kwargs = src.meta.copy()
+        kwargs.update({'crs': dst_crs, 'transform': transform, 'width': width, 'height': height})
+        path = os.path.join(tmpdir, os.path.basename(src.name))
+        with rasterio.open(path, 'w', **kwargs) as dst:
+            for i in range(1, src.count + 1):
+                reproject(
+                    source=rasterio.band(src, i),
+                    destination=rasterio.band(dst, i),
+                    src_transform=src.transform,
+                    src_crs=src.crs,
+                    dst_transform=transform,
+                    dst_crs=dst_crs,
+                    resampling=Resampling.bilinear,
+                )
+            dst.colorinterp = src.colorinterp
     return rasterio.open(path, 'r')
 
 
