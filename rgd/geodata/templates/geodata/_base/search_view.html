@@ -16,14 +16,46 @@
 
   <div class="columns m-0">
     <div class="column is-sidebar is-one-quarter p-0">
-      {% include 'geodata/_includes/search_form.html' %}
-      <br/>
-      {% block list_view %}{% endblock %}
+
+      <div class="tab tabs is-boxed">
+        <ul class="pt-2 px-2">
+          <li class="tablinks is-active" onclick="openTab(event, 'tabcontent1')"><a>Search</a></li>
+          <li class="tablinks" onclick="openTab(event, 'tabcontent2')"><a>Results</a></li>
+        </ul>
+      </div>
+
+      <div id="tabcontent1" class="tabcontent" style="display: block;">
+        {% include 'geodata/_includes/search_form.html' %}
+      </div>
+
+      <div id="tabcontent2" class="tabcontent" style="display: none;">
+        {% block list_view %}{% endblock %}
+      </div>
     </div>
 
     <div class="column p-0">
       {% include 'geodata/_includes/search_map.html' %}
     </div>
   </div>
+
+  <script>
+    function openTab(evt, tabName) {
+      // Declare all variables
+      var i, tabcontent, tablinks;
+      // Get all elements with class="tabcontent" and hide them
+      tabcontent = document.getElementsByClassName("tabcontent");
+      for (i = 0; i < tabcontent.length; i++) {
+        tabcontent[i].style.display = "none";
+      }
+      // Get all elements with class="tablinks" and remove the class "active"
+      tablinks = document.getElementsByClassName("tablinks");
+      for (i = 0; i < tablinks.length; i++) {
+        tablinks[i].className = tablinks[i].className.replace(" is-active", "");
+      }
+      // Show the current tab, and add an "active" class to the button that opened the tab
+      document.getElementById(tabName).style.display = "block";
+      evt.currentTarget.className += " is-active";
+    }
+  </script>
 
 {% endblock content %}
