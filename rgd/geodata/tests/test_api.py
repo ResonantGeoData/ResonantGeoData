@@ -1,5 +1,3 @@
-import json
-
 import pytest
 from rest_framework import status
 
@@ -120,7 +118,7 @@ def test_create_get_subsampled_image(authenticated_api_client, astro_image):
     payload = {
         'source_image': astro_image.pk,
         'sample_type': 'pixel box',
-        'sample_parameters': json.dumps({'umax': 100, 'umin': 0, 'vmax': 200, 'vmin': 0}),
+        'sample_parameters': {'umax': 100, 'umin': 0, 'vmax': 200, 'vmin': 0},
     }
     response = authenticated_api_client.post('/api/geodata/imagery/subsample', payload)
     assert response.status_code == 201

@@ -49,6 +49,7 @@ class ChecksumFileAdmin(OSMGeoAdmin):
     list_display = (
         'id',
         'name',
+        'status',
         'modified',
         'created',
         'type',
@@ -57,7 +58,7 @@ class ChecksumFileAdmin(OSMGeoAdmin):
     readonly_fields = (
         'checksum',
         'last_validation',
-    )
+    ) + TASK_EVENT_READONLY
 
 
 @admin.register(KWCOCOArchive)
