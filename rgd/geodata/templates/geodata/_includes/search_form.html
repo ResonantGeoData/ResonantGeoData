@@ -22,8 +22,8 @@
     </div>
   </div>
   <div class="column is-full">
+    <form method="GET">
     <div id="stPoint" class="selection" style="display: none;">
-      <form method="GET">
         <div class="columns is-multiline mx-0">
           <div class="column is-full field mb-0">
             <div class="field-label is-normal">
@@ -68,16 +68,11 @@
             <div class="control">
               <input class="button is-secondary" type="button" value="Use Map" name="button" onclick="populatePoint()">
             </div>
-            <div class="control">
-              <input class="button is-accent" type="submit" value="Filter">
-            </div>
           </div>
         </div>
-      </form>
     </div>
 
     <div id="stBounding" class="selection" style="display: none;">
-      <form method="GET">
         <div class="columns is-multiline mx-0">
           <div class="column is-full field mb-0">
             <div class="field-label is-normal">
@@ -135,16 +130,11 @@
             <div class="control">
               <input class="button is-secondary" type="button" value="Use Map" name="button" onclick="populateBounds()">
             </div>
-            <div class="control">
-              <input class="button is-accent" type="submit" value="Filter">
-            </div>
           </div>
         </div>
-      </form>
     </div>
 
     <div id="stJSON" class="selection" style="display: block;">
-      <form method="GET">
         <div class="columns is-multiline mx-0">
           <div class="column is-full field mb-0">
             <div class="field-label is-normal">
@@ -176,51 +166,104 @@
             <div class="control">
               <input class="button is-secondary" type="button" value="Draw on Map" name="drawOnMapButton" onclick="enableDrawOnMap()">
             </div>
-            <div class="control">
-              <input class="button is-accent" type="submit" value="Filter">
+          </div>
+
+
+
+          <div class="column is-full field mb-0">
+            <div class="field-label is-normal">
+              <label class="label">Arbitrary Field #1</label>
+            </div>
+            <div class="field-body">
+              <div class="field">
+                <div class="control">
+                  <input class="input" type="text" name="af1" value="value goes here">
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="column is-full field mb-0">
+            <div class="field-label is-normal">
+              <label class="label">Arbitrary Field #2</label>
+            </div>
+            <div class="field-body">
+              <div class="field">
+                <div class="control">
+                  <input class="input" type="text" name="af2" value="value goes here">
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="column is-full field mb-0">
+            <div class="field-label is-normal">
+              <label class="label">Arbitrary Field #3</label>
+            </div>
+            <div class="field-body">
+              <div class="field">
+                <div class="control">
+                  <input class="input" type="text" name="af3" value="value goes here">
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="column is-full">
+            <div class="field">
+              <div class="field-label is-normal">
+                <label class="label">Predicate</label>
+              </div>
+              <div class="field-body">
+                <div class="field">
+                  <div class="control">
+                    <div class="select is-fullwidth">
+                      <select id="predicate">
+                        <option value="contains">contains</option>
+                        <option value="crosses">crosses</option>
+                        <option value="disjoint">disjoint</option>
+                        <option value="equals">equals</option>
+                        <option value="intersects">intersects</option>
+                        <option value="overlaps">overlaps</option>
+                        <option value="touches">touches</option>
+                        <option value="within">within</option>
+                      </select>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="column is-full">
+            <div class="field">
+              <div class="field-label is-normal">
+                <label class="label">Data Type</label>
+              </div>
+              <div class="field-body">
+                <div class="field">
+                  <div class="control">
+                    <div class="select is-fullwidth">
+                      <select id="dataType">
+                        <option value="raster">raster</option>
+                        <option value="fmv">fmv</option>
+                        <option value="geometry">geometry</option>
+                      </select>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div id="submitButton" class="column is-full" style="left: 0; bottom: 0; width: 100%;">
+            <div class="field">
+              <div class="control">
+                <input class="button is-accent" type="submit" value="Filter">
+              </div>
             </div>
           </div>
         </div>
-      </form>
     </div>
-
-    <div class="column is-full field mb-0">
-      <div class="field-label is-normal">
-        <label class="label">Arbitrary Field #1</label>
-      </div>
-      <div class="field-body">
-        <div class="field">
-          <div class="control">
-            <input class="input" type="text" name="af1" value="value goes here">
-          </div>
-        </div>
-      </div>
-    </div>
-    <div class="column is-full field mb-0">
-      <div class="field-label is-normal">
-        <label class="label">Arbitrary Field #2</label>
-      </div>
-      <div class="field-body">
-        <div class="field">
-          <div class="control">
-            <input class="input" type="text" name="af2" value="value goes here">
-          </div>
-        </div>
-      </div>
-    </div>
-    <div class="column is-full field mb-0">
-      <div class="field-label is-normal">
-        <label class="label">Arbitrary Field #3</label>
-      </div>
-      <div class="field-body">
-        <div class="field">
-          <div class="control">
-            <input class="input" type="text" name="af3" value="value goes here">
-          </div>
-        </div>
-      </div>
-    </div>
-
+    </form>
   </div>
 </div>
 
