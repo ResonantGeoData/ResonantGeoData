@@ -310,11 +310,15 @@
     });
   }
 
+  var selectionType = document.getElementById("selectionType")
   $(function() {
-    $('#selectionType').change(function() {
+    $('#selectionType').change(function(){
       $('.selection').hide();
       $('#' + $(this).val()).show();
+      setCookie('searchType', $(this)[0].value)
     });
+    selectionType.value = getCookie('searchType', 'stPoint')
+    $('#selectionType').change()
   });
 </script>
 

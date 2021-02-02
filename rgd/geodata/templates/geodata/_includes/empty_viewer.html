@@ -35,7 +35,7 @@
       clampBoundsX: true
     })
     basemapLayer = map.createLayer('osm', {
-      source: 'osm',
+      source: getCookie('basemapChoice', 'osm'),
       gcs: 'EPSG:3857' // web mercator
     });
 
@@ -58,10 +58,11 @@
     var basemapTool = ui.createWidget('dom', {position: {right: 20, top: 20}});
     basemapTool.canvas().appendChild(document.getElementById("basemapTool"))
 
+    var basemapDropdown = document.getElementById("basemapDropdown")
+    basemapDropdown.value = basemapLayer.source()
     function changeBasemap() {
-      var dropdown = document.getElementById("basemapDropdown")
-      console.log(dropdown.value)
-      basemapLayer.source(dropdown.value)
+      setCookie('basemapChoice', basemapDropdown.value)
+      basemapLayer.source(basemapDropdown.value)
     }
 
     // Annotation layer
