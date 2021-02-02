@@ -1,14 +1,18 @@
+from typing import Optional
+
 from django.contrib.auth.backends import BaseBackend
 from django.core.exceptions import PermissionDenied
 
 from rgd.geodata import models
 
 
-def get_collection_membership_path(model):
+def get_collection_membership_path(model) -> Optional[str]:
     """Get the path to the 'CollectionMembership' model.
 
-    Relationships are represented as 'dunder's ('__').
+    Relationships are represented as 'dunder's ('__'). Returning `None`
+    means the model is explicitly unprotected.
     """
+    return None
     # Collection
     if issubclass(model, models.CollectionMembership):
         return ''
