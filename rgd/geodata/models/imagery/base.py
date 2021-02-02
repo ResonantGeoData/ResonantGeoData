@@ -1,6 +1,4 @@
 """Base classes for raster dataset entries."""
-import json
-
 from django.contrib.gis.db import models
 from django.contrib.postgres import fields
 from django.utils.html import escape, mark_safe
@@ -245,8 +243,6 @@ class SubsampledImage(ModifiableEntry, TaskEventMixin):
 
         """
         p = self.sample_parameters
-        if isinstance(p, str):
-            p = json.loads(p)
         if self.sample_type == SubsampledImage.SampleTypes.PIXEL_BOX:
             # -srcwin <xoff> <yoff> <xsize> <ysize>
             return dict(srcWin=[p['umin'], p['vmin'], p['umax'] - p['umin'], p['vmax'] - p['vmin']])
