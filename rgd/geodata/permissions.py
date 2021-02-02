@@ -47,7 +47,7 @@ def get_collection_membership_path(model):
     # FMV
     if issubclass(model, models.FMVEntry):
         return 'fmv_file__collection__collection_memberships'
-    return None
+    raise NotImplementedError
 
 
 def filter_perm(user, queryset, role):
