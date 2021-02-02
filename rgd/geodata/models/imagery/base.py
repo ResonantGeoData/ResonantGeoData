@@ -1,9 +1,10 @@
 """Base classes for raster dataset entries."""
+import json
+
 from django.contrib.gis.db import models
 from django.contrib.postgres import fields
 from django.utils.html import escape, mark_safe
 from django.utils.translation import gettext_lazy as _
-import json
 
 from rgd.utility import _link_url
 
