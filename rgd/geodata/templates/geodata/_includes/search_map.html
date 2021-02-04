@@ -4,17 +4,18 @@
 
   <script>
     // script to add search parameters to the map
-    let search_params = JSON.parse('{{ search_params|escapejs }}');
+    let searchParams = JSON.parse('{{ search_params|escapejs }}');
+    let searchGeometry = JSON.parse(searchParams.q)
     // Add search parameters as markers
-    if (search_params.longitude != undefined && search_params.latitude != undefined) {
+    if (searchGeometry.type == 'Point') {
       // center map here by default (incase no data appears in search)
       map.center({
-         x: search_params.longitude,
-         y: search_params.latitude
+         x: searchGeometry.coordinates[0],
+         y: searchGeometry.coordinates[1]
        })
       var data = [{
-        lon: search_params.longitude,
-        lat: search_params.latitude
+        lon: searchGeometry.coordinates[0],
+        lat: searchGeometry.coordinates[1]
       }, ]
       var searchMarker = layer.createFeature('marker')
         .data(data)
@@ -25,13 +26,13 @@
           };
         })
         .draw();
-      if (search_params.radius != undefined) {
+      if (searchParams.distance != undefined) {
         // Add a search radius marker if defined
-        var radius = Number(search_params.radius) / 1.11 * 0.00001
+        var radius = Number(searchParams.distance) / 1.11 * 0.00001
         var theta = _.range(0, 2*Math.PI+Math.PI/32, Math.PI/32)
         var lineNodes = theta.map(e => {
-          var x = radius * Math.cos(e) + Number(search_params.longitude)
-          var y = radius * Math.sin(e) + Number(search_params.latitude)
+          var x = radius * Math.cos(e) + Number(searchGeometry.coordinates[0])
+          var y = radius * Math.sin(e) + Number(searchGeometry.coordinates[1])
           return {x: x, y: y}
         })
         var lineData = []
@@ -54,32 +55,13 @@
         // draw the feature
         line.draw();
       }
-    } else if (search_params.maximum_latitude != undefined) {
-      var data = [{
-        ll: [search_params.minimum_longitude, search_params.minimum_latitude],
-        ur: [search_params.maximum_longitude, search_params.maximum_latitude]
-      }, ]
-      var searchQuad = layer.createFeature('quad')
-        .data(data)
-        .style({
-          color: 'black',
-          opacity: 0.1
-        })
-        .draw();
-      // position map around search region
-      map.bounds({
-        left: search_params.minimum_longitude,
-        right: search_params.maximum_longitude,
-        top: search_params.maximum_latitude,
-        bottom: search_params.minimum_latitude
-      });
-    } else if (search_params.geojson != undefined) {
+    } else {
       // Do GeoJSON display
       let searchreader = geo.createFileReader('geojsonReader', {
         'layer': layer
       });
 
-      searchreader.read(search_params.geojson, (features) => {
+      searchreader.read(searchGeometry, (features) => {
         var fill = '#6586c9';
         features[0].style({
           fillColor: fill,

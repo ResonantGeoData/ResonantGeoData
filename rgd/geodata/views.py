@@ -4,6 +4,7 @@ from django.views import generic
 from django.views.generic import DetailView
 
 from .api import search
+from .filters import SpatialEntryFilter
 from .models.common import SpatialEntry
 from .models.fmv.base import FMVEntry
 from .models.geometry import GeometryEntry
@@ -12,29 +13,9 @@ from .models.imagery.base import RasterEntry, RasterMetaEntry
 
 class _SpatialListView(generic.ListView):
     def get_queryset(self):
-        # latitude, longitude, radius, time, timespan, and timefield
-        self.search_params = {}
-        point = {'longitude', 'latitude', 'radius'}
-        bbox = {'minimum_longitude', 'minimum_latitude', 'maximum_longitude', 'maximum_latitude'}
-        search_options = point.union(bbox)
-        # Collect all passed search options
-        for key in search_options:
-            if self.request.GET.get(key):
-                try:
-                    self.search_params[key] = float(self.request.GET.get(key))
-                except ValueError:
-                    pass
-        # Choose search method based on passed options
-        method = search.search_near_point_filter
-        if all(k in self.search_params for k in point):
-            method = search.search_near_point_filter
-        elif all(k in self.search_params for k in bbox):
-            method = search.search_bounding_box_filter
-        elif 'geojson' in self.request.GET:
-            self.search_params = self.request.GET
-            method = search.search_geojson_filter
-
-        return self.model.objects.filter(method(self.search_params))
+        filterset = SpatialEntryFilter(data=self.request.GET)
+        assert filterset.is_valid()
+        return filterset.filter_queryset(self.model.objects.all())
 
     def _get_extent_summary(self):
         return search.extent_summary_spatial(self.object_list)
@@ -44,7 +25,7 @@ class _SpatialListView(generic.ListView):
         context = super().get_context_data(*args, **kwargs)
         summary = self._get_extent_summary()
         context['extents'] = json.dumps(summary)
-        context['search_params'] = json.dumps(self.search_params)
+        context['search_params'] = json.dumps(self.request.GET)
         # Have a smaller dict of meta fields to parse for menu bar
         # This keeps us from parsing long GeoJSON fields twice
         meta = {
