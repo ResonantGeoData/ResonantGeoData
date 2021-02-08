@@ -18,8 +18,8 @@
       <tbody>
         {% for entry in spatial_entries %}
           <tr>
-            <td>{{ entry.spatial_id }}</td>
-            <td><a href="{% url 'spatial-entry-detail' entry.pk %}">{{ entry.subentry.name }}</a></td>
+            <td><a href="{% url 'spatial-entry-detail' entry.pk %}">{{ entry.spatial_id }}</a></td>
+            <td>{{ entry.subentry.name }}</td>
             <td>{{ entry.footprint.area | floatformat:-2 }}</td>
             <td>{{ entry.subtype_name }}</td>
           </tr>
