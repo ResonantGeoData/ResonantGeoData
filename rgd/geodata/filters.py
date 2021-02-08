@@ -169,15 +169,15 @@ class SpatialEntryFilter(filters.FilterSet):
             if value.start is not None:
                 queryset = queryset.filter(
                     (
-                        Q(acquisition_date__gte=value)
-                        | Q(rastermetaentry__parent_raster__created__gte=value)
+                        Q(acquisition_date__gte=str(value.start))
+                        | Q(rastermetaentry__parent_raster__created__gte=str(value.start))
                     )
                 )
             if value.stop is not None:
                 queryset = queryset.filter(
                     (
-                        Q(acquisition_date__lte=value)
-                        | Q(rastermetaentry__parent_raster__created__lte=value)
+                        Q(acquisition_date__lte=str(value.stop))
+                        | Q(rastermetaentry__parent_raster__created__lte=str(value.stop))
                     )
                 )
         return queryset
@@ -188,17 +188,17 @@ class SpatialEntryFilter(filters.FilterSet):
             if value.start is not None:
                 queryset = queryset.filter(
                     (
-                        Q(geometryentry__created__gte=value)
-                        | Q(fmventry__created__gte=value)
-                        | Q(rastermetaentry__parent_raster__created__gte=value)
+                        Q(geometryentry__created__gte=str(value.start))
+                        | Q(fmventry__created__gte=str(value.start))
+                        | Q(rastermetaentry__parent_raster__created__gte=str(value.start))
                     )
                 )
             if value.stop is not None:
                 queryset = queryset.filter(
                     (
-                        Q(geometryentry__created__lte=value)
-                        | Q(fmventry__created__lte=value)
-                        | Q(rastermetaentry__parent_raster__created__lte=value)
+                        Q(geometryentry__created__lte=str(value.stop))
+                        | Q(fmventry__created__lte=str(value.stop))
+                        | Q(rastermetaentry__parent_raster__created__lte=str(value.stop))
                     )
                 )
         return queryset
@@ -209,17 +209,17 @@ class SpatialEntryFilter(filters.FilterSet):
             if value.start is not None:
                 queryset = queryset.filter(
                     (
-                        Q(geometryentry__modified__gte=value)
-                        | Q(fmventry__modified__gte=value)
-                        | Q(rastermetaentry__parent_raster__modified__gte=value)
+                        Q(geometryentry__modified__gte=str(value.start))
+                        | Q(fmventry__modified__gte=str(value.start))
+                        | Q(rastermetaentry__parent_raster__modified__gte=str(value.start))
                     )
                 )
             if value.stop is not None:
                 queryset = queryset.filter(
                     (
-                        Q(geometryentry__modified__lte=value)
-                        | Q(fmventry__modified__lte=value)
-                        | Q(rastermetaentry__parent_raster__modified__lte=value)
+                        Q(geometryentry__modified__lte=str(value.stop))
+                        | Q(fmventry__modified__lte=str(value.stop))
+                        | Q(rastermetaentry__parent_raster__modified__lte=str(value.stop))
                     )
                 )
         return queryset

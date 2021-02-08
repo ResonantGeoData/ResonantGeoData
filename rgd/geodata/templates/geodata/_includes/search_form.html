@@ -48,56 +48,8 @@
   <div class="column is-full">
     <form method="GET">
       <div class="columns is-multiline mx-0">
+
         <div class="column is-full field mb-0">
-          <div class="field-label is-normal">
-            <label class="label">GeoJSON geometry</label>
-          </div>
-          <div class="field-body">
-            <div class="field">
-              <div class="control">
-                <input class="input" type="text" name="q" value="{{ request.GET.q }}">
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <div class="column is-full">
-          <div class="field">
-            <div class="field-label is-normal">
-              <label class="label">Predicate</label>
-            </div>
-            <div class="field-body">
-              <div class="field">
-                <div class="control">
-                  <div class="select is-fullwidth">
-                    <select name="predicate" id="predicate">
-                      <option value="contains">contains</option>
-                      <option value="crosses">crosses</option>
-                      <option value="disjoint">disjoint</option>
-                      <option value="equals">equals</option>
-                      <option value="intersects">intersects</option>
-                      <option value="overlaps">overlaps</option>
-                      <option value="touches">touches</option>
-                      <option value="within">within</option>
-                    </select>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <script>
-          // automatically select the predicate field based on form
-          $("document").ready(function() {
-            var selValue = "{{ request.GET.predicate }}";
-            if (selValue) {
-              $("#predicate").val(selValue).attr("selected", "selected")
-            }
-          });
-        </script>
-
-        <!-- <div class="column is-full">
           <div class="field">
             <div class="field-label is-normal">
               <label class="label">Data Type</label>
@@ -120,13 +72,63 @@
 
         <script>
           // automatically select the data type field based on form
-          $("document").ready(function(){
+          $("document").ready(function() {
             var selValue = "{{ request.GET.datatype }}";
             if (selValue) {
-              $("#datatype").val(selValue).attr("selected","selected")
+              $("#datatype").val(selValue).attr("selected", "selected")
             }
           });
-        </script> -->
+        </script>
+
+
+        <div class="column is-full field">
+          <div class="field-label is-normal">
+            <label class="label">GeoJSON geometry</label>
+          </div>
+          <div class="field-body">
+            <div class="field">
+              <div class="control">
+                <input class="input" type="text" name="q" value="{{ request.GET.q }}" required>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="column is-full">
+          <div class="field">
+            <div class="field-label is-normal">
+              <label class="label">Predicate</label>
+            </div>
+            <div class="field-body">
+              <div class="field">
+                <div class="control">
+                  <div class="select is-fullwidth">
+                    <select name="predicate" id="predicate">
+                      <option value="within">within</option>
+                      <option value="contains">contains</option>
+                      <option value="crosses">crosses</option>
+                      <option value="disjoint">disjoint</option>
+                      <option value="equals">equals</option>
+                      <option value="intersects">intersects</option>
+                      <option value="overlaps">overlaps</option>
+                      <option value="touches">touches</option>
+                    </select>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <script>
+          // automatically select the predicate field based on form
+          $("document").ready(function() {
+            var selValue = "{{ request.GET.predicate }}";
+            if (selValue) {
+              $("#predicate").val(selValue).attr("selected", "selected")
+            }
+          });
+        </script>
 
         <div class="column is-full field mb-0">
           <div class="field-label is-normal">
@@ -148,7 +150,8 @@
           <div class="field-body">
             <div class="field">
               <div class="control">
-                <input class="input" type="text" name="num_bands" value="{{ request.GET.num_bands }}">
+                <input class="input" type="text" name="num_bands_min" value="{{ request.GET.num_bands_min }}">
+                <input class="input" type="text" name="num_bands_max" value="{{ request.GET.num_bands_max }}">
               </div>
             </div>
           </div>
@@ -161,7 +164,8 @@
           <div class="field-body">
             <div class="field">
               <div class="control">
-                <input class="input" type="text" name="resolution" value="{{ request.GET.resolution }}">
+                <input class="input" type="text" name="resolution_min" value="{{ request.GET.resolution_min }}">
+                <input class="input" type="text" name="resolution_max" value="{{ request.GET.resolution_max }}">
               </div>
             </div>
           </div>
@@ -175,6 +179,50 @@
             <div class="field">
               <div class="control">
                 <input class="input" type="text" name="instrumentation" value="{{ request.GET.instrumentation }}">
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="column is-full field mb-0">
+          <div class="field-label is-normal">
+            <label class="label">Created</label>
+          </div>
+          <div class="field-body">
+            <div class="field">
+              <div class="control">
+                <input type="datetime-local" name="created_before" value="{{ request.GET.created_before }}">
+                <input type="datetime-local" name="created_after" value="{{ request.GET.created_after }}">
+              </div>
+            </div>
+          </div>
+        </div>
+
+
+        <div class="column is-full field mb-0">
+          <div class="field-label is-normal">
+            <label class="label">Modified</label>
+          </div>
+          <div class="field-body">
+            <div class="field">
+              <div class="control">
+                <input type="datetime-local" name="modified_before" value="{{ request.GET.modified_before }}">
+                <input type="datetime-local" name="modified_after" value="{{ request.GET.modified_after }}">
+              </div>
+            </div>
+          </div>
+        </div>
+
+
+        <div class="column is-full field mb-0">
+          <div class="field-label is-normal">
+            <label class="label">Acquired</label>
+          </div>
+          <div class="field-body">
+            <div class="field">
+              <div class="control">
+                <input type="datetime-local" name="acquired_before" value="{{ request.GET.acquired_before }}">
+                <input type="datetime-local" name="acquired_after" value="{{ request.GET.acquired_after }}">
               </div>
             </div>
           </div>
