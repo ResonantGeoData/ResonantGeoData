@@ -13,13 +13,6 @@
     </div>
 
     <div id="navbarBasicExample" class="navbar-menu">
-      {% if user.is_authenticated %}
-      <div class="navbar-start">
-        <a href="{% url 'rasters' %}" class="navbar-item">Raster Entries</a>
-        <a href="{% url 'fmv_entries' %}" class="navbar-item">FMV Entries</a>
-        <a href="{% url 'geometries' %}" class="navbar-item">Geometries</a>
-      </div>
-      {% endif %}
       <div class="navbar-end user-menu">
         {% if user.is_authenticated %}
           <div class="navbar-item">{{ request.user.email }}</div>

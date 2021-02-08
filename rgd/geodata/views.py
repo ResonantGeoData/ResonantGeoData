@@ -8,7 +8,7 @@ from .filters import SpatialEntryFilter
 from .models.common import SpatialEntry
 from .models.fmv.base import FMVEntry
 from .models.geometry import GeometryEntry
-from .models.imagery.base import RasterEntry, RasterMetaEntry
+from .models.imagery.base import RasterEntry
 
 
 class _SpatialListView(generic.ListView):
@@ -35,31 +35,10 @@ class _SpatialListView(generic.ListView):
         return context
 
 
-class RasterEntriesListView(_SpatialListView):
-    model = RasterMetaEntry
-    context_object_name = 'raster_metas'
-    template_name = 'geodata/raster_entries.html'
-
-
 class SpatialEntriesListView(_SpatialListView):
     model = SpatialEntry
     context_object_name = 'spatial_entries'
     template_name = 'geodata/spatial_entries.html'
-
-
-class GeometryEntriesListView(_SpatialListView):
-    model = GeometryEntry
-    context_object_name = 'geometries'
-    template_name = 'geodata/geometry_entries.html'
-
-
-class FMVEntriesListView(_SpatialListView):
-    model = FMVEntry
-    context_object_name = 'entries'
-    template_name = 'geodata/fmv_entries.html'
-
-    def _get_extent_summary(self):
-        return search.extent_summary_fmv(self.object_list)
 
 
 class _SpatialDetailView(DetailView):
