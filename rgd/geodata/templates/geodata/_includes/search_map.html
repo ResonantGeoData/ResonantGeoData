@@ -27,9 +27,9 @@
             };
           })
           .draw();
-        if (searchParams.distance != undefined) {
-          // Add a search radius marker if defined
-          var radius = Number(searchParams.distance) / 1.11 * 0.00001
+
+        function drawCircle(distance, color='black') {
+          var radius = Number(distance) / 1.11 * 0.00001
           var theta = _.range(0, 2*Math.PI+Math.PI/32, Math.PI/32)
           var lineNodes = theta.map(e => {
             var x = radius * Math.cos(e) + Number(searchGeometry.coordinates[0])
@@ -50,11 +50,19 @@
               closed: function (item, itemIndex) {
                 return itemIndex === 1 || itemIndex === 3 || itemIndex === 5;
               },
-              strokeColor: 'black',
+              strokeColor: color,
               strokeWidth: 2
             });
           // draw the feature
           line.draw();
+        }
+
+
+        if (searchParams.distance_min != undefined) {
+          drawCircle(searchParams.distance_min, 'blue')
+        }
+        if (searchParams.distance_max != undefined) {
+          drawCircle(searchParams.distance_max, 'red')
         }
       } else {
         // Do GeoJSON display

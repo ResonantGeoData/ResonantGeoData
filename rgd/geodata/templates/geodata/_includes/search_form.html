@@ -134,12 +134,13 @@
 
         <div class="column is-full field mb-0">
           <div class="field-label is-normal">
-            <label class="label">Distance</label>
+            <label class="label">Distance (Min/Max)</label>
           </div>
           <div class="field-body">
             <div class="field">
               <div class="control">
-                <input class="input" type="text" name="distance" value="{{ request.GET.distance }}">
+                <input class="input" type="text" name="distance_min" value="{{ request.GET.distance_min }}">
+                <input class="input" type="text" name="distance_max" value="{{ request.GET.distance_max }}">
               </div>
             </div>
           </div>
