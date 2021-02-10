@@ -17,7 +17,7 @@ setup(
     long_description=long_description,
     long_description_content_type='text/markdown',
     license='Apache 2.0',
-    author='Kitware, Inc',
+    author='Kitware, Inc.',
     author_email='kitware@kitware.com',
     keywords='',
     classifiers=[
