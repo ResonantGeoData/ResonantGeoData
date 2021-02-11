@@ -178,6 +178,10 @@ class RasterMetaEntry(ModifiableEntry, SpatialEntry):
     # TODO: skew/transform
     transform = fields.ArrayField(models.FloatField(), size=6)
 
+    @property
+    def name(self):
+        return self.parent_raster.name
+
 
 class BandMetaEntry(ModifiableEntry):
     """A basic container to keep track of useful band info."""

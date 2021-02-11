@@ -9,8 +9,7 @@
     <table class="table">
       <thead class="thead-dark">
         <tr>
-          <th><span class="text">ID</span></th>
-          <th><span class="text">Name</span></th>
+          <th><span class="text">ID - Name</span></th>
           <th><span class="text">Area</span></th>
           <th><span class="text">Data Type</span></th>
         </tr>
@@ -18,10 +17,9 @@
       <tbody>
         {% for entry in spatial_entries %}
           <tr>
-            <td><a href="{% url 'spatial-entry-detail' entry.pk %}">{{ entry.spatial_id }}</a></td>
-            <td>{{ entry.subentry.name }}</td>
+            <td><a href="{% url 'spatial-entry-detail' entry.pk %}">{{ entry.spatial_id }} - {{ entry.subentry_name | truncatechars:12 }}</a></td>
             <td>{{ entry.footprint.area | floatformat:-2 }}</td>
-            <td>{{ entry.subtype_name }}</td>
+            <td>{{ entry.subentry_type }}</td>
           </tr>
         {% endfor %}
       </tbody>
