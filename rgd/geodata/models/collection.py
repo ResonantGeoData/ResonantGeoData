@@ -6,6 +6,9 @@ class Collection(models.Model):
     name = models.CharField(max_length=127)
     users = models.ManyToManyField(settings.AUTH_USER_MODEL, through='CollectionMembership')
 
+    def __str__(self):
+        return self.name
+
     class Meta:
         default_related_name = 'collections'
 
