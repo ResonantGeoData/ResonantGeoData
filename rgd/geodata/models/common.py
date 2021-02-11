@@ -90,6 +90,7 @@ class ChecksumFile(ModifiableEntry, TaskEventMixin):
         related_name='%(class)ss',
         related_query_name='%(class)ss',
         null=True,
+        blank=True,
     )
 
     type = models.IntegerField(choices=FileSourceType.choices, default=FileSourceType.FILE_FIELD)
