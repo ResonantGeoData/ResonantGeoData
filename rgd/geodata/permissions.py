@@ -12,7 +12,6 @@ def get_collection_membership_path(model) -> Optional[str]:
     Relationships are represented as 'dunder's ('__'). Returning `None`
     means the model is explicitly unprotected.
     """
-    return None
     # Collection
     if issubclass(model, models.CollectionMembership):
         return ''
