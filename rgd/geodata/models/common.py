@@ -89,7 +89,6 @@ class ChecksumFile(ModifiableEntry, TaskEventMixin):
         on_delete=models.SET_NULL,
         related_name='%(class)ss',
         related_query_name='%(class)ss',
-        editable=False,
         null=True,
     )
 
