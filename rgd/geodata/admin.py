@@ -55,6 +55,7 @@ class ChecksumFileAdmin(OSMGeoAdmin):
         'created',
         'type',
         'data_link',
+        'collection',
     )
     readonly_fields = (
         'checksum',
