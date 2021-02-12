@@ -1,5 +1,0 @@
-# This is used by heroku for deployment
---find-links https://girder.github.io/large_image_wheels
-GDAL
-# Install the app itself
--e .[dev,worker]
