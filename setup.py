@@ -53,6 +53,7 @@ setup(
         'drf-yasg',
         'GDAL',
         'numpy',
+        'Pillow',
         'pooch',
         'python-magic',
         'rules',
