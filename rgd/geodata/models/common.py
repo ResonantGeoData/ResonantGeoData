@@ -82,7 +82,7 @@ class SpatialEntry(models.Model):
 
     @property
     def subentry_name(self):
-        """Simple wrapper to fecth the name from the subentry model."""
+        """Return the name from the subentry model."""
         return self.subentry.name
 
     @property
