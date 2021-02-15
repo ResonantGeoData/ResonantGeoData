@@ -10,7 +10,7 @@ urlpatterns = [
     ),
     path(
         'geodata/spatial_entries/<int:pk>/',
-        views.SpatialEntryDetailView.as_view(),
+        views.spatial_entry_redirect_view,
         name='spatial-entry-detail',
     ),
     # Temporary redirect for home page

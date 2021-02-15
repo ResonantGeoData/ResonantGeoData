@@ -12,23 +12,23 @@
   </tr>
   <tr>
     <td>Resolution</td>
-    <td>{{ object.rastermetaentry.resolution }}</td>
+    <td>{{ object.resolution }}</td>
   </tr>
   <tr>
     <td>Origin</td>
-    <td>{{ object.rastermetaentry.origin }}</td>
+    <td>{{ object.origin }}</td>
   </tr>
   <tr>
     <td>Extent</td>
-    <td>{{ object.rastermetaentry.extent }}</td>
+    <td>{{ object.extent }}</td>
   </tr>
   <tr>
     <td>Transform</td>
-    <td>{{ object.rastermetaentry.transform }}</td>
+    <td>{{ object.transform }}</td>
   </tr>
   <tr>
     <td>PROJ4 String</td>
-    <td>{{ object.rastermetaentry.crs }}</td>
+    <td>{{ object.crs }}</td>
   </tr>
 
 {% endblock %}
@@ -36,7 +36,7 @@
 {% block extra_meta %}
 
   <select id="band-selector" onchange="updateBandThumbnail()">
-    {% for image in object.image_set.images.all %}
+    {% for image in object.parent_raster.image_set.images.all %}
       <option value="{{ image.id }}">{{ image.name }}</option>
     {% endfor %}
     <option value="-1">None</option>

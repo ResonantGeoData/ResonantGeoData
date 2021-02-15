@@ -1,14 +1,16 @@
 import json
 
+from django.shortcuts import redirect
 from django.views import generic
 from django.views.generic import DetailView
+from rest_framework.reverse import reverse
 
 from .api import search
 from .filters import SpatialEntryFilter
 from .models.common import SpatialEntry
 from .models.fmv.base import FMVEntry
 from .models.geometry import GeometryEntry
-from .models.imagery.base import RasterEntry
+from .models.imagery.base import RasterMetaEntry
 
 
 class _SpatialListView(generic.ListView):
@@ -69,12 +71,12 @@ class _SpatialDetailView(DetailView):
 
 
 class RasterEntryDetailView(_SpatialDetailView):
-    model = RasterEntry
+    model = RasterMetaEntry
 
     def _get_extent(self):
         extent = super()._get_extent()
         # Add a thumbnail of the first image in the raster set
-        image_entries = self.object.image_set.images.all()
+        image_entries = self.object.parent_raster.image_set.images.all()
         image_urls = {}
         for image_entry in image_entries:
             thumbnail = image_entry.thumbnail
@@ -110,5 +112,15 @@ class GeometryEntryDetailView(_SpatialDetailView):
         return extent
 
 
-class SpatialEntryDetailView(_SpatialDetailView):
-    model = SpatialEntry
+def spatial_entry_redirect_view(request, pk):
+    spat = SpatialEntry.objects.get(pk=pk)
+    sub = spat.subentry
+    if isinstance(sub, RasterMetaEntry):
+        name = 'raster-entry-detail'
+    elif isinstance(sub, GeometryEntry):
+        name = 'geometry-entry-detail'
+    elif isinstance(sub, FMVEntry):
+        name = 'fmv-entry-detail'
+    else:
+        raise ValueError()
+    return redirect(reverse(name, kwargs={'pk': sub.pk}))
