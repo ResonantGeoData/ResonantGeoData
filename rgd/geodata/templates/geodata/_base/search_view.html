@@ -17,18 +17,18 @@
   <div class="columns m-0">
     <div class="column is-sidebar is-one-quarter p-0">
 
-      <div class="tab tabs is-boxed">
+      <div class="tab tabs is-boxed" id="tabs">
         <ul class="pt-2 px-2">
-          <li class="tablinks is-active" onclick="openTab(event, 'tabcontent1')"><a>Search</a></li>
-          <li class="tablinks" onclick="openTab(event, 'tabcontent2')"><a>Results</a></li>
+          <li class="tablinks is-active" id="searchTabLink" onclick="openTab(event, 'searchTab')"><a href="#searchTab">Search</a></li>
+          <li class="tablinks" id="resultsTabLink" onclick="openTab(event, 'resultsTab')"><a href="#resultsTab">Results</a></li>
         </ul>
       </div>
 
-      <div id="tabcontent1" class="tabcontent" style="display: block;">
+      <div id="searchTab" class="tabcontent" style="display: block;">
         {% include 'geodata/_includes/search_form.html' %}
       </div>
 
-      <div id="tabcontent2" class="tabcontent" style="display: none;">
+      <div id="resultsTab" class="tabcontent" style="display: none;">
         {% block list_view %}{% endblock %}
       </div>
     </div>
@@ -54,8 +54,18 @@
       }
       // Show the current tab, and add an "active" class to the button that opened the tab
       document.getElementById(tabName).style.display = "block";
-      evt.currentTarget.className += " is-active";
+      // evt.currentTarget.className += " is-active";
+      document.getElementById(tabName + "Link").className += " is-active";
     }
+
+    window.onload = function (event) {
+        var hash = window.location.hash;
+        if (hash == '#resultsTab') {
+          openTab(event, 'resultsTab');
+        } else if (hash == '#searchTab') {
+          openTab(event, 'searchTab');
+        }
+    };
   </script>
 
 {% endblock content %}
