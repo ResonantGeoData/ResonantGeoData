@@ -13,7 +13,18 @@ from .models.geometry import GeometryEntry
 from .models.imagery.base import RasterMetaEntry
 
 
+def query_params(params):
+    query = params.copy()
+
+    if query.get('page'):
+        del query['page']
+
+    return '&' + query.urlencode() if query.urlencode() else ''
+
+
 class _SpatialListView(generic.ListView):
+    paginate_by = 15
+
     def get_queryset(self):
         filterset = SpatialEntryFilter(data=self.request.GET)
         assert filterset.is_valid()
@@ -34,6 +45,7 @@ class _SpatialListView(generic.ListView):
             'count': summary['count'],
         }
         context['extents_meta'] = json.dumps(meta)
+        context['query_params'] = query_params(self.request.GET)
         return context
 
 
