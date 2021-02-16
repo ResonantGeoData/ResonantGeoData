@@ -24,12 +24,14 @@
         </ul>
       </div>
 
-      <div id="searchTab" class="tabcontent" style="display: block;">
-        {% include 'geodata/_includes/search_form.html' %}
-      </div>
+      <div class="column is-sidebar-content">
+        <div id="searchTab" class="tabcontent" style="display: block;">
+          {% include 'geodata/_includes/search_form.html' %}
+        </div>
 
-      <div id="resultsTab" class="tabcontent" style="display: none;">
-        {% block list_view %}{% endblock %}
+        <div id="resultsTab" class="tabcontent" style="display: none;">
+          {% block list_view %}{% endblock %}
+        </div>
       </div>
     </div>
 

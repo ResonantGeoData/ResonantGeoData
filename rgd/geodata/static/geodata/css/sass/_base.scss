@@ -313,6 +313,9 @@ h6 {
 
 .is-sidebar {
   background: $white;
+}
+
+.is-sidebar-content {
   height: calc(100vh - 128px);
   overflow-y: auto;
 }
