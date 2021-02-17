@@ -57,21 +57,12 @@ class RgdMixin(CrispyFormsMixin, GeoDjangoMixin, SwaggerMixin, ConfigMixin):
 
     @staticmethod
     def before_binding(configuration: Type[ComposedConfiguration]):
-        # The girder_style app also defines a base.html file, so core must be loaded
-        # before girder_style.
-        # Accordingly, RgdConfig must be loaded after AllauthConfig, so it can
-        # find the existing entry and insert accordingly.
-        try:
-            insert_index = configuration.INSTALLED_APPS.index('girder_style')
-        except ValueError:
-            raise Exception('RgdConfig must be loaded after AllauthConfig.')
-        # We also want our apps to be before any apps that we want to override
-        # the templates of
-        for key in {'drf_yasg'}:
-            if key in configuration.INSTALLED_APPS:
-                insert_index = min(insert_index, configuration.INSTALLED_APPS.index(key))
-        configuration.INSTALLED_APPS.insert(insert_index, 'rgd.geodata.apps.GeodataConfig')
+        # Install local apps first, to ensure any overridden resources are found first
+        configuration.INSTALLED_APPS = [
+            'rgd.geodata.apps.GeodataConfig',
+        ] + configuration.INSTALLED_APPS
 
+        # Install additional apps
         configuration.INSTALLED_APPS += [
             's3_file_field',
             'django.contrib.humanize',
