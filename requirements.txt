@@ -1,0 +1,3 @@
+# This should only be used by the Heroku buildpack, as it does not support PIP_FIND_LINKS
+--find-links https://girder.github.io/large_image_wheels
+-e .

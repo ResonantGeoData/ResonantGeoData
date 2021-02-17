@@ -40,7 +40,6 @@ module "django" {
   # for other possible optional variables
   additional_django_vars = {
     DJANGO_SENTRY_DSN = "https://b3dac135af6c42fea439998200656ca3@o267860.ingest.sentry.io/5458973"
-    PIP_FIND_LINKS = "https://girder.github.io/large_image_wheels"
   }
   # This defaults to 1, but may be changed
   heroku_worker_dyno_quantity = 0
