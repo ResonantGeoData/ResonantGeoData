@@ -37,7 +37,7 @@
 
   <select id="band-selector" onchange="updateBandThumbnail()">
     {% for image in object.parent_raster.image_set.images.all %}
-      <option value="{{ image.id }}">{{ image.name }}</option>
+      <option value="{{ image.id }}">{{ image.name | truncatechars:36 }}</option>
     {% endfor %}
     <option value="-1">None</option>
   </select>

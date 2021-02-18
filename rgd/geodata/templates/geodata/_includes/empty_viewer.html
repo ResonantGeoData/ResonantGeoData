@@ -25,6 +25,7 @@
       <option>stamen-toner</option>
       <option>stamen-toner-lite</option>
       <option>wikimedia</option>
+      <option>-- none --</option>
     </select>
   </div>
 
@@ -61,8 +62,13 @@
     var basemapDropdown = document.getElementById("basemapDropdown")
     basemapDropdown.value = basemapLayer.source()
     function changeBasemap() {
-      setCookie('basemapChoice', basemapDropdown.value)
-      basemapLayer.source(basemapDropdown.value)
+      if (basemapDropdown.value == '-- none --') {
+        basemapLayer.visible(false)
+      } else {
+        basemapLayer.visible(true)
+        setCookie('basemapChoice', basemapDropdown.value)
+        basemapLayer.source(basemapDropdown.value)
+      }
     }
 
     // Annotation layer
