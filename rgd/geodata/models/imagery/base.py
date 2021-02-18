@@ -39,7 +39,7 @@ class ImageEntry(ModifiableEntry):
     def __str__(self):
         return f'{self.name} ({self.id})'
 
-    name = models.CharField(max_length=100, blank=True)
+    name = models.TextField(blank=True)
     description = models.TextField(null=True, blank=True)
 
     instrumentation = models.CharField(
@@ -93,7 +93,7 @@ class ImageSet(ModifiableEntry):
     def __str__(self):
         return f'{self.name} ({self.id} - {type(self)}'
 
-    name = models.CharField(max_length=100, blank=True)
+    name = models.TextField(blank=True)
     description = models.TextField(null=True, blank=True)
 
     images = models.ManyToManyField(ImageEntry)
@@ -132,7 +132,7 @@ class RasterEntry(ModifiableEntry, TaskEventMixin):
     def __str__(self):
         return 'ID: {} {} (type: {})'.format(self.id, self.name, type(self))
 
-    name = models.CharField(max_length=100, blank=True)
+    name = models.TextField(blank=True)
     description = models.TextField(null=True, blank=True)
 
     image_set = models.OneToOneField(ImageSet, on_delete=models.CASCADE)
@@ -280,7 +280,7 @@ class KWCOCOArchive(ModifiableEntry, TaskEventMixin):
     """
 
     task_func = tasks.task_load_kwcoco_dataset
-    name = models.CharField(max_length=100, blank=True)
+    name = models.TextField(blank=True)
     failure_reason = models.TextField(null=True)
     status = models.CharField(max_length=20, default=Status.CREATED, choices=Status.choices)
     spec_file = models.OneToOneField(

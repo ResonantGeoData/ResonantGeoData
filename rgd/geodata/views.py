@@ -1,5 +1,6 @@
 import json
 
+from celery.utils.log import get_task_logger
 from django.shortcuts import redirect
 from django.views import generic
 from django.views.generic import DetailView
@@ -11,6 +12,8 @@ from .models.common import SpatialEntry
 from .models.fmv.base import FMVEntry
 from .models.geometry import GeometryEntry
 from .models.imagery.base import RasterMetaEntry
+
+logger = get_task_logger(__name__)
 
 
 def query_params(params):
@@ -31,6 +34,8 @@ class _SpatialListView(generic.ListView):
         return filterset.filter_queryset(self.model.objects.all())
 
     def _get_extent_summary(self):
+        logger.info(type(self.object_list))
+        logger.info(type(self.queryset))
         return search.extent_summary_spatial(self.object_list)
 
     def get_context_data(self, *args, **kwargs):
@@ -46,6 +51,8 @@ class _SpatialListView(generic.ListView):
         }
         context['extents_meta'] = json.dumps(meta)
         context['query_params'] = query_params(self.request.GET)
+
+        logger.info(dir(self))
         return context
 
 

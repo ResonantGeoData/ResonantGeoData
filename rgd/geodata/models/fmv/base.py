@@ -42,7 +42,7 @@ class FMVEntry(ModifiableEntry, SpatialEntry):
     def __str__(self):
         return f'{self.name} ({self.id})'
 
-    name = models.CharField(max_length=100)
+    name = models.TextField(blank=True)
     description = models.TextField(null=True, blank=True)
 
     fmv_file = models.OneToOneField(FMVFile, on_delete=models.CASCADE)

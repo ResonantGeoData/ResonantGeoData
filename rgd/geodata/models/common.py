@@ -103,7 +103,7 @@ class ChecksumFile(ModifiableEntry, TaskEventMixin):
 
     """
 
-    name = models.CharField(max_length=100, blank=True)
+    name = models.TextField(blank=True)
     checksum = models.CharField(max_length=128)  # sha512
     validate_checksum = models.BooleanField(
         default=False

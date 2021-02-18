@@ -45,7 +45,7 @@ class GeometryArchive(ModifiableEntry, TaskEventMixin):
 class GeometryEntry(ModifiableEntry, SpatialEntry):
     """A holder for geometry vector data."""
 
-    name = models.CharField(max_length=100, blank=True)
+    name = models.TextField(blank=True)
     description = models.TextField(null=True, blank=True)
 
     data = models.GeometryCollectionField(srid=DB_SRID)  # Can be one or many features
