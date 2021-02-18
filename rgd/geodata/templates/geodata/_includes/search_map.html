@@ -71,10 +71,9 @@
         });
 
         searchreader.read(searchGeometry, (features) => {
-          var fill = '#6586c9';
           features[0].style({
-            fillColor: fill,
-            fillOpacity: 0.75,
+            fillOpacity: 0.0,
+            strokeColor: 'red'
           })
           .draw();
         });
