@@ -1,313 +1,314 @@
 {% block search_form %}
 
-  <div class="tab tabs is-boxed">
-    <ul class="pt-2 px-2">
-      <li class="tablinks is-active" onclick="openTab(event, 'tabcontent1')"><a>Geospatial</a></li>
-      <li class="tablinks" onclick="openTab(event, 'tabcontent2')"><a>Faceted Search</a></li>
-    </ul>
-  </div>
-
-  <div id="tabcontent1" class="tabcontent" style="display: block;">
-    <div class="columns is-multiline mx-0">
-      <div class="column select-field is-full mb-2 pb-5">
-        <div class="field">
-          <div class="field-label is-normal mb-1">
-            <label class="label">Selection type:</label>
-          </div>
-          <div class="field-body">
-            <div class="field">
-              <div class="control">
-                <div class="select is-fullwidth">
-                  <select id="selectionType">
-                    <option value="stPoint">Point</option>
-                    <option value="stBounding">Bounding Box</option>
-                    <option value="stJSON">GeoJSON</option>
-                  </select>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
+<div class="columns is-multiline mx-0">
+  <div class="column is-full mb-2 pb-5">
+    <div class="field">
+      <div class="field-label is-normal mb-1">
+        <label class="label">Map Tool:</label>
       </div>
-      <div class="column is-full">
-        <div id="stPoint" class="selection" style="display: none;">
-          <form method="GET">
-            <div class="columns is-multiline mx-0">
-              <div class="column is-full field mb-0">
-                <div class="field-label is-normal">
-                  <label class="label">Longitude (deg)</label>
-                </div>
-                <div class="field-body">
-                  <div class="field">
-                    <div class="control">
-                      <input class="input" type="text" name="longitude" value="{{ request.GET.longitude }}">
-                    </div>
+      <div class="field-body">
+        <div class="field">
+          <div class="control">
+            <div class="select is-halfwidth">
+              <select id="mapTool">
+                <option value="stJSON">GeoJSON</option>
+                <option value="stPoint">Point</option>
+                <option value="stBounding">Bounding Box</option>
+              </select>
+            </div>
+            <div>
+              <div id="stJSON" class="selection" style="display: none;">
+                <div class="column is-full field is-grouped">
+                  <div class="control">
+                    <input class="button is-secondary" type="button" value="Draw on Map" name="drawOnMapButton" onclick="enableDrawOnMap()">
                   </div>
                 </div>
               </div>
-
-              <div class="column is-full field mb-0">
-                <div class="field-label is-normal">
-                  <label class="label">Latitude (deg)</label>
-                </div>
-                <div class="field-body">
-                  <div class="field">
-                    <div class="control">
-                      <input class="input" type="text" name="latitude" value="{{ request.GET.latitude }}">
-                    </div>
+              <div id="stPoint" class="selection" style="display: none;">
+                <div class="column is-full field is-grouped">
+                  <div class="control">
+                    <input class="button is-secondary" type="button" value="Use Map" name="button" onclick="populatePoint()">
                   </div>
                 </div>
               </div>
-
-              <div class="column is-full field mb-0">
-                <div class="field-label is-normal">
-                  <label class="label">Proximity (m)</label>
-                </div>
-                <div class="field-body">
-                  <div class="field">
-                    <div class="control">
-                      <input class="input" type="text" name="radius" value="{{ request.GET.radius }}">
-                    </div>
+              <div id="stBounding" class="selection" style="display: none;">
+                <div class="column is-full field is-grouped">
+                  <div class="control">
+                    <input class="button is-secondary" type="button" value="Use Map" name="button" onclick="populateBounds()">
                   </div>
-                </div>
-              </div>
-
-              <div class="column is-full field is-grouped">
-                <div class="control">
-                  <input class="button is-secondary" type="button" value="Use Map" name="button" onclick="populatePoint()">
-                </div>
-                <div class="control">
-                  <input class="button is-accent" type="submit" value="Filter">
                 </div>
               </div>
             </div>
-          </form>
-        </div>
-
-        <div id="stBounding" class="selection" style="display: none;">
-          <form method="GET">
-            <div class="columns is-multiline mx-0">
-              <div class="column is-full field mb-0">
-                <div class="field-label is-normal">
-                  <label class="label">Minimum Longitude (deg)</label>
-                </div>
-                <div class="field-body">
-                  <div class="field">
-                    <div class="control">
-                      <input class="input" type="text" name="minimum_longitude" value="{{ request.GET.minimum_longitude }}">
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              <div class="column is-full field mb-0">
-                <div class="field-label is-normal">
-                  <label class="label">Maximum Longitude (deg)</label>
-                </div>
-                <div class="field-body">
-                  <div class="field">
-                    <div class="control">
-                      <input class="input" type="text" name="maximum_longitude" value="{{ request.GET.maximum_longitude }}">
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              <div class="column is-full field mb-0">
-                <div class="field-label is-normal">
-                  <label class="label">Minimum Latitude (deg)</label>
-                </div>
-                <div class="field-body">
-                  <div class="field">
-                    <div class="control">
-                      <input class="input" type="text" name="minimum_latitude" value="{{ request.GET.minimum_latitude }}">
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              <div class="column is-full field mb-0">
-                <div class="field-label is-normal">
-                  <label class="label">Maximum Latitude (deg)</label>
-                </div>
-                <div class="field-body">
-                  <div class="field">
-                    <div class="control">
-                      <input class="input" type="text" name="maximum_latitude" value="{{ request.GET.maximum_latitude }}">
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              <div class="column is-full field is-grouped">
-                <div class="control">
-                  <input class="button is-secondary" type="button" value="Use Map" name="button" onclick="populateBounds()">
-                </div>
-                <div class="control">
-                  <input class="button is-accent" type="submit" value="Filter">
-                </div>
-              </div>
-            </div>
-          </form>
-        </div>
-
-        <div id="stJSON" class="selection" style="display: none;">
-          <form method="GET">
-            <div class="columns is-multiline mx-0">
-              <div class="column is-full field mb-0">
-                <div class="field-label is-normal">
-                  <label class="label">GeoJSON geometry</label>
-                </div>
-                <div class="field-body">
-                  <div class="field">
-                    <div class="control">
-                      <input class="input" type="text" name="geojson" value="{{ request.GET.geojson }}">
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              <div class="column is-full field mb-0">
-                <div class="field-label is-normal">
-                  <label class="label">within</label>
-                </div>
-                <div class="field-body">
-                  <div class="field">
-                    <div class="control">
-                      <input type="checkbox" {{ request.GET.within|yesno:"checked,," }} name="within" title="Only retrieve entries that are fully within the boundary of the feature.">
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              <div class="column is-full field is-grouped">
-                <div class="control">
-                  <input class="button is-secondary" type="button" value="Draw on Map" name="drawOnMapButton" onclick="enableDrawOnMap()">
-                </div>
-                <div class="control">
-                  <input class="button is-accent" type="submit" value="Filter">
-                </div>
-              </div>
-            </div>
-          </form>
+          </div>
         </div>
       </div>
     </div>
   </div>
 
-  <div id="tabcontent2" class="tabcontent" style="display: none;">
-    <form method="GET" class="columns is-multiline mx-0">
-      <div class="column is-full field mb-0">
-        <div class="field-label is-normal">
-          <label class="label">Arbitrary Field #1</label>
-        </div>
-        <div class="field-body">
+  <div class="column is-full">
+    <form method="GET">
+      <div class="columns is-multiline mx-0">
+
+        <div class="column is-full field mb-0">
           <div class="field">
-            <div class="control">
-              <input class="input" type="text" name="af1" value="value goes here">
+            <div class="field-label is-normal">
+              <label class="label">Data Type</label>
+            </div>
+            <div class="field-body">
+              <div class="field">
+                <div class="control">
+                  <div class="select is-fullwidth">
+                    <select name="datatype" id="datatype">
+                      <option selected value> -- select an option -- </option>
+                      <option value="raster">raster</option>
+                      <option value="fmv">fmv</option>
+                      <option value="geometry">geometry</option>
+                    </select>
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
         </div>
-      </div>
-      <div class="column is-full field mb-0">
-        <div class="field-label is-normal">
-          <label class="label">Arbitrary Field #2</label>
-        </div>
-        <div class="field-body">
-          <div class="field">
-            <div class="control">
-              <input class="input" type="text" name="af2" value="value goes here">
+
+        <script>
+          // automatically select the data type field based on form
+          $("document").ready(function() {
+            var selValue = "{{ request.GET.datatype }}";
+            if (selValue) {
+              $("#datatype").val(selValue).attr("selected", "selected")
+            }
+          });
+        </script>
+
+
+        <div class="column is-full field">
+          <div class="field-label is-normal">
+            <label class="label">GeoJSON geometry <button onclick="javascript:q.value=''" type="button">X</button></label>
+          </div>
+          <div class="field-body">
+            <div class="field">
+              <div class="control">
+                <input class="input" type="text" name="q" value="{{ request.GET.q }}" required>
+              </div>
             </div>
           </div>
         </div>
-      </div>
-      <div class="column is-full field mb-0">
-        <div class="field-label is-normal">
-          <label class="label">Arbitrary Field #3</label>
+
+        <div class="column is-full">
+          <div class="field">
+            <div class="field-label is-normal">
+              <label class="label">Predicate</label>
+            </div>
+            <div class="field-body">
+              <div class="field">
+                <div class="control">
+                  <div class="select is-fullwidth">
+                    <select name="predicate" id="predicate">
+                      <option selected value> -- select an option -- </option>
+                      <option value="within">within</option>
+                      <option value="contains">contains</option>
+                      <option value="crosses">crosses</option>
+                      <option value="disjoint">disjoint</option>
+                      <option value="equals">equals</option>
+                      <option value="intersects">intersects</option>
+                      <option value="overlaps">overlaps</option>
+                      <option value="touches">touches</option>
+                    </select>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
-        <div class="field-body">
+
+        <script>
+          // automatically select the predicate field based on form
+          $("document").ready(function() {
+            var selValue = "{{ request.GET.predicate }}";
+            if (selValue) {
+              $("#predicate").val(selValue).attr("selected", "selected")
+            }
+          });
+        </script>
+
+        <div class="column is-full field mb-0">
+          <div class="field-label is-normal">
+            <label class="label">Distance (Min/Max)</label>
+          </div>
+          <div class="field-body">
+            <div class="field">
+              <div class="control">
+                <input class="input" type="text" name="distance_min" value="{{ request.GET.distance_min }}">
+                <input class="input" type="text" name="distance_max" value="{{ request.GET.distance_max }}">
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="column is-full field mb-0">
+          <div class="field-label is-normal">
+            <label class="label">Number of Bands (Min/Max)</label>
+          </div>
+          <div class="field-body">
+            <div class="field">
+              <div class="control">
+                <input class="input" type="text" name="num_bands_min" value="{{ request.GET.num_bands_min }}">
+                <input class="input" type="text" name="num_bands_max" value="{{ request.GET.num_bands_max }}">
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="column is-full field mb-0">
+          <div class="field-label is-normal">
+            <label class="label">Resolution (Min/Max)</label>
+          </div>
+          <div class="field-body">
+            <div class="field">
+              <div class="control">
+                <input class="input" type="text" name="resolution_min" value="{{ request.GET.resolution_min }}">
+                <input class="input" type="text" name="resolution_max" value="{{ request.GET.resolution_max }}">
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="column is-full field mb-0">
+          <div class="field-label is-normal">
+            <label class="label">Instrumentation</label>
+          </div>
+          <div class="field-body">
+            <div class="field">
+              <div class="control">
+                <input class="input" type="text" name="instrumentation" value="{{ request.GET.instrumentation }}">
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="column is-full field mb-0">
+          <div class="field-label is-normal">
+            <label class="label">Created</label>
+          </div>
+          <div class="field-body">
+            <div class="field">
+              <div class="control">
+                <input type="datetime-local" name="created_before" value="{{ request.GET.created_before }}">
+                <button onclick="javascript:created_before.value=''" type="button">X</button>
+                <input type="datetime-local" name="created_after" value="{{ request.GET.created_after }}">
+                <button onclick="javascript:created_after.value=''" type="button">X</button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+
+        <div class="column is-full field mb-0">
+          <div class="field-label is-normal">
+            <label class="label">Modified</label>
+          </div>
+          <div class="field-body">
+            <div class="field">
+              <div class="control">
+                <input type="datetime-local" name="modified_before" value="{{ request.GET.modified_before }}">
+                <button onclick="javascript:modified_before.value=''" type="button">X</button>
+                <input type="datetime-local" name="modified_after" value="{{ request.GET.modified_after }}">
+                <button onclick="javascript:modified_after.value=''" type="button">X</button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+
+        <div class="column is-full field mb-0">
+          <div class="field-label is-normal">
+            <label class="label">Acquired</label>
+          </div>
+          <div class="field-body">
+            <div class="field">
+              <div class="control">
+                <input type="datetime-local" name="acquired_before" value="{{ request.GET.acquired_before }}">
+                <button onclick="javascript:acquired_before.value=''" type="button">X</button>
+                <input type="datetime-local" name="acquired_after" value="{{ request.GET.acquired_after }}">
+                <button onclick="javascript:acquired_after.value=''" type="button">X</button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+
+
+        <div id="submitButton" class="column is-full" style="left: 0; bottom: 0; width: 100%;">
           <div class="field">
             <div class="control">
-              <input class="input" type="text" name="af3" value="value goes here">
+              <input class="button is-accent" type="submit" value="Filter">
             </div>
           </div>
         </div>
       </div>
     </form>
+
   </div>
+</div>
 
-  <script>
-    function openTab(evt, tabName) {
-      // Declare all variables
-      var i, tabcontent, tablinks;
-      // Get all elements with class="tabcontent" and hide them
-      tabcontent = document.getElementsByClassName("tabcontent");
-      for (i = 0; i < tabcontent.length; i++) {
-        tabcontent[i].style.display = "none";
+<script>
+  var geojsonField = document.getElementsByName("q")[0]
+
+  function populateBounds() {
+    var bounds = map.bounds()
+    var boxjson = {
+      "type": "Polygon",
+      "coordinates": [
+        [
+          [bounds.left, bounds.bottom],
+          [bounds.left, bounds.top],
+          [bounds.right, bounds.top],
+          [bounds.right, bounds.bottom],
+          [bounds.left, bounds.bottom]
+        ]
+      ]
+    };
+    geojsonField.value = JSON.stringify(boxjson);
+  }
+
+  function populatePoint() {
+    var center = map.center()
+    var pointjson = {
+      "type": "Point",
+      "coordinates": [center.x, center.y]
+    }
+    geojsonField.value = JSON.stringify(pointjson)
+  }
+
+
+  function enableDrawOnMap() {
+    // Disable button until completed
+    var button = document.getElementsByName("drawOnMapButton")[0]
+    button.disabled = true
+    // Clear any previous annotations
+    annotationLayer.removeAllAnnotations()
+    // Start new annotation
+    annotationLayer.mode('polygon');
+    annotationLayer.geoOn(geo.event.annotation.state, (e) => {
+      if (e.annotation.state() === "done") {
+        geojsonField.value = JSON.stringify(e.annotation.geojson().geometry)
+        // Re-enable button
+        button.disabled = false
       }
-      // Get all elements with class="tablinks" and remove the class "active"
-      tablinks = document.getElementsByClassName("tablinks");
-      for (i = 0; i < tablinks.length; i++) {
-        tablinks[i].className = tablinks[i].className.replace(" is-active", "");
-      }
-      // Show the current tab, and add an "active" class to the button that opened the tab
-      document.getElementById(tabName).style.display = "block";
-      evt.currentTarget.className += " is-active";
-    }
-
-    function populateBounds() {
-      var bounds = map.bounds()
-      console.log(bounds)
-      var left = document.getElementsByName("minimum_longitude")[0]
-      var right = document.getElementsByName("maximum_longitude")[0]
-      var bottom = document.getElementsByName("minimum_latitude")[0]
-      var top = document.getElementsByName("maximum_latitude")[0]
-      left.value = bounds.left
-      right.value = bounds.right
-      bottom.value = bounds.bottom
-      top.value = bounds.top
-    }
-
-    function populatePoint() {
-      var center = map.center()
-      console.log(center)
-      var a = document.getElementsByName("longitude")[0]
-      var b = document.getElementsByName("latitude")[0]
-      a.value = center.x
-      b.value = center.y
-    }
-
-
-    function enableDrawOnMap() {
-      // Disable button until completed
-      var button = document.getElementsByName("drawOnMapButton")[0]
-      button.disabled = true
-      // Clear any previous annotations
-      annotationLayer.removeAllAnnotations()
-      // Start new annotation
-      annotationLayer.mode('polygon');
-      annotationLayer.geoOn(geo.event.annotation.state, (e) => {
-        if (e.annotation.state() === "done") {
-          var geojson = JSON.stringify(e.annotation.geojson().geometry)
-          var jsonField = document.getElementsByName("geojson")[0]
-          jsonField.value = geojson
-          // Re-enable button
-          button.disabled = false
-        }
-      });
-    }
-
-    var selectionType = document.getElementById("selectionType")
-    $(function() {
-      $('#selectionType').change(function(){
-        $('.selection').hide();
-        $('#' + $(this).val()).show();
-        setCookie('searchType', $(this)[0].value)
-      });
-      selectionType.value = getCookie('searchType', 'stPoint')
-      $('#selectionType').change()
     });
+  }
 
-  </script>
+  var mapTool = document.getElementById("mapTool")
+  $(function() {
+    $('#mapTool').change(function() {
+      $('.selection').hide();
+      $('#' + $(this).val()).show();
+      setCookie('mapToolType', $(this)[0].value)
+    });
+    mapTool.value = getCookie('mapToolType', 'stPoint')
+    $('#mapTool').change()
+  });
+</script>
 
 {% endblock %}
