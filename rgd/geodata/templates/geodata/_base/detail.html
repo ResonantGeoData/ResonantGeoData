@@ -1,6 +1,6 @@
 {% extends "geodata/_base/base.html" %}
 {% block title %}
-  {{ object.name }} ({{object.pk}})
+  {{ object.name | truncatechars:36 }} ({{object.pk}})
 {% endblock title %}
 
 {% block extra_title_content %}
