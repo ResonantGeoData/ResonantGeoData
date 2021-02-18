@@ -355,22 +355,23 @@ def populate_raster_entry(raster_id):
 
 def _fill_annotation_segmentation(annotation_entry, ann_json):
     """For converting KWCOCO annotation JSON to an Annotation entry."""
-    if 'keypoints' in ann_json:
+    if 'keypoints' in ann_json and ann_json['keypoints']:
         # populate keypoints - ignore 3rd value visibility
+        logger.info('Keypoints: {}'.format(ann_json['keypoints']))
         points = np.array(ann_json['keypoints']).astype(float).reshape((-1, 3))
         keypoints = []
         for pt in points:
             logger.info(f'The Point: {pt}')
             keypoints.append(Point(pt[0], pt[1]))
         annotation_entry.keypoints = MultiPoint(*keypoints)
-    if 'line' in ann_json:
+    if 'line' in ann_json and ann_json['line']:
         # populate line
         points = np.array(ann_json['line']).astype(float).reshape((-1, 2))
         logger.info(f'The line: {points}')
         annotation_entry.line = LineString(*[(pt[0], pt[1]) for pt in points], srid=0)
     # Add a segmentation
     segmentation = None
-    if 'segmentation' in ann_json:
+    if 'segmentation' in ann_json and ann_json['segmentation']:
         sseg = kwimage.Segmentation.coerce(ann_json['segmentation']).data
         if isinstance(sseg, kwimage.Mask):
             segmentation = RLESegmentation()
@@ -385,7 +386,7 @@ def _fill_annotation_segmentation(annotation_entry, ann_json):
                 poly_xys = np.append(poly_xys, poly_xys[0][None], axis=0)
                 polys.append(Polygon(poly_xys, srid=0))
             segmentation.feature = MultiPolygon(*polys)
-    if 'bbox' in ann_json:
+    if 'bbox' in ann_json and ann_json['bbox']:
         if not segmentation:
             segmentation = Segmentation()  # Simple outline segmentation
         # defined as (x, y, width, height)
