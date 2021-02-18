@@ -42,6 +42,11 @@
     <option value="-1">None</option>
   </select>
 
+  <div class="slidecontainer">
+    <label for="rasterOpacityRange">Thumbnail Opacity: </label>
+    <input type="range" min="1" max="100" value="75" class="slider" id="rasterOpacityRange" onChange="updateQuadOpacity(event, value)">
+  </div>
+
 {% endblock %}
 
 {% block detail %}
@@ -59,7 +64,8 @@
     }
 
     var outline = JSON.parse(extents['outline'])["coordinates"][0]
-    var quad = layer.createFeature('quad')
+    // cacheQuads: https://opengeoscience.github.io/geojs/apidocs/geo.quadFeature.html#.spec
+    var quad = layer.createFeature('quad', {cacheQuads: false})
       .data([
         {
           ul: {x: outline[0][0], y: outline[0][1]},
@@ -93,6 +99,11 @@
       ]).draw()
     }
     updateBandThumbnail()
+
+    function updateQuadOpacity(e, value) {
+      value = Number(value) / 100.0;
+      quad.style({opacity : value}).draw();
+    }
 
     // Add collected polygons to map
     let reader = geo.createFileReader('geojsonReader', {
