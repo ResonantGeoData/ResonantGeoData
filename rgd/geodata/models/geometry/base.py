@@ -27,7 +27,7 @@ class GeometryArchive(ModifiableEntry, TaskEventMixin):
     a single ``GeometryEntry`` that is then associated with this entry.
     """
 
-    task_func = tasks.task_read_geometry_archive
+    task_funcs = (tasks.task_read_geometry_archive,)
     file = models.ForeignKey(ChecksumFile, on_delete=models.CASCADE)
 
     failure_reason = models.TextField(null=True)
