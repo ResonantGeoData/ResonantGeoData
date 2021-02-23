@@ -136,8 +136,8 @@ class BandMetaEntryInline(admin.StackedInline):
 @admin.register(ImageEntry)
 class ImageEntryAdmin(OSMGeoAdmin):
     list_display = (
-        'icon_tag',
         'id',
+        'icon_tag',
         'name',
         'image_file',
         'modified',
@@ -187,8 +187,8 @@ class RasterMetaEntryInline(admin.StackedInline):
 @admin.register(RasterEntry)
 class RasterEntryAdmin(OSMGeoAdmin):
     list_display = (
-        'icon_tag',
         'id',
+        'icon_tag',
         'name',
         'status',
         'modified',
