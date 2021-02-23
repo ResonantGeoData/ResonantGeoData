@@ -14,11 +14,9 @@ def api_client() -> APIClient:
 
 
 @pytest.fixture
-def admin_api_client(user) -> APIClient:
+def admin_api_client(user_factory) -> APIClient:
     client = APIClient()
-    user.is_superuser = True
-    user.is_staff = True
-    user.is_active = True
+    user = user_factory(is_superuser=True)
     client.force_authenticate(user=user)
     return client
 
