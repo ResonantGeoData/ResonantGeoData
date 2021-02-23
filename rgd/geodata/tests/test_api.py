@@ -60,41 +60,41 @@ def landsat_raster():
 
 
 @pytest.mark.django_db(transaction=True)
-def test_get_status(api_client, astro_image):
+def test_get_status(admin_api_client, astro_image):
     model = 'ImageFile'
     id = astro_image.image_file.imagefile.id
-    response = api_client.get(f'/api/geodata/status/{model}/{id}')
+    response = admin_api_client.get(f'/api/geodata/status/{model}/{id}')
     assert response.status_code == 200
     assert response.data
     with pytest.raises(AttributeError):
-        api_client.get(f'/api/geodata/status/Foo/{id}')
+        admin_api_client.get(f'/api/geodata/status/Foo/{id}')
 
 
 @pytest.mark.django_db(transaction=True)
-def test_download_checksum_file(api_client, checksum_file):
+def test_download_checksum_file(admin_api_client, checksum_file):
     pk = checksum_file.pk
-    response = api_client.get(f'/api/geodata/common/checksum_file/{pk}/data')
+    response = admin_api_client.get(f'/api/geodata/common/checksum_file/{pk}/data')
     assert status.is_redirect(response.status_code)
 
 
 @pytest.mark.django_db(transaction=True)
-def test_download_checksum_file_url(api_client, checksum_file_url):
+def test_download_checksum_file_url(admin_api_client, checksum_file_url):
     pk = checksum_file_url.pk
-    response = api_client.get(f'/api/geodata/common/checksum_file/{pk}/data')
+    response = admin_api_client.get(f'/api/geodata/common/checksum_file/{pk}/data')
     assert status.is_redirect(response.status_code)
 
 
 @pytest.mark.django_db(transaction=True)
-def test_download_image_entry_file(api_client, astro_image):
+def test_download_image_entry_file(admin_api_client, astro_image):
     pk = astro_image.pk
-    response = api_client.get(f'/api/geodata/imagery/image_entry/{pk}/data')
+    response = admin_api_client.get(f'/api/geodata/imagery/image_entry/{pk}/data')
     assert status.is_redirect(response.status_code)
 
 
 @pytest.mark.django_db(transaction=True)
-def test_get_checksum_file(api_client, checksum_file):
+def test_get_checksum_file(admin_api_client, checksum_file):
     pk = checksum_file.pk
-    content = api_client.get(f'/api/geodata/common/checksum_file/{pk}').data
+    content = admin_api_client.get(f'/api/geodata/common/checksum_file/{pk}').data
     assert content
     # Check that a hyperlink is given to the file data
     # NOTE: tried using the URLValidator from django but it thinks this URL is invalid
@@ -113,34 +113,34 @@ def test_get_spatial_entry(api_client, landsat_raster):
 
 
 @pytest.mark.django_db(transaction=True)
-def test_create_get_subsampled_image(api_client, astro_image):
+def test_create_get_subsampled_image(admin_api_client, astro_image):
     """Test POST and GET for SubsampledImage model."""
     payload = {
         'source_image': astro_image.pk,
         'sample_type': 'pixel box',
         'sample_parameters': {'umax': 100, 'umin': 0, 'vmax': 200, 'vmin': 0},
     }
-    response = api_client.post('/api/geodata/imagery/subsample', payload)
+    response = admin_api_client.post('/api/geodata/imagery/subsample', payload)
     assert response.status_code == 201
     assert response.data
     pk = response.data['pk']
     sub = models.imagery.SubsampledImage.objects.get(pk=pk)
     assert sub.data
     # Test the GET
-    response = api_client.get(f'/api/geodata/imagery/subsample/{pk}')
+    response = admin_api_client.get(f'/api/geodata/imagery/subsample/{pk}')
     assert response.status_code == 200
     assert response.data
     # Now test to make sure the serializer prevents duplicates
-    response = api_client.post('/api/geodata/imagery/subsample', payload)
+    response = admin_api_client.post('/api/geodata/imagery/subsample', payload)
     assert response.status_code == 201
     assert response.data
     assert pk == response.data['pk']  # Compare against original PK
 
 
 @pytest.mark.django_db(transaction=True)
-def test_create_and_download_cog(api_client, landsat_image):
+def test_create_and_download_cog(admin_api_client, landsat_image):
     """Test POST for ConvertedImageFile model."""
-    response = api_client.post(
+    response = admin_api_client.post(
         '/api/geodata/imagery/cog',
         {'source_image': landsat_image.id},
     )
@@ -152,5 +152,5 @@ def test_create_and_download_cog(api_client, landsat_image):
     assert cog.converted_file
     # Also test download endpoint here:
     pk = cog.pk
-    response = api_client.get(f'/api/geodata/imagery/cog/{pk}/data')
+    response = admin_api_client.get(f'/api/geodata/imagery/cog/{pk}/data')
     assert status.is_redirect(response.status_code)

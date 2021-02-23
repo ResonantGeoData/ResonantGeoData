@@ -9,7 +9,12 @@ from . import factories
 
 
 @pytest.fixture
-def api_client(user) -> APIClient:
+def api_client() -> APIClient:
+    return APIClient()
+
+
+@pytest.fixture
+def admin_api_client(user) -> APIClient:
     client = APIClient()
     user.is_superuser = True
     user.is_staff = True
