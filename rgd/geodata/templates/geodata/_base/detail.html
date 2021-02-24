@@ -1,5 +1,6 @@
 {% extends "geodata/_base/base.html" %}
 {% block title %}
+  <input class="button is-secondary" type="button" value="&#x2190; Back to Search" onclick="history.back()">
   {{ object.name | truncatechars:36 }} ({{object.pk}})
 {% endblock title %}
 
