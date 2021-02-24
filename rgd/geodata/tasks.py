@@ -37,10 +37,20 @@ def _run_with_failure_reason(model, func, *args, **kwargs):
 @shared_task(time_limit=86400)
 def task_read_image_file(file_id):
     from .models.imagery.base import ImageFile
-    from .models.imagery.etl import populate_image_entry
+    from .models.imagery.etl import read_image_file
 
     image_file = ImageFile.objects.get(id=file_id)
-    _run_with_failure_reason(image_file, populate_image_entry, file_id)
+    _run_with_failure_reason(image_file, read_image_file, file_id)
+    return
+
+
+@shared_task(time_limit=86400)
+def task_create_image_entry_thumbnail(file_id):
+    from .models.imagery.base import ImageEntry
+    from .models.imagery.etl import create_image_entry_thumbnail
+
+    image_entry = ImageEntry.objects.get(id=file_id)
+    _run_with_failure_reason(image_entry, create_image_entry_thumbnail, file_id)
     return
 
 
@@ -60,6 +70,16 @@ def task_populate_raster_entry(raster_id):
 
     raster_entry = RasterEntry.objects.get(id=raster_id)
     _run_with_failure_reason(raster_entry, populate_raster_entry, raster_id)
+    return
+
+
+@shared_task(time_limit=86400)
+def task_populate_raster_footprint(raster_id):
+    from .models.imagery.base import RasterEntry
+    from .models.imagery.etl import populate_raster_footprint
+
+    raster_entry = RasterEntry.objects.get(id=raster_id)
+    _run_with_failure_reason(raster_entry, populate_raster_footprint, raster_id)
     return
 
 

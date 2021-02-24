@@ -1,4 +1,6 @@
 """Mixin helper classes."""
+from collections.abc import Iterable
+
 from django.contrib.gis.db import models
 from django.utils.translation import gettext_lazy as _
 
@@ -20,19 +22,22 @@ class TaskEventMixin(object):
     should be registered as post_save events, not pre_save.
     """
 
-    task_func = None
+    task_funcs = None
     """The task function."""
 
     def _run_task(self):
-        if not callable(self.task_func):
-            raise RuntimeError('Task function must be set to a callable.')  # pragma: no cover
+        if not isinstance(self.task_funcs, Iterable):
+            self.task_funcs = (self.task_funcs,)
+        if not all([callable(f) for f in self.task_funcs]):
+            raise RuntimeError('Task function(s) must be set to a callable.')  # pragma: no cover
         self.status = Status.QUEUED
         self.save(
             update_fields=[
                 'status',
             ]
         )
-        self.task_func.delay(self.id)
+        for func in self.task_funcs:
+            func.delay(self.id)
 
     def _post_save_event_task(self, created, *args, **kwargs):
         if not created and kwargs.get('update_fields'):

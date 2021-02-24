@@ -22,7 +22,7 @@ class ImageFile(ModifiableEntry, TaskEventMixin):
 
     """
 
-    task_func = tasks.task_read_image_file
+    task_funcs = (tasks.task_read_image_file,)
     failure_reason = models.TextField(null=True)
     status = models.CharField(max_length=20, default=Status.CREATED, choices=Status.choices)
     file = models.ForeignKey(ChecksumFile, on_delete=models.CASCADE)
@@ -33,11 +33,15 @@ class ImageFile(ModifiableEntry, TaskEventMixin):
     image_data_link.allow_tags = True
 
 
-class ImageEntry(ModifiableEntry):
+class ImageEntry(ModifiableEntry, TaskEventMixin):
     """Single image entry, tracks the original file."""
 
     def __str__(self):
         return f'{self.name} ({self.id})'
+
+    task_funcs = (tasks.task_create_image_entry_thumbnail,)
+    failure_reason = models.TextField(null=True)
+    status = models.CharField(max_length=20, default=Status.CREATED, choices=Status.choices)
 
     name = models.CharField(max_length=100, blank=True)
     description = models.TextField(null=True, blank=True)
@@ -137,7 +141,10 @@ class RasterEntry(ModifiableEntry, TaskEventMixin):
 
     image_set = models.OneToOneField(ImageSet, on_delete=models.CASCADE)
 
-    task_func = tasks.task_populate_raster_entry
+    task_funcs = (
+        tasks.task_populate_raster_entry,
+        tasks.task_populate_raster_footprint,
+    )
     failure_reason = models.TextField(null=True)
     status = models.CharField(max_length=20, default=Status.CREATED, choices=Status.choices)
 
@@ -205,7 +212,7 @@ class BandMetaEntry(ModifiableEntry):
 class ConvertedImageFile(ModifiableEntry, TaskEventMixin):
     """A model to store converted versions of a raster entry."""
 
-    task_func = tasks.task_convert_to_cog
+    task_funcs = (tasks.task_convert_to_cog,)
     converted_file = models.OneToOneField(ChecksumFile, on_delete=models.SET_NULL, null=True)
     failure_reason = models.TextField(null=True)
     status = models.CharField(max_length=20, default=Status.CREATED, choices=Status.choices)
@@ -219,7 +226,7 @@ class ConvertedImageFile(ModifiableEntry, TaskEventMixin):
 class SubsampledImage(ModifiableEntry, TaskEventMixin):
     """A subsample of an ImageEntry."""
 
-    task_func = tasks.task_populate_subsampled_image
+    task_funcs = (tasks.task_populate_subsampled_image,)
 
     class SampleTypes(models.TextChoices):
         PIXEL_BOX = 'pixel box', _('Pixel bounding box')
@@ -279,7 +286,7 @@ class KWCOCOArchive(ModifiableEntry, TaskEventMixin):
 
     """
 
-    task_func = tasks.task_load_kwcoco_dataset
+    task_funcs = (tasks.task_load_kwcoco_dataset,)
     name = models.CharField(max_length=100, blank=True)
     failure_reason = models.TextField(null=True)
     status = models.CharField(max_length=20, default=Status.CREATED, choices=Status.choices)
