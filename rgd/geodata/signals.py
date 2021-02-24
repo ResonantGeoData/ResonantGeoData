@@ -10,6 +10,7 @@ from .models.fmv import FMVFile
 from .models.geometry import GeometryArchive
 from .models.imagery import (
     ConvertedImageFile,
+    ImageEntry,
     ImageFile,
     ImageSet,
     KWCOCOArchive,
@@ -84,6 +85,12 @@ def _post_delete_kwcoco_dataset(sender, instance, *args, **kwargs):
 @receiver(post_save, sender=ImageFile)
 @skip_signal()
 def _post_save_image_file(sender, instance, *args, **kwargs):
+    transaction.on_commit(lambda: instance._post_save_event_task(*args, **kwargs))
+
+
+@receiver(post_save, sender=ImageEntry)
+@skip_signal()
+def _post_save_image_entry(sender, instance, *args, **kwargs):
     transaction.on_commit(lambda: instance._post_save_event_task(*args, **kwargs))
 
 

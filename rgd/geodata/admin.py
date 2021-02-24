@@ -152,7 +152,7 @@ class ImageEntryAdmin(OSMGeoAdmin):
         'metadata',
         'modified',
         'created',
-    )
+    ) + TASK_EVENT_READONLY
     list_filter = ('instrumentation', 'number_of_bands', 'driver')
     actions = (
         actions.make_image_set_from_image_entries,

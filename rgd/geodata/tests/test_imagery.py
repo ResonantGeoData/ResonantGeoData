@@ -9,7 +9,7 @@ from rgd.geodata.models.imagery.base import (
     ImageFile,
     SubsampledImage,
 )
-from rgd.geodata.models.imagery.etl import populate_image_entry
+from rgd.geodata.models.imagery.etl import create_image_entry_thumbnail, read_image_file
 from rgd.geodata.models.imagery.subsample import populate_subsampled_image
 
 from . import factories
@@ -85,7 +85,8 @@ def test_repopulate_image_entry():
         file__file__from_path=datastore.fetch(testfile['name']),
     )
     # Testing that we can repopulate an image entry
-    populate_image_entry(imagefile.id)
+    read_image_file(imagefile.id)
+    create_image_entry_thumbnail(imagefile.imageentry.id)
 
 
 @pytest.mark.django_db(transaction=True)

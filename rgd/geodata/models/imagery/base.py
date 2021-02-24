@@ -33,11 +33,15 @@ class ImageFile(ModifiableEntry, TaskEventMixin):
     image_data_link.allow_tags = True
 
 
-class ImageEntry(ModifiableEntry):
+class ImageEntry(ModifiableEntry, TaskEventMixin):
     """Single image entry, tracks the original file."""
 
     def __str__(self):
         return f'{self.name} ({self.id})'
+
+    task_funcs = (tasks.task_create_image_entry_thumbnail,)
+    failure_reason = models.TextField(null=True)
+    status = models.CharField(max_length=20, default=Status.CREATED, choices=Status.choices)
 
     name = models.CharField(max_length=100, blank=True)
     description = models.TextField(null=True, blank=True)
@@ -137,7 +141,10 @@ class RasterEntry(ModifiableEntry, TaskEventMixin):
 
     image_set = models.OneToOneField(ImageSet, on_delete=models.CASCADE)
 
-    task_funcs = (tasks.task_populate_raster_entry,)
+    task_funcs = (
+        tasks.task_populate_raster_entry,
+        tasks.task_populate_raster_footprint,
+    )
     failure_reason = models.TextField(null=True)
     status = models.CharField(max_length=20, default=Status.CREATED, choices=Status.choices)
 
