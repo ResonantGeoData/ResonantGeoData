@@ -175,46 +175,9 @@ def _read_image_to_entry(image_entry, image_file_path):
         # A catch-all metadata feild:
         # TODO: image_entry.metadata =
 
-        # These are things I couldn't figure out how to get with gdal directly
-        dtypes = src.dtypes
-        interps = src.colorinterp
-
     # No longer editing image_entry
     image_entry.save()
 
-    # Rasterio is no longer open... using gdal directly:
-    gsrc = gdal.Open(str(image_file_path))  # Have to cast Path to str
-
-    n = gsrc.RasterCount
-    if n != image_entry.number_of_bands:
-        # Sanity check
-        raise ValueError('gdal detects different number of bands than rasterio.')
-    for i in range(n):
-        gdal_band = gsrc.GetRasterBand(i + 1)  # off by 1 indexing
-        band_meta = BandMetaEntry()
-        band_meta.parent_image = image_entry
-        band_meta.band_number = i + 1  # off by 1 indexing
-        band_meta.description = gdal_band.GetDescription()
-        band_meta.nodata_value = gdal_band.GetNoDataValue()
-        # band_meta.creator = ife.creator
-        # band_meta.modifier = ife.modifier
-        try:
-            band_meta.dtype = dtypes[i]
-        except IndexError:
-            pass
-        bmin, bmax, mean, std = gdal_band.GetStatistics(True, True)
-        band_meta.min = bmin
-        band_meta.max = bmax
-        band_meta.mean = mean
-        band_meta.std = std
-
-        try:
-            band_meta.interpretation = interps[i].name
-        except IndexError:
-            pass
-
-        # Save this band entirely
-        band_meta.save()
     return
 
 
@@ -261,8 +224,48 @@ def create_image_entry_thumbnail(image_entry):
             else:
                 thumb_image = _create_thumbnail_image(src)
 
-    thumbnail.base_thumbnail.save(f'{image_entry.image_file.file.name}.jpg', thumb_image, save=True)
-    thumbnail.save()
+        thumbnail.base_thumbnail.save(
+            f'{image_entry.image_file.file.name}.jpg', thumb_image, save=True
+        )
+        thumbnail.save()
+
+        # Create `BandMetaEntry`s
+        with rasterio.open(file_path) as src:
+            # These are things I couldn't figure out how to get with gdal directly
+            dtypes = src.dtypes
+            interps = src.colorinterp
+        gsrc = gdal.Open(str(file_path))  # Have to cast Path to str
+
+        n = gsrc.RasterCount
+        if n != image_entry.number_of_bands:
+            # Sanity check
+            raise ValueError('gdal detects different number of bands than rasterio.')
+        for i in range(n):
+            gdal_band = gsrc.GetRasterBand(i + 1)  # off by 1 indexing
+            band_meta = BandMetaEntry()
+            band_meta.parent_image = image_entry
+            band_meta.band_number = i + 1  # off by 1 indexing
+            band_meta.description = gdal_band.GetDescription()
+            band_meta.nodata_value = gdal_band.GetNoDataValue()
+            # band_meta.creator = ife.creator
+            # band_meta.modifier = ife.modifier
+            try:
+                band_meta.dtype = dtypes[i]
+            except IndexError:
+                pass
+            bmin, bmax, mean, std = gdal_band.GetStatistics(True, True)
+            band_meta.min = bmin
+            band_meta.max = bmax
+            band_meta.mean = mean
+            band_meta.std = std
+
+            try:
+                band_meta.interpretation = interps[i].name
+            except IndexError:
+                pass
+
+            # Save this band entirely
+            band_meta.save()
 
     return image_entry
 
