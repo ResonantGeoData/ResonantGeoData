@@ -31,8 +31,12 @@ def compute_checksum_file(field_file: FieldFile, chunk_num_blocks=128):
 
 
 def compute_checksum_url(url: str, chunk_num_blocks=128):
-    remote = urlopen(url)
-    return _compute_hash(remote, chunk_num_blocks)
+    # remote = urlopen(url)
+    # return _compute_hash(remote, chunk_num_blocks)
+    # TODO: do not compute hash of URL files for demo... it can take ages
+    sha = hashlib.sha512()
+    sha.update(url.encode())
+    return sha.hexdigest()
 
 
 def _link_url(root, name, obj, field):
