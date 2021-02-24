@@ -8,6 +8,31 @@
 
     <script src="https://code.jquery.com/jquery-3.4.1.min.js" integrity="sha256-CSXorXvZcTkaix6Yvo6HppcZGetbYMGWSFlBw8HfCJo=" crossorigin="anonymous"></script>
 
+    <script>
+      function setCookie(cookieName, cookieValue, nDays=365) {
+        var today = new Date();
+        var expire = new Date();
+        if (nDays==null || nDays==0) nDays=1;
+        expire.setTime(today.getTime() + 3600000*24*nDays);
+        document.cookie = cookieName+"="+escape(cookieValue)
+            + ";expires="+expire.toGMTString() + "; path=/";
+      }
+
+      function getCookie(cookieName, defaultValue="") {
+        var theCookie=""+document.cookie;
+        var ind=theCookie.indexOf(cookieName+"=");
+        if (ind==-1 || cookieName=="") {
+          if (defaultValue != "") {
+            setCookie(cookieName, defaultValue);
+          }
+          return defaultValue;
+        }
+        var ind1=theCookie.indexOf(";",ind);
+        if (ind1==-1) { ind1=theCookie.length; }
+        return unescape(theCookie.substring(ind+cookieName.length+1,ind1));
+      }
+    </script>
+
     <link rel="stylesheet" href="{% static 'geodata/css/style.css' %}" />
 
     {% if title %}

@@ -3,6 +3,7 @@ from urllib.parse import urlparse
 
 # from django.contrib.auth import get_user_model
 from django.contrib.gis.db import models
+from django.core.exceptions import ObjectDoesNotExist
 from django.utils import timezone
 from girder_utils.files import field_file_to_local_path
 from model_utils.managers import InheritanceManager
@@ -63,6 +64,31 @@ class SpatialEntry(models.Model):
     def __str__(self):
         return 'Spatial ID: {} (type: {})'.format(self.spatial_id, type(self))
 
+    @property
+    def subentry(self):
+        try:
+            return self.rastermetaentry
+        except ObjectDoesNotExist:
+            pass
+        try:
+            return self.geometryentry
+        except ObjectDoesNotExist:
+            pass
+        try:
+            return self.fmventry
+        except ObjectDoesNotExist:
+            pass
+        raise ObjectDoesNotExist
+
+    @property
+    def subentry_name(self):
+        """Return the name from the subentry model."""
+        return self.subentry.name
+
+    @property
+    def subentry_type(self):
+        return type(self.subentry).__name__
+
 
 class FileSourceType(models.IntegerChoices):
     FILE_FIELD = 1, 'FileField'
@@ -88,7 +114,7 @@ class ChecksumFile(ModifiableEntry, TaskEventMixin):
     file = S3FileField(null=True, blank=True)
     url = models.TextField(null=True, blank=True)
 
-    task_func = tasks.task_checksum_file_post_save
+    task_funcs = (tasks.task_checksum_file_post_save,)
     failure_reason = models.TextField(null=True)
     status = models.CharField(max_length=20, default=Status.CREATED, choices=Status.choices)
 

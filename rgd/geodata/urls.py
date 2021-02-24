@@ -10,13 +10,11 @@ urlpatterns = [
     ),
     path(
         'geodata/spatial_entries/<int:pk>/',
-        views.SpatialEntryDetailView.as_view(),
+        views.spatial_entry_redirect_view,
         name='spatial-entry-detail',
     ),
     # Temporary redirect for home page
     path(r'', RedirectView.as_view(url='geodata/spatial_entries/', permanent=False), name='index'),
-    path('geodata/fmv_entries/', views.FMVEntriesListView.as_view(), name='fmv_entries'),
-    path('geodata/rasters/', views.RasterEntriesListView.as_view(), name='rasters'),
     path(
         'geodata/rasters/<int:pk>/',
         views.RasterEntryDetailView.as_view(),
@@ -27,7 +25,6 @@ urlpatterns = [
         views.FMVEntryDetailView.as_view(),
         name='fmv-entry-detail',
     ),
-    path('geodata/geometries/', views.GeometryEntriesListView.as_view(), name='geometries'),
     path(
         'geodata/geometries/<int:pk>/',
         views.GeometryEntryDetailView.as_view(),

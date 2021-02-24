@@ -28,7 +28,6 @@ COPY ./fuse.sh /opt/django-project/fuse.sh
 WORKDIR /opt/django-project
 RUN pip install \
     --find-links https://girder.github.io/large_image_wheels \
-    GDAL \
     -e .[dev,worker] \
     simple-httpfs
 

@@ -15,7 +15,7 @@ from ..mixins import Status, TaskEventMixin
 class FMVFile(ModifiableEntry, TaskEventMixin):
     """For uploading single FMV files (mp4)."""
 
-    task_func = tasks.task_read_fmv_file
+    task_funcs = (tasks.task_read_fmv_file,)
     failure_reason = models.TextField(null=True)
     status = models.CharField(max_length=20, default=Status.CREATED, choices=Status.choices)
     file = models.ForeignKey(ChecksumFile, on_delete=models.CASCADE)
