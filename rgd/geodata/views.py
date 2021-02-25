@@ -30,13 +30,13 @@ class _SpatialListView(generic.ListView):
         assert filterset.is_valid()
         return filterset.filter_queryset(self.model.objects.all())
 
-    def _get_extent_summary(self):
-        return search.extent_summary_spatial(self.object_list)
+    def _get_extent_summary(self, object_list):
+        return search.extent_summary_spatial(object_list)
 
     def get_context_data(self, *args, **kwargs):
-        # The returned query set is in self.object_list, not self.queryset
+        # Pagination happens here
         context = super().get_context_data(*args, **kwargs)
-        summary = self._get_extent_summary()
+        summary = self._get_extent_summary(context['object_list'])
         context['extents'] = json.dumps(summary)
         context['search_params'] = json.dumps(self.request.GET)
         # Have a smaller dict of meta fields to parse for menu bar
