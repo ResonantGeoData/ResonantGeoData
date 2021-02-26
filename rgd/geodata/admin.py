@@ -140,6 +140,7 @@ class ImageEntryAdmin(OSMGeoAdmin):
         'icon_tag',
         'name',
         'image_file',
+        'status',
         'modified',
         'created',
     )
