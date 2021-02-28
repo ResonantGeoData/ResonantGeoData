@@ -189,18 +189,18 @@ def read_image_file(ife):
     if not isinstance(ife, ImageFile):
         ife = ImageFile.objects.get(id=ife)
 
-    file_path = ife.file.get_vsi_path()
-    logger.info(f'The image file path: {file_path}')
+    with ife.file.yield_local_path() as file_path:
+        logger.info(f'The image file path: {file_path}')
 
-    image_entry, created = get_or_create_no_commit(
-        ImageEntry, defaults=dict(name=ife.file.name), image_file=ife
-    )
-    if not created:
-        # Clear out associated entries because they could be invalid
-        BandMetaEntry.objects.filter(parent_image=image_entry).delete()
-        ConvertedImageFile.objects.filter(source_image=image_entry).delete()
+        image_entry, created = get_or_create_no_commit(
+            ImageEntry, defaults=dict(name=ife.file.name), image_file=ife
+        )
+        if not created:
+            # Clear out associated entries because they could be invalid
+            BandMetaEntry.objects.filter(parent_image=image_entry).delete()
+            ConvertedImageFile.objects.filter(source_image=image_entry).delete()
 
-    _read_image_to_entry(image_entry, file_path)
+        _read_image_to_entry(image_entry, file_path)
 
     return image_entry
 
@@ -212,14 +212,14 @@ def create_image_entry_thumbnail(image_entry):
 
     thumbnail, created = get_or_create_no_commit(Thumbnail, image_entry=image_entry)
 
-    file_path = image_entry.image_file.file.get_vsi_path()
-    logger.info(f'The image file path: {file_path}')
-    with rasterio.open(file_path) as src:
-        if src.crs:
-            rsrc = _reproject_raster(src, WEB_MERCATOR)
-            thumb_image = _create_thumbnail_image(rsrc)
-        else:
-            thumb_image = _create_thumbnail_image(src)
+    with image_entry.image_file.file.yield_local_path() as file_path:
+        logger.info(f'The image file path: {file_path}')
+        with rasterio.open(file_path) as src:
+            if src.crs:
+                rsrc = _reproject_raster(src, WEB_MERCATOR)
+                thumb_image = _create_thumbnail_image(rsrc)
+            else:
+                thumb_image = _create_thumbnail_image(src)
 
     thumbnail.base_thumbnail.save(f'{image_entry.image_file.file.name}.jpg', thumb_image, save=True)
     thumbnail.save()
@@ -252,20 +252,20 @@ def _extract_raster_meta(image_file_entry):
 
     """
     raster_meta = dict()
-    path = image_file_entry.file.get_vsi_path()
-    with rasterio.open(path) as src:
-        raster_meta['crs'] = src.crs.to_proj4()
-        raster_meta['origin'] = [src.bounds.left, src.bounds.bottom]
-        raster_meta['extent'] = [
-            src.bounds.left,
-            src.bounds.bottom,
-            src.bounds.right,
-            src.bounds.top,
-        ]
-        raster_meta['resolution'] = src.res
-        raster_meta['transform'] = src.transform.to_gdal()  # TODO: check this
-        raster_meta['outline'] = _extract_raster_outline_fast(src)
-        raster_meta['footprint'] = raster_meta['outline']
+    with image_file_entry.file.yield_local_path() as path:
+        with rasterio.open(path) as src:
+            raster_meta['crs'] = src.crs.to_proj4()
+            raster_meta['origin'] = [src.bounds.left, src.bounds.bottom]
+            raster_meta['extent'] = [
+                src.bounds.left,
+                src.bounds.bottom,
+                src.bounds.right,
+                src.bounds.top,
+            ]
+            raster_meta['resolution'] = src.res
+            raster_meta['transform'] = src.transform.to_gdal()  # TODO: check this
+            raster_meta['outline'] = _extract_raster_outline_fast(src)
+            raster_meta['footprint'] = raster_meta['outline']
     return raster_meta
 
 
@@ -293,16 +293,16 @@ def _extract_raster_footprint(image_file_entry):
     This operates on the assumption that the image file is a valid raster.
 
     """
-    file_path = image_file_entry.file.get_vsi_path()
-    # Reproject the raster to the DB SRID using rasterio directly rather
-    #  than transforming the extracted geometry which had issues.
-    src = _reproject_raster(rasterio.open(file_path), DB_SRID)
-    try:
-        # Only implement for first band for now
-        footprint = _get_valid_data_footprint(src, 1)
-    except Exception as e:  # TODO: be more clever about this
-        logger.info(f'Issue computing valid data footprint: {e}')
-        footprint = None
+    with image_file_entry.file.yield_local_path() as file_path:
+        # Reproject the raster to the DB SRID using rasterio directly rather
+        #  than transforming the extracted geometry which had issues.
+        src = _reproject_raster(rasterio.open(file_path), DB_SRID)
+        try:
+            # Only implement for first band for now
+            footprint = _get_valid_data_footprint(src, 1)
+        except Exception as e:  # TODO: be more clever about this
+            logger.info(f'Issue computing valid data footprint: {e}')
+            footprint = None
     return footprint
 
 
