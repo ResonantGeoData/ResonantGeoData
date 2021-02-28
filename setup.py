@@ -52,6 +52,7 @@ setup(
         'docker',
         'drf-yasg',
         'GDAL',
+        'large-image-source-gdal',
         'numpy',
         'Pillow',
         'pooch',
