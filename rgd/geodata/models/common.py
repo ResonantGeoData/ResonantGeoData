@@ -1,6 +1,8 @@
 import os
 from urllib.parse import urlparse
 
+from django.conf import settings
+
 # from django.contrib.auth import get_user_model
 from django.contrib.gis.db import models
 from django.core.exceptions import ObjectDoesNotExist
@@ -193,5 +195,39 @@ class ChecksumFile(ModifiableEntry, TaskEventMixin):
 
     def data_link(self):
         return _link_url('geodata', 'image_file', self, 'get_url')
+
+    def get_vsi_path(self) -> str:
+        """Return the GDAL Virtual File Systems [0] URL.
+
+        This currently formulates the `/vsis3/...` URL [1] for our own files
+        in `self.file` and the `/vsicurl/...` URL [2] for external files stored in
+        `self.url`. This is assuming that internal files are read/write and
+        external files are read-only. External files can still be from private
+        S3 buckets as long as `self.url` redirects to a presigned S3 URL [1]:
+
+            > Starting with GDAL 2.1, `/vsicurl/` will try to query directly
+              redirected URLs to Amazon S3 signed URLs during their validity
+              period, so as to minimize round-trips.
+
+        This URL can be used for both GDAL and Rasterio [3]:
+
+            > To help developers switch [from GDAL], Rasterio will accept
+              [vsi] identifiers and other format-specific connection
+              strings, too, and dispatch them to the proper format drivers
+              and protocols.
+
+        The best way to setup authentication for both Rasterio and GDAL seems to
+        be via environment variables. This is done via `settings.GdalMinioMixin`
+        for develpment/testing environments.
+
+        [0] https://gdal.org/user/virtual_file_systems.html
+        [1] https://gdal.org/user/virtual_file_systems.html#vsicurl-http-https-ftp-files-random-access
+        [2] https://gdal.org/user/virtual_file_systems.html#vsis3-aws-s3-files
+        [3] https://rasterio.readthedocs.io/en/latest/topics/switch.html?highlight=vsis3#dataset-identifiers
+        """
+        if self.type == FileSourceType.FILE_FIELD:
+            return f'/vsis3/{settings.MINIO_STORAGE_MEDIA_BUCKET_NAME}/{self.file.name}'
+        elif self.type == FileSourceType.URL:
+            return f'/vsicurl/{self.url}'
 
     data_link.allow_tags = True
