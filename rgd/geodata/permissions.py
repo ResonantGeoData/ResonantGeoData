@@ -22,21 +22,23 @@ def get_collection_membership_path(model) -> Optional[str]:
         return 'collection__collection_memberships'
     # Imagery
     if issubclass(model, models.ImageEntry):
-        return 'image_file__collection__collection_memberships'
+        return 'image_file__file__collection__collection_memberships'
     if issubclass(model, models.Thumbnail):
-        return 'image_entry__image_file__collection__collection_memberships'
+        return 'image_entry__image_file__file__collection__collection_memberships'
     if issubclass(model, models.ImageSet):
-        return 'images__image_file__collection__collection_memberships'
+        return 'images__image_file__file__collection__collection_memberships'
     if issubclass(model, models.RasterEntry):
-        return 'image_set__images__image_file__collection__collection_memberships'
+        return 'image_set__images__image_file__file__collection__collection_memberships'
     if issubclass(model, models.RasterMetaEntry):
-        return 'parent_raster__image_set__images__image_file__collection__collection_memberships'
+        return (
+            'parent_raster__image_set__images__image_file__file__collection__collection_memberships'
+        )
     if issubclass(model, models.BandMetaEntry):
-        return 'parent_image__image_file__collection__collection_memberships'
+        return 'parent_image__image_file__file__collection__collection_memberships'
     if issubclass(model, models.ConvertedImageFile):
-        return 'source_image__image_file__collection__collection_memberships'
+        return 'source_image__image_file__file__collection__collection_memberships'
     if issubclass(model, models.SubsampledImage):
-        return 'source_image__image_file__collection__collection_memberships'
+        return 'source_image__image_file__file__collection__collection_memberships'
     if issubclass(model, models.KWCOCOArchive):
         return 'spec_file__collection__collection_memberships'
     # Annotation
@@ -46,10 +48,10 @@ def get_collection_membership_path(model) -> Optional[str]:
         return 'annotation__image__image_file__collection__collection_memberships'
     # Geometry
     if issubclass(model, models.GeometryEntry):
-        return 'geometry_archive__collection__collection_memberships'
+        return 'geometry_archive__file__collection__collection_memberships'
     # FMV
     if issubclass(model, models.FMVEntry):
-        return 'fmv_file__collection__collection_memberships'
+        return 'fmv_file__file__collection__collection_memberships'
     raise NotImplementedError
 
 
