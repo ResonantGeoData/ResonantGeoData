@@ -2,8 +2,32 @@ from typing import Optional
 
 from django.contrib.auth.backends import BaseBackend
 from django.core.exceptions import PermissionDenied
+from django.db.models.functions import Coalesce
 
 from rgd.geodata import models
+
+
+def annotate_queryset(queryset):
+    """Annotate the queryset to include a path to a collection.
+
+    Some models don't have a direct path to `collection`
+    and must be annotated to include it.
+    """
+    model = queryset.model
+    if model == models.SpatialEntry:
+        return queryset.annotate(
+            _collection_memberships__user=Coalesce(
+                'fmventry__fmv_file__file__collection__collection_memberships__user',
+                'geometryentry__geometry_archive__file__collection__collection_memberships__user',
+                'rastermetaentry__parent_raster__image_set__images__image_file__file__collection__collection_memberships__user',
+            ),
+            _collection_memberships__role=Coalesce(
+                'fmventry__fmv_file__file__collection__collection_memberships__role',
+                'geometryentry__geometry_archive__file__collection__collection_memberships__role',
+                'rastermetaentry__parent_raster__image_set__images__image_file__file__collection__collection_memberships__role',
+            ),
+        )
+    return queryset
 
 
 def get_collection_membership_path(model) -> Optional[str]:
@@ -52,6 +76,10 @@ def get_collection_membership_path(model) -> Optional[str]:
     # FMV
     if issubclass(model, models.FMVEntry):
         return 'fmv_file__file__collection__collection_memberships'
+    # SpatialEntry
+    if model == models.SpatialEntry:
+        return '_collection_memberships'
+
     raise NotImplementedError
 
 
@@ -74,7 +102,7 @@ def filter_perm(user, queryset, role):
     # `path` can be an empty string (meaning queryset is `CollectionMembership`)
     user_path = (path + '__' if path != '' else path) + 'user'
     role_path = (path + '__' if path != '' else path) + 'role'
-    return queryset.filter(**{user_path: user}).exclude(**{role_path + '__lt': role})
+    queryset = annotate_queryset(queryset)
 
 
 def filter_read_perm(user, queryset):
