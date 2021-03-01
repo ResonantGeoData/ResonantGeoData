@@ -103,6 +103,7 @@ def filter_perm(user, queryset, role):
     user_path = (path + '__' if path != '' else path) + 'user'
     role_path = (path + '__' if path != '' else path) + 'role'
     queryset = annotate_queryset(queryset)
+    return queryset.filter(**{user_path: user.pk}).exclude(**{role_path + '__lt': role})
 
 
 def filter_read_perm(user, queryset):
