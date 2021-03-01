@@ -138,8 +138,8 @@ class BandMetaEntryInline(admin.StackedInline):
 @admin.register(ImageEntry)
 class ImageEntryAdmin(OSMGeoAdmin):
     list_display = (
-        'icon_tag',
         'id',
+        'icon_tag',
         'name',
         'image_file',
         'modified',
@@ -154,7 +154,7 @@ class ImageEntryAdmin(OSMGeoAdmin):
         'metadata',
         'modified',
         'created',
-    )
+    ) + TASK_EVENT_READONLY
     list_filter = ('instrumentation', 'number_of_bands', 'driver')
     actions = (
         actions.make_image_set_from_image_entries,
@@ -189,8 +189,8 @@ class RasterMetaEntryInline(admin.StackedInline):
 @admin.register(RasterEntry)
 class RasterEntryAdmin(OSMGeoAdmin):
     list_display = (
-        'icon_tag',
         'id',
+        'icon_tag',
         'name',
         'status',
         'modified',

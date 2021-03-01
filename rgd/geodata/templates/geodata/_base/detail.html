@@ -1,16 +1,17 @@
 {% extends "geodata/_base/base.html" %}
 {% block title %}
-  {{ object.name }} ({{object.pk}})
+  <input class="button is-secondary" type="button" value="&#x2190; Back to Search" onclick="history.back()">
+  {{ object.name | truncatechars:36 }} ({{object.pk}})
 {% endblock title %}
 
 {% block extra_title_content %}
   <div class="column is-2">
     <span class="text-has-dark-bg is-block">Created:</span>
-    {{ object.created }}Nov. 10, 2020, 3:55 a.m.
+    {{ object.created }}
   </div>
   <div class="column is-2">
     <span class="text-has-dark-bg is-block">Modified:</span>
-    {{ object.modified }}Nov. 10, 2020, 3:55 a.m.
+    {{ object.modified }}
   </div>
   <div class="column is-2">
     <a id="copyjson" class="button has-icon is-flex is-justify-content-space-between is-secondary is-fullwidth">
@@ -33,27 +34,28 @@
 
   <div class="columns m-0">
     <div class="column is-sidebar is-one-quarter p-0">
+      <div class="column is-sidebar-content">
+        <textarea id="json" class="is-hidden" readonly>
+          {{ object.footprint.json }}
+        </textarea>
 
-      <textarea id="json" class="is-hidden" readonly>
-        {{ object.footprint.json }}
-      </textarea>
+        <div style="overflow-x:auto;">
+          <table class="table">
+            <thead class="thead-dark">
+              <tr>
+                <th><span class="text">Field</span></th>
+                <th><span class="text">Value</span></th>
+              </tr>
+            </thead>
+            <tbody>
+              {% block meta_table_body %}{% endblock %}
+            </tbody>
+          </table>
+        </div>
 
-      <div style="overflow-x:auto;">
-        <table class="table">
-          <thead class="thead-dark">
-            <tr>
-              <th><span class="text">Field</span></th>
-              <th><span class="text">Value</span></th>
-            </tr>
-          </thead>
-          <tbody>
-            {% block meta_table_body %}{% endblock %}
-          </tbody>
-        </table>
+        {% block extra_meta %}{% endblock %}
+
       </div>
-
-      {% block extra_meta %}{% endblock %}
-
     </div>
 
     <div class="column p-0">
