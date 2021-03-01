@@ -61,7 +61,7 @@ class SpatialEntriesListView(_SpatialListView):
 class _SpatialDetailView(DetailView):
     def get_object(self):
         obj = super().get_object()
-        permissions.check_read_perm(obj)
+        permissions.check_read_perm(self.request.user, obj)
         return obj
 
     def _get_extent(self):

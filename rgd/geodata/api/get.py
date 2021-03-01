@@ -10,7 +10,7 @@ from ..models.imagery import ConvertedImageFile, SubsampledImage
 class _PermissionMixin:
     def get_object(self):
         obj = super().get_object()
-        check_read_perm(obj)
+        check_read_perm(self.request.user, obj)
         return obj
 
 
