@@ -9,6 +9,8 @@ A publically deployed instance of this application is available at https://www.r
 
 ResonantGeoData is a Django application well suited for catalogging and searching annotated geospatial imagery, shapefiles, and full motion video datasets.
 
+![homepage](./docs/images/homepage.png)
+
 ## Highlights
 
 - Faceted searching of geospatial/temporal data
