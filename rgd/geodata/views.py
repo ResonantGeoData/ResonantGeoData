@@ -42,7 +42,7 @@ class _SpatialListView(generic.ListView):
         # Have a smaller dict of meta fields to parse for menu bar
         # This keeps us from parsing long GeoJSON fields twice
         meta = {
-            'count': summary['count'],
+            'count': len(self.object_list),  # This is the amount in the full results
         }
         context['extents_meta'] = json.dumps(meta)
         context['query_params'] = query_params(self.request.GET)

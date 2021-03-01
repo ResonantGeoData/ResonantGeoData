@@ -7,7 +7,7 @@
   </tr>
   <tr>
     <td>Video File Size</td>
-    <td>{{ object.fmv_file.file.size|filesizeformat }}</td>
+    <td>{{ object.fmv_file.file.file.size|filesizeformat }}</td>
   </tr>
   <tr>
     <td>KLV Metadata</td>
@@ -22,7 +22,9 @@
 
 {% block extra_meta %}
 
-  <video width="320" height="240" autobuffer="autobuffer" autoplay="autoplay" loop="loop" controls="controls" id="fmv_video">
+  <br/>
+
+  <video width="100%" height="240" autobuffer="autobuffer" autoplay="autoplay" loop="loop" controls="controls" id="fmv_video">
     <source src="{{ object.fmv_file.web_video_file.url }}" type='video/mp4; codecs="avc1.42E01E, mp4a.40.2"'>
   </video>
 
@@ -34,10 +36,10 @@
 
     <script>
       let frameRate = JSON.parse('{{ frame_rate|escapejs }}');
-      var video = document.getElementById("fmv_video");
+      var video = document.getElementById('fmv_video');
 
       // Move video to UI layer in map
-      var videoFrame = ui.createWidget('dom', {position: {left: 10, bottom: 10}});
+      // var videoFrame = ui.createWidget('dom', {position: {left: 10, bottom: 10}});
       // videoFrame.canvas().appendChild(video)
 
       if (extents.ground_frames !== undefined) {
@@ -62,7 +64,6 @@
               ul: {x: coords[3][0], y: coords[3][1]},
               // video: video,
             }]
-
             frameFootprint.data(data).draw();
           }
         }
