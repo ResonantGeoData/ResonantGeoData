@@ -2,6 +2,7 @@ from django.contrib import admin
 from django.contrib.gis.admin import OSMGeoAdmin
 
 from . import actions
+from .models.collection import Collection, CollectionMembership
 from .models.common import ChecksumFile
 from .models.fmv.base import FMVEntry, FMVFile
 from .models.geometry.base import GeometryArchive, GeometryEntry
@@ -54,6 +55,7 @@ class ChecksumFileAdmin(OSMGeoAdmin):
         'created',
         'type',
         'data_link',
+        'collection',
     )
     readonly_fields = (
         'checksum',
@@ -357,3 +359,16 @@ class FMVFileAdmin(OSMGeoAdmin, _FileGetNameMixin):
         'frame_rate',
     ) + TASK_EVENT_READONLY
     inlines = (FMVEntryInline,)
+
+
+class CollectionMembershipInline(admin.TabularInline):
+    model = CollectionMembership
+    fk_name = 'collection'
+    fields = ('user', 'role')
+    extra = 1
+
+
+@admin.register(Collection)
+class CollectionAdmin(OSMGeoAdmin):
+    fields = ('name',)
+    inlines = (CollectionMembershipInline,)

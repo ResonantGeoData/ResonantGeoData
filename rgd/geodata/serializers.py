@@ -4,6 +4,7 @@ from rest_framework import serializers
 from rest_framework.reverse import reverse
 
 from rgd import utility
+from rgd.geodata.permissions import check_write_perm
 
 from . import models
 
@@ -27,6 +28,11 @@ class GeometryEntrySerializer(SpatialEntrySerializer):
 
 
 class ConvertedImageFileSerializer(serializers.ModelSerializer):
+    def validate_source_image(self, value):
+        if 'request' in self.context:
+            check_write_perm(self.context['request'].user, value)
+        return value
+
     class Meta:
         model = models.ConvertedImageFile
         fields = ['source_image', 'pk', 'status', 'failure_reason']
@@ -56,6 +62,11 @@ class SubsampledImageSerializer(serializers.ModelSerializer):
     data = serializers.HyperlinkedRelatedField(
         many=False, read_only=True, view_name='checksum-file-data'
     )
+
+    def validate_source_image(self, value):
+        if 'request' in self.context:
+            check_write_perm(self.context['request'].user, value)
+        return value
 
     def to_representation(self, value):
         ret = super().to_representation(value)

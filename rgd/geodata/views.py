@@ -5,6 +5,8 @@ from django.views import generic
 from django.views.generic import DetailView
 from rest_framework.reverse import reverse
 
+from rgd.geodata import permissions
+
 from .api import search
 from .filters import SpatialEntryFilter
 from .models.common import SpatialEntry
@@ -28,7 +30,8 @@ class _SpatialListView(generic.ListView):
     def get_queryset(self):
         filterset = SpatialEntryFilter(data=self.request.GET)
         assert filterset.is_valid()
-        return filterset.filter_queryset(self.model.objects.all())
+        queryset = filterset.filter_queryset(self.model.objects.all())
+        return permissions.filter_read_perm(self.request.user, queryset)
 
     def _get_extent_summary(self, object_list):
         return search.extent_summary_spatial(object_list)
@@ -42,7 +45,7 @@ class _SpatialListView(generic.ListView):
         # Have a smaller dict of meta fields to parse for menu bar
         # This keeps us from parsing long GeoJSON fields twice
         meta = {
-            'count': summary['count'],
+            'count': len(self.object_list),  # This is the amount in the full results
         }
         context['extents_meta'] = json.dumps(meta)
         context['query_params'] = query_params(self.request.GET)
@@ -56,6 +59,11 @@ class SpatialEntriesListView(_SpatialListView):
 
 
 class _SpatialDetailView(DetailView):
+    def get_object(self):
+        obj = super().get_object()
+        permissions.check_read_perm(self.request.user, obj)
+        return obj
+
     def _get_extent(self):
         if self.object.footprint is None:
             extent = {

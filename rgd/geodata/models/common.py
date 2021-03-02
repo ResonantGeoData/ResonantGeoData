@@ -19,6 +19,7 @@ from rgd.utility import (
 )
 
 from .. import tasks
+from .collection import Collection
 from .constants import DB_SRID
 from .mixins import Status, TaskEventMixin
 
@@ -111,6 +112,14 @@ class ChecksumFile(ModifiableEntry, TaskEventMixin):
         default=False
     )  # a flag to validate the checksum against the saved checksum
     last_validation = models.BooleanField(default=True)
+    collection = models.ForeignKey(
+        Collection,
+        on_delete=models.SET_NULL,
+        related_name='%(class)ss',
+        related_query_name='%(class)ss',
+        null=True,
+        blank=True,
+    )
 
     type = models.IntegerField(choices=FileSourceType.choices, default=FileSourceType.FILE_FIELD)
     file = S3FileField(null=True, blank=True)
@@ -137,6 +146,9 @@ class ChecksumFile(ModifiableEntry, TaskEventMixin):
                 ),
             )
         ]
+
+    def __str__(self):
+        return self.name
 
     def get_checksum(self):
         """Compute a new checksum without saving it."""
