@@ -32,6 +32,7 @@ For general questions about the project, its applications, or about software usa
 - [KWIVER](https://github.com/Kitware/kwiver): we leverage KWIVER's full motion video processing capabilities to extract spatial information from FMV files.
 - [KWCOCO](https://gitlab.kitware.com/computer-vision/kwcoco): KWCOCO is an extension of the [COCO image annotation format](https://cocodataset.org/) which we support for ingesting annotated imagery.
 - [GeoJS](https://opengeoscience.github.io/geojs/): we leverage GeoJS for our interactive map view.
+- [`large_image`](http://girder.github.io/large_image/index.html): we leverage `large_image` to serve image tiles and extract thumbnails.
 
 ## Contributing
 
