@@ -1,11 +1,9 @@
 """Helper methods for creating a ``GDALRaster`` entry from a raster file."""
-import io
 import json
 import os
 import tempfile
 import zipfile
 
-import PIL.Image
 from celery.utils.log import get_task_logger
 from django.conf import settings
 from django.contrib.gis.geos import (
@@ -16,10 +14,8 @@ from django.contrib.gis.geos import (
     Point,
     Polygon,
 )
-from django.core.files.base import ContentFile
 import kwcoco
 import kwimage
-import matplotlib.pyplot as plt
 import numpy as np
 from osgeo import gdal
 import rasterio
@@ -30,7 +26,7 @@ from rasterio.warp import Resampling, calculate_default_transform, reproject, tr
 from rgd.utility import get_or_create_no_commit
 
 from ..common import ChecksumFile
-from ..constants import DB_SRID, WEB_MERCATOR
+from ..constants import DB_SRID
 from .annotation import Annotation, PolygonSegmentation, RLESegmentation, Segmentation
 from .base import (
     BandMetaEntry,
@@ -41,7 +37,6 @@ from .base import (
     KWCOCOArchive,
     RasterEntry,
     RasterMetaEntry,
-    Thumbnail,
 )
 
 logger = get_task_logger(__name__)
@@ -51,34 +46,6 @@ os.environ['GDAL_DATA'] = GDAL_DATA
 
 
 MAX_LOAD_SHAPE = (4000, 4000)
-
-
-def _create_thumbnail_image(src):
-    shape = (min(MAX_LOAD_SHAPE[0], src.height), min(MAX_LOAD_SHAPE[0], src.width))
-
-    def get_band(n):
-        return src.read(n, out_shape=shape)
-
-    norm = plt.Normalize()
-
-    c = src.colorinterp
-
-    if c[0:3] == (3, 4, 5):
-        r = get_band(1)
-        g = get_band(2)
-        b = get_band(3)
-        colors = np.dstack((r, g, b)).astype('uint8')
-    elif len(c) == 1 and c[0] == 1:
-        # Gray scale
-        colors = (norm(get_band(1)) * 255).astype('uint8')
-    else:
-        colors = (plt.cm.viridis(norm(get_band(1))) * 255).astype('uint8')[:, :, 0:3]
-
-    buf = io.BytesIO()
-    img = PIL.Image.fromarray(colors)
-    img.save(buf, 'JPEG')
-    byte_im = buf.getvalue()
-    return ContentFile(byte_im)
 
 
 def _reproject_raster(src, epsg):
@@ -201,28 +168,6 @@ def read_image_file(ife):
             ConvertedImageFile.objects.filter(source_image=image_entry).delete()
 
         _read_image_to_entry(image_entry, file_path)
-
-    return image_entry
-
-
-def create_image_entry_thumbnail(image_entry):
-    # Fetch the image file this Layer corresponds to
-    if not isinstance(image_entry, ImageEntry):
-        image_entry = ImageEntry.objects.get(id=image_entry)
-
-    thumbnail, created = get_or_create_no_commit(Thumbnail, image_entry=image_entry)
-
-    with image_entry.image_file.file.yield_local_path() as file_path:
-        logger.info(f'The image file path: {file_path}')
-        with rasterio.open(file_path) as src:
-            if src.crs:
-                rsrc = _reproject_raster(src, WEB_MERCATOR)
-                thumb_image = _create_thumbnail_image(rsrc)
-            else:
-                thumb_image = _create_thumbnail_image(src)
-
-    thumbnail.base_thumbnail.save(f'{image_entry.image_file.file.name}.jpg', thumb_image, save=True)
-    thumbnail.save()
 
     return image_entry
 
@@ -510,7 +455,6 @@ def load_kwcoco_dataset(kwcoco_dataset_id):
             image_file.save()
             # Create a new ImageEntry
             image_entry = read_image_file(image_file)
-            create_image_entry_thumbnail(image_entry)
             # Add ImageEntry to ImageSet
             ds_entry.image_set.images.add(image_entry)
             # Create annotations that link to that ImageEntry

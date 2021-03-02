@@ -18,7 +18,7 @@ This step lets the data catalog know that the added file is an image, and it wil
 
 ![image_entry_list](./images/image_entry_list.png)
 
-There you can view all of the extracted metadata and thumbnail for that image:
+There you can view all of the extracted metadata for that image:
 
 ![image_entry](./images/image_entry.gif)
 
