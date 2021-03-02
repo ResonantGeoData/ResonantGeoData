@@ -35,3 +35,12 @@ class TileView(BaseTileView):
         tile_binary = tile_source.getTile(x, y, z)
         mime_type = tile_source.getTileMimeType()
         return HttpResponse(tile_binary, content_type=mime_type)
+
+
+class TileThumnailView(BaseTileView):
+    """Returns tile thumbnail."""
+
+    def get(self, request: Request, pk: int) -> Response:
+        tile_source = self.get_tile_source(request, pk)
+        thumb_data, mime_type = tile_source.getThumbnail()
+        return HttpResponse(thumb_data, content_type=mime_type)

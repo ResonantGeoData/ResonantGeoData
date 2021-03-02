@@ -114,4 +114,9 @@ urlpatterns = [
         api.tiles.TileView.as_view(),
         name='tile',
     ),
+    path(
+        'api/geodata/imagery/image_entry/<int:pk>/thumbnail',
+        api.tiles.TileThumnailView.as_view(),
+        name='thumbnail',
+    ),
 ]
