@@ -47,8 +47,6 @@ def get_collection_membership_path(model) -> Optional[str]:
     # Imagery
     if issubclass(model, models.ImageEntry):
         return 'image_file__file__collection__collection_memberships'
-    if issubclass(model, models.Thumbnail):
-        return 'image_entry__image_file__file__collection__collection_memberships'
     if issubclass(model, models.ImageSet):
         return 'images__image_file__file__collection__collection_memberships'
     if issubclass(model, models.RasterEntry):
