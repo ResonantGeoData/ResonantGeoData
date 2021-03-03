@@ -28,11 +28,11 @@ def test_metadata(api_client, image_entry):
 def test_tile(api_client, image_entry):
     response = api_client.get(f'/api/geodata/imagery/image_entry/{image_entry.pk}/tiles/1/0/0.png')
     assert response.status_code == 200
-    assert response['Content-Type'] == 'image/jpeg'
+    assert response['Content-Type'] == 'image/png'
 
 
 @pytest.mark.django_db(transaction=True)
 def test_thumbnail(api_client, image_entry):
     response = api_client.get(f'/api/geodata/imagery/image_entry/{image_entry.pk}/thumbnail')
     assert response.status_code == 200
-    assert response['Content-Type'] == 'image/jpeg'
+    assert response['Content-Type'] == 'image/png'
