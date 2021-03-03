@@ -225,8 +225,10 @@ class ChecksumFile(ModifiableEntry, TaskEventMixin):
               strings, too, and dispatch them to the proper format drivers
               and protocols.
 
-        `/vsis3/` could theoretically be used for read/write access to S3,
-        but is a bit more of a challenge to setup. [2]
+        `/vsis3/` could be used for...
+            * read/write access
+            * directory listing (for sibling files)
+        ...but is a bit more of a challenge to setup. [2]
 
         [0] https://gdal.org/user/virtual_file_systems.html
         [1] https://gdal.org/user/virtual_file_systems.html#vsicurl-http-https-ftp-files-random-access
