@@ -19,9 +19,9 @@ def test_metadata(api_client, image_entry):
     response = api_client.get(f'/api/geodata/imagery/image_entry/{image_entry.pk}/tiles')
     metadata = response.data
     assert metadata['levels'] == 15
-    assert metadata['sizeX'] == metadata['sizeY'] == 328
-    assert metadata['tileWidth'] == metadata['tileHeight'] == 256
-    assert metadata['tileWidth'] == metadata['tileHeight'] == 256
+    assert metadata['sizeX'] == metadata['sizeY']
+    assert metadata['tileWidth'] == metadata['tileHeight']
+    assert metadata['tileWidth'] == metadata['tileHeight']
 
 
 @pytest.mark.django_db(transaction=True)
