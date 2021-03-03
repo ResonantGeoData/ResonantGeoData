@@ -45,16 +45,6 @@ def task_read_image_file(file_id):
 
 
 @shared_task(time_limit=86400)
-def task_create_image_entry_thumbnail(file_id):
-    from .models.imagery.base import ImageEntry
-    from .models.imagery.etl import create_image_entry_thumbnail
-
-    image_entry = ImageEntry.objects.get(id=file_id)
-    _run_with_failure_reason(image_entry, create_image_entry_thumbnail, file_id)
-    return
-
-
-@shared_task(time_limit=86400)
 def task_read_geometry_archive(archive_id):
     from .models.geometry.etl import GeometryArchive, read_geometry_archive
 
