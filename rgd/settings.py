@@ -13,26 +13,6 @@ from composed_configuration import (
 from configurations import values
 
 
-class GdalMinioMixin(ConfigMixin):
-    """Setup S3-like environment variables for Minio setups."""
-
-    @staticmethod
-    def before_binding(configuration: Type[ComposedConfiguration]):
-        # `MINIO_STORAGE_ACCESS_KEY` and `MINIO_STORAGE_SECRET_KEY`
-        # can only be accessed via environment variables
-        os.environ.setdefault(
-            'AWS_ACCESS_KEY_ID',
-            os.environ['DJANGO_MINIO_STORAGE_ACCESS_KEY'],
-        )
-        os.environ.setdefault(
-            'AWS_SECRET_ACCESS_KEY',
-            os.environ['DJANGO_MINIO_STORAGE_SECRET_KEY'],
-        )
-        os.environ.setdefault('AWS_S3_ENDPOINT', str(configuration.MINIO_STORAGE_ENDPOINT))
-        os.environ.setdefault('AWS_VIRTUAL_HOSTING', 'NO')
-        os.environ.setdefault('AWS_HTTPS', str(configuration.MINIO_STORAGE_USE_HTTPS).upper())
-
-
 class GeoDjangoMixin(ConfigMixin):
     @staticmethod
     def before_binding(configuration: Type[ComposedConfiguration]):
@@ -108,11 +88,11 @@ class RgdMixin(CrispyFormsMixin, GeoDjangoMixin, SwaggerMixin, ConfigMixin):
     CELERY_WORKER_SEND_TASK_EVENTS = True
 
 
-class DevelopmentConfiguration(RgdMixin, GdalMinioMixin, DevelopmentBaseConfiguration):
+class DevelopmentConfiguration(RgdMixin, DevelopmentBaseConfiguration):
     pass
 
 
-class TestingConfiguration(RgdMixin, GdalMinioMixin, TestingBaseConfiguration):
+class TestingConfiguration(RgdMixin, TestingBaseConfiguration):
     CELERY_TASK_ALWAYS_EAGER = True
     CELERY_TASK_EAGER_PROPAGATES = True
 
