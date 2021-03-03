@@ -18,5 +18,4 @@ from .base import (
     RasterEntry,
     RasterMetaEntry,
     SubsampledImage,
-    Thumbnail,
 )

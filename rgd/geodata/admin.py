@@ -22,7 +22,6 @@ from .models.imagery.base import (
     RasterEntry,
     RasterMetaEntry,
     SubsampledImage,
-    Thumbnail,
 )
 
 SPATIAL_ENTRY_FILTERS = (
@@ -87,21 +86,6 @@ class ImageSetAdmin(OSMGeoAdmin):
     actions = (actions.make_raster_from_image_set,)
 
 
-class ThumbnailInline(admin.TabularInline):
-    model = Thumbnail
-    fk_name = 'image_entry'
-    list_display = (
-        'id',
-        'image_entry',
-    )
-    fields = ('image_tag',)
-    readonly_fields = ('image_tag',)
-
-    def has_add_permission(self, request, obj=None):
-        """Prevent user from adding more."""
-        return False
-
-
 class BandMetaEntryInline(admin.StackedInline):
     model = BandMetaEntry
     fk_name = 'parent_image'
@@ -139,7 +123,6 @@ class BandMetaEntryInline(admin.StackedInline):
 class ImageEntryAdmin(OSMGeoAdmin):
     list_display = (
         'id',
-        'icon_tag',
         'name',
         'image_file',
         'modified',
@@ -151,17 +134,16 @@ class ImageEntryAdmin(OSMGeoAdmin):
         'height',
         'width',
         'driver',
-        'metadata',
         'modified',
         'created',
-    ) + TASK_EVENT_READONLY
+    )
     list_filter = ('instrumentation', 'number_of_bands', 'driver')
     actions = (
         actions.make_image_set_from_image_entries,
         actions.make_raster_from_image_entries,
         actions.make_raster_for_each_image_entry,
     )
-    inlines = (ThumbnailInline, BandMetaEntryInline)
+    inlines = (BandMetaEntryInline,)
 
 
 class RasterMetaEntryInline(admin.StackedInline):
@@ -190,7 +172,6 @@ class RasterMetaEntryInline(admin.StackedInline):
 class RasterEntryAdmin(OSMGeoAdmin):
     list_display = (
         'id',
-        'icon_tag',
         'name',
         'status',
         'modified',

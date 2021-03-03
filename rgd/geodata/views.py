@@ -93,17 +93,6 @@ class _SpatialDetailView(DetailView):
 class RasterEntryDetailView(_SpatialDetailView):
     model = RasterMetaEntry
 
-    def _get_extent(self):
-        extent = super()._get_extent()
-        # Add a thumbnail of the first image in the raster set
-        image_entries = self.object.parent_raster.image_set.images.all()
-        image_urls = {}
-        for image_entry in image_entries:
-            thumbnail = image_entry.thumbnail
-            image_urls[thumbnail.image_entry.id] = thumbnail.base_thumbnail.url
-        extent['thumbnails'] = image_urls
-        return extent
-
 
 class FMVEntryDetailView(_SpatialDetailView):
     model = FMVEntry
