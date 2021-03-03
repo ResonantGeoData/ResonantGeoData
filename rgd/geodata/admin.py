@@ -125,7 +125,6 @@ class ImageEntryAdmin(OSMGeoAdmin):
         'id',
         'name',
         'image_file',
-        'status',
         'modified',
         'created',
     )
