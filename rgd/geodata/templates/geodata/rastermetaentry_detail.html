@@ -39,7 +39,7 @@
     {% for image in object.parent_raster.image_set.images.all %}
       <option value="{{ image.id }}">{{ image.name | truncatechars:36 }}</option>
     {% endfor %}
-    <option value="-1">None</option>
+    <option value="-1">-- none --</option>
   </select>
 
   <div class="slidecontainer">
@@ -58,14 +58,18 @@
     let extents = JSON.parse('{{ extents|escapejs }}');
     var outline = JSON.parse(extents['outline'])["coordinates"][0]
 
-    var tiles = map.createLayer('osm');
+    var tiles = map.createLayer('osm', {keepLower: false, attribution: ''});
+    tiles.opacity(0.75)
 
     function updateBandThumbnail () {
       selector = document.getElementById('band-selector')
       var image_id = Number(selector.value);
       console.log(image_id)
       if (image_id >= 0) {
-        tiles.url(`{host}/api/geodata/imagery/image_entry/${image_id}/tiles/{z}/{x}/{y}.jpg`)
+        tiles.visible(true)
+        tiles.url(`${host}/api/geodata/imagery/image_entry/${image_id}/tiles/{z}/{x}/{y}.png?projection=EPSG:3857`)
+      } else {
+        tiles.visible(false)
       }
       // TODO: clear tiles when `none` is selected
     }
@@ -73,7 +77,7 @@
 
     function updateTilesOpacity(e, value) {
       value = Number(value) / 100.0;
-      tiles.mapOpacity(value).draw();
+      tiles.opacity(value);
     }
 
     // Add collected polygons to map
@@ -89,7 +93,7 @@
       .draw();
     });
 
-    setBounds(extents.extent, true)
+    setBounds(extents.extent, false)
 
   </script>
 

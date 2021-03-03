@@ -110,7 +110,7 @@ urlpatterns = [
         name='tilemetadata',
     ),
     path(
-        'api/geodata/imagery/image_entry/<int:pk>/tiles/<int:z>/<int:x>/<int:y>.jpg',
+        'api/geodata/imagery/image_entry/<int:pk>/tiles/<int:z>/<int:x>/<int:y>.png',
         api.tiles.TileView.as_view(),
         name='tile',
     ),
