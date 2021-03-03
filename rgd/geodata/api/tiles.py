@@ -43,5 +43,5 @@ class TileThumnailView(BaseTileView):
 
     def get(self, request: Request, pk: int) -> Response:
         tile_source = self.get_tile_source(request, pk)
-        thumb_data, mime_type = tile_source.getThumbnail()
+        thumb_data, mime_type = tile_source.getThumbnail(encoding='PNG')
         return HttpResponse(thumb_data, content_type=mime_type)
