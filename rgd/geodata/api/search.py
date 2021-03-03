@@ -18,6 +18,7 @@ from rest_framework.response import Response
 from rgd.geodata import serializers
 from rgd.geodata.filters import SpatialEntryFilter
 from rgd.geodata.models import GeometryEntry, RasterMetaEntry, SpatialEntry
+from rgd.geodata.permissions import filter_read_perm
 
 
 class NearPointSerializer(rfserializers.Serializer):
@@ -220,6 +221,7 @@ def search_geojson_filter(params, has_created=False):
 def search_near_point(request, *args, **kwargs):
     params = request.query_params
     results = SpatialEntry.objects.filter(search_near_point_filter(params))
+    results = filter_read_perm(request.user, results)
     return Response(serializers.SpatialEntrySerializer(results, many=True).data)
 
 
@@ -233,6 +235,7 @@ def search_near_point(request, *args, **kwargs):
 def search_near_point_raster(request, *args, **kwargs):
     params = request.query_params
     results = RasterMetaEntry.objects.filter(search_near_point_filter(params, True))
+    results = filter_read_perm(request.user, results)
     return Response(serializers.RasterMetaEntrySerializer(results, many=True).data)
 
 
@@ -246,6 +249,7 @@ def search_near_point_raster(request, *args, **kwargs):
 def search_near_point_geometry(request, *args, **kwargs):
     params = request.query_params
     results = GeometryEntry.objects.filter(search_near_point_filter(params))
+    results = filter_read_perm(request.user, results)
     return Response(serializers.GeometryEntrySerializer(results, many=True).data)
 
 
@@ -259,6 +263,7 @@ def search_near_point_geometry(request, *args, **kwargs):
 def search_bounding_box(request, *args, **kwargs):
     params = request.query_params
     results = SpatialEntry.objects.filter(search_bounding_box_filter(params))
+    results = filter_read_perm(request.user, results)
     return Response(serializers.SpatialEntrySerializer(results, many=True).data)
 
 
@@ -272,6 +277,7 @@ def search_bounding_box(request, *args, **kwargs):
 def search_bounding_box_raster(request, *args, **kwargs):
     params = request.query_params
     results = RasterMetaEntry.objects.filter(search_bounding_box_filter(params, True))
+    results = filter_read_perm(request.user, results)
     return Response(serializers.RasterMetaEntrySerializer(results, many=True).data)
 
 
@@ -285,6 +291,7 @@ def search_bounding_box_raster(request, *args, **kwargs):
 def search_bounding_box_geometry(request, *args, **kwargs):
     params = request.query_params
     results = GeometryEntry.objects.filter(search_bounding_box_filter(params))
+    results = filter_read_perm(request.user, results)
     return Response(serializers.GeometryEntrySerializer(results, many=True).data)
 
 
@@ -298,6 +305,7 @@ def search_bounding_box_geometry(request, *args, **kwargs):
 def search_geojson(request, *args, **kwargs):
     params = request.query_params
     results = SpatialEntry.objects.filter(search_geojson_filter(params))
+    results = filter_read_perm(request.user, results)
     return Response(serializers.SpatialEntrySerializer(results, many=True).data)
 
 
@@ -311,6 +319,7 @@ def search_geojson(request, *args, **kwargs):
 def search_geojson_raster(request, *args, **kwargs):
     params = request.query_params
     results = RasterMetaEntry.objects.filter(search_geojson_filter(params, True))
+    results = filter_read_perm(request.user, results)
     return Response(serializers.RasterMetaEntrySerializer(results, many=True).data)
 
 
@@ -324,6 +333,7 @@ def search_geojson_raster(request, *args, **kwargs):
 def search_geojson_geometry(request, *args, **kwargs):
     params = request.query_params
     results = GeometryEntry.objects.filter(search_geojson_filter(params))
+    results = filter_read_perm(request.user, results)
     return Response(serializers.GeometryEntrySerializer(results, many=True).data)
 
 
@@ -470,6 +480,7 @@ def extent_summary_http(found, has_created=False):
 def search_near_point_extent(request, *args, **kwargs):
     params = request.query_params
     found = SpatialEntry.objects.filter(search_near_point_filter(params))
+    found = filter_read_perm(request.user, found)
     return extent_summary_http(found)
 
 
@@ -483,6 +494,7 @@ def search_near_point_extent(request, *args, **kwargs):
 def search_near_point_extent_raster(request, *args, **kwargs):
     params = request.query_params
     found = RasterMetaEntry.objects.filter(search_near_point_filter(params, True))
+    found = filter_read_perm(request.user, found)
     return extent_summary_http(found, True)
 
 
@@ -496,6 +508,7 @@ def search_near_point_extent_raster(request, *args, **kwargs):
 def search_near_point_extent_geometry(request, *args, **kwargs):
     params = request.query_params
     found = GeometryEntry.objects.filter(search_near_point_filter(params))
+    found = filter_read_perm(request.user, found)
     return extent_summary_http(found)
 
 
@@ -509,6 +522,7 @@ def search_near_point_extent_geometry(request, *args, **kwargs):
 def search_bounding_box_extent(request, *args, **kwargs):
     params = request.query_params
     found = SpatialEntry.objects.filter(search_bounding_box_filter(params))
+    found = filter_read_perm(request.user, found)
     return extent_summary_http(found)
 
 
@@ -522,6 +536,7 @@ def search_bounding_box_extent(request, *args, **kwargs):
 def search_bounding_box_extent_raster(request, *args, **kwargs):
     params = request.query_params
     found = RasterMetaEntry.objects.filter(search_bounding_box_filter(params, True))
+    found = filter_read_perm(request.user, found)
     return extent_summary_http(found, True)
 
 
@@ -535,6 +550,7 @@ def search_bounding_box_extent_raster(request, *args, **kwargs):
 def search_bounding_box_extent_geometry(request, *args, **kwargs):
     params = request.query_params
     found = GeometryEntry.objects.filter(search_bounding_box_filter(params))
+    found = filter_read_perm(request.user, found)
     return extent_summary_http(found)
 
 
@@ -548,6 +564,7 @@ def search_bounding_box_extent_geometry(request, *args, **kwargs):
 def search_geojson_extent(request, *args, **kwargs):
     params = request.query_params
     found = SpatialEntry.objects.filter(search_geojson_filter(params))
+    found = filter_read_perm(request.user, found)
     return extent_summary_http(found)
 
 
@@ -561,6 +578,7 @@ def search_geojson_extent(request, *args, **kwargs):
 def search_geojson_extent_raster(request, *args, **kwargs):
     params = request.query_params
     found = RasterMetaEntry.objects.filter(search_geojson_filter(params, True))
+    found = filter_read_perm(request.user, found)
     return extent_summary_http(found, True)
 
 
@@ -574,6 +592,7 @@ def search_geojson_extent_raster(request, *args, **kwargs):
 def search_geojson_extent_geometry(request, *args, **kwargs):
     params = request.query_params
     found = GeometryEntry.objects.filter(search_geojson_filter(params))
+    found = filter_read_perm(request.user, found)
     return extent_summary_http(found)
 
 
@@ -582,3 +601,6 @@ class SearchSpatialEntryView(ListAPIView):
     serializer_class = serializers.SpatialEntrySerializer
     filter_backends = [DjangoFilterBackend]
     filterset_class = SpatialEntryFilter
+
+    def get_queryset(self):
+        return filter_read_perm(self.request.user, super().get_queryset())

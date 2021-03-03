@@ -1,7 +1,6 @@
 """Base classes for raster dataset entries."""
 from django.contrib.gis.db import models
 from django.contrib.postgres import fields
-from django.utils.html import escape, mark_safe
 from django.utils.translation import gettext_lazy as _
 
 from rgd.utility import _link_url
@@ -33,15 +32,11 @@ class ImageFile(ModifiableEntry, TaskEventMixin):
     image_data_link.allow_tags = True
 
 
-class ImageEntry(ModifiableEntry, TaskEventMixin):
+class ImageEntry(ModifiableEntry):
     """Single image entry, tracks the original file."""
 
     def __str__(self):
         return f'{self.name} ({self.id})'
-
-    task_funcs = (tasks.task_create_image_entry_thumbnail,)
-    failure_reason = models.TextField(null=True)
-    status = models.CharField(max_length=20, default=Status.CREATED, choices=Status.choices)
 
     name = models.CharField(max_length=100, blank=True)
     description = models.TextField(null=True, blank=True)
@@ -58,37 +53,6 @@ class ImageEntry(ModifiableEntry, TaskEventMixin):
     height = models.PositiveIntegerField()
     width = models.PositiveIntegerField()
     number_of_bands = models.PositiveIntegerField()
-    metadata = models.JSONField(null=True)
-
-    def image_tag(self):
-        return self.thumbnail.image_tag()
-
-    def icon_tag(self):
-        return self.thumbnail.icon_tag()
-
-
-class Thumbnail(ModifiableEntry):
-    """Thumbnail model and utility for ImageEntry."""
-
-    image_entry = models.OneToOneField(ImageEntry, on_delete=models.CASCADE)
-
-    base_thumbnail = models.ImageField(upload_to='thumbnails')
-
-    def image_tag(self):
-        return mark_safe(
-            u'<img src="%s" id="thumbnail" width="500"/>' % escape(self.base_thumbnail.url)
-        )
-
-    image_tag.short_description = 'Image'
-    image_tag.allow_tags = True
-
-    def icon_tag(self):
-        return mark_safe(
-            u'<img src="%s" id="icon" height="100px"/>' % escape(self.base_thumbnail.url)
-        )
-
-    icon_tag.short_description = 'Icon'
-    icon_tag.allow_tags = True
 
 
 class ImageSet(ModifiableEntry):
@@ -165,12 +129,6 @@ class RasterEntry(ModifiableEntry, TaskEventMixin):
         for im in self.image_set.images.all():
             n += im.number_of_bands
         return n
-
-    def image_tag(self):
-        return self.image_set.images.first().thumbnail.image_tag()
-
-    def icon_tag(self):
-        return self.image_set.images.first().thumbnail.icon_tag()
 
 
 class RasterMetaEntry(ModifiableEntry, SpatialEntry):

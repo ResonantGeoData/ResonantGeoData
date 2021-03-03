@@ -1,12 +1,10 @@
 """Helper methods for creating a ``GDALRaster`` entry from a raster file."""
 from contextlib import contextmanager
-import io
 import json
 import os
 import tempfile
 import zipfile
 
-import PIL.Image
 from celery.utils.log import get_task_logger
 from django.conf import settings
 from django.contrib.gis.geos import (
@@ -17,10 +15,8 @@ from django.contrib.gis.geos import (
     Point,
     Polygon,
 )
-from django.core.files.base import ContentFile
 import kwcoco
 import kwimage
-import matplotlib.pyplot as plt
 import numpy as np
 from osgeo import gdal
 import rasterio
@@ -32,7 +28,7 @@ from rasterio.warp import Resampling, calculate_default_transform, reproject, tr
 from rgd.utility import get_or_create_no_commit
 
 from ..common import ChecksumFile
-from ..constants import DB_SRID, WEB_MERCATOR
+from ..constants import DB_SRID
 from .annotation import Annotation, PolygonSegmentation, RLESegmentation, Segmentation
 from .base import (
     BandMetaEntry,
@@ -43,7 +39,6 @@ from .base import (
     KWCOCOArchive,
     RasterEntry,
     RasterMetaEntry,
-    Thumbnail,
 )
 
 logger = get_task_logger(__name__)
@@ -89,34 +84,6 @@ def _yield_downsampled_raster(raster):
 
         with memfile.open() as dataset:  # Reopen as DatasetReader
             yield dataset  # Note yield not return
-
-
-def _create_thumbnail_image(src):
-    shape = (min(MAX_LOAD_SHAPE[0], src.height), min(MAX_LOAD_SHAPE[0], src.width))
-
-    def get_band(n):
-        return src.read(n, out_shape=shape)
-
-    norm = plt.Normalize()
-
-    c = src.colorinterp
-
-    if c[0:3] == (3, 4, 5):
-        r = get_band(1)
-        g = get_band(2)
-        b = get_band(3)
-        colors = np.dstack((r, g, b)).astype('uint8')
-    elif len(c) == 1 and c[0] == 1:
-        # Gray scale
-        colors = (norm(get_band(1)) * 255).astype('uint8')
-    else:
-        colors = (plt.cm.viridis(norm(get_band(1))) * 255).astype('uint8')[:, :, 0:3]
-
-    buf = io.BytesIO()
-    img = PIL.Image.fromarray(colors)
-    img.save(buf, 'JPEG')
-    byte_im = buf.getvalue()
-    return ContentFile(byte_im)
 
 
 def _reproject_raster(src, epsg):
@@ -204,68 +171,6 @@ def read_image_file(ife):
             ConvertedImageFile.objects.filter(source_image=image_entry).delete()
 
         _read_image_to_entry(image_entry, file_path)
-
-    return image_entry
-
-
-def create_image_entry_thumbnail(image_entry):
-    # Fetch the image file this Layer corresponds to
-    if not isinstance(image_entry, ImageEntry):
-        image_entry = ImageEntry.objects.get(id=image_entry)
-
-    thumbnail, created = get_or_create_no_commit(Thumbnail, image_entry=image_entry)
-
-    with image_entry.image_file.file.yield_local_path() as file_path:
-        logger.info(f'The image file path: {file_path}')
-        with rasterio.open(file_path) as src:
-            if src.crs:
-                rsrc = _reproject_raster(src, WEB_MERCATOR)
-                thumb_image = _create_thumbnail_image(rsrc)
-            else:
-                thumb_image = _create_thumbnail_image(src)
-
-        thumbnail.base_thumbnail.save(
-            f'{image_entry.image_file.file.name}.jpg', thumb_image, save=True
-        )
-        thumbnail.save()
-
-        # Create `BandMetaEntry`s
-        with rasterio.open(file_path) as src:
-            # These are things I couldn't figure out how to get with gdal directly
-            dtypes = src.dtypes
-            interps = src.colorinterp
-        gsrc = gdal.Open(str(file_path))  # Have to cast Path to str
-
-        n = gsrc.RasterCount
-        if n != image_entry.number_of_bands:
-            # Sanity check
-            raise ValueError('gdal detects different number of bands than rasterio.')
-        for i in range(n):
-            gdal_band = gsrc.GetRasterBand(i + 1)  # off by 1 indexing
-            band_meta = BandMetaEntry()
-            band_meta.parent_image = image_entry
-            band_meta.band_number = i + 1  # off by 1 indexing
-            band_meta.description = gdal_band.GetDescription()
-            band_meta.nodata_value = gdal_band.GetNoDataValue()
-            # band_meta.creator = ife.creator
-            # band_meta.modifier = ife.modifier
-            try:
-                band_meta.dtype = dtypes[i]
-            except IndexError:
-                pass
-            bmin, bmax, mean, std = gdal_band.GetStatistics(True, True)
-            band_meta.min = bmin
-            band_meta.max = bmax
-            band_meta.mean = mean
-            band_meta.std = std
-
-            try:
-                band_meta.interpretation = interps[i].name
-            except IndexError:
-                pass
-
-            # Save this band entirely
-            band_meta.save()
 
     return image_entry
 
@@ -546,13 +451,13 @@ def load_kwcoco_dataset(kwcoco_dataset_id):
             image_file_abs_path = os.path.join(ds.img_root, img['file_name'])
             name = os.path.basename(image_file_abs_path)
             image_file = ImageFile()
+            image_file.collection = ds_entry.spec_file.collection
             image_file.skip_task = True
             image_file.file = ChecksumFile()
             image_file.file.file.save(name, open(image_file_abs_path, 'rb'))
             image_file.save()
             # Create a new ImageEntry
             image_entry = read_image_file(image_file)
-            create_image_entry_thumbnail(image_entry)
             # Add ImageEntry to ImageSet
             ds_entry.image_set.images.add(image_entry)
             # Create annotations that link to that ImageEntry

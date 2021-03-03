@@ -48,6 +48,8 @@ services:
   flower:
     image: mher/flower
     command: ["--broker=amqp://rabbitmq:5672/", "--url_prefix=flower"]
+    ports:
+      - 5555:5555
 
   sass:
     build:

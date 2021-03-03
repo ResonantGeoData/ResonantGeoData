@@ -2,6 +2,7 @@ from django.contrib import admin
 from django.contrib.gis.admin import OSMGeoAdmin
 
 from . import actions
+from .models.collection import Collection, CollectionMembership
 from .models.common import ChecksumFile
 from .models.fmv.base import FMVEntry, FMVFile
 from .models.geometry.base import GeometryArchive, GeometryEntry
@@ -21,7 +22,6 @@ from .models.imagery.base import (
     RasterEntry,
     RasterMetaEntry,
     SubsampledImage,
-    Thumbnail,
 )
 
 SPATIAL_ENTRY_FILTERS = (
@@ -54,6 +54,7 @@ class ChecksumFileAdmin(OSMGeoAdmin):
         'created',
         'type',
         'data_link',
+        'collection',
     )
     readonly_fields = (
         'checksum',
@@ -83,21 +84,6 @@ class ImageSetAdmin(OSMGeoAdmin):
         'created',
     )
     actions = (actions.make_raster_from_image_set,)
-
-
-class ThumbnailInline(admin.TabularInline):
-    model = Thumbnail
-    fk_name = 'image_entry'
-    list_display = (
-        'id',
-        'image_entry',
-    )
-    fields = ('image_tag',)
-    readonly_fields = ('image_tag',)
-
-    def has_add_permission(self, request, obj=None):
-        """Prevent user from adding more."""
-        return False
 
 
 class BandMetaEntryInline(admin.StackedInline):
@@ -137,7 +123,6 @@ class BandMetaEntryInline(admin.StackedInline):
 class ImageEntryAdmin(OSMGeoAdmin):
     list_display = (
         'id',
-        'icon_tag',
         'name',
         'image_file',
         'status',
@@ -150,17 +135,16 @@ class ImageEntryAdmin(OSMGeoAdmin):
         'height',
         'width',
         'driver',
-        'metadata',
         'modified',
         'created',
-    ) + TASK_EVENT_READONLY
+    )
     list_filter = ('instrumentation', 'number_of_bands', 'driver')
     actions = (
         actions.make_image_set_from_image_entries,
         actions.make_raster_from_image_entries,
         actions.make_raster_for_each_image_entry,
     )
-    inlines = (ThumbnailInline, BandMetaEntryInline)
+    inlines = (BandMetaEntryInline,)
 
 
 class RasterMetaEntryInline(admin.StackedInline):
@@ -189,7 +173,6 @@ class RasterMetaEntryInline(admin.StackedInline):
 class RasterEntryAdmin(OSMGeoAdmin):
     list_display = (
         'id',
-        'icon_tag',
         'name',
         'status',
         'modified',
@@ -358,3 +341,16 @@ class FMVFileAdmin(OSMGeoAdmin, _FileGetNameMixin):
         'frame_rate',
     ) + TASK_EVENT_READONLY
     inlines = (FMVEntryInline,)
+
+
+class CollectionMembershipInline(admin.TabularInline):
+    model = CollectionMembership
+    fk_name = 'collection'
+    fields = ('user', 'role')
+    extra = 1
+
+
+@admin.register(Collection)
+class CollectionAdmin(OSMGeoAdmin):
+    fields = ('name',)
+    inlines = (CollectionMembershipInline,)

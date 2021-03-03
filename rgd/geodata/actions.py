@@ -67,7 +67,7 @@ def make_raster_for_each_image_entry(modeladmin, request, queryset):
 def reprocess_image_files(modeladmin, request, queryset):
     """Trigger the save event task for each ImageFile.
 
-    This will recreate the Thumbnail and imageEntry.
+    This will recreate the ImageEntry.
     """
     for imf in queryset.all():
         imf.save()
