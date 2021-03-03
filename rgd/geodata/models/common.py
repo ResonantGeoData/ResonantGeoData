@@ -1,7 +1,5 @@
 import os
-from urllib.parse import urlparse
-
-from django.conf import settings
+from urllib.parse import urlencode, urlparse
 
 # from django.contrib.auth import get_user_model
 from django.contrib.gis.db import models
@@ -213,10 +211,10 @@ class ChecksumFile(ModifiableEntry, TaskEventMixin):
     def get_vsi_path(self) -> str:
         """Return the GDAL Virtual File Systems [0] URL.
 
-        This currently formulates the `/vsicurl/...` URL [1] for files stored
-        in `self.get_url()`. This is assuming that all files are read-only.
-        External files can still be from private S3 buckets as long as
-        `self.get_url()` redirects to a presigned S3 URL [1]:
+        This currently formulates the `/vsicurl/...` URL [1] for internal and
+        external files. This is assuming that both are read-only. External
+        files can still be from private S3 buckets as long as `self.url`
+        redirects to a presigned S3 URL [1]:
 
             > Starting with GDAL 2.1, `/vsicurl/` will try to query directly
               redirected URLs to Amazon S3 signed URLs during their validity
@@ -229,13 +227,19 @@ class ChecksumFile(ModifiableEntry, TaskEventMixin):
               strings, too, and dispatch them to the proper format drivers
               and protocols.
 
-        The best way to setup authentication for both Rasterio and GDAL seems
-        to be via environment variables. This is done via
-        `settings.GdalMinioMixin` for develpment/testing environments.
+        `/vsis3/` could be used for...
+            * read/write access
+            * directory listing (for sibling files)
+        ...but is a bit more of a challenge to setup. [2]
 
         [0] https://gdal.org/user/virtual_file_systems.html
         [1] https://gdal.org/user/virtual_file_systems.html#vsicurl-http-https-ftp-files-random-access
-        [2] https://rasterio.readthedocs.io/en/latest/topics/switch.html?highlight=vsis3#dataset-identifiers
-
+        [2] https://gdal.org/user/virtual_file_systems.html#vsis3-aws-s3-files
+        [3] https://rasterio.readthedocs.io/en/latest/topics/switch.html?highlight=vsis3#dataset-identifiers
         """
-        return f'/vsicurl/{self.get_url()}'
+        gdal_options = {
+            'url': self.get_url(),
+            'use_head': 'no',
+            'list_dir': 'no',
+        }
+        return f'/vsicurl?{urlencode(gdal_options)}'
