@@ -165,29 +165,32 @@ def get_or_create_no_commit(model, defaults=None, **kwargs):
 
 @contextmanager
 def url_file_to_local_path(url: str, num_blocks=128, block_size=128) -> Generator[Path, None, None]:
-    # See https://github.com/ResonantGeoData/ResonantGeoData/issues/237
-    try:
-        import simple_httpfs  # noqa
+    remote = urlopen(url)
+    field_file_basename = PurePath(os.path.basename(url)).name
+    with tempfile.NamedTemporaryFile('wb', suffix=field_file_basename) as dest_stream:
+        while chunk := remote.read(num_blocks * block_size):
+            dest_stream.write(chunk)
+            dest_stream.flush()
+        yield Path(dest_stream.name)
 
-        parsed = urlparse(url)
-        if parsed.scheme == 'https':
-            fuse_path = url.replace('https://', '/tmp/rgd/https/') + '..'
-        elif parsed.scheme == 'http':
-            fuse_path = url.replace('http://', '/tmp/rgd/http/') + '..'
-        else:
-            raise ValueError(f'Scheme {parsed.scheme} not currently handled.')
-        # Make sure path is accessible
-        with open(fuse_path, 'r') as _:
-            pass  # will raise OSError if not available
-        yield Path(fuse_path)
-    except (ImportError, ValueError, OSError):
-        remote = urlopen(url)
-        field_file_basename = PurePath(os.path.basename(url)).name
-        with tempfile.NamedTemporaryFile('wb', suffix=field_file_basename) as dest_stream:
-            while chunk := remote.read(num_blocks * block_size):
-                dest_stream.write(chunk)
-                dest_stream.flush()
-            yield Path(dest_stream.name)
+
+@contextmanager
+def url_file_to_fuse_path(url: str) -> Generator[Path, None, None]:
+    # Could raise (ImportError, ValueError, OSError)
+    # See https://github.com/ResonantGeoData/ResonantGeoData/issues/237
+    import simple_httpfs  # noqa
+
+    parsed = urlparse(url)
+    if parsed.scheme == 'https':
+        fuse_path = url.replace('https://', '/tmp/rgd/https/') + '..'
+    elif parsed.scheme == 'http':
+        fuse_path = url.replace('http://', '/tmp/rgd/http/') + '..'
+    else:
+        raise ValueError(f'Scheme {parsed.scheme} not currently handled.')
+    # Make sure path is accessible
+    with open(fuse_path, 'r') as _:
+        pass  # will raise OSError if not available
+    yield Path(fuse_path)
 
 
 @contextmanager

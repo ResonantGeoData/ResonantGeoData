@@ -1,3 +1,4 @@
+from contextlib import contextmanager
 import os
 from urllib.parse import urlencode, urlparse
 
@@ -14,6 +15,7 @@ from rgd.utility import (
     compute_checksum_file,
     compute_checksum_url,
     patch_internal_presign,
+    url_file_to_fuse_path,
     url_file_to_local_path,
 )
 
@@ -189,13 +191,27 @@ class ChecksumFile(ModifiableEntry, TaskEventMixin):
         # Must save the model with the file before accessing it for the checksum
         super(ChecksumFile, self).save(*args, **kwargs)
 
-    def yield_local_path(self):
-        """Fetch the file from its source to a local path on disk."""
-        if self.type == FileSourceType.FILE_FIELD:
-            # Use field_file_to_local_path
-            return field_file_to_local_path(self.file)
-        elif self.type == FileSourceType.URL:
-            return url_file_to_local_path(self.url)
+    def yield_local_path(self, vsi=False):
+        """Fetch the file from its source to a local path on disk.
+
+        Parameters
+        ----------
+        vsi : bool
+            If FUSE fails, fallback to a Virtual File Systems URL. See
+            ``get_local_vsi_path``. This is especially useful if the file
+            is being utilized by GDAL and FUSE is not set up.
+
+        """
+        try:
+            return url_file_to_fuse_path(self.get_url())
+        except (ModuleNotFoundError, ImportError, ValueError, OSError):
+            if vsi:
+                return self.yield_local_vsi_path()
+            # Fallback to loading entire file locally
+            if self.type == FileSourceType.FILE_FIELD:
+                return field_file_to_local_path(self.file)
+            elif self.type == FileSourceType.URL:
+                return url_file_to_local_path(self.url)
 
     def get_url(self):
         """Get the URL of the stored resource."""
@@ -250,3 +266,8 @@ class ChecksumFile(ModifiableEntry, TaskEventMixin):
             'list_dir': 'no',
         }
         return f'/vsicurl?{urlencode(gdal_options)}'
+
+    @contextmanager
+    def yield_local_vsi_path(self):
+        """Wraps ``get_local_vsi_path`` in a context manager."""
+        yield self.get_local_vsi_path()

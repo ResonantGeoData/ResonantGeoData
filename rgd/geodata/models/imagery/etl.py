@@ -50,6 +50,110 @@ os.environ['GDAL_DATA'] = GDAL_DATA
 MAX_LOAD_SHAPE = (4000, 4000)
 
 
+def _read_image_to_entry(image_entry, image_file_path):
+
+    with rasterio.open(image_file_path) as src:
+        image_entry.number_of_bands = src.count
+        image_entry.driver = src.driver
+        image_entry.height = src.shape[0]
+        image_entry.width = src.shape[1]
+
+        # A catch-all metadata feild:
+        # TODO: image_entry.metadata =
+
+    # No longer editing image_entry
+    image_entry.save()
+
+    return
+
+
+def read_image_file(ife):
+    """Image ingestion routine.
+
+    This helper will open an image file from ``ImageFile`` and create a
+    ``ImageEntry`` and collection of ``BandMetaEntry`` entries.
+
+    """
+    # Fetch the image file this Layer corresponds to
+    if not isinstance(ife, ImageFile):
+        ife = ImageFile.objects.get(id=ife)
+
+    with ife.file.yield_local_path(vsi=True) as file_path:
+        logger.info(f'The image file path: {file_path}')
+
+        image_entry, created = get_or_create_no_commit(
+            ImageEntry, defaults=dict(name=ife.file.name), image_file=ife
+        )
+        if not created:
+            # Clear out associated entries because they could be invalid
+            BandMetaEntry.objects.filter(parent_image=image_entry).delete()
+            ConvertedImageFile.objects.filter(source_image=image_entry).delete()
+
+        _read_image_to_entry(image_entry, file_path)
+
+    return image_entry
+
+
+def _extract_raster_outline_fast(src):
+    dst_crs = rasterio.crs.CRS.from_epsg(DB_SRID)
+    left, bottom, right, top = transform_bounds(
+        src.crs, dst_crs, src.bounds.left, src.bounds.bottom, src.bounds.right, src.bounds.top
+    )
+    coords = np.array(
+        (
+            (left, top),
+            (right, top),
+            (right, bottom),
+            (left, bottom),
+            (left, top),  # Close the loop
+        )
+    )
+    return Polygon(coords, srid=DB_SRID)
+
+
+def _extract_raster_meta(image_file_entry):
+    """Extract all of the raster meta info in our models from an image file.
+
+    The keys of the returned dict should match the fields of the
+    ``RasterEntry``.
+
+    """
+    raster_meta = dict()
+    with image_file_entry.file.yield_local_path(vsi=True) as path:
+        with rasterio.open(path) as src:
+            raster_meta['crs'] = src.crs.to_proj4()
+            raster_meta['origin'] = [src.bounds.left, src.bounds.bottom]
+            raster_meta['extent'] = [
+                src.bounds.left,
+                src.bounds.bottom,
+                src.bounds.right,
+                src.bounds.top,
+            ]
+            raster_meta['resolution'] = src.res
+            raster_meta['transform'] = src.transform.to_gdal()  # TODO: check this
+            raster_meta['outline'] = _extract_raster_outline_fast(src)
+            raster_meta['footprint'] = raster_meta['outline']
+    return raster_meta
+
+
+def _get_valid_data_footprint(src, band_num):
+    """Get ``GEOSGeometry`` of valid data footprint from the raster mask."""
+    # Determine mask resolution to prevent loading massive imagery
+    # shape = tuple(np.min([src.shape, MAX_LOAD_SHAPE], axis=0))
+    # mask = src.read_masks(band_num, out_shape=shape, resampling=5)
+    # TODO: fix transform to match this resampling
+    mask = src.dataset_mask()
+
+    # Extract feature shapes and values from the array.
+    # Assumes already working in correct spatial reference
+    for geom, val in rasterio.features.shapes(mask, transform=src.transform):
+        # Ignore the 0-feature and only return on valid data feature
+        if val:
+            return GEOSGeometry(json.dumps(geom))
+
+    raise ValueError('No valid raster footprint found.')
+
+
 @contextmanager
 def _yield_downsampled_raster(raster):
     # https://gis.stackexchange.com/questions/329434/creating-an-in-memory-rasterio-dataset-from-numpy-array/329439#329439
@@ -131,117 +235,13 @@ def _reproject_raster(src, epsg):
     return rasterio.open(path, 'r')
 
 
-def _read_image_to_entry(image_entry, image_file_path):
-
-    with rasterio.open(image_file_path) as src:
-        image_entry.number_of_bands = src.count
-        image_entry.driver = src.driver
-        image_entry.height = src.shape[0]
-        image_entry.width = src.shape[1]
-
-        # A catch-all metadata feild:
-        # TODO: image_entry.metadata =
-
-    # No longer editing image_entry
-    image_entry.save()
-
-    return
-
-
-def read_image_file(ife):
-    """Image ingestion routine.
-
-    This helper will open an image file from ``ImageFile`` and create a
-    ``ImageEntry`` and collection of ``BandMetaEntry`` entries.
-
-    """
-    # Fetch the image file this Layer corresponds to
-    if not isinstance(ife, ImageFile):
-        ife = ImageFile.objects.get(id=ife)
-
-    with ife.file.yield_local_path() as file_path:
-        logger.info(f'The image file path: {file_path}')
-
-        image_entry, created = get_or_create_no_commit(
-            ImageEntry, defaults=dict(name=ife.file.name), image_file=ife
-        )
-        if not created:
-            # Clear out associated entries because they could be invalid
-            BandMetaEntry.objects.filter(parent_image=image_entry).delete()
-            ConvertedImageFile.objects.filter(source_image=image_entry).delete()
-
-        _read_image_to_entry(image_entry, file_path)
-
-    return image_entry
-
-
-def _extract_raster_outline_fast(src):
-    dst_crs = rasterio.crs.CRS.from_epsg(DB_SRID)
-    left, bottom, right, top = transform_bounds(
-        src.crs, dst_crs, src.bounds.left, src.bounds.bottom, src.bounds.right, src.bounds.top
-    )
-    coords = np.array(
-        (
-            (left, top),
-            (right, top),
-            (right, bottom),
-            (left, bottom),
-            (left, top),  # Close the loop
-        )
-    )
-    return Polygon(coords, srid=DB_SRID)
-
-
-def _extract_raster_meta(image_file_entry):
-    """Extract all of the raster meta info in our models from an image file.
-
-    The keys of the returned dict should match the fields of the
-    ``RasterEntry``.
-
-    """
-    raster_meta = dict()
-    with image_file_entry.file.yield_local_path() as path:
-        with rasterio.open(path) as src:
-            raster_meta['crs'] = src.crs.to_proj4()
-            raster_meta['origin'] = [src.bounds.left, src.bounds.bottom]
-            raster_meta['extent'] = [
-                src.bounds.left,
-                src.bounds.bottom,
-                src.bounds.right,
-                src.bounds.top,
-            ]
-            raster_meta['resolution'] = src.res
-            raster_meta['transform'] = src.transform.to_gdal()  # TODO: check this
-            raster_meta['outline'] = _extract_raster_outline_fast(src)
-            raster_meta['footprint'] = raster_meta['outline']
-    return raster_meta
-
-
-def _get_valid_data_footprint(src, band_num):
-    """Get ``GEOSGeometry`` of valid data footprint from the raster mask."""
-    # Determine mask resolution to prevent loading massive imagery
-    # shape = tuple(np.min([src.shape, MAX_LOAD_SHAPE], axis=0))
-    # mask = src.read_masks(band_num, out_shape=shape, resampling=5)
-    # TODO: fix transform to match this resampling
-    mask = src.dataset_mask()
-
-    # Extract feature shapes and values from the array.
-    # Assumes already working in correct spatial reference
-    for geom, val in rasterio.features.shapes(mask, transform=src.transform):
-        # Ignore the 0-feature and only return on valid data feature
-        if val:
-            return GEOSGeometry(json.dumps(geom))
-
-    raise ValueError('No valid raster footprint found.')
-
-
 def _extract_raster_footprint(image_file_entry):
     """Extract the footprint of raster's image file entry.
 
     This operates on the assumption that the image file is a valid raster.
 
     """
-    with image_file_entry.file.yield_local_path() as file_path:
+    with image_file_entry.file.yield_local_path(vsi=True) as file_path:
         # Reproject the raster to the DB SRID using rasterio directly rather
         #  than transforming the extracted geometry which had issues.
         src = _reproject_raster(rasterio.open(file_path), DB_SRID)
