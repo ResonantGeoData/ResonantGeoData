@@ -192,4 +192,5 @@ def patch_internal_presign(f: FieldFile):
             yield
         finally:
             f.storage.base_url = original_base_url
+        return
     yield
