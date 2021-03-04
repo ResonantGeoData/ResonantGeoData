@@ -8,12 +8,14 @@ from typing import Generator
 from urllib.parse import urlparse
 from urllib.request import urlopen
 
+from django.conf import settings
 from django.db.models import fields
 from django.db.models.fields import AutoField
 from django.db.models.fields.files import FieldFile, FileField
 from django.http import QueryDict
 from django.utils.safestring import mark_safe
 from django_filters.rest_framework import DjangoFilterBackend
+from minio_storage.storage import MinioStorage
 from rest_framework import parsers, serializers, viewsets
 
 
@@ -186,3 +188,25 @@ def url_file_to_local_path(url: str, num_blocks=128, block_size=128) -> Generato
                 dest_stream.write(chunk)
                 dest_stream.flush()
             yield Path(dest_stream.name)
+
+
+@contextmanager
+def patch_internal_presign(f: FieldFile):
+    """Create an environment where Minio-based `FieldFile`s construct a locally accessible presigned URL.
+
+    Sometimes the external host differs from the internal host for Minio files (e.g. in development).
+    Getting the URL in this context ensures that the presigned URL returns the correct host for the
+    odd situation of accessing the file locally.
+    """
+    if (
+        isinstance(f.storage, MinioStorage)
+        and getattr(settings, 'MINIO_STORAGE_MEDIA_URL', None) is not None
+    ):
+        original_base_url = f.storage.base_url
+        try:
+            f.storage.base_url = None
+            yield
+        finally:
+            f.storage.base_url = original_base_url
+        return
+    yield

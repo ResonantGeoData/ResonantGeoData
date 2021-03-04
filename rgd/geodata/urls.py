@@ -104,4 +104,19 @@ urlpatterns = [
         api.download.get_status_subsampled_image,
         name='subsampled-status',
     ),
+    path(
+        'api/geodata/imagery/image_entry/<int:pk>/tiles',
+        api.tiles.TileMetadataView.as_view(),
+        name='tilemetadata',
+    ),
+    path(
+        'api/geodata/imagery/image_entry/<int:pk>/tiles/<int:z>/<int:x>/<int:y>.png',
+        api.tiles.TileView.as_view(),
+        name='tile',
+    ),
+    path(
+        'api/geodata/imagery/image_entry/<int:pk>/thumbnail',
+        api.tiles.TileThumnailView.as_view(),
+        name='thumbnail',
+    ),
 ]
