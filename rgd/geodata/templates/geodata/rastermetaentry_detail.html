@@ -39,12 +39,12 @@
     {% for image in object.parent_raster.image_set.images.all %}
       <option value="{{ image.id }}">{{ image.name | truncatechars:36 }}</option>
     {% endfor %}
-    <option value="-1">None</option>
+    <option value="-1">-- none --</option>
   </select>
 
   <div class="slidecontainer">
     <label for="rasterOpacityRange">Thumbnail Opacity: </label>
-    <input type="range" min="1" max="100" value="75" class="slider" id="rasterOpacityRange" onChange="updateQuadOpacity(event, value)">
+    <input type="range" min="1" max="100" value="75" class="slider" id="rasterOpacityRange" onChange="updateTilesOpacity(event, value)">
   </div>
 
 {% endblock %}
@@ -54,55 +54,30 @@
   {% include 'geodata/_includes/empty_viewer.html' %}
 
   <script>
+    var host = window.location.protocol + "//" + window.location.host;
     let extents = JSON.parse('{{ extents|escapejs }}');
-
-    function createImage (src) {
-      let img = new Image();
-      img.crossOrigin = 'anonymous';
-      img.src = src;
-      return img
-    }
-
     var outline = JSON.parse(extents['outline'])["coordinates"][0]
-    // cacheQuads: https://opengeoscience.github.io/geojs/apidocs/geo.quadFeature.html#.spec
-    var quad = layer.createFeature('quad', {cacheQuads: false})
-      .data([
-        {
-          ul: {x: outline[0][0], y: outline[0][1]},
-          ur: {x: outline[1][0], y: outline[1][1]},
-          lr: {x: outline[2][0], y: outline[2][1]},
-          ll: {x: outline[3][0], y: outline[3][1]},
-        },
-      ])
-      .style({
-        color: '#6586c9',
-        opacity: 0.75,
-      })
-      .draw();
+
+    var tiles = map.createLayer('osm', {keepLower: false, attribution: ''});
+    tiles.opacity(0.75)
 
     function updateBandThumbnail () {
       selector = document.getElementById('band-selector')
       var image_id = Number(selector.value);
-      let image = null;
+      console.log(image_id)
       if (image_id >= 0) {
-        var src = extents['thumbnails'][image_id];
-        image = createImage(src);
+        tiles.visible(true)
+        tiles.url(`${host}/api/geodata/imagery/image_entry/${image_id}/tiles/{z}/{x}/{y}.png?projection=EPSG:3857`)
+      } else {
+        tiles.visible(false)
       }
-      quad.data([
-        {
-          ul: {x: outline[0][0], y: outline[0][1]},
-          ur: {x: outline[1][0], y: outline[1][1]},
-          lr: {x: outline[2][0], y: outline[2][1]},
-          ll: {x: outline[3][0], y: outline[3][1]},
-          image: image
-        },
-      ]).draw()
+      // TODO: clear tiles when `none` is selected
     }
     updateBandThumbnail()
 
-    function updateQuadOpacity(e, value) {
+    function updateTilesOpacity(e, value) {
       value = Number(value) / 100.0;
-      quad.style({opacity : value}).draw();
+      tiles.opacity(value);
     }
 
     // Add collected polygons to map
@@ -118,7 +93,8 @@
       .draw();
     });
 
-    setBounds(extents.extent, true)
+    setBounds(extents.extent, false)
+
   </script>
 
 {% endblock %}

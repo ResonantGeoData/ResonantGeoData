@@ -206,6 +206,8 @@ class ChecksumFile(ModifiableEntry, TaskEventMixin):
     def data_link(self):
         return _link_url('geodata', 'image_file', self, 'get_url')
 
+    data_link.allow_tags = True
+
     def get_vsi_path(self) -> str:
         """Return the GDAL Virtual File Systems [0] URL.
 
@@ -218,7 +220,7 @@ class ChecksumFile(ModifiableEntry, TaskEventMixin):
               redirected URLs to Amazon S3 signed URLs during their validity
               period, so as to minimize round-trips.
 
-        This URL can be used for both GDAL and Rasterio [3]:
+        This URL can be used for both GDAL and Rasterio [2]:
 
             > To help developers switch [from GDAL], Rasterio will accept
               [vsi] identifiers and other format-specific connection
@@ -241,5 +243,3 @@ class ChecksumFile(ModifiableEntry, TaskEventMixin):
             'list_dir': 'no',
         }
         return f'/vsicurl?{urlencode(gdal_options)}'
-
-    data_link.allow_tags = True
