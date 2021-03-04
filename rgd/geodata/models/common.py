@@ -1,5 +1,5 @@
 import os
-from urllib.parse import urlparse
+from urllib.parse import urlencode, urlparse
 
 # from django.contrib.auth import get_user_model
 from django.contrib.gis.db import models
@@ -13,6 +13,7 @@ from rgd.utility import (
     _link_url,
     compute_checksum_file,
     compute_checksum_url,
+    patch_internal_presign,
     url_file_to_local_path,
 )
 
@@ -207,3 +208,45 @@ class ChecksumFile(ModifiableEntry, TaskEventMixin):
         return _link_url('geodata', 'image_file', self, 'get_url')
 
     data_link.allow_tags = True
+
+    def get_local_vsi_path(self) -> str:
+        """Return the GDAL Virtual File Systems [0] URL.
+
+        In most cases this URL will be accessible from anywhere. In some cases,
+        this URL will only be accessible from within the container. See
+        `patch_internal_presign` for more details.
+
+        This currently formulates the `/vsicurl/...` URL [1] for internal and
+        external files. This is assuming that both are read-only. External
+        files can still be from private S3 buckets as long as `self.url`
+        redirects to a presigned S3 URL [1]:
+
+            > Starting with GDAL 2.1, `/vsicurl/` will try to query directly
+              redirected URLs to Amazon S3 signed URLs during their validity
+              period, so as to minimize round-trips.
+
+        This URL can be used for both GDAL and Rasterio [2]:
+
+            > To help developers switch [from GDAL], Rasterio will accept
+              [vsi] identifiers and other format-specific connection
+              strings, too, and dispatch them to the proper format drivers
+              and protocols.
+
+        `/vsis3/` could be used for...
+            * read/write access
+            * directory listing (for sibling files)
+        ...but is a bit more of a challenge to setup. [2]
+
+        [0] https://gdal.org/user/virtual_file_systems.html
+        [1] https://gdal.org/user/virtual_file_systems.html#vsicurl-http-https-ftp-files-random-access
+        [2] https://gdal.org/user/virtual_file_systems.html#vsis3-aws-s3-files
+        [3] https://rasterio.readthedocs.io/en/latest/topics/switch.html?highlight=vsis3#dataset-identifiers
+        """
+        with patch_internal_presign(self.file):
+            url = self.get_url()
+        gdal_options = {
+            'url': url,
+            'use_head': 'no',
+            'list_dir': 'no',
+        }
+        return f'/vsicurl?{urlencode(gdal_options)}'
