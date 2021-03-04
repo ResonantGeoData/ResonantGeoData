@@ -63,7 +63,7 @@ class SpatialEntry(models.Model):
     objects = InheritanceManager()
 
     def __str__(self):
-        return 'Spatial ID: {} (type: {})'.format(self.spatial_id, type(self))
+        return 'Spatial ID: {} (ID: {}, type: {})'.format(self.spatial_id, self.id, type(self))
 
     @property
     def subentry(self):
