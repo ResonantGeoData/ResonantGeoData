@@ -13,6 +13,7 @@ from rgd.utility import (
     _link_url,
     compute_checksum_file,
     compute_checksum_url,
+    patch_internal_presign,
     url_file_to_local_path,
 )
 
@@ -208,8 +209,12 @@ class ChecksumFile(ModifiableEntry, TaskEventMixin):
 
     data_link.allow_tags = True
 
-    def get_vsi_path(self) -> str:
+    def get_local_vsi_path(self) -> str:
         """Return the GDAL Virtual File Systems [0] URL.
+
+        In most cases this URL will be accessible from anywhere. In some cases,
+        this URL will only be accessible from within the container. See
+        `patch_internal_presign` for more details.
 
         This currently formulates the `/vsicurl/...` URL [1] for internal and
         external files. This is assuming that both are read-only. External
@@ -237,8 +242,10 @@ class ChecksumFile(ModifiableEntry, TaskEventMixin):
         [2] https://gdal.org/user/virtual_file_systems.html#vsis3-aws-s3-files
         [3] https://rasterio.readthedocs.io/en/latest/topics/switch.html?highlight=vsis3#dataset-identifiers
         """
+        with patch_internal_presign(self.file):
+            url = self.get_url()
         gdal_options = {
-            'url': self.get_url(),
+            'url': url,
             'use_head': 'no',
             'list_dir': 'no',
         }

@@ -13,7 +13,7 @@ class BaseTileView(APIView):
         """Return the built tile source."""
         image_entry = get_object_or_404(ImageEntry, pk=pk)
         self.check_object_permissions(request, image_entry)
-        file_path = image_entry.image_file.file.get_vsi_path()
+        file_path = image_entry.image_file.file.get_local_vsi_path()
         projection = request.query_params.get('projection', 'EPSG:3857')
         tile_source = GDALFileTileSource(file_path, projection=projection, encoding='PNG')
         return tile_source
