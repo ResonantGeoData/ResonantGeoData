@@ -22,6 +22,14 @@ jobs:
           name: Run linting
           command: tox -e lint
       - run:
+          name: Run check migrations
+          command: tox -e check-migrations
+          environment:
+            DJANGO_DATABASE_URL: postgres://postgres:postgres@localhost:5432/django
+            DJANGO_MINIO_STORAGE_ENDPOINT: localhost:9000
+            DJANGO_MINIO_STORAGE_ACCESS_KEY: minioAccessKey
+            DJANGO_MINIO_STORAGE_SECRET_KEY: minioSecretKey
+      - run:
           name: Run tests
           command: tox -e test
           environment:
