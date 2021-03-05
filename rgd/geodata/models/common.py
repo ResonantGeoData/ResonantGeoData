@@ -212,18 +212,17 @@ class ChecksumFile(ModifiableEntry, TaskEventMixin):
         """
         if precheck_fuse(self.get_url()):
             return url_file_to_fuse_path(self.get_url())
-        else:
-            if vsi:
-                logger.info('`yield_local_path` falling back to Virtual File System URL.')
-                return self.yield_local_vsi_path()
-            # Fallback to loading entire file locally
-            logger.info(
-                '`yield_local_path` falling back to downloading entire file to local storage.'
-            )
-            if self.type == FileSourceType.FILE_FIELD:
-                return field_file_to_local_path(self.file)
-            elif self.type == FileSourceType.URL:
-                return url_file_to_local_path(self.url)
+        elif vsi:
+            logger.info('`yield_local_path` falling back to Virtual File System URL.')
+            return self.yield_local_vsi_path()
+        # Fallback to loading entire file locally
+        logger.info(
+            '`yield_local_path` falling back to downloading entire file to local storage.'
+        )
+        if self.type == FileSourceType.FILE_FIELD:
+            return field_file_to_local_path(self.file)
+        elif self.type == FileSourceType.URL:
+            return url_file_to_local_path(self.url)
 
     def get_url(self):
         """Get the URL of the stored resource."""
