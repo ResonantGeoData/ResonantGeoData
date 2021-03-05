@@ -16,8 +16,12 @@ from django.db.models.fields.files import FieldFile, FileField
 from django.http import QueryDict
 from django.utils.safestring import mark_safe
 from django_filters.rest_framework import DjangoFilterBackend
-from minio_storage.storage import MinioStorage
 from rest_framework import parsers, serializers, viewsets
+
+try:
+    from minio_storage.storage import MinioStorage
+except ImportError:
+    MinioStorage = None
 
 logger = logging.getLogger(__name__)
 
@@ -213,7 +217,8 @@ def patch_internal_presign(f: FieldFile):
     odd situation of accessing the file locally.
     """
     if (
-        isinstance(f.storage, MinioStorage)
+        MinioStorage is not None
+        and isinstance(f.storage, MinioStorage)
         and getattr(settings, 'MINIO_STORAGE_MEDIA_URL', None) is not None
     ):
         original_base_url = f.storage.base_url
