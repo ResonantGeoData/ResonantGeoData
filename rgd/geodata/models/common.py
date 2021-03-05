@@ -284,5 +284,5 @@ class ChecksumFile(ModifiableEntry, TaskEventMixin):
 
     @contextmanager
     def yield_local_vsi_path(self):
-        """Wraps ``get_local_vsi_path`` in a context manager."""
+        """Wrap ``get_local_vsi_path`` in a context manager."""
         yield self.get_local_vsi_path()
