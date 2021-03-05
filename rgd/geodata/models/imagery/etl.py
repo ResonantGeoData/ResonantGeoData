@@ -219,7 +219,7 @@ def _reproject_raster(src, epsg):
         )
         kwargs = src.meta.copy()
         kwargs.update({'crs': dst_crs, 'transform': transform, 'width': width, 'height': height})
-        path = os.path.join(tmpdir, os.path.basename(src.name))
+        path = os.path.join(tmpdir, 'temp_raster')
         with rasterio.open(path, 'w', **kwargs) as dst:
             for i in range(1, src.count + 1):
                 reproject(
