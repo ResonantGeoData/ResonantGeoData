@@ -1,6 +1,7 @@
 from contextlib import contextmanager
 import hashlib
 import inspect
+import logging
 import os
 from pathlib import Path, PurePath
 import tempfile
@@ -17,6 +18,8 @@ from django.utils.safestring import mark_safe
 from django_filters.rest_framework import DjangoFilterBackend
 from minio_storage.storage import MinioStorage
 from rest_framework import parsers, serializers, viewsets
+
+logger = logging.getLogger(__name__)
 
 
 def _compute_hash(handle, chunk_num_blocks):
@@ -174,12 +177,22 @@ def url_file_to_local_path(url: str, num_blocks=128, block_size=128) -> Generato
         yield Path(dest_stream.name)
 
 
+def precheck_fuse(url: str) -> bool:
+    try:
+        import simple_httpfs  # noqa
+    except (ModuleNotFoundError, ImportError):
+        return False
+    parsed = urlparse(url)
+    if parsed.scheme not in ['https', 'http']:
+        return False
+    return True
+
+
 @contextmanager
 def url_file_to_fuse_path(url: str) -> Generator[Path, None, None]:
-    # Could raise (ImportError, ValueError, OSError)
+    # Could raise ValueError within context
+    # Assumes `precheck_fuse` was verified prior
     # See https://github.com/ResonantGeoData/ResonantGeoData/issues/237
-    import simple_httpfs  # noqa
-
     parsed = urlparse(url)
     if parsed.scheme == 'https':
         fuse_path = url.replace('https://', '/tmp/rgd/https/') + '..'
@@ -187,9 +200,7 @@ def url_file_to_fuse_path(url: str) -> Generator[Path, None, None]:
         fuse_path = url.replace('http://', '/tmp/rgd/http/') + '..'
     else:
         raise ValueError(f'Scheme {parsed.scheme} not currently handled.')
-    # Make sure path is accessible
-    with open(fuse_path, 'r') as _:
-        pass  # will raise OSError if not available
+    logger.info(f'FUSE path: {fuse_path}')
     yield Path(fuse_path)
 
 

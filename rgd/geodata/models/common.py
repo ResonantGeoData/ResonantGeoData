@@ -1,4 +1,5 @@
 from contextlib import contextmanager
+import logging
 import os
 from urllib.parse import urlencode, urlparse
 
@@ -15,6 +16,7 @@ from rgd.utility import (
     compute_checksum_file,
     compute_checksum_url,
     patch_internal_presign,
+    precheck_fuse,
     url_file_to_fuse_path,
     url_file_to_local_path,
 )
@@ -23,6 +25,8 @@ from .. import tasks
 from .collection import Collection
 from .constants import DB_SRID
 from .mixins import Status, TaskEventMixin
+
+logger = logging.getLogger(__name__)
 
 
 class ModifiableEntry(models.Model):
@@ -192,7 +196,11 @@ class ChecksumFile(ModifiableEntry, TaskEventMixin):
         super(ChecksumFile, self).save(*args, **kwargs)
 
     def yield_local_path(self, vsi=False):
-        """Fetch the file from its source to a local path on disk.
+        """Create a local path for the file to be accessed.
+
+        This will first attempt to use httpfs to FUSE mount the file's URL.
+        If FUSE is unavailable, this will fallback to a Virtual File Systems URL (``vsicurl``) if the ``vsi`` option is set. Otherwise, this will
+        download the entire file to local storage.
 
         Parameters
         ----------
@@ -202,12 +210,16 @@ class ChecksumFile(ModifiableEntry, TaskEventMixin):
             is being utilized by GDAL and FUSE is not set up.
 
         """
-        try:
+        if precheck_fuse(self.get_url()):
             return url_file_to_fuse_path(self.get_url())
-        except (ModuleNotFoundError, ImportError, ValueError, OSError):
+        else:
             if vsi:
+                logger.info('`yield_local_path` falling back to Virtual File System URL.')
                 return self.yield_local_vsi_path()
             # Fallback to loading entire file locally
+            logger.info(
+                '`yield_local_path` falling back to downloading entire file to local storage.'
+            )
             if self.type == FileSourceType.FILE_FIELD:
                 return field_file_to_local_path(self.file)
             elif self.type == FileSourceType.URL:
@@ -257,6 +269,7 @@ class ChecksumFile(ModifiableEntry, TaskEventMixin):
         [1] https://gdal.org/user/virtual_file_systems.html#vsicurl-http-https-ftp-files-random-access
         [2] https://gdal.org/user/virtual_file_systems.html#vsis3-aws-s3-files
         [3] https://rasterio.readthedocs.io/en/latest/topics/switch.html?highlight=vsis3#dataset-identifiers
+
         """
         with patch_internal_presign(self.file):
             url = self.get_url()
@@ -265,7 +278,9 @@ class ChecksumFile(ModifiableEntry, TaskEventMixin):
             'use_head': 'no',
             'list_dir': 'no',
         }
-        return f'/vsicurl?{urlencode(gdal_options)}'
+        vsicurl = f'/vsicurl?{urlencode(gdal_options)}'
+        logger.info(f'vsicurl URL: {vsicurl}')
+        return vsicurl
 
     @contextmanager
     def yield_local_vsi_path(self):
