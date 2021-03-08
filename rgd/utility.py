@@ -184,6 +184,7 @@ def url_file_to_local_path(url: str, num_blocks=128, block_size=128) -> Generato
 def precheck_fuse(url: str) -> bool:
     try:
         import simple_httpfs  # noqa
+
         # OSError could arise from not finding libfuse
     except (ImportError, OSError):
         return False
