@@ -11,6 +11,7 @@ RUN apt-get update && \
         libgl1-mesa-glx \
         libglib2.0-0 \
         ffmpeg \
+        fuse \
         && \
     rm -rf /var/lib/apt/lists/*
 
@@ -22,8 +23,12 @@ ENV PYTHONUNBUFFERED 1
 # over top of this directory, the .egg-link in site-packages resolves to the mounted directory
 # and all package modules are importable.
 COPY ./setup.py /opt/django-project/setup.py
+COPY ./fuse.sh /opt/django-project/fuse.sh
 # Use a directory name which will never be an import name, as isort considers this as first-party.
 WORKDIR /opt/django-project
 RUN pip install \
     --find-links https://girder.github.io/large_image_wheels \
-    -e .[dev,worker]
+    -e .[dev,worker] \
+    simple-httpfs
+
+ENTRYPOINT ["/opt/django-project/fuse.sh"]

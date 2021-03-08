@@ -1,4 +1,5 @@
 """Helper methods for creating a ``GDALRaster`` entry from a raster file."""
+from contextlib import contextmanager
 import json
 import os
 import tempfile
@@ -19,6 +20,7 @@ import kwimage
 import numpy as np
 from osgeo import gdal
 import rasterio
+from rasterio import Affine, MemoryFile
 import rasterio.features
 import rasterio.warp
 from rasterio.warp import Resampling, calculate_default_transform, reproject, transform_bounds
@@ -48,49 +50,6 @@ os.environ['GDAL_DATA'] = GDAL_DATA
 MAX_LOAD_SHAPE = (4000, 4000)
 
 
-def _reproject_raster(src, epsg):
-    """Reproject an open raster to given spatial reference.
-
-    This will return an open rasterio handle.
-
-    """
-    dst_crs = rasterio.crs.CRS.from_epsg(epsg)
-    if src.crs == dst_crs:
-        # If raster already in desired CRS, return itself
-        return src
-    workdir = getattr(settings, 'GEODATA_WORKDIR', None)
-    tmpdir = tempfile.mkdtemp(dir=workdir)
-    # If raster is NTIF format, convert first
-    if src.driver == 'NITF':
-        f = src.files[0]
-        output_path = os.path.join(tmpdir, os.path.basename(f)) + '.tiff'
-        ds = gdal.Open(f)
-        ds = gdal.Translate(output_path, ds, options=['-of', 'GTiff'])
-        ds = None
-        src = rasterio.open(output_path, 'r')
-
-    transform, width, height = calculate_default_transform(
-        src.crs, dst_crs, src.width, src.height, *src.bounds
-    )
-    kwargs = src.meta.copy()
-    kwargs.update({'crs': dst_crs, 'transform': transform, 'width': width, 'height': height})
-
-    path = os.path.join(tmpdir, os.path.basename(src.name))
-    with rasterio.open(path, 'w', **kwargs) as dst:
-        for i in range(1, src.count + 1):
-            reproject(
-                source=rasterio.band(src, i),
-                destination=rasterio.band(dst, i),
-                src_transform=src.transform,
-                src_crs=src.crs,
-                dst_transform=transform,
-                dst_crs=dst_crs,
-                resampling=Resampling.nearest,
-            )
-        dst.colorinterp = src.colorinterp
-    return rasterio.open(path, 'r')
-
-
 def _read_image_to_entry(image_entry, image_file_path):
 
     with rasterio.open(image_file_path) as src:
@@ -102,46 +61,9 @@ def _read_image_to_entry(image_entry, image_file_path):
         # A catch-all metadata feild:
         # TODO: image_entry.metadata =
 
-        # These are things I couldn't figure out how to get with gdal directly
-        dtypes = src.dtypes
-        interps = src.colorinterp
-
     # No longer editing image_entry
     image_entry.save()
 
-    # Rasterio is no longer open... using gdal directly:
-    gsrc = gdal.Open(str(image_file_path))  # Have to cast Path to str
-
-    n = gsrc.RasterCount
-    if n != image_entry.number_of_bands:
-        # Sanity check
-        raise ValueError('gdal detects different number of bands than rasterio.')
-    for i in range(n):
-        gdal_band = gsrc.GetRasterBand(i + 1)  # off by 1 indexing
-        band_meta = BandMetaEntry()
-        band_meta.parent_image = image_entry
-        band_meta.band_number = i + 1  # off by 1 indexing
-        band_meta.description = gdal_band.GetDescription()
-        band_meta.nodata_value = gdal_band.GetNoDataValue()
-        # band_meta.creator = ife.creator
-        # band_meta.modifier = ife.modifier
-        try:
-            band_meta.dtype = dtypes[i]
-        except IndexError:
-            pass
-        bmin, bmax, mean, std = gdal_band.GetStatistics(True, True)
-        band_meta.min = bmin
-        band_meta.max = bmax
-        band_meta.mean = mean
-        band_meta.std = std
-
-        try:
-            band_meta.interpretation = interps[i].name
-        except IndexError:
-            pass
-
-        # Save this band entirely
-        band_meta.save()
     return
 
 
@@ -156,7 +78,7 @@ def read_image_file(ife):
     if not isinstance(ife, ImageFile):
         ife = ImageFile.objects.get(id=ife)
 
-    with ife.file.yield_local_path() as file_path:
+    with ife.file.yield_local_path(vsi=True) as file_path:
         logger.info(f'The image file path: {file_path}')
 
         image_entry, created = get_or_create_no_commit(
@@ -197,7 +119,7 @@ def _extract_raster_meta(image_file_entry):
 
     """
     raster_meta = dict()
-    with image_file_entry.file.yield_local_path() as path:
+    with image_file_entry.file.yield_local_path(vsi=True) as path:
         with rasterio.open(path) as src:
             raster_meta['crs'] = src.crs.to_proj4()
             raster_meta['origin'] = [src.bounds.left, src.bounds.bottom]
@@ -232,13 +154,94 @@ def _get_valid_data_footprint(src, band_num):
     raise ValueError('No valid raster footprint found.')
 
 
+@contextmanager
+def _yield_downsampled_raster(raster):
+    # https://gis.stackexchange.com/questions/329434/creating-an-in-memory-rasterio-dataset-from-numpy-array/329439#329439
+    max_n = np.product(MAX_LOAD_SHAPE)
+    n = raster.height * raster.width
+    scale = 1.0
+    if n > max_n:
+        scale = max_n / n
+
+    if scale == 1.0:
+        yield raster
+        return
+
+    t = raster.transform
+    # rescale the metadata
+    transform = Affine(t.a / scale, t.b, t.c, t.d, t.e / scale, t.f)
+    height = int(raster.height * scale)
+    width = int(raster.width * scale)
+
+    profile = raster.profile
+    profile.update(transform=transform, height=height, width=width)
+
+    data = raster.read(
+        out_shape=(raster.count, height, width),
+        resampling=Resampling.bilinear,
+    )
+
+    with MemoryFile() as memfile:
+        with memfile.open(**profile) as dataset:
+            dataset.write(data)
+            del data
+
+        with memfile.open() as dataset:  # Reopen as DatasetReader
+            yield dataset  # Note yield not return
+
+
+def _reproject_raster(src, epsg):
+    """Reproject an open raster to given spatial reference.
+
+    This will return an open rasterio handle.
+
+    """
+    dst_crs = rasterio.crs.CRS.from_epsg(epsg)
+    if src.crs == dst_crs:
+        # If raster already in desired CRS, return itself
+        return src
+
+    # Get a downsampled version of the original raster
+    with _yield_downsampled_raster(src) as src:
+        workdir = getattr(settings, 'GEODATA_WORKDIR', None)
+        tmpdir = tempfile.mkdtemp(dir=workdir)
+        # If raster is NTIF format, convert first
+        if src.driver == 'NITF':
+            f = src.files[0]
+            output_path = os.path.join(tmpdir, os.path.basename(f)) + '.tiff'
+            ds = gdal.Open(f)
+            ds = gdal.Translate(output_path, ds, options=['-of', 'GTiff'])
+            ds = None
+            src = rasterio.open(output_path, 'r')
+
+        transform, width, height = calculate_default_transform(
+            src.crs, dst_crs, src.width, src.height, *src.bounds
+        )
+        kwargs = src.meta.copy()
+        kwargs.update({'crs': dst_crs, 'transform': transform, 'width': width, 'height': height})
+        path = os.path.join(tmpdir, 'temp_raster')
+        with rasterio.open(path, 'w', **kwargs) as dst:
+            for i in range(1, src.count + 1):
+                reproject(
+                    source=rasterio.band(src, i),
+                    destination=rasterio.band(dst, i),
+                    src_transform=src.transform,
+                    src_crs=src.crs,
+                    dst_transform=transform,
+                    dst_crs=dst_crs,
+                    resampling=Resampling.bilinear,
+                )
+            dst.colorinterp = src.colorinterp
+    return rasterio.open(path, 'r')
+
+
 def _extract_raster_footprint(image_file_entry):
     """Extract the footprint of raster's image file entry.
 
     This operates on the assumption that the image file is a valid raster.
 
     """
-    with image_file_entry.file.yield_local_path() as file_path:
+    with image_file_entry.file.yield_local_path(vsi=True) as file_path:
         # Reproject the raster to the DB SRID using rasterio directly rather
         #  than transforming the extracted geometry which had issues.
         src = _reproject_raster(rasterio.open(file_path), DB_SRID)

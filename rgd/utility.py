@@ -1,10 +1,12 @@
 from contextlib import contextmanager
 import hashlib
 import inspect
+import logging
 import os
 from pathlib import Path, PurePath
 import tempfile
 from typing import Generator
+from urllib.parse import urlparse
 from urllib.request import urlopen
 
 from django.conf import settings
@@ -20,6 +22,8 @@ try:
     from minio_storage.storage import MinioStorage
 except ImportError:
     MinioStorage = None
+
+logger = logging.getLogger(__name__)
 
 
 def _compute_hash(handle, chunk_num_blocks):
@@ -168,7 +172,6 @@ def get_or_create_no_commit(model, defaults=None, **kwargs):
 
 @contextmanager
 def url_file_to_local_path(url: str, num_blocks=128, block_size=128) -> Generator[Path, None, None]:
-    # Eventually we need to re-work this for https://github.com/ResonantGeoData/ResonantGeoData/issues/237
     remote = urlopen(url)
     field_file_basename = PurePath(os.path.basename(url)).name
     with tempfile.NamedTemporaryFile('wb', suffix=field_file_basename) as dest_stream:
@@ -176,6 +179,33 @@ def url_file_to_local_path(url: str, num_blocks=128, block_size=128) -> Generato
             dest_stream.write(chunk)
             dest_stream.flush()
         yield Path(dest_stream.name)
+
+
+def precheck_fuse(url: str) -> bool:
+    try:
+        import simple_httpfs  # noqa
+    except ImportError:
+        return False
+    parsed = urlparse(url)
+    if parsed.scheme not in ['https', 'http']:
+        return False
+    return True
+
+
+@contextmanager
+def url_file_to_fuse_path(url: str) -> Generator[Path, None, None]:
+    # Could raise ValueError within context
+    # Assumes `precheck_fuse` was verified prior
+    # See https://github.com/ResonantGeoData/ResonantGeoData/issues/237
+    parsed = urlparse(url)
+    if parsed.scheme == 'https':
+        fuse_path = url.replace('https://', '/tmp/rgd/https/') + '..'
+    elif parsed.scheme == 'http':
+        fuse_path = url.replace('http://', '/tmp/rgd/http/') + '..'
+    else:
+        raise ValueError(f'Scheme {parsed.scheme} not currently handled.')
+    logger.info(f'FUSE path: {fuse_path}')
+    yield Path(fuse_path)
 
 
 @contextmanager

@@ -6,6 +6,7 @@ from django.db.models import Count
 
 from rgd.geodata import models
 from rgd.geodata.datastore import datastore, registry
+from rgd.geodata.models.imagery.etl import read_image_file
 from rgd.utility import get_or_create_no_commit
 
 
@@ -35,11 +36,13 @@ def _get_or_download_checksum_file(name):
     return file_entry
 
 
-def _get_or_create_file_model(model, name):
+def _get_or_create_file_model(model, name, skip_task=False):
     # For models that point to a `ChecksumFile`
     file_entry = _get_or_download_checksum_file(name)
     entry, _ = model.objects.get_or_create(file=file_entry)
     # In case the last population failed
+    if skip_task:
+        entry.skip_task = True
     if entry.status != models.mixins.Status.SUCCEEDED:
         entry.save()
     return entry
@@ -51,7 +54,9 @@ def load_image_files(image_files):
         if isinstance(imfile, (list, tuple)):
             result = load_image_files(imfile)
         else:
-            entry = _get_or_create_file_model(models.ImageFile, imfile)
+            # Run `read_image_file` sequentially to ensure `ImageEntry` is generated
+            entry = _get_or_create_file_model(models.ImageFile, imfile, skip_task=True)
+            read_image_file(entry)
             result = entry.imageentry.pk
         ids.append(result)
     return ids
