@@ -206,7 +206,7 @@ class ChecksumFile(ModifiableEntry, TaskEventMixin):
         ----------
         vsi : bool
             If FUSE fails, fallback to a Virtual File Systems URL. See
-            ``get_local_vsi_path``. This is especially useful if the file
+            ``get_vsi_path``. This is especially useful if the file
             is being utilized by GDAL and FUSE is not set up.
 
         """
@@ -214,7 +214,7 @@ class ChecksumFile(ModifiableEntry, TaskEventMixin):
             return url_file_to_fuse_path(self.get_url())
         elif vsi:
             logger.info('`yield_local_path` falling back to Virtual File System URL.')
-            return self.yield_local_vsi_path()
+            return self.yield_vsi_path()
         # Fallback to loading entire file locally
         logger.info('`yield_local_path` falling back to downloading entire file to local storage.')
         if self.type == FileSourceType.FILE_FIELD:
@@ -242,7 +242,7 @@ class ChecksumFile(ModifiableEntry, TaskEventMixin):
 
     data_link.allow_tags = True
 
-    def get_local_vsi_path(self) -> str:
+    def get_vsi_path(self) -> str:
         """Return the GDAL Virtual File Systems [0] URL.
 
         This currently formulates the `/vsicurl/...` URL [1] for internal and
@@ -283,6 +283,6 @@ class ChecksumFile(ModifiableEntry, TaskEventMixin):
         return vsicurl
 
     @contextmanager
-    def yield_local_vsi_path(self):
-        """Wrap ``get_local_vsi_path`` in a context manager."""
-        yield self.get_local_vsi_path()
+    def yield_vsi_path(self):
+        """Wrap ``get_vsi_path`` in a context manager."""
+        yield self.get_vsi_path()
