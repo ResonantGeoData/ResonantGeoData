@@ -225,7 +225,9 @@ class ChecksumFile(ModifiableEntry, TaskEventMixin):
     def get_url(self):
         """Get the URL of the stored resource."""
         if self.type == FileSourceType.FILE_FIELD:
-            return self.file.url
+            with patch_internal_presign(self.file):
+                url = self.file.url
+            return url
         elif self.type == FileSourceType.URL:
             return self.url
 
