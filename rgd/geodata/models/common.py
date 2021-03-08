@@ -223,9 +223,17 @@ class ChecksumFile(ModifiableEntry, TaskEventMixin):
             return url_file_to_local_path(self.url)
 
     def get_url(self):
-        """Get the URL of the stored resource."""
+        """Get the URL of the stored resource.
+
+        In most cases this URL will be accessible from anywhere. In some cases,
+        this URL will only be accessible from within the container. See
+        `patch_internal_presign` for more details.
+
+        """
         if self.type == FileSourceType.FILE_FIELD:
-            return self.file.url
+            with patch_internal_presign(self.file):
+                url = self.file.url
+            return url
         elif self.type == FileSourceType.URL:
             return self.url
 
@@ -236,10 +244,6 @@ class ChecksumFile(ModifiableEntry, TaskEventMixin):
 
     def get_local_vsi_path(self) -> str:
         """Return the GDAL Virtual File Systems [0] URL.
-
-        In most cases this URL will be accessible from anywhere. In some cases,
-        this URL will only be accessible from within the container. See
-        `patch_internal_presign` for more details.
 
         This currently formulates the `/vsicurl/...` URL [1] for internal and
         external files. This is assuming that both are read-only. External
@@ -268,8 +272,7 @@ class ChecksumFile(ModifiableEntry, TaskEventMixin):
         [3] https://rasterio.readthedocs.io/en/latest/topics/switch.html?highlight=vsis3#dataset-identifiers
 
         """
-        with patch_internal_presign(self.file):
-            url = self.get_url()
+        url = self.get_url()
         gdal_options = {
             'url': url,
             'use_head': 'no',
