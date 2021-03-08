@@ -5,8 +5,15 @@ import pytest
 
 from rgd.geodata.datastore import datastore, registry
 from rgd.geodata.models import common
+from rgd.utility import precheck_fuse
 
 FILENAME = 'stars.png'
+
+try:
+    import simple_httpfs  # noqa
+    HAS_FUSE = True
+except ImportError:
+    HAS_FUSE = False
 
 
 @pytest.fixture
@@ -88,16 +95,16 @@ def test_checksumfile_file_yield_local_path(file_path):
     model.type = common.FileSourceType.FILE_FIELD
     model.file.save(FILENAME, open(file_path, 'rb'))
     model.save()
-    path = model.yield_local_path()
     with model.yield_local_path() as path:
         assert os.path.exists(path)
-    # Make sure it is cleaned up afer context ends
-    assert not os.path.exists(path)
-    # Now test that is gets cleaned up during an exception
-    with pytest.raises(ValueError):
-        with model.yield_local_path() as path:
-            raise ValueError()
-    assert not os.path.exists(path)
+    if not HAS_FUSE:
+        # Make sure it is cleaned up afer context ends
+        assert not os.path.exists(path)
+        # Now test that is gets cleaned up during an exception
+        with pytest.raises(ValueError):
+            with model.yield_local_path() as path:
+                raise ValueError()
+        assert not os.path.exists(path)
 
 
 @pytest.mark.django_db(transaction=True)
@@ -108,10 +115,26 @@ def test_checksumfile_url_yield_local_path():
     model.save()
     with model.yield_local_path() as path:
         assert os.path.exists(path)
-    # Make sure it is cleaned up afer context ends
-    assert not os.path.exists(path)
-    # Now test that is gets cleaned up during an exception
-    with pytest.raises(ValueError):
-        with model.yield_local_path() as path:
-            raise ValueError()
-    assert not os.path.exists(path)
+    if not HAS_FUSE:
+        # Make sure it is cleaned up afer context ends
+        assert not os.path.exists(path)
+        # Now test that is gets cleaned up during an exception
+        with pytest.raises(ValueError):
+            with model.yield_local_path() as path:
+                raise ValueError()
+        assert not os.path.exists(path)
+
+
+@pytest.mark.skipif(not HAS_FUSE, reason='simple_httpfs not installed.')
+@pytest.mark.django_db(transaction=True)
+def test_checksum_file_fuse_file_field(file_path):
+    model = common.ChecksumFile()
+    model.type = common.FileSourceType.FILE_FIELD
+    model.file.save(FILENAME, open(file_path, 'rb'))
+    model.save()
+    assert precheck_fuse(model.get_url())
+    with model.yield_local_path() as path:
+        assert os.path.exists(path)
+        assert str(path).startswith('/tmp/rgd/http')
+        with open(path, 'r') as _:
+            pass
