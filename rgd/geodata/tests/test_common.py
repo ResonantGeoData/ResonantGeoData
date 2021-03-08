@@ -13,7 +13,7 @@ try:
     import simple_httpfs  # noqa
 
     HAS_FUSE = True
-except ImportError:
+except (ImportError, OSError):
     HAS_FUSE = False
 
 
