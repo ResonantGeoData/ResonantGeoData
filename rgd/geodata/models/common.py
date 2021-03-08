@@ -211,10 +211,10 @@ class ChecksumFile(ModifiableEntry, TaskEventMixin):
 
         """
         if self.type == FileSourceType.URL and precheck_fuse(self.get_url()):
-            return url_file_to_fuse_path(self.get_url())
+            return url_file_to_fuse_path(self.get_url(internal=True))
         elif vsi:
             logger.info('`yield_local_path` falling back to Virtual File System URL.')
-            return self.yield_vsi_path()
+            return self.yield_vsi_path(internal=True)
         # Fallback to loading entire file locally
         logger.info('`yield_local_path` falling back to downloading entire file to local storage.')
         if self.type == FileSourceType.FILE_FIELD:
@@ -222,16 +222,24 @@ class ChecksumFile(ModifiableEntry, TaskEventMixin):
         elif self.type == FileSourceType.URL:
             return url_file_to_local_path(self.url)
 
-    def get_url(self):
+    def get_url(self, internal=False):
         """Get the URL of the stored resource.
 
-        In most cases this URL will be accessible from anywhere. In some cases,
-        this URL will only be accessible from within the container. See
-        `patch_internal_presign` for more details.
+        Parameters
+        ----------
+        internal : bool
+            In most cases this URL will be accessible from anywhere. In some
+            cases, this URL will only be accessible from within the container.
+            This flag is for use with internal processes to make sure the host
+            is correctly set to ``minio`` when needed. See
+            ``patch_internal_presign`` for more details.
 
         """
         if self.type == FileSourceType.FILE_FIELD:
-            with patch_internal_presign(self.file):
+            if internal:
+                with patch_internal_presign(self.file):
+                    url = self.file.url
+            else:
                 url = self.file.url
             return url
         elif self.type == FileSourceType.URL:
@@ -242,7 +250,7 @@ class ChecksumFile(ModifiableEntry, TaskEventMixin):
 
     data_link.allow_tags = True
 
-    def get_vsi_path(self) -> str:
+    def get_vsi_path(self, internal=False) -> str:
         """Return the GDAL Virtual File Systems [0] URL.
 
         This currently formulates the `/vsicurl/...` URL [1] for internal and
@@ -272,7 +280,7 @@ class ChecksumFile(ModifiableEntry, TaskEventMixin):
         [3] https://rasterio.readthedocs.io/en/latest/topics/switch.html?highlight=vsis3#dataset-identifiers
 
         """
-        url = self.get_url()
+        url = self.get_url(internal=internal)
         gdal_options = {
             'url': url,
             'use_head': 'no',
@@ -283,6 +291,6 @@ class ChecksumFile(ModifiableEntry, TaskEventMixin):
         return vsicurl
 
     @contextmanager
-    def yield_vsi_path(self):
+    def yield_vsi_path(self, internal=False):
         """Wrap ``get_vsi_path`` in a context manager."""
-        yield self.get_vsi_path()
+        yield self.get_vsi_path(internal=internal)
