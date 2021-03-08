@@ -26,12 +26,12 @@ class FMVFile(ModifiableEntry, TaskEventMixin):
     frame_rate = models.FloatField(null=True)
 
     def fmv_data_link(self):
-        return _link_url('geodata', 'fmv_file', self, 'file')
+        return self.file.data_link()
 
     fmv_data_link.allow_tags = True
 
     def klv_data_link(self):
-        return _link_url('geodata', 'fmv_entry', self, 'klv_file')
+        return _link_url(self, 'klv_file')
 
     klv_data_link.allow_tags = True
 
