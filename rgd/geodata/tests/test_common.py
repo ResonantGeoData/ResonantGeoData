@@ -11,6 +11,7 @@ FILENAME = 'stars.png'
 
 try:
     import simple_httpfs  # noqa
+
     HAS_FUSE = True
 except ImportError:
     HAS_FUSE = False
