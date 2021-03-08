@@ -44,7 +44,7 @@ def compute_checksum_url(url: str, chunk_num_blocks=128):
     return _compute_hash(remote, chunk_num_blocks)
 
 
-def _link_url(root, name, obj, field):
+def _link_url(obj, field):
     if not getattr(obj, field, None):
         return 'No attachment'
     attr = getattr(obj, field)

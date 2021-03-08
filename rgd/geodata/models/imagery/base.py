@@ -3,8 +3,6 @@ from django.contrib.gis.db import models
 from django.contrib.postgres import fields
 from django.utils.translation import gettext_lazy as _
 
-from rgd.utility import _link_url
-
 from ... import tasks
 from ..common import ChecksumFile, ModifiableEntry, SpatialEntry
 from ..mixins import Status, TaskEventMixin
@@ -27,7 +25,7 @@ class ImageFile(ModifiableEntry, TaskEventMixin):
     file = models.ForeignKey(ChecksumFile, on_delete=models.CASCADE)
 
     def image_data_link(self):
-        return _link_url('geodata', 'image_file', self, 'file')
+        return self.file.data_link()
 
     image_data_link.allow_tags = True
 

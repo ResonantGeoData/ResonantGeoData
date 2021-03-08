@@ -2,8 +2,6 @@ from django.contrib.gis.db import models
 from django.core.exceptions import ValidationError
 import magic
 
-from rgd.utility import _link_url
-
 from ... import tasks
 from ..common import ChecksumFile, ModifiableEntry, SpatialEntry
 from ..constants import DB_SRID
@@ -37,7 +35,7 @@ class GeometryArchive(ModifiableEntry, TaskEventMixin):
         super(GeometryArchive, self).save(*args, **kwargs)
 
     def archive_data_link(self):
-        return _link_url('geodata', 'geometry_archive', self, 'file')
+        return self.file.data_link()
 
     archive_data_link.allow_tags = True
 

@@ -230,7 +230,7 @@ class ChecksumFile(ModifiableEntry, TaskEventMixin):
             return self.url
 
     def data_link(self):
-        return _link_url('geodata', 'image_file', self, 'get_url')
+        return _link_url(self, 'get_url')
 
     data_link.allow_tags = True
 
