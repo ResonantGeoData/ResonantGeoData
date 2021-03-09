@@ -70,7 +70,10 @@ class SpatialEntry(models.Model):
     objects = InheritanceManager()
 
     def __str__(self):
-        return 'Spatial ID: {} (ID: {}, type: {})'.format(self.spatial_id, self.id, type(self))
+        try:
+            return 'Spatial ID: {} (ID: {}, type: {})'.format(self.spatial_id, self.id, type(self))
+        except AttributeError:
+            return super().__str__()
 
     @property
     def subentry(self):
