@@ -1,3 +1,4 @@
+from . import tasks
 from .models.imagery import ImageSet, RasterEntry
 
 
@@ -81,4 +82,11 @@ def reprocess_raster_entries(modeladmin, request, queryset):
     """
     for rast in queryset.all():
         rast.save()
+    return
+
+
+def generate_valid_data_footprint(modeladmin, request, queryset):
+    """Generate a valid data footprint for each raster."""
+    for rast in queryset.all():
+        tasks.task_populate_raster_footprint.delay(rast.id)
     return

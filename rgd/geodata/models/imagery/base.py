@@ -105,7 +105,7 @@ class RasterEntry(ModifiableEntry, TaskEventMixin):
 
     task_funcs = (
         tasks.task_populate_raster_entry,
-        tasks.task_populate_raster_footprint,
+        # tasks.task_populate_raster_footprint,
     )
     failure_reason = models.TextField(null=True)
     status = models.CharField(max_length=20, default=Status.CREATED, choices=Status.choices)
