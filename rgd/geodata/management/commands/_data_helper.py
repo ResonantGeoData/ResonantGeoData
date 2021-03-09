@@ -4,7 +4,7 @@ from urllib.request import urlopen
 
 from django.db.models import Count
 
-from rgd.geodata import models
+from rgd.geodata import models, tasks
 from rgd.geodata.datastore import datastore, registry
 from rgd.geodata.models.imagery.etl import read_image_file
 from rgd.utility import get_or_create_no_commit
@@ -33,6 +33,7 @@ def _get_or_download_checksum_file(name):
             file_entry.file.save(os.path.basename(path), open(path, 'rb'))
             file_entry.type = models.FileSourceType.FILE_FIELD
             file_entry.save()
+            tasks.task_checksum_file_post_save.delay(file_entry.id)
     return file_entry
 
 
