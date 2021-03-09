@@ -130,7 +130,9 @@ class ChecksumFile(ModifiableEntry, TaskEventMixin):
     file = S3FileField(null=True, blank=True)
     url = models.TextField(null=True, blank=True)
 
-    task_funcs = (tasks.task_checksum_file_post_save,)
+    task_funcs = (
+        # tasks.task_checksum_file_post_save,
+    )
     failure_reason = models.TextField(null=True)
     status = models.CharField(max_length=20, default=Status.CREATED, choices=Status.choices)
 
