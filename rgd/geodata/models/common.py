@@ -21,7 +21,7 @@ from rgd.utility import (
     url_file_to_local_path,
 )
 
-from .. import tasks
+# from .. import tasks
 from .collection import Collection
 from .constants import DB_SRID
 from .mixins import Status, TaskEventMixin
