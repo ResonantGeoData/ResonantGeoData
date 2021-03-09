@@ -157,10 +157,10 @@ class BandMetaEntry(ModifiableEntry):
         help_text='Automatically retreived from raster but can be overwritten.',
     )
     dtype = models.CharField(max_length=10)
-    max = models.FloatField()
-    min = models.FloatField()
-    mean = models.FloatField()
-    std = models.FloatField()
+    max = models.FloatField(null=True)
+    min = models.FloatField(null=True)
+    mean = models.FloatField(null=True)
+    std = models.FloatField(null=True)
     nodata_value = models.FloatField(null=True)
     interpretation = models.TextField()
 
