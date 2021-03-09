@@ -119,22 +119,5 @@ def task_checksum_file_post_save(checksumfile_id):
 
     obj = ChecksumFile.objects.get(id=checksumfile_id)
 
-    def _checksum_file_post_save(obj):
-        if not obj.checksum or obj.validate_checksum:
-            if obj.validate_checksum:
-                obj.validate()
-            else:
-                obj.update_checksum()
-            # Reset the user flags
-            obj.validate_checksum = False
-            # Simple update save - not full save
-            obj.save(
-                update_fields=[
-                    'checksum',
-                    'last_validation',
-                    'validate_checksum',
-                ]
-            )
-
-    _run_with_failure_reason(obj, _checksum_file_post_save, obj)
+    _run_with_failure_reason(obj, obj.post_save_job)
     return

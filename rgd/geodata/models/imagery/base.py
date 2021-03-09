@@ -105,7 +105,7 @@ class RasterEntry(ModifiableEntry, TaskEventMixin):
 
     task_funcs = (
         tasks.task_populate_raster_entry,
-        tasks.task_populate_raster_footprint,
+        # tasks.task_populate_raster_footprint,
     )
     failure_reason = models.TextField(null=True)
     status = models.CharField(max_length=20, default=Status.CREATED, choices=Status.choices)
@@ -157,10 +157,10 @@ class BandMetaEntry(ModifiableEntry):
         help_text='Automatically retreived from raster but can be overwritten.',
     )
     dtype = models.CharField(max_length=10)
-    max = models.FloatField()
-    min = models.FloatField()
-    mean = models.FloatField()
-    std = models.FloatField()
+    max = models.FloatField(null=True)
+    min = models.FloatField(null=True)
+    mean = models.FloatField(null=True)
+    std = models.FloatField(null=True)
     nodata_value = models.FloatField(null=True)
     interpretation = models.TextField()
 
@@ -267,6 +267,7 @@ class KWCOCOArchive(ModifiableEntry, TaskEventMixin):
         #  this will cascade to the annotations
         images = self.image_set.images.all()
         for image in images:
-            image.image_file.delete()
+            # This should cascade to the ImageFile and the ImageEntry
+            image.image_file.file.delete()
         # Now delete the empty image set
         self.image_set.delete()

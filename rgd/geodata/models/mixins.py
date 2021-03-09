@@ -28,6 +28,8 @@ class TaskEventMixin(object):
     def _run_task(self):
         if not isinstance(self.task_funcs, Iterable):
             self.task_funcs = (self.task_funcs,)
+        if len(self.task_funcs) < 1:
+            return
         if not all([callable(f) for f in self.task_funcs]):
             raise RuntimeError('Task function(s) must be set to a callable.')  # pragma: no cover
         self.status = Status.QUEUED

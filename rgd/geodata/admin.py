@@ -182,7 +182,10 @@ class RasterEntryAdmin(OSMGeoAdmin):
         'created',
     ) + TASK_EVENT_READONLY
     inlines = (RasterMetaEntryInline,)
-    actions = (actions.reprocess_raster_entries,)
+    actions = (
+        actions.reprocess_raster_entries,
+        actions.generate_valid_data_footprint,
+    )
 
 
 class SegmentationInline(admin.StackedInline):

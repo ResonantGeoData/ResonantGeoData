@@ -21,7 +21,7 @@ from rgd.utility import (
     url_file_to_local_path,
 )
 
-from .. import tasks
+# from .. import tasks
 from .collection import Collection
 from .constants import DB_SRID
 from .mixins import Status, TaskEventMixin
@@ -70,7 +70,10 @@ class SpatialEntry(models.Model):
     objects = InheritanceManager()
 
     def __str__(self):
-        return 'Spatial ID: {} (ID: {}, type: {})'.format(self.spatial_id, self.id, type(self))
+        try:
+            return 'Spatial ID: {} (ID: {}, type: {})'.format(self.spatial_id, self.id, type(self))
+        except AttributeError:
+            return super().__str__()
 
     @property
     def subentry(self):
@@ -130,7 +133,9 @@ class ChecksumFile(ModifiableEntry, TaskEventMixin):
     file = S3FileField(null=True, blank=True)
     url = models.TextField(null=True, blank=True)
 
-    task_funcs = (tasks.task_checksum_file_post_save,)
+    task_funcs = (
+        # tasks.task_checksum_file_post_save,
+    )
     failure_reason = models.TextField(null=True)
     status = models.CharField(max_length=20, default=Status.CREATED, choices=Status.choices)
 
@@ -184,6 +189,23 @@ class ChecksumFile(ModifiableEntry, TaskEventMixin):
             ]
         )
         return self.last_validation
+
+    def post_save_job(self):
+        if not self.checksum or self.validate_checksum:
+            if self.validate_checksum:
+                self.validate()
+            else:
+                self.update_checksum()
+            # Reset the user flags
+            self.validate_checksum = False
+            # Simple update save - not full save
+            self.save(
+                update_fields=[
+                    'checksum',
+                    'last_validation',
+                    'validate_checksum',
+                ]
+            )
 
     def save(self, *args, **kwargs):
         if not self.name:
