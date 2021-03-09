@@ -190,6 +190,23 @@ class ChecksumFile(ModifiableEntry, TaskEventMixin):
         )
         return self.last_validation
 
+    def post_save_job(self):
+        if not self.checksum or self.validate_checksum:
+            if self.validate_checksum:
+                self.validate()
+            else:
+                self.update_checksum()
+            # Reset the user flags
+            self.validate_checksum = False
+            # Simple update save - not full save
+            self.save(
+                update_fields=[
+                    'checksum',
+                    'last_validation',
+                    'validate_checksum',
+                ]
+            )
+
     def save(self, *args, **kwargs):
         if not self.name:
             if self.type == FileSourceType.FILE_FIELD and self.file.name:
