@@ -63,9 +63,20 @@ def load_image_files(image_files):
     return ids
 
 
-def load_raster_files(raster_files):
+def load_raster_files(raster_files, dates=None, names=None):
+
+    if isinstance(raster_files, dict):
+        files = []
+        dates = []
+        names = []
+        for name, rf in raster_files.items():
+            files.append([rf['R'], rf['G'], rf['B']])
+            dates.append(rf['acquisition'])
+            names.append(name)
+        raster_files = files
+
     ids = []
-    for rf in raster_files:
+    for i, rf in enumerate(raster_files):
         imentries = load_image_files(
             [
                 rf,
@@ -93,6 +104,20 @@ def load_raster_files(raster_files):
             raster, created = models.RasterEntry.objects.get_or_create(image_set=imset)
             if not created and raster.status != models.mixins.Status.SUCCEEDED:
                 raster.save()
+            if dates:
+                raster.rastermetaentry.acquisition_date = dates[i]
+                raster.rastermetaentry.save(
+                    update_fields=[
+                        'acquisition_date',
+                    ]
+                )
+            if names:
+                raster.name = names[i]
+                raster.save(
+                    update_fields=[
+                        'name',
+                    ]
+                )
             ids.append(raster.pk)
     return ids
 
