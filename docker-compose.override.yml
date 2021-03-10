@@ -7,7 +7,6 @@ services:
     command: ["./manage.py", "runserver", "0.0.0.0:8000"]
     # Log printing via Rich is enhanced by a TTY
     tty: true
-    privileged: true
     env_file: ./dev/.env.docker-compose
     volumes:
       - .:/opt/django-project
@@ -21,7 +20,7 @@ services:
   celery:
     build:
       context: .
-      dockerfile: ./dev/django.Dockerfile
+      dockerfile: ./dev/celery.Dockerfile
     command: [
       "celery",
       "--app", "rgd.celery",
