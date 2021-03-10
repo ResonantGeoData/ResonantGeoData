@@ -1,5 +1,5 @@
 """Mixin helper classes."""
-from typing import List
+from typing import Iterable
 
 from celery import Task
 from django.contrib.gis.db import models
@@ -15,9 +15,15 @@ class Status(models.TextChoices):
 
 
 class TaskEventMixin(models.Model):
-    """A mixin for models that must call a task.
+    """A mixin for models that must call a set of celery tasks.
 
-    The task must be assigned as a class attribute.
+    This mixin adds three class attributes:
+
+    * ``task_funcs``, which should be the list of celery task functions that should be run
+      on this model instance. Subclasses should set this attribute.
+    * ``status``, a model field representing task execution status.
+    * ``failure_reason``, a model field that can be set on this instance from within
+      tasks for human-readable error logging.
 
     NOTE: you still need to register the pre/post save event.  on_commit events
     should be registered as post_save events, not pre_save.
@@ -26,8 +32,10 @@ class TaskEventMixin(models.Model):
     class Meta:
         abstract = True
 
+    failure_reason = models.TextField(null=True)
     status = models.CharField(max_length=20, default=Status.CREATED, choices=Status.choices)
-    task_funcs: List[Task] = []
+
+    task_funcs: Iterable[Task] = []
 
     def _run_tasks(self) -> None:
         if not self.task_funcs:

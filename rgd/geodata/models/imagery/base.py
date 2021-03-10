@@ -20,7 +20,6 @@ class ImageFile(ModifiableEntry, TaskEventMixin):
     """
 
     task_funcs = (tasks.task_read_image_file,)
-    failure_reason = models.TextField(null=True)
     file = models.ForeignKey(ChecksumFile, on_delete=models.CASCADE)
 
     def image_data_link(self):
@@ -106,7 +105,6 @@ class RasterEntry(ModifiableEntry, TaskEventMixin):
         tasks.task_populate_raster_entry,
         # tasks.task_populate_raster_footprint,
     )
-    failure_reason = models.TextField(null=True)
 
     @property
     def footprint(self):
@@ -168,7 +166,6 @@ class ConvertedImageFile(ModifiableEntry, TaskEventMixin):
 
     task_funcs = (tasks.task_convert_to_cog,)
     converted_file = models.OneToOneField(ChecksumFile, on_delete=models.SET_NULL, null=True)
-    failure_reason = models.TextField(null=True)
     source_image = models.OneToOneField(ImageEntry, on_delete=models.CASCADE)
 
     def _post_delete(self, *args, **kwargs):
@@ -194,8 +191,6 @@ class SubsampledImage(ModifiableEntry, TaskEventMixin):
     sample_parameters = models.JSONField()
 
     data = models.OneToOneField(ChecksumFile, on_delete=models.SET_NULL, null=True)
-
-    failure_reason = models.TextField(null=True)
 
     def to_kwargs(self):
         """Convert ``sample_parameters`` to kwargs ready for GDAL.
@@ -240,7 +235,6 @@ class KWCOCOArchive(ModifiableEntry, TaskEventMixin):
 
     task_funcs = (tasks.task_load_kwcoco_dataset,)
     name = models.CharField(max_length=1000, blank=True)
-    failure_reason = models.TextField(null=True)
     spec_file = models.OneToOneField(
         ChecksumFile,
         on_delete=models.CASCADE,

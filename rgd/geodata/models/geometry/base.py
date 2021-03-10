@@ -28,8 +28,6 @@ class GeometryArchive(ModifiableEntry, TaskEventMixin):
     task_funcs = (tasks.task_read_geometry_archive,)
     file = models.ForeignKey(ChecksumFile, on_delete=models.CASCADE)
 
-    failure_reason = models.TextField(null=True)
-
     def save(self, *args, **kwargs):
         super(GeometryArchive, self).save(*args, **kwargs)
 

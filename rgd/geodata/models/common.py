@@ -136,7 +136,6 @@ class ChecksumFile(ModifiableEntry, TaskEventMixin):
     task_funcs = (
         # tasks.task_checksum_file_post_save,
     )
-    failure_reason = models.TextField(null=True)
 
     class Meta:
         constraints = [
