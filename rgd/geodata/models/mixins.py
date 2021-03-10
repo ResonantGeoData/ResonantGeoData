@@ -1,6 +1,7 @@
 """Mixin helper classes."""
-from collections.abc import Iterable
+from typing import List
 
+from celery import Task
 from django.contrib.gis.db import models
 from django.utils.translation import gettext_lazy as _
 
@@ -13,7 +14,7 @@ class Status(models.TextChoices):
     SUCCEEDED = 'success', _('Succeeded')
 
 
-class TaskEventMixin(object):
+class TaskEventMixin(models.Model):
     """A mixin for models that must call a task.
 
     The task must be assigned as a class attribute.
@@ -22,16 +23,16 @@ class TaskEventMixin(object):
     should be registered as post_save events, not pre_save.
     """
 
-    task_funcs = None
-    """The task function."""
+    class Meta:
+        abstract = True
 
-    def _run_task(self):
-        if not isinstance(self.task_funcs, Iterable):
-            self.task_funcs = (self.task_funcs,)
-        if len(self.task_funcs) < 1:
+    status = models.CharField(max_length=20, default=Status.CREATED, choices=Status.choices)
+    task_funcs: List[Task] = []
+
+    def _run_tasks(self) -> None:
+        if not self.task_funcs:
             return
-        if not all([callable(f) for f in self.task_funcs]):
-            raise RuntimeError('Task function(s) must be set to a callable.')  # pragma: no cover
+
         self.status = Status.QUEUED
         self.save(
             update_fields=[
@@ -41,12 +42,12 @@ class TaskEventMixin(object):
         for func in self.task_funcs:
             func.delay(self.id)
 
-    def _post_save_event_task(self, created, *args, **kwargs):
+    def _post_save_event_task(self, created: bool, *args, **kwargs) -> None:
         if not created and kwargs.get('update_fields'):
             return
-        self._run_task()
+        self._run_tasks()
 
-    def _on_commit_event_task(self, *args, **kwargs):
+    def _on_commit_event_task(self, *args, **kwargs) -> None:
         if kwargs.get('update_fields'):
             return
-        self._run_task()
+        self._run_tasks()

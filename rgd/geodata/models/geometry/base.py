@@ -5,7 +5,7 @@ import magic
 from ... import tasks
 from ..common import ChecksumFile, ModifiableEntry, SpatialEntry
 from ..constants import DB_SRID
-from ..mixins import Status, TaskEventMixin
+from ..mixins import TaskEventMixin
 
 
 def validate_archive(field_file):
@@ -29,7 +29,6 @@ class GeometryArchive(ModifiableEntry, TaskEventMixin):
     file = models.ForeignKey(ChecksumFile, on_delete=models.CASCADE)
 
     failure_reason = models.TextField(null=True)
-    status = models.CharField(max_length=20, default=Status.CREATED, choices=Status.choices)
 
     def save(self, *args, **kwargs):
         super(GeometryArchive, self).save(*args, **kwargs)

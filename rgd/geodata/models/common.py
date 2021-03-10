@@ -24,7 +24,7 @@ from rgd.utility import (
 # from .. import tasks
 from .collection import Collection
 from .constants import DB_SRID
-from .mixins import Status, TaskEventMixin
+from .mixins import TaskEventMixin
 
 logger = logging.getLogger(__name__)
 
@@ -137,7 +137,6 @@ class ChecksumFile(ModifiableEntry, TaskEventMixin):
         # tasks.task_checksum_file_post_save,
     )
     failure_reason = models.TextField(null=True)
-    status = models.CharField(max_length=20, default=Status.CREATED, choices=Status.choices)
 
     class Meta:
         constraints = [
