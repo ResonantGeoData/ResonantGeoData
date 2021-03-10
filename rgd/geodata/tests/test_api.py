@@ -73,25 +73,34 @@ def test_get_status(admin_api_client, astro_image):
 @pytest.mark.django_db(transaction=True)
 def test_download_checksum_file(admin_api_client, checksum_file):
     pk = checksum_file.pk
-    response = admin_api_client.get(f'/api/geodata/common/checksum_file/{pk}/data')
+    url = f'/api/geodata/common/checksum_file/{pk}/data'
+    response = admin_api_client.get(url)
     assert status.is_redirect(response.status_code)
-    assert response.content
+    # Follow the redirect and assert data is downloaded
+    response = admin_api_client.get(url, follow=True)
+    assert response.status_code == 200
 
 
 @pytest.mark.django_db(transaction=True)
 def test_download_checksum_file_url(admin_api_client, checksum_file_url):
     pk = checksum_file_url.pk
-    response = admin_api_client.get(f'/api/geodata/common/checksum_file/{pk}/data')
+    url = f'/api/geodata/common/checksum_file/{pk}/data'
+    response = admin_api_client.get(url)
     assert status.is_redirect(response.status_code)
-    assert response.content
+    # Follow the redirect and assert data is downloaded
+    response = admin_api_client.get(url, follow=True)
+    assert response.status_code == 200
 
 
 @pytest.mark.django_db(transaction=True)
 def test_download_image_entry_file(admin_api_client, astro_image):
     pk = astro_image.pk
-    response = admin_api_client.get(f'/api/geodata/imagery/image_entry/{pk}/data')
+    url = f'/api/geodata/imagery/image_entry/{pk}/data'
+    response = admin_api_client.get(url)
     assert status.is_redirect(response.status_code)
-    assert response.content
+    # Follow the redirect and assert data is downloaded
+    response = admin_api_client.get(url, follow=True)
+    assert response.status_code == 200
 
 
 @pytest.mark.django_db(transaction=True)
@@ -155,6 +164,9 @@ def test_create_and_download_cog(admin_api_client, landsat_image):
     assert cog.converted_file
     # Also test download endpoint here:
     pk = cog.pk
-    response = admin_api_client.get(f'/api/geodata/imagery/cog/{pk}/data')
+    url = f'/api/geodata/imagery/cog/{pk}/data'
+    response = admin_api_client.get(url)
     assert status.is_redirect(response.status_code)
-    assert response.content
+    # Follow the redirect and assert data is downloaded
+    response = admin_api_client.get(url, follow=True)
+    assert response.status_code == 200
