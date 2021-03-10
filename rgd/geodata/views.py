@@ -1,63 +1,55 @@
 import json
 
+from django.shortcuts import redirect
 from django.views import generic
 from django.views.generic import DetailView
+from rest_framework.reverse import reverse
+
+from rgd.geodata import permissions
 
 from .api import search
+from .filters import SpatialEntryFilter
 from .models.common import SpatialEntry
 from .models.fmv.base import FMVEntry
 from .models.geometry import GeometryEntry
-from .models.imagery.base import RasterEntry, RasterMetaEntry
+from .models.imagery.base import RasterMetaEntry
+
+
+def query_params(params):
+    query = params.copy()
+
+    if query.get('page'):
+        del query['page']
+
+    return '&' + query.urlencode() if query.urlencode() else ''
 
 
 class _SpatialListView(generic.ListView):
+    paginate_by = 15
+
     def get_queryset(self):
-        # latitude, longitude, radius, time, timespan, and timefield
-        self.search_params = {}
-        point = {'longitude', 'latitude', 'radius'}
-        bbox = {'minimum_longitude', 'minimum_latitude', 'maximum_longitude', 'maximum_latitude'}
-        search_options = point.union(bbox)
-        # Collect all passed search options
-        for key in search_options:
-            if self.request.GET.get(key):
-                try:
-                    self.search_params[key] = float(self.request.GET.get(key))
-                except ValueError:
-                    pass
-        # Choose search method based on passed options
-        method = search.search_near_point_filter
-        if all(k in self.search_params for k in point):
-            method = search.search_near_point_filter
-        elif all(k in self.search_params for k in bbox):
-            method = search.search_bounding_box_filter
-        elif 'geojson' in self.request.GET:
-            self.search_params = self.request.GET
-            method = search.search_geojson_filter
+        filterset = SpatialEntryFilter(data=self.request.GET)
+        assert filterset.is_valid()
+        queryset = filterset.filter_queryset(self.model.objects.all())
+        return permissions.filter_read_perm(self.request.user, queryset)
 
-        return self.model.objects.filter(method(self.search_params))
-
-    def _get_extent_summary(self):
-        return search.extent_summary_spatial(self.object_list)
+    def _get_extent_summary(self, object_list):
+        return search.extent_summary_spatial(object_list)
 
     def get_context_data(self, *args, **kwargs):
-        # The returned query set is in self.object_list, not self.queryset
+        # Pagination happens here
         context = super().get_context_data(*args, **kwargs)
-        summary = self._get_extent_summary()
+        summary = self._get_extent_summary(context['object_list'])
         context['extents'] = json.dumps(summary)
-        context['search_params'] = json.dumps(self.search_params)
+        context['search_params'] = json.dumps(self.request.GET)
         # Have a smaller dict of meta fields to parse for menu bar
         # This keeps us from parsing long GeoJSON fields twice
         meta = {
-            'count': summary['count'],
+            'count': len(self.object_list),  # This is the amount in the full results
         }
         context['extents_meta'] = json.dumps(meta)
+        context['query_params'] = query_params(self.request.GET)
         return context
-
-
-class RasterEntriesListView(_SpatialListView):
-    model = RasterMetaEntry
-    context_object_name = 'raster_metas'
-    template_name = 'geodata/raster_entries.html'
 
 
 class SpatialEntriesListView(_SpatialListView):
@@ -66,22 +58,12 @@ class SpatialEntriesListView(_SpatialListView):
     template_name = 'geodata/spatial_entries.html'
 
 
-class GeometryEntriesListView(_SpatialListView):
-    model = GeometryEntry
-    context_object_name = 'geometries'
-    template_name = 'geodata/geometry_entries.html'
-
-
-class FMVEntriesListView(_SpatialListView):
-    model = FMVEntry
-    context_object_name = 'entries'
-    template_name = 'geodata/fmv_entries.html'
-
-    def _get_extent_summary(self):
-        return search.extent_summary_fmv(self.object_list)
-
-
 class _SpatialDetailView(DetailView):
+    def get_object(self):
+        obj = super().get_object()
+        permissions.check_read_perm(self.request.user, obj)
+        return obj
+
     def _get_extent(self):
         if self.object.footprint is None:
             extent = {
@@ -109,18 +91,7 @@ class _SpatialDetailView(DetailView):
 
 
 class RasterEntryDetailView(_SpatialDetailView):
-    model = RasterEntry
-
-    def _get_extent(self):
-        extent = super()._get_extent()
-        # Add a thumbnail of the first image in the raster set
-        image_entries = self.object.image_set.images.all()
-        image_urls = {}
-        for image_entry in image_entries:
-            thumbnail = image_entry.thumbnail
-            image_urls[thumbnail.image_entry.id] = thumbnail.base_thumbnail.url
-        extent['thumbnails'] = image_urls
-        return extent
+    model = RasterMetaEntry
 
 
 class FMVEntryDetailView(_SpatialDetailView):
@@ -150,5 +121,15 @@ class GeometryEntryDetailView(_SpatialDetailView):
         return extent
 
 
-class SpatialEntryDetailView(_SpatialDetailView):
-    model = SpatialEntry
+def spatial_entry_redirect_view(request, pk):
+    spat = SpatialEntry.objects.get(pk=pk)
+    sub = spat.subentry
+    if isinstance(sub, RasterMetaEntry):
+        name = 'raster-entry-detail'
+    elif isinstance(sub, GeometryEntry):
+        name = 'geometry-entry-detail'
+    elif isinstance(sub, FMVEntry):
+        name = 'fmv-entry-detail'
+    else:
+        raise ValueError()
+    return redirect(reverse(name, kwargs={'pk': sub.pk}))

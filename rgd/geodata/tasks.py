@@ -37,10 +37,10 @@ def _run_with_failure_reason(model, func, *args, **kwargs):
 @shared_task(time_limit=86400)
 def task_read_image_file(file_id):
     from .models.imagery.base import ImageFile
-    from .models.imagery.etl import populate_image_entry
+    from .models.imagery.etl import read_image_file
 
     image_file = ImageFile.objects.get(id=file_id)
-    _run_with_failure_reason(image_file, populate_image_entry, file_id)
+    _run_with_failure_reason(image_file, read_image_file, file_id)
     return
 
 
@@ -60,6 +60,16 @@ def task_populate_raster_entry(raster_id):
 
     raster_entry = RasterEntry.objects.get(id=raster_id)
     _run_with_failure_reason(raster_entry, populate_raster_entry, raster_id)
+    return
+
+
+@shared_task(time_limit=86400)
+def task_populate_raster_footprint(raster_id):
+    from .models.imagery.base import RasterEntry
+    from .models.imagery.etl import populate_raster_footprint
+
+    raster_entry = RasterEntry.objects.get(id=raster_id)
+    _run_with_failure_reason(raster_entry, populate_raster_footprint, raster_id)
     return
 
 
@@ -109,22 +119,5 @@ def task_checksum_file_post_save(checksumfile_id):
 
     obj = ChecksumFile.objects.get(id=checksumfile_id)
 
-    def _checksum_file_post_save(obj):
-        if not obj.checksum or obj.validate_checksum:
-            if obj.validate_checksum:
-                obj.validate()
-            else:
-                obj.update_checksum()
-            # Reset the user flags
-            obj.validate_checksum = False
-            # Simple update save - not full save
-            obj.save(
-                update_fields=[
-                    'checksum',
-                    'last_validation',
-                    'validate_checksum',
-                ]
-            )
-
-    _run_with_failure_reason(obj, _checksum_file_post_save, obj)
+    _run_with_failure_reason(obj, obj.post_save_job)
     return

@@ -3,7 +3,7 @@
   <script src="https://d3js.org/d3-color.v2.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/lodash.js/4.17.20/lodash.min.js"></script>
 
-  <div id="map" style="width: 100%; height: calc(100vh - 128px);"></div>
+  <div id="map" style="width: 100%; height: calc(100vh - 140px);"></div>
 
   <style>
   .basemapTool {
@@ -25,6 +25,7 @@
       <option>stamen-toner</option>
       <option>stamen-toner-lite</option>
       <option>wikimedia</option>
+      <option>-- none --</option>
     </select>
   </div>
 
@@ -35,7 +36,7 @@
       clampBoundsX: true
     })
     basemapLayer = map.createLayer('osm', {
-      source: 'osm',
+      source: getCookie('basemapChoice', 'osm'),
       gcs: 'EPSG:3857' // web mercator
     });
 
@@ -58,10 +59,16 @@
     var basemapTool = ui.createWidget('dom', {position: {right: 20, top: 20}});
     basemapTool.canvas().appendChild(document.getElementById("basemapTool"))
 
+    var basemapDropdown = document.getElementById("basemapDropdown")
+    basemapDropdown.value = basemapLayer.source()
     function changeBasemap() {
-      var dropdown = document.getElementById("basemapDropdown")
-      console.log(dropdown.value)
-      basemapLayer.source(dropdown.value)
+      if (basemapDropdown.value == '-- none --') {
+        basemapLayer.visible(false)
+      } else {
+        basemapLayer.visible(true)
+        setCookie('basemapChoice', basemapDropdown.value)
+        basemapLayer.source(basemapDropdown.value)
+      }
     }
 
     // Annotation layer

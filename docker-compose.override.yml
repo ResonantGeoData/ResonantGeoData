@@ -7,6 +7,7 @@ services:
     command: ["./manage.py", "runserver", "0.0.0.0:8000"]
     # Log printing via Rich is enhanced by a TTY
     tty: true
+    privileged: true
     env_file: ./dev/.env.docker-compose
     volumes:
       - .:/opt/django-project
@@ -30,6 +31,7 @@ services:
     ]
     # Docker Compose does not set the TTY width, which causes Celery errors
     tty: false
+    privileged: true
     env_file: ./dev/.env.docker-compose
     environment:
       - TMPDIR=/tmp/rgd_worker
@@ -46,6 +48,8 @@ services:
   flower:
     image: mher/flower
     command: ["--broker=amqp://rabbitmq:5672/", "--url_prefix=flower"]
+    ports:
+      - 5555:5555
 
   sass:
     build:

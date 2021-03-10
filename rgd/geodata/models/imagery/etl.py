@@ -1,11 +1,10 @@
 """Helper methods for creating a ``GDALRaster`` entry from a raster file."""
-import io
+from contextlib import contextmanager
 import json
 import os
 import tempfile
 import zipfile
 
-import PIL.Image
 from celery.utils.log import get_task_logger
 from django.conf import settings
 from django.contrib.gis.geos import (
@@ -16,21 +15,20 @@ from django.contrib.gis.geos import (
     Point,
     Polygon,
 )
-from django.core.files.base import ContentFile
 import kwcoco
 import kwimage
-import matplotlib.pyplot as plt
 import numpy as np
 from osgeo import gdal
 import rasterio
+from rasterio import Affine, MemoryFile
 import rasterio.features
 import rasterio.warp
-from rasterio.warp import Resampling, calculate_default_transform, reproject
+from rasterio.warp import Resampling, calculate_default_transform, reproject, transform_bounds
 
 from rgd.utility import get_or_create_no_commit
 
 from ..common import ChecksumFile
-from ..constants import DB_SRID, WEB_MERCATOR
+from ..constants import DB_SRID
 from .annotation import Annotation, PolygonSegmentation, RLESegmentation, Segmentation
 from .base import (
     BandMetaEntry,
@@ -41,7 +39,6 @@ from .base import (
     KWCOCOArchive,
     RasterEntry,
     RasterMetaEntry,
-    Thumbnail,
 )
 
 logger = get_task_logger(__name__)
@@ -53,80 +50,7 @@ os.environ['GDAL_DATA'] = GDAL_DATA
 MAX_LOAD_SHAPE = (4000, 4000)
 
 
-def _create_thumbnail_image(src):
-    shape = (min(MAX_LOAD_SHAPE[0], src.height), min(MAX_LOAD_SHAPE[0], src.width))
-
-    def get_band(n):
-        return src.read(n, out_shape=shape)
-
-    norm = plt.Normalize()
-
-    c = src.colorinterp
-
-    if c[0:3] == (3, 4, 5):
-        r = get_band(1)
-        g = get_band(2)
-        b = get_band(3)
-        colors = np.dstack((r, g, b)).astype('uint8')
-    elif len(c) == 1 and c[0] == 1:
-        # Gray scale
-        colors = (norm(get_band(1)) * 255).astype('uint8')
-    else:
-        colors = (plt.cm.viridis(norm(get_band(1))) * 255).astype('uint8')[:, :, 0:3]
-
-    buf = io.BytesIO()
-    img = PIL.Image.fromarray(colors)
-    img.save(buf, 'JPEG')
-    byte_im = buf.getvalue()
-    return ContentFile(byte_im)
-
-
-def _reproject_raster(src, epsg):
-    """Reproject an open raster to given spatial reference.
-
-    This will return an open rasterio handle.
-
-    """
-    dst_crs = rasterio.crs.CRS.from_epsg(epsg)
-    if src.crs == dst_crs:
-        # If raster already in desired CRS, return itself
-        return src
-    workdir = getattr(settings, 'GEODATA_WORKDIR', None)
-    tmpdir = tempfile.mkdtemp(dir=workdir)
-    # If raster is NTIF format, convert first
-    if src.driver == 'NITF':
-        f = src.files[0]
-        output_path = os.path.join(tmpdir, os.path.basename(f)) + '.tiff'
-        ds = gdal.Open(f)
-        ds = gdal.Translate(output_path, ds, options=['-of', 'GTiff'])
-        ds = None
-        src = rasterio.open(output_path, 'r')
-
-    transform, width, height = calculate_default_transform(
-        src.crs, dst_crs, src.width, src.height, *src.bounds
-    )
-    kwargs = src.meta.copy()
-    kwargs.update({'crs': dst_crs, 'transform': transform, 'width': width, 'height': height})
-
-    path = os.path.join(tmpdir, os.path.basename(src.name))
-    with rasterio.open(path, 'w', **kwargs) as dst:
-        for i in range(1, src.count + 1):
-            reproject(
-                source=rasterio.band(src, i),
-                destination=rasterio.band(dst, i),
-                src_transform=src.transform,
-                src_crs=src.crs,
-                dst_transform=transform,
-                dst_crs=dst_crs,
-                resampling=Resampling.nearest,
-            )
-        dst.colorinterp = src.colorinterp
-    return rasterio.open(path, 'r')
-
-
 def _read_image_to_entry(image_entry, image_file_path):
-
-    thumbnail, created = get_or_create_no_commit(Thumbnail, image_entry=image_entry)
 
     with rasterio.open(image_file_path) as src:
         image_entry.number_of_bands = src.count
@@ -137,19 +61,12 @@ def _read_image_to_entry(image_entry, image_file_path):
         # A catch-all metadata feild:
         # TODO: image_entry.metadata =
 
-        if src.crs:
-            thumb_image = _create_thumbnail_image(_reproject_raster(src, WEB_MERCATOR))
-        else:
-            thumb_image = _create_thumbnail_image(src)
-
         # These are things I couldn't figure out how to get with gdal directly
         dtypes = src.dtypes
         interps = src.colorinterp
 
     # No longer editing image_entry
     image_entry.save()
-    thumbnail.base_thumbnail.save(f'{image_entry.name}.jpg', thumb_image, save=True)
-    thumbnail.save()
 
     # Rasterio is no longer open... using gdal directly:
     gsrc = gdal.Open(str(image_file_path))  # Have to cast Path to str
@@ -165,17 +82,16 @@ def _read_image_to_entry(image_entry, image_file_path):
         band_meta.band_number = i + 1  # off by 1 indexing
         band_meta.description = gdal_band.GetDescription()
         band_meta.nodata_value = gdal_band.GetNoDataValue()
-        # band_meta.creator = ife.creator
-        # band_meta.modifier = ife.modifier
         try:
             band_meta.dtype = dtypes[i]
         except IndexError:
             pass
-        bmin, bmax, mean, std = gdal_band.GetStatistics(True, True)
-        band_meta.min = bmin
-        band_meta.max = bmax
-        band_meta.mean = mean
-        band_meta.std = std
+        # TODO: seperate out band stats into separate tasks
+        # bmin, bmax, mean, std = gdal_band.GetStatistics(True, True)
+        # band_meta.min = bmin
+        # band_meta.max = bmax
+        # band_meta.mean = mean
+        # band_meta.std = std
 
         try:
             band_meta.interpretation = interps[i].name
@@ -184,10 +100,11 @@ def _read_image_to_entry(image_entry, image_file_path):
 
         # Save this band entirely
         band_meta.save()
+
     return
 
 
-def populate_image_entry(ife):
+def read_image_file(ife):
     """Image ingestion routine.
 
     This helper will open an image file from ``ImageFile`` and create a
@@ -198,7 +115,7 @@ def populate_image_entry(ife):
     if not isinstance(ife, ImageFile):
         ife = ImageFile.objects.get(id=ife)
 
-    with ife.file.yield_local_path() as file_path:
+    with ife.file.yield_local_path(vsi=True) as file_path:
         logger.info(f'The image file path: {file_path}')
 
         image_entry, created = get_or_create_no_commit(
@@ -214,6 +131,23 @@ def populate_image_entry(ife):
     return image_entry
 
 
+def _extract_raster_outline_fast(src):
+    dst_crs = rasterio.crs.CRS.from_epsg(DB_SRID)
+    left, bottom, right, top = transform_bounds(
+        src.crs, dst_crs, src.bounds.left, src.bounds.bottom, src.bounds.right, src.bounds.top
+    )
+    coords = np.array(
+        (
+            (left, top),
+            (right, top),
+            (right, bottom),
+            (left, bottom),
+            (left, top),  # Close the loop
+        )
+    )
+    return Polygon(coords, srid=DB_SRID)
+
+
 def _extract_raster_meta(image_file_entry):
     """Extract all of the raster meta info in our models from an image file.
 
@@ -222,7 +156,7 @@ def _extract_raster_meta(image_file_entry):
 
     """
     raster_meta = dict()
-    with image_file_entry.file.yield_local_path() as path:
+    with image_file_entry.file.yield_local_path(vsi=True) as path:
         with rasterio.open(path) as src:
             raster_meta['crs'] = src.crs.to_proj4()
             raster_meta['origin'] = [src.bounds.left, src.bounds.bottom]
@@ -234,6 +168,8 @@ def _extract_raster_meta(image_file_entry):
             ]
             raster_meta['resolution'] = src.res
             raster_meta['transform'] = src.transform.to_gdal()  # TODO: check this
+            raster_meta['outline'] = _extract_raster_outline_fast(src)
+            raster_meta['footprint'] = raster_meta['outline']
     return raster_meta
 
 
@@ -255,35 +191,104 @@ def _get_valid_data_footprint(src, band_num):
     raise ValueError('No valid raster footprint found.')
 
 
-def _extract_raster_outline_and_footprint(image_file_entry):
-    """Extract the outline and footprint of raster's image file entry.
+@contextmanager
+def _yield_downsampled_raster(raster):
+    # https://gis.stackexchange.com/questions/329434/creating-an-in-memory-rasterio-dataset-from-numpy-array/329439#329439
+    max_n = np.product(MAX_LOAD_SHAPE)
+    n = raster.height * raster.width
+    scale = 1.0
+    if n > max_n:
+        scale = max_n / n
+
+    if scale == 1.0:
+        yield raster
+        return
+
+    t = raster.transform
+    # rescale the metadata
+    transform = Affine(t.a / scale, t.b, t.c, t.d, t.e / scale, t.f)
+    height = int(raster.height * scale)
+    width = int(raster.width * scale)
+
+    profile = raster.profile
+    profile.update(transform=transform, height=height, width=width)
+
+    data = raster.read(
+        out_shape=(raster.count, height, width),
+        resampling=Resampling.bilinear,
+    )
+
+    with MemoryFile() as memfile:
+        with memfile.open(**profile) as dataset:
+            dataset.write(data)
+            del data
+
+        with memfile.open() as dataset:  # Reopen as DatasetReader
+            yield dataset  # Note yield not return
+
+
+def _reproject_raster(src, epsg):
+    """Reproject an open raster to given spatial reference.
+
+    This will return an open rasterio handle.
+
+    """
+    dst_crs = rasterio.crs.CRS.from_epsg(epsg)
+    if src.crs == dst_crs:
+        # If raster already in desired CRS, return itself
+        return src
+
+    # Get a downsampled version of the original raster
+    with _yield_downsampled_raster(src) as src:
+        workdir = getattr(settings, 'GEODATA_WORKDIR', None)
+        tmpdir = tempfile.mkdtemp(dir=workdir)
+        # If raster is NTIF format, convert first
+        if src.driver == 'NITF':
+            f = src.files[0]
+            output_path = os.path.join(tmpdir, os.path.basename(f)) + '.tiff'
+            ds = gdal.Open(f)
+            ds = gdal.Translate(output_path, ds, options=['-of', 'GTiff'])
+            ds = None
+            src = rasterio.open(output_path, 'r')
+
+        transform, width, height = calculate_default_transform(
+            src.crs, dst_crs, src.width, src.height, *src.bounds
+        )
+        kwargs = src.meta.copy()
+        kwargs.update({'crs': dst_crs, 'transform': transform, 'width': width, 'height': height})
+        path = os.path.join(tmpdir, 'temp_raster')
+        with rasterio.open(path, 'w', **kwargs) as dst:
+            for i in range(1, src.count + 1):
+                reproject(
+                    source=rasterio.band(src, i),
+                    destination=rasterio.band(dst, i),
+                    src_transform=src.transform,
+                    src_crs=src.crs,
+                    dst_transform=transform,
+                    dst_crs=dst_crs,
+                    resampling=Resampling.bilinear,
+                )
+            dst.colorinterp = src.colorinterp
+    return rasterio.open(path, 'r')
+
+
+def _extract_raster_footprint(image_file_entry):
+    """Extract the footprint of raster's image file entry.
 
     This operates on the assumption that the image file is a valid raster.
 
     """
-    with image_file_entry.file.yield_local_path() as file_path:
+    with image_file_entry.file.yield_local_path(vsi=True) as file_path:
         # Reproject the raster to the DB SRID using rasterio directly rather
         #  than transforming the extracted geometry which had issues.
         src = _reproject_raster(rasterio.open(file_path), DB_SRID)
-        coords = np.array(
-            (
-                (src.bounds.left, src.bounds.top),
-                (src.bounds.right, src.bounds.top),
-                (src.bounds.right, src.bounds.bottom),
-                (src.bounds.left, src.bounds.bottom),
-                (src.bounds.left, src.bounds.top),  # Close the loop
-            )
-        )
-
-        outline = Polygon(coords, srid=DB_SRID)
         try:
             # Only implement for first band for now
             footprint = _get_valid_data_footprint(src, 1)
         except Exception as e:  # TODO: be more clever about this
             logger.info(f'Issue computing valid data footprint: {e}')
-            footprint = outline
-
-    return outline, footprint
+            footprint = None
+    return footprint
 
 
 def _compare_raster_meta(a, b):
@@ -323,11 +328,6 @@ def _validate_image_set_is_raster(image_set_entry):
             raise ValueError('Raster meta mismatch at image: {}'.format(image))
         last_meta = meta
 
-    # Assume these are the same... only compute once
-    outline, footprint = _extract_raster_outline_and_footprint(base_image.image_file.imagefile)
-    last_meta['outline'] = outline
-    last_meta['footprint'] = footprint
-
     return last_meta
 
 
@@ -344,33 +344,55 @@ def populate_raster_entry(raster_id):
                 'name',
             ]
         )
+    footprint = meta.pop('footprint')
     raster_meta, created = get_or_create_no_commit(RasterMetaEntry, parent_raster=raster_entry)
     # Not using `defaults` here because we want `meta` to always get updated.
     for k, v in meta.items():
         # Yeah. This is sketchy, but it works.
         setattr(raster_meta, k, v)
+    if not raster_meta.footprint:
+        # Only set if not already set since this func defaults it to using outline
+        raster_meta.footprint = footprint
     raster_meta.save()
     return True
 
 
+def populate_raster_footprint(raster_id):
+    raster_entry = RasterEntry.objects.get(id=raster_id)
+    # Only set the footprint if the RasterMetaEntry has been created already
+    #   this avoids a race condition where footprint might not get set correctly.
+    try:
+        raster_meta = RasterMetaEntry.objects.get(parent_raster=raster_entry)
+    except RasterMetaEntry.DoesNotExist:
+        logger.error('Cannot populate raster footprint yet due to race condition. Try again later.')
+        return
+    base_image = raster_entry.image_set.images.first()
+    footprint = _extract_raster_footprint(base_image.image_file.imagefile)
+    if footprint:
+        raster_meta.footprint = footprint
+        raster_meta.save(update_fields=['footprint'])
+    return
+
+
 def _fill_annotation_segmentation(annotation_entry, ann_json):
     """For converting KWCOCO annotation JSON to an Annotation entry."""
-    if 'keypoints' in ann_json:
+    if 'keypoints' in ann_json and ann_json['keypoints']:
         # populate keypoints - ignore 3rd value visibility
+        logger.info('Keypoints: {}'.format(ann_json['keypoints']))
         points = np.array(ann_json['keypoints']).astype(float).reshape((-1, 3))
         keypoints = []
         for pt in points:
             logger.info(f'The Point: {pt}')
             keypoints.append(Point(pt[0], pt[1]))
         annotation_entry.keypoints = MultiPoint(*keypoints)
-    if 'line' in ann_json:
+    if 'line' in ann_json and ann_json['line']:
         # populate line
         points = np.array(ann_json['line']).astype(float).reshape((-1, 2))
         logger.info(f'The line: {points}')
         annotation_entry.line = LineString(*[(pt[0], pt[1]) for pt in points], srid=0)
     # Add a segmentation
     segmentation = None
-    if 'segmentation' in ann_json:
+    if 'segmentation' in ann_json and ann_json['segmentation']:
         sseg = kwimage.Segmentation.coerce(ann_json['segmentation']).data
         if isinstance(sseg, kwimage.Mask):
             segmentation = RLESegmentation()
@@ -385,7 +407,7 @@ def _fill_annotation_segmentation(annotation_entry, ann_json):
                 poly_xys = np.append(poly_xys, poly_xys[0][None], axis=0)
                 polys.append(Polygon(poly_xys, srid=0))
             segmentation.feature = MultiPolygon(*polys)
-    if 'bbox' in ann_json:
+    if 'bbox' in ann_json and ann_json['bbox']:
         if not segmentation:
             segmentation = Segmentation()  # Simple outline segmentation
         # defined as (x, y, width, height)
@@ -425,7 +447,7 @@ def load_kwcoco_dataset(kwcoco_dataset_id):
         # Delete all previously existing data
         # This should cascade to all the annotations
         for imageentry in ds_entry.image_set.images.all():
-            imageentry.image_file.delete()
+            imageentry.image_file.file.delete()
     else:
         ds_entry.image_set = ImageSet()
     ds_entry.image_set.name = ds_entry.name
@@ -466,12 +488,13 @@ def load_kwcoco_dataset(kwcoco_dataset_id):
             image_file_abs_path = os.path.join(ds.img_root, img['file_name'])
             name = os.path.basename(image_file_abs_path)
             image_file = ImageFile()
-            image_file.skip_task = True
+            image_file.collection = ds_entry.spec_file.collection
+            image_file.skip_signal = True
             image_file.file = ChecksumFile()
             image_file.file.file.save(name, open(image_file_abs_path, 'rb'))
             image_file.save()
             # Create a new ImageEntry
-            image_entry = populate_image_entry(image_file)
+            image_entry = read_image_file(image_file)
             # Add ImageEntry to ImageSet
             ds_entry.image_set.images.add(image_entry)
             # Create annotations that link to that ImageEntry

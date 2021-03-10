@@ -1,0 +1,100 @@
+{% extends "geodata/_base/detail.html" %}
+
+{% block meta_table_body %}
+
+  <tr>
+    <td>Description</td>
+    <td>{{ object.description }}</td>
+  </tr>
+  <tr>
+    <td>Number of bands</td>
+    <td>{{ object.count }}</td>
+  </tr>
+  <tr>
+    <td>Resolution</td>
+    <td>{{ object.resolution }}</td>
+  </tr>
+  <tr>
+    <td>Origin</td>
+    <td>{{ object.origin }}</td>
+  </tr>
+  <tr>
+    <td>Extent</td>
+    <td>{{ object.extent }}</td>
+  </tr>
+  <tr>
+    <td>Transform</td>
+    <td>{{ object.transform }}</td>
+  </tr>
+  <tr>
+    <td>PROJ4 String</td>
+    <td>{{ object.crs }}</td>
+  </tr>
+
+{% endblock %}
+
+{% block extra_meta %}
+
+  <select id="band-selector" onchange="updateBandThumbnail()">
+    {% for image in object.parent_raster.image_set.images.all %}
+      <option value="{{ image.id }}">{{ image.name | truncatechars:36 }}</option>
+    {% endfor %}
+    <option value="-1">-- none --</option>
+  </select>
+
+  <div class="slidecontainer">
+    <label for="rasterOpacityRange">Thumbnail Opacity: </label>
+    <input type="range" min="1" max="100" value="75" class="slider" id="rasterOpacityRange" onChange="updateTilesOpacity(event, value)">
+  </div>
+
+{% endblock %}
+
+{% block detail %}
+
+  {% include 'geodata/_includes/empty_viewer.html' %}
+
+  <script>
+    var host = window.location.protocol + "//" + window.location.host;
+    let extents = JSON.parse('{{ extents|escapejs }}');
+    var outline = JSON.parse(extents['outline'])["coordinates"][0]
+
+    var tiles = map.createLayer('osm', {keepLower: false, attribution: ''});
+    tiles.opacity(0.75)
+
+    function updateBandThumbnail () {
+      selector = document.getElementById('band-selector')
+      var image_id = Number(selector.value);
+      console.log(image_id)
+      if (image_id >= 0) {
+        tiles.visible(true)
+        tiles.url(`${host}/api/geodata/imagery/image_entry/${image_id}/tiles/{z}/{x}/{y}.png?projection=EPSG:3857`)
+      } else {
+        tiles.visible(false)
+      }
+      // TODO: clear tiles when `none` is selected
+    }
+    updateBandThumbnail()
+
+    function updateTilesOpacity(e, value) {
+      value = Number(value) / 100.0;
+      tiles.opacity(value);
+    }
+
+    // Add collected polygons to map
+    let reader = geo.createFileReader('geojsonReader', {
+      'layer': layer
+    });
+
+    reader.read(extents.collect, (features) => {
+      features[0].style({
+        strokeColor: '#FF0000',
+        fill: false,
+      })
+      .draw();
+    });
+
+    setBounds(extents.extent, true)
+
+  </script>
+
+{% endblock %}

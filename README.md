@@ -5,99 +5,35 @@
 
 2D/3D/4D Geospatial Data API and Machine Learning System for Evaluation
 
-## Develop with Docker (recommended quickstart)
-This is the simplest configuration for developers to start with.
+A publically deployed instance of this application is available at https://www.resonantgeodata.com
 
-### Initial Setup
-1. Run `docker-compose run --rm django ./manage.py migrate`
-2. Run `docker-compose run --rm django ./manage.py createsuperuser`
-   and follow the prompts to create your own user
+ResonantGeoData is a Django application well suited for catalogging and searching annotated geospatial imagery, shapefiles, and full motion video datasets.
 
-### Run Application
-1. Run `docker-compose up`
-2. Access the site, starting at http://localhost:8000/admin/
-3. When finished, use `Ctrl+C`
+![homepage](./docs/images/homepage.png)
 
-On Mac, be sure to set:
+## Highlights
 
-```bash
-export DOCKER_SOCK=/var/run/docker.sock
-export DOCKER_CMD=/usr/local/bin/docker
-```
+- Faceted searching of geospatial/temporal data
+- Support for the spatial context of full motion video datasets
+- Support for annotated imagery: polygons, bounding boxes, keypoints, and run-length-encoded masks
 
-### Application Maintenance
-Occasionally, new package dependencies or schema changes will necessitate
-maintenance. To non-destructively update your development stack at any time:
-1. Run `docker-compose pull`
-2. Run `docker-compose build --pull --no-cache`
-3. Run `docker-compose run --rm django ./manage.py migrate`
 
-## Develop Natively (advanced)
-This configuration still uses Docker to run attached services in the background,
-but allows developers to run Python code on their native system.
+## Documentation
 
-### Initial Setup
-1. Run `docker-compose -f ./docker-compose.yml up -d`
-2. Install Python 3.8
-3. Install
-   [`psycopg2` build prerequisites](https://www.psycopg.org/docs/install.html#build-prerequisites)
-4. Create and activate a new Python virtualenv
-5. Run: `pip install -e .[dev]`
-6. Run `source ./dev/export-env.sh`
-7. Run `./manage.py migrate`
-8. Run `./manage.py createsuperuser` and follow the prompts to create your own user
+Documentation is currently a work in progress. We have created some initial usage instructions under the `docs/` directory.
 
-### Run Application
-1.  Ensure `docker-compose -f ./docker-compose.yml up -d` is still active
-2. Run:
-   1. `source ./dev/export-env.sh`
-   2. `./manage.py runserver`
-3. Run in a separate terminal:
-   1. `source ./dev/export-env.sh`
-   2. `celery --app rgd.celery worker --loglevel INFO --without-heartbeat`
-4. When finished, run `docker-compose stop`
+Specifically, we have included [instructions on how to ingest data](https://github.com/ResonantGeoData/ResonantGeoData/blob/master/docs/ingest-data.md) into a deployed ResonantGeoData instance.
 
-## Remap Service Ports (optional)
-Attached services may be exposed to the host system via alternative ports. Developers who work
-on multiple software projects concurrently may find this helpful to avoid port conflicts.
+For general questions about the project, its applications, or about software usage, please create an issue directly in this repository. You are also welcome to send us an email at kitware@kitware.com with the subject line including ResonantGeoData.
 
-To do so, before running any `docker-compose` commands, set any of the environment variables:
-* `DOCKER_POSTGRES_PORT`
-* `DOCKER_RABBITMQ_PORT`
-* `DOCKER_MINIO_PORT`
+## Connections
 
-The Django server must be informed about the changes:
-* When running the "Develop with Docker" configuration, override the environment variables:
-  * `DJANGO_MINIO_STORAGE_MEDIA_URL`, using the port from `DOCKER_MINIO_PORT`.
-* When running the "Develop Natively" configuration, override the environment variables:
-  * `DJANGO_DATABASE_URL`, using the port from `DOCKER_POSTGRES_PORT`
-  * `DJANGO_CELERY_BROKER_URL`, using the port from `DOCKER_RABBITMQ_PORT`
-  * `DJANGO_MINIO_STORAGE_ENDPOINT`, using the port from `DOCKER_MINIO_PORT`
+- ResonantGeoData is built on top of [Kitware's Girder 4 platform](https://github.com/search?q=topic%3Agirder-4+org%3Agirder+fork%3Atrue).
+- [KWIVER](https://github.com/Kitware/kwiver): we leverage KWIVER's full motion video processing capabilities to extract spatial information from FMV files.
+- [KWCOCO](https://gitlab.kitware.com/computer-vision/kwcoco): KWCOCO is an extension of the [COCO image annotation format](https://cocodataset.org/) which we support for ingesting annotated imagery.
+- [GeoJS](https://opengeoscience.github.io/geojs/): we leverage GeoJS for our interactive map view.
+- [`large_image`](http://girder.github.io/large_image/index.html): we leverage `large_image` to serve image tiles and extract thumbnails.
 
-Since most of Django's environment variables contain additional content, use the values from
-the appropriate `dev/.env.docker-compose*` file as a baseline for overrides.
+## Contributing
 
-## Testing
-### Initial Setup
-tox is used to execute all tests.
-tox is installed automatically with the `dev` package extra.
-
-When running the "Develop with Docker" configuration, all tox commands must be run as
-`docker-compose run --rm django tox`; extra arguments may also be appended to this form.
-
-### Running Tests
-Run `tox` to launch the full test suite.
-
-Individual test environments may be selectively run.
-This also allows additional options to be be added.
-Useful sub-commands include:
-* `tox -e lint`: Run only the style checks
-* `tox -e type`: Run only the type checks
-* `tox -e test`: Run only the pytest-driven tests
-
-To automatically reformat all code to comply with
-some (but not all) of the style checks, run `tox -e format`.
-
-## Sample Algorithms
-
-There are a few sample algorithms on <https://data.kitware.com> in the ResonantGeoData collection.
+Please see the adjacent [`DEVELOPMENT.md`](https://github.com/ResonantGeoData/ResonantGeoData/blob/master/DEVELOPMENT.md) file for all development instructions.

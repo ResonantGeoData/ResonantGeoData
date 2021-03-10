@@ -34,23 +34,23 @@ def _load_sample_files():
 
 
 @pytest.mark.django_db(transaction=True)
-def test_search_near_point(api_client):
+def test_search_near_point(admin_api_client):
     _load_sample_files()
-    items = api_client.get('/api/geodata/near_point').data
+    items = admin_api_client.get('/api/geodata/near_point').data
     assert len(items) == len(SampleFiles)
-    items = api_client.get('/api/geodata/near_point', {'longitude': -79, 'latitude': 43}).data
+    items = admin_api_client.get('/api/geodata/near_point', {'longitude': -79, 'latitude': 43}).data
     assert len(items) == 1
-    items = api_client.get(
+    items = admin_api_client.get(
         '/api/geodata/near_point', {'longitude': -79, 'latitude': 43, 'radius': 1000000}
     ).data
     assert len(items) == 3
     timestr = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
-    items = api_client.get(
+    items = admin_api_client.get(
         '/api/geodata/raster/near_point',
         {'time': timestr, 'timefield': 'acquisition', 'timespan': 86400},
     ).data
     assert len(items) == len(SampleFiles)
-    items = api_client.get(
+    items = admin_api_client.get(
         '/api/geodata/raster/near_point',
         {'time': timestr, 'timefield': 'acquisition', 'timespan': 0},
     ).data
@@ -58,25 +58,25 @@ def test_search_near_point(api_client):
 
 
 @pytest.mark.django_db(transaction=True)
-def test_search_near_point_extent(api_client):
+def test_search_near_point_extent(admin_api_client):
     _load_sample_files()
-    results = api_client.get('/api/geodata/near_point/extent').data
+    results = admin_api_client.get('/api/geodata/near_point/extent').data
     assert results['count'] == len(SampleFiles)
-    results = api_client.get(
+    results = admin_api_client.get(
         '/api/geodata/near_point/extent', {'longitude': -79, 'latitude': 43}
     ).data
     assert results['count'] == 1
-    results = api_client.get(
+    results = admin_api_client.get(
         '/api/geodata/near_point/extent', {'longitude': -79, 'latitude': 43, 'radius': 1000000}
     ).data
     assert results['count'] == 3
     timestr = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
-    results = api_client.get(
+    results = admin_api_client.get(
         '/api/geodata/raster/near_point/extent',
         {'time': timestr, 'timefield': 'acquisition', 'timespan': 86400},
     ).data
     assert results['count'] == len(SampleFiles)
-    results = api_client.get(
+    results = admin_api_client.get(
         '/api/geodata/raster/near_point/extent',
         {'time': timestr, 'timefield': 'acquisition', 'timespan': 0},
     ).data
@@ -84,11 +84,11 @@ def test_search_near_point_extent(api_client):
 
 
 @pytest.mark.django_db(transaction=True)
-def test_search_bounding_box(api_client):
+def test_search_bounding_box(admin_api_client):
     _load_sample_files()
-    items = api_client.get('/api/geodata/bounding_box').data
+    items = admin_api_client.get('/api/geodata/bounding_box').data
     assert len(items) == len(SampleFiles)
-    items = api_client.get(
+    items = admin_api_client.get(
         '/api/geodata/bounding_box',
         {
             'minimum_longitude': -80,
@@ -98,7 +98,7 @@ def test_search_bounding_box(api_client):
         },
     ).data
     assert len(items) == 1
-    items = api_client.get(
+    items = admin_api_client.get(
         '/api/geodata/bounding_box',
         {
             'minimum_longitude': -90,
@@ -112,12 +112,12 @@ def test_search_bounding_box(api_client):
     oldtimestr = (datetime.datetime.now() - datetime.timedelta(days=1)).strftime(
         '%Y-%m-%d %H:%M:%S'
     )
-    items = api_client.get(
+    items = admin_api_client.get(
         '/api/geodata/raster/bounding_box',
         {'start_time': oldtimestr, 'end_time': timestr, 'timefield': 'acquisition'},
     ).data
     assert len(items) == len(SampleFiles)
-    items = api_client.get(
+    items = admin_api_client.get(
         '/api/geodata/raster/bounding_box',
         {'start_time': timestr, 'end_time': timestr, 'timefield': 'acquisition'},
     ).data
@@ -125,11 +125,11 @@ def test_search_bounding_box(api_client):
 
 
 @pytest.mark.django_db(transaction=True)
-def test_search_bounding_box_extent(api_client):
+def test_search_bounding_box_extent(admin_api_client):
     _load_sample_files()
-    results = api_client.get('/api/geodata/bounding_box/extent').data
+    results = admin_api_client.get('/api/geodata/bounding_box/extent').data
     assert results['count'] == len(SampleFiles)
-    results = api_client.get(
+    results = admin_api_client.get(
         '/api/geodata/bounding_box/extent',
         {
             'minimum_longitude': -80,
@@ -139,7 +139,7 @@ def test_search_bounding_box_extent(api_client):
         },
     ).data
     assert results['count'] == 1
-    results = api_client.get(
+    results = admin_api_client.get(
         '/api/geodata/bounding_box/extent',
         {
             'minimum_longitude': -90,
@@ -153,12 +153,12 @@ def test_search_bounding_box_extent(api_client):
     oldtimestr = (datetime.datetime.now() - datetime.timedelta(days=1)).strftime(
         '%Y-%m-%d %H:%M:%S'
     )
-    results = api_client.get(
+    results = admin_api_client.get(
         '/api/geodata/raster/bounding_box/extent',
         {'start_time': oldtimestr, 'end_time': timestr, 'timefield': 'acquisition'},
     ).data
     assert results['count'] == len(SampleFiles)
-    results = api_client.get(
+    results = admin_api_client.get(
         '/api/geodata/raster/bounding_box/extent',
         {'start_time': timestr, 'end_time': timestr, 'timefield': 'acquisition'},
     ).data
@@ -166,11 +166,11 @@ def test_search_bounding_box_extent(api_client):
 
 
 @pytest.mark.django_db(transaction=True)
-def test_search_geojson(api_client):
+def test_search_geojson(admin_api_client):
     _load_sample_files()
-    items = api_client.get('/api/geodata/geojson').data
+    items = admin_api_client.get('/api/geodata/geojson').data
     assert len(items) == len(SampleFiles)
-    items = api_client.get(
+    items = admin_api_client.get(
         '/api/geodata/geojson',
         {
             'geojson': json.dumps(
@@ -182,7 +182,7 @@ def test_search_geojson(api_client):
         },
     ).data
     assert len(items) == 1
-    items = api_client.get(
+    items = admin_api_client.get(
         '/api/geodata/geojson',
         {
             'geojson': json.dumps(
@@ -198,12 +198,12 @@ def test_search_geojson(api_client):
     oldtimestr = (datetime.datetime.now() - datetime.timedelta(days=1)).strftime(
         '%Y-%m-%d %H:%M:%S'
     )
-    items = api_client.get(
+    items = admin_api_client.get(
         '/api/geodata/raster/geojson',
         {'start_time': oldtimestr, 'end_time': timestr, 'timefield': 'acquisition'},
     ).data
     assert len(items) == len(SampleFiles)
-    items = api_client.get(
+    items = admin_api_client.get(
         '/api/geodata/raster/geojson',
         {'start_time': timestr, 'end_time': timestr, 'timefield': 'acquisition'},
     ).data
@@ -211,11 +211,11 @@ def test_search_geojson(api_client):
 
 
 @pytest.mark.django_db(transaction=True)
-def test_search_geojson_extent(api_client):
+def test_search_geojson_extent(admin_api_client):
     _load_sample_files()
-    results = api_client.get('/api/geodata/geojson/extent').data
+    results = admin_api_client.get('/api/geodata/geojson/extent').data
     assert results['count'] == len(SampleFiles)
-    results = api_client.get(
+    results = admin_api_client.get(
         '/api/geodata/geojson/extent',
         {
             'geojson': json.dumps(
@@ -227,7 +227,7 @@ def test_search_geojson_extent(api_client):
         },
     ).data
     assert results['count'] == 1
-    results = api_client.get(
+    results = admin_api_client.get(
         '/api/geodata/geojson/extent',
         {
             'geojson': json.dumps(
@@ -243,12 +243,12 @@ def test_search_geojson_extent(api_client):
     oldtimestr = (datetime.datetime.now() - datetime.timedelta(days=1)).strftime(
         '%Y-%m-%d %H:%M:%S'
     )
-    results = api_client.get(
+    results = admin_api_client.get(
         '/api/geodata/raster/geojson/extent',
         {'start_time': oldtimestr, 'end_time': timestr, 'timefield': 'acquisition'},
     ).data
     assert results['count'] == len(SampleFiles)
-    results = api_client.get(
+    results = admin_api_client.get(
         '/api/geodata/raster/geojson/extent',
         {'start_time': timestr, 'end_time': timestr, 'timefield': 'acquisition'},
     ).data

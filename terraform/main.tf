@@ -1,6 +1,5 @@
 terraform {
   backend "remote" {
-    hostname     = "app.terraform.io"
     organization = "ResonantGeoData"
 
     workspaces {
@@ -29,7 +28,7 @@ resource "aws_route53_zone" "common" {
 
 module "django" {
   source  = "girder/django/heroku"
-  version = "0.5.0"
+  version = "0.8.0"
 
   project_slug     = "resonantgeodata"
   subdomain_name   = "www"
@@ -44,6 +43,7 @@ module "django" {
   }
   # This defaults to 1, but may be changed
   heroku_worker_dyno_quantity = 0
-  heroku_web_dyno_size = "hobby"
-  heroku_worker_dyno_size = "hobby"
+  heroku_web_dyno_size        = "hobby"
+  heroku_worker_dyno_size     = "hobby"
+  heroku_postgresql_plan      = "hobby-basic"
 }

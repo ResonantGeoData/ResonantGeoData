@@ -29,8 +29,8 @@ class Command(BaseCommand):
         # Set celery to run all tasks synchronously
         eager = getattr(settings, 'CELERY_TASK_ALWAYS_EAGER', False)
         prop = getattr(settings, 'CELERY_TASK_EAGER_PROPAGATES', False)
-        settings.CELERY_TASK_ALWAYS_EAGER = True
-        settings.CELERY_TASK_EAGER_PROPAGATES = True
+        # settings.CELERY_TASK_ALWAYS_EAGER = True
+        # settings.CELERY_TASK_EAGER_PROPAGATES = True
 
         count = options.get('count', 0)
 

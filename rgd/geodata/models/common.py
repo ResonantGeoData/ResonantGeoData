@@ -1,8 +1,11 @@
+from contextlib import contextmanager
+import logging
 import os
-from urllib.parse import urlparse
+from urllib.parse import urlencode, urlparse
 
 # from django.contrib.auth import get_user_model
 from django.contrib.gis.db import models
+from django.core.exceptions import ObjectDoesNotExist
 from django.utils import timezone
 from girder_utils.files import field_file_to_local_path
 from model_utils.managers import InheritanceManager
@@ -12,12 +15,18 @@ from rgd.utility import (
     _link_url,
     compute_checksum_file,
     compute_checksum_url,
+    patch_internal_presign,
+    precheck_fuse,
+    url_file_to_fuse_path,
     url_file_to_local_path,
 )
 
-from .. import tasks
+# from .. import tasks
+from .collection import Collection
 from .constants import DB_SRID
-from .mixins import Status, TaskEventMixin
+from .mixins import TaskEventMixin
+
+logger = logging.getLogger(__name__)
 
 
 class ModifiableEntry(models.Model):
@@ -61,7 +70,35 @@ class SpatialEntry(models.Model):
     objects = InheritanceManager()
 
     def __str__(self):
-        return 'Spatial ID: {} (type: {})'.format(self.spatial_id, type(self))
+        try:
+            return 'Spatial ID: {} (ID: {}, type: {})'.format(self.spatial_id, self.id, type(self))
+        except AttributeError:
+            return super().__str__()
+
+    @property
+    def subentry(self):
+        try:
+            return self.rastermetaentry
+        except ObjectDoesNotExist:
+            pass
+        try:
+            return self.geometryentry
+        except ObjectDoesNotExist:
+            pass
+        try:
+            return self.fmventry
+        except ObjectDoesNotExist:
+            pass
+        raise ObjectDoesNotExist
+
+    @property
+    def subentry_name(self):
+        """Return the name from the subentry model."""
+        return self.subentry.name
+
+    @property
+    def subentry_type(self):
+        return type(self.subentry).__name__
 
 
 class FileSourceType(models.IntegerChoices):
@@ -77,20 +114,28 @@ class ChecksumFile(ModifiableEntry, TaskEventMixin):
 
     """
 
-    name = models.CharField(max_length=100, blank=True)
+    name = models.CharField(max_length=1000, blank=True)
     checksum = models.CharField(max_length=128)  # sha512
     validate_checksum = models.BooleanField(
         default=False
     )  # a flag to validate the checksum against the saved checksum
     last_validation = models.BooleanField(default=True)
+    collection = models.ForeignKey(
+        Collection,
+        on_delete=models.SET_NULL,
+        related_name='%(class)ss',
+        related_query_name='%(class)ss',
+        null=True,
+        blank=True,
+    )
 
     type = models.IntegerField(choices=FileSourceType.choices, default=FileSourceType.FILE_FIELD)
     file = S3FileField(null=True, blank=True)
     url = models.TextField(null=True, blank=True)
 
-    task_func = tasks.task_checksum_file_post_save
-    failure_reason = models.TextField(null=True)
-    status = models.CharField(max_length=20, default=Status.CREATED, choices=Status.choices)
+    task_funcs = (
+        # tasks.task_checksum_file_post_save,
+    )
 
     class Meta:
         constraints = [
@@ -109,6 +154,9 @@ class ChecksumFile(ModifiableEntry, TaskEventMixin):
                 ),
             )
         ]
+
+    def __str__(self):
+        return self.name
 
     def get_checksum(self):
         """Compute a new checksum without saving it."""
@@ -140,6 +188,23 @@ class ChecksumFile(ModifiableEntry, TaskEventMixin):
         )
         return self.last_validation
 
+    def post_save_job(self):
+        if not self.checksum or self.validate_checksum:
+            if self.validate_checksum:
+                self.validate()
+            else:
+                self.update_checksum()
+            # Reset the user flags
+            self.validate_checksum = False
+            # Simple update save - not full save
+            self.save(
+                update_fields=[
+                    'checksum',
+                    'last_validation',
+                    'validate_checksum',
+                ]
+            )
+
     def save(self, *args, **kwargs):
         if not self.name:
             if self.type == FileSourceType.FILE_FIELD and self.file.name:
@@ -150,22 +215,102 @@ class ChecksumFile(ModifiableEntry, TaskEventMixin):
         # Must save the model with the file before accessing it for the checksum
         super(ChecksumFile, self).save(*args, **kwargs)
 
-    def yield_local_path(self):
-        """Fetch the file from its source to a local path on disk."""
+    def yield_local_path(self, vsi=False):
+        """Create a local path for the file to be accessed.
+
+        This will first attempt to use httpfs to FUSE mount the file's URL.
+        If FUSE is unavailable, this will fallback to a Virtual File Systems URL (``vsicurl``) if the ``vsi`` option is set. Otherwise, this will
+        download the entire file to local storage.
+
+        Parameters
+        ----------
+        vsi : bool
+            If FUSE fails, fallback to a Virtual File Systems URL. See
+            ``get_vsi_path``. This is especially useful if the file
+            is being utilized by GDAL and FUSE is not set up.
+
+        """
+        if self.type == FileSourceType.URL and precheck_fuse(self.get_url()):
+            return url_file_to_fuse_path(self.get_url(internal=True))
+        elif vsi:
+            logger.info('`yield_local_path` falling back to Virtual File System URL.')
+            return self.yield_vsi_path(internal=True)
+        # Fallback to loading entire file locally
+        logger.info('`yield_local_path` falling back to downloading entire file to local storage.')
         if self.type == FileSourceType.FILE_FIELD:
-            # Use field_file_to_local_path
             return field_file_to_local_path(self.file)
         elif self.type == FileSourceType.URL:
             return url_file_to_local_path(self.url)
 
-    def get_url(self):
-        """Get the URL of the stored resource."""
+    def get_url(self, internal=False):
+        """Get the URL of the stored resource.
+
+        Parameters
+        ----------
+        internal : bool
+            In most cases this URL will be accessible from anywhere. In some
+            cases, this URL will only be accessible from within the container.
+            This flag is for use with internal processes to make sure the host
+            is correctly set to ``minio`` when needed. See
+            ``patch_internal_presign`` for more details.
+
+        """
         if self.type == FileSourceType.FILE_FIELD:
-            return self.file.url
+            if internal:
+                with patch_internal_presign(self.file):
+                    url = self.file.url
+            else:
+                url = self.file.url
+            return url
         elif self.type == FileSourceType.URL:
             return self.url
 
     def data_link(self):
-        return _link_url('geodata', 'image_file', self, 'get_url')
+        return _link_url(self, 'get_url')
 
     data_link.allow_tags = True
+
+    def get_vsi_path(self, internal=False) -> str:
+        """Return the GDAL Virtual File Systems [0] URL.
+
+        This currently formulates the `/vsicurl/...` URL [1] for internal and
+        external files. This is assuming that both are read-only. External
+        files can still be from private S3 buckets as long as `self.url`
+        redirects to a presigned S3 URL [1]:
+
+            > Starting with GDAL 2.1, `/vsicurl/` will try to query directly
+              redirected URLs to Amazon S3 signed URLs during their validity
+              period, so as to minimize round-trips.
+
+        This URL can be used for both GDAL and Rasterio [2]:
+
+            > To help developers switch [from GDAL], Rasterio will accept
+              [vsi] identifiers and other format-specific connection
+              strings, too, and dispatch them to the proper format drivers
+              and protocols.
+
+        `/vsis3/` could be used for...
+            * read/write access
+            * directory listing (for sibling files)
+        ...but is a bit more of a challenge to setup. [2]
+
+        [0] https://gdal.org/user/virtual_file_systems.html
+        [1] https://gdal.org/user/virtual_file_systems.html#vsicurl-http-https-ftp-files-random-access
+        [2] https://gdal.org/user/virtual_file_systems.html#vsis3-aws-s3-files
+        [3] https://rasterio.readthedocs.io/en/latest/topics/switch.html?highlight=vsis3#dataset-identifiers
+
+        """
+        url = self.get_url(internal=internal)
+        gdal_options = {
+            'url': url,
+            'use_head': 'no',
+            'list_dir': 'no',
+        }
+        vsicurl = f'/vsicurl?{urlencode(gdal_options)}'
+        logger.info(f'vsicurl URL: {vsicurl}')
+        return vsicurl
+
+    @contextmanager
+    def yield_vsi_path(self, internal=False):
+        """Wrap ``get_vsi_path`` in a context manager."""
+        yield self.get_vsi_path(internal=internal)
