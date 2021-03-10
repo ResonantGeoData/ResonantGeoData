@@ -321,9 +321,9 @@ def _validate_image_set_is_raster(image_set_entry):
         raise ValueError('ImageSet returned no images.')
 
     base_image = images.pop()
-    last_meta = _extract_raster_meta(base_image.image_file.imagefile)
+    last_meta = _extract_raster_meta(base_image.image_file)
     for image in images:
-        meta = _extract_raster_meta(image.image_file.imagefile)
+        meta = _extract_raster_meta(image.image_file)
         if not _compare_raster_meta(last_meta, meta):
             raise ValueError('Raster meta mismatch at image: {}'.format(image))
         last_meta = meta
@@ -367,7 +367,7 @@ def populate_raster_footprint(raster_id):
         logger.error('Cannot populate raster footprint yet due to race condition. Try again later.')
         return
     base_image = raster_entry.image_set.images.first()
-    footprint = _extract_raster_footprint(base_image.image_file.imagefile)
+    footprint = _extract_raster_footprint(base_image.image_file)
     if footprint:
         raster_meta.footprint = footprint
         raster_meta.save(update_fields=['footprint'])

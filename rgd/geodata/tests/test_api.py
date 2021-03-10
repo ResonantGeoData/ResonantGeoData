@@ -62,7 +62,7 @@ def landsat_raster():
 @pytest.mark.django_db(transaction=True)
 def test_get_status(admin_api_client, astro_image):
     model = 'ImageFile'
-    id = astro_image.image_file.imagefile.id
+    id = astro_image.image_file.id
     response = admin_api_client.get(f'/api/geodata/status/{model}/{id}')
     assert response.status_code == 200
     assert response.data

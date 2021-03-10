@@ -28,7 +28,7 @@ def download_checksum_file(request, pk):
 def download_image_entry_file(request, pk):
     instance = models.imagery.ImageEntry.objects.get(pk=pk)
     check_read_perm(request.user, instance)
-    url = instance.image_file.imagefile.file.get_url()
+    url = instance.image_file.file.get_url()
     return HttpResponseRedirect(url)
 
 

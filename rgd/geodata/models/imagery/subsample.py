@@ -57,7 +57,7 @@ def convert_to_cog(cog):
         cog.refresh_from_db()
     if not cog.converted_file:
         cog.converted_file = ChecksumFile()
-    src = cog.source_image.image_file.imagefile.file
+    src = cog.source_image.image_file.file
     output = cog.converted_file.file
     _gdal_translate_helper(src, output, prefix='cog_', options=COG_OPTIONS)
     cog.converted_file.save()
