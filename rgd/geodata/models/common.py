@@ -6,7 +6,7 @@ from urllib.parse import urlencode, urlparse
 # from django.contrib.auth import get_user_model
 from django.contrib.gis.db import models
 from django.core.exceptions import ObjectDoesNotExist
-from django.utils import timezone
+from django_extensions.db.models import TimeStampedModel
 from girder_utils.files import field_file_to_local_path
 from model_utils.managers import InheritanceManager
 from s3_file_field import S3FileField
@@ -27,28 +27,6 @@ from .constants import DB_SRID
 from .mixins import TaskEventMixin
 
 logger = logging.getLogger(__name__)
-
-
-class ModifiableEntry(models.Model):
-    """A base class for models that need to track modified datetimes and users."""
-
-    modified = models.DateTimeField(editable=False, help_text='The last time this entry was saved.')
-    created = models.DateTimeField(editable=False, help_text='When this was added to the database.')
-    # creator = models.ForeignKey(
-    #     get_user_model(), on_delete=models.DO_NOTHING, related_name='creator'
-    # )
-    # modifier = models.ForeignKey(
-    #     get_user_model(), on_delete=models.DO_NOTHING, related_name='modifier'
-    # )
-
-    def save(self, *args, **kwargs):
-        if not self.id:
-            self.created = timezone.now()
-        self.modified = timezone.now()
-        if 'update_fields' in kwargs:
-            kwargs = kwargs.copy()
-            kwargs['update_fields'] = set(kwargs['update_fields']) | {'modified'}
-        super(ModifiableEntry, self).save(*args, **kwargs)
 
 
 class SpatialEntry(models.Model):
@@ -106,7 +84,7 @@ class FileSourceType(models.IntegerChoices):
     URL = 2, 'URL'
 
 
-class ChecksumFile(ModifiableEntry, TaskEventMixin):
+class ChecksumFile(TimeStampedModel, TaskEventMixin):
     """The main class for user-uploaded files.
 
     This has support for manually uploading files or specifing a URL to a file

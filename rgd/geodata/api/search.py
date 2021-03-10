@@ -379,7 +379,7 @@ def extent_summary_spatial(found):
 
 def extent_summary_modifiable(found, has_created=False):
     """
-    Given a query set of ModifiableEntry, return a result dictionary with the summary.
+    Given a query set of TimeStampedModel, return a result dictionary with the summary.
 
     :param found: a query set with SpatialEntry results.
     :returns: a dictionary with count, collect, convex_hull, extent,

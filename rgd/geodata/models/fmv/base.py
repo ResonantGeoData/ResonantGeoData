@@ -2,17 +2,18 @@ import base64
 import pickle
 
 from django.contrib.gis.db import models
+from django_extensions.db.models import TimeStampedModel
 from s3_file_field import S3FileField
 
 from rgd.utility import _link_url
 
 from ... import tasks
-from ..common import ChecksumFile, ModifiableEntry, SpatialEntry
+from ..common import ChecksumFile, SpatialEntry
 from ..constants import DB_SRID
 from ..mixins import TaskEventMixin
 
 
-class FMVFile(ModifiableEntry, TaskEventMixin):
+class FMVFile(TimeStampedModel, TaskEventMixin):
     """For uploading single FMV files (mp4)."""
 
     task_funcs = (tasks.task_read_fmv_file,)
@@ -34,7 +35,7 @@ class FMVFile(ModifiableEntry, TaskEventMixin):
     klv_data_link.allow_tags = True
 
 
-class FMVEntry(ModifiableEntry, SpatialEntry):
+class FMVEntry(TimeStampedModel, SpatialEntry):
     """Single FMV entry, tracks the original file."""
 
     def __str__(self):
