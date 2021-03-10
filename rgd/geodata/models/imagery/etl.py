@@ -489,7 +489,7 @@ def load_kwcoco_dataset(kwcoco_dataset_id):
             name = os.path.basename(image_file_abs_path)
             image_file = ImageFile()
             image_file.collection = ds_entry.spec_file.collection
-            image_file.skip_task = True
+            image_file.skip_signal = True
             image_file.file = ChecksumFile()
             image_file.file.file.save(name, open(image_file_abs_path, 'rb'))
             image_file.save()
