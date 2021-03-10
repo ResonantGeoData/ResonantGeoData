@@ -6,6 +6,7 @@ from django.contrib.gis.db.models import Collect, Extent
 from django.contrib.gis.geos import GEOSGeometry, Point, Polygon
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db.models import Max, Min, Q
+from django.db.models.fields import DateTimeField
 from django.db.models.functions import Coalesce
 from django.utils.timezone import make_aware
 from django_filters.rest_framework import DjangoFilterBackend
@@ -420,8 +421,12 @@ def extent_summary(found, has_created=False):
     if found and found.count():
         if has_created:
             summary = found.aggregate(
-                acquisition__min=Min(Coalesce('acquisition_date', 'created')),
-                acquisition__max=Max(Coalesce('acquisition_date', 'created')),
+                acquisition__min=Min(
+                    Coalesce('acquisition_date', 'created'), output_field=DateTimeField()
+                ),
+                acquisition__max=Max(
+                    Coalesce('acquisition_date', 'created'), output_field=DateTimeField()
+                ),
             )
         else:
             summary = found.aggregate(
