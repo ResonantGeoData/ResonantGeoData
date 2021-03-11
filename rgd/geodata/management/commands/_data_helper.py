@@ -106,7 +106,11 @@ def load_shape_files(shape_files):
 
 
 def load_fmv_files(fmv_files):
-    raise NotImplementedError('FMV ETL with Docker is still broken.')
+    ids = []
+    for videof in fmv_files:
+        fmv_file = _get_or_create_file_model(models.FMVFile, videof)
+        ids.append(fmv_file.id)
+    return ids
 
 
 def load_kwcoco_archives(archives):
