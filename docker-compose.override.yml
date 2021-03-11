@@ -36,8 +36,6 @@ services:
       - TMPDIR=/tmp/rgd_worker
     volumes:
       - .:/opt/django-project
-      - ${DOCKER_SOCK:-/var/run/docker.sock}:/var/run/docker.sock
-      - ${DOCKER_CMD:-/usr/bin/docker}:/usr/bin/docker
       - /tmp/rgd_worker:/tmp/rgd_worker
     depends_on:
       - postgres

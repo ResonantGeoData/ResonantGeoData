@@ -15,12 +15,6 @@ This is the simplest configuration for developers to start with.
 2. Access the site, starting at http://localhost:8000/admin/
 3. When finished, use `Ctrl+C`
 
-On Mac, be sure to set:
-
-```bash
-export DOCKER_SOCK=/var/run/docker.sock
-export DOCKER_CMD=/usr/local/bin/docker
-```
 
 ### Application Maintenance
 Occasionally, new package dependencies or schema changes will necessitate
