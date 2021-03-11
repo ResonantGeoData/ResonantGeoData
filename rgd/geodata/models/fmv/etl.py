@@ -6,6 +6,7 @@ import tempfile
 
 from celery.utils.log import get_task_logger
 from django.contrib.gis.geos import MultiPoint, MultiPolygon, Point, Polygon
+from girder_utils.files import field_file_to_local_path
 import numpy as np
 
 from rgd.utility import get_or_create_no_commit
@@ -186,9 +187,8 @@ def _convert_video_to_mp4(fmv_file_entry):
 
 
 def _populate_fmv_entry(entry):
-    # Open in text mode
-    with entry.fmv_file.klv_file.open() as file_obj:
-        content = file_obj.read().decode('utf-8')
+    with field_file_to_local_path(entry.fmv_file.klv_file) as path:
+        content = open(path, 'r', encoding='utf-8', errors='ignore').read()
 
     if not content:
         raise Exception('FLV file not created')
@@ -212,6 +212,7 @@ def _populate_fmv_entry(entry):
 
 def read_fmv_file(fmv_file_id):
     fmv_file = FMVFile.objects.get(id=fmv_file_id)
+    fmv_file.skip_task = True
 
     validation = True  # TODO: use `fmv_file.file.validate()`
     # Only extraxt the KLV data if it does not exist or the checksum of the video has changed
