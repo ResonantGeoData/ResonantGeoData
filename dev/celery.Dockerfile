@@ -12,11 +12,18 @@ RUN apt-get update && \
         libglib2.0-0 \
         ffmpeg \
         fuse \
+        curl \
         && \
     rm -rf /var/lib/apt/lists/*
 
 ENV PYTHONDONTWRITEBYTECODE 1
 ENV PYTHONUNBUFFERED 1
+
+# Install TeleSculptor to get `kwiver dump-klv`
+# Massive overkill but it's better than trying to call a seperate docker container
+# This will install kwiver to `/bin/kwiver`
+RUN  curl -LJO https://github.com/Kitware/TeleSculptor/releases/download/v1.1.1/TeleSculptor-1.1.1-Linux-x86_64.sh --output ./TeleSculptor-1.1.1-Linux-x86_64.sh
+RUN bash ./TeleSculptor-1.1.1-Linux-x86_64.sh --skip-license
 
 # Only copy the setup.py, it will still force all install_requires to be installed,
 # but find_packages() will find nothing (which is fine). When Docker Compose mounts the real source

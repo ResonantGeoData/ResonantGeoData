@@ -72,7 +72,6 @@ setup(
             'tox',
         ],
         'worker': [
-            'docker',
             'rasterio',
             'fiona',
             'shapely',

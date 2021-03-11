@@ -1,13 +1,11 @@
 import os
 import re
-import shlex
 import shutil
 import subprocess
 import tempfile
 
 from celery.utils.log import get_task_logger
 from django.contrib.gis.geos import MultiPoint, MultiPolygon, Point, Polygon
-import docker
 import numpy as np
 
 from rgd.utility import get_or_create_no_commit
@@ -17,13 +15,10 @@ from .base import FMVEntry, FMVFile
 logger = get_task_logger(__name__)
 
 
-def _extract_klv_with_docker(fmv_file_entry):
-    logger.info('Entered `_extract_klv_with_docker`')
-    image_name = 'banesullivan/kwiver:dump-klv'
+def _extract_klv(fmv_file_entry):
+    logger.info('Entered `_extract_klv`')
     video_file = fmv_file_entry.file
     try:
-        client = docker.from_env(version='auto', timeout=3600)
-        _ = client.images.pull(image_name)
 
         with video_file.yield_local_path() as dataset_path:
             logger.info('Running dump-klv with data %s' % (dataset_path))
@@ -31,21 +26,10 @@ def _extract_klv_with_docker(fmv_file_entry):
             output_path = os.path.join(tmpdir, os.path.basename(video_file.file.name) + '.klv')
             stderr_path = os.path.join(tmpdir, 'stderr.dat')
             cmd = [
-                'docker',
-                'run',
-                '--rm',
-                '-i',
-                image_name,
+                'kwiver',
+                'dump-klv',
+                dataset_path,
             ]
-            logger.info(
-                'Running %s <%s >%s 2>%s'
-                % (
-                    ' '.join([shlex.quote(c) for c in cmd]),
-                    shlex.quote(str(dataset_path)),
-                    shlex.quote(output_path),
-                    shlex.quote(stderr_path),
-                )
-            )
             try:
                 subprocess.check_call(
                     cmd,
@@ -56,9 +40,9 @@ def _extract_klv_with_docker(fmv_file_entry):
                 result = 0
             except subprocess.CalledProcessError as exc:
                 result = exc.returncode
-                logger.info('Failed to successfully run image (%r)' % (exc))
+                logger.info('Failed to successfully run dump-klv (%r)' % (exc))
                 raise exc
-            logger.info('Finished running image with result %r' % result)
+            logger.info('Finished running dump-klv with result %r' % result)
             # Store result
             fmv_file_entry.klv_file.save(os.path.basename(output_path), open(output_path, 'rb'))
             fmv_file_entry.save(
@@ -233,7 +217,7 @@ def read_fmv_file(fmv_file_id):
     validation = True  # TODO: use `fmv_file.file.validate()`
     # Only extraxt the KLV data if it does not exist or the checksum of the video has changed
     if not fmv_file.klv_file or not validation:
-        _extract_klv_with_docker(fmv_file)
+        _extract_klv(fmv_file)
     if not fmv_file.web_video_file or not validation:
         _convert_video_to_mp4(fmv_file)
 
