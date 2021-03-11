@@ -61,4 +61,4 @@ files/
 # Ignore a local config file
 docker-compose.local.yml
 
-.mypy_chache
+.mypy_cache
