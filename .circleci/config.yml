@@ -16,6 +16,9 @@ jobs:
     steps:
       - checkout
       - run:
+          name: Install ffmpeg
+          command: apt-get install --no-install-recommends --yes ffmpeg
+      - run:
           name: Install tox and codecov
           command: sudo pip install tox codecov
       - run:
