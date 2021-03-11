@@ -8,7 +8,7 @@ from rgd.geodata.models.mixins import Status
 
 from . import factories
 
-NO_KWIVER = not shutil.which('kwiver')
+NO_KWIVER = not shutil.which('kwiver') or not shutil.which('ffmpeg')
 
 
 @pytest.mark.django_db(transaction=True)
