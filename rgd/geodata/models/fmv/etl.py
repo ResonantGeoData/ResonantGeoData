@@ -17,43 +17,42 @@ logger = get_task_logger(__name__)
 
 def _extract_klv(fmv_file_entry):
     logger.info('Entered `_extract_klv`')
-    video_file = fmv_file_entry.file
-    try:
 
-        with video_file.yield_local_path() as dataset_path:
-            logger.info('Running dump-klv with data %s' % (dataset_path))
-            tmpdir = tempfile.mkdtemp()
-            output_path = os.path.join(tmpdir, os.path.basename(video_file.file.name) + '.klv')
-            stderr_path = os.path.join(tmpdir, 'stderr.dat')
-            cmd = [
-                'kwiver',
-                'dump-klv',
-                dataset_path,
-            ]
-            try:
-                subprocess.check_call(
-                    cmd,
-                    stdin=open(dataset_path, 'rb'),
-                    stdout=open(output_path, 'wb'),
-                    stderr=open(stderr_path, 'wb'),
-                )
-                result = 0
-            except subprocess.CalledProcessError as exc:
-                result = exc.returncode
-                logger.info('Failed to successfully run dump-klv (%r)' % (exc))
-                raise exc
-            logger.info('Finished running dump-klv with result %r' % result)
-            # Store result
-            fmv_file_entry.klv_file.save(os.path.basename(output_path), open(output_path, 'rb'))
-            fmv_file_entry.save(
-                update_fields=[
-                    'klv_file',
-                ]
+    if not shutil.which('kwiver'):
+        raise RuntimeError('kwiver not installed. Run `pip install kwiver`.')
+
+    video_file = fmv_file_entry.file
+    with video_file.yield_local_path() as dataset_path:
+        logger.info('Running dump-klv with data %s' % (dataset_path))
+        tmpdir = tempfile.mkdtemp()
+        output_path = os.path.join(tmpdir, os.path.basename(video_file.file.name) + '.klv')
+        stderr_path = os.path.join(tmpdir, 'stderr.dat')
+        cmd = [
+            'kwiver',
+            'dump-klv',
+            dataset_path,
+        ]
+        try:
+            subprocess.check_call(
+                cmd,
+                stdin=open(dataset_path, 'rb'),
+                stdout=open(output_path, 'wb'),
+                stderr=open(stderr_path, 'wb'),
             )
-            shutil.rmtree(tmpdir)
-    except Exception as exc:
-        logger.exception('Internal error running dump-klv')
-        raise exc
+            result = 0
+        except subprocess.CalledProcessError as exc:
+            result = exc.returncode
+            logger.info('Failed to successfully run dump-klv (%r)' % (exc))
+            raise exc
+        logger.info('Finished running dump-klv with result %r' % result)
+        # Store result
+        fmv_file_entry.klv_file.save(os.path.basename(output_path), open(output_path, 'rb'))
+        fmv_file_entry.save(
+            update_fields=[
+                'klv_file',
+            ]
+        )
+        shutil.rmtree(tmpdir)
     return
 
 
