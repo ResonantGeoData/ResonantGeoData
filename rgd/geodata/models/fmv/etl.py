@@ -227,6 +227,5 @@ def read_fmv_file(fmv_file_id):
     )
 
     _populate_fmv_entry(entry)
-    entry.save()
 
     return
