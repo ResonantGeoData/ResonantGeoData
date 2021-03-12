@@ -1,7 +1,7 @@
 import contextlib
 import logging
 import os
-from urllib.parse import urlencode
+from urllib.parse import urlencode, urlparse
 
 # from django.contrib.auth import get_user_model
 from django.contrib.gis.db import models
@@ -211,8 +211,14 @@ class ChecksumFile(ModifiableEntry, TaskEventMixin):
             if self.type == FileSourceType.FILE_FIELD and self.file.name:
                 self.name = os.path.basename(self.file.name)
             elif self.type == FileSourceType.URL:
-                with safe_urlopen(self.url) as r:
-                    self.name = r.info().get_filename()
+                try:
+                    with safe_urlopen(self.url) as r:
+                        self.name = r.info().get_filename()
+                except (AttributeError, ValueError):
+                    pass
+                if not self.name:
+                    # Fallback
+                    self.name = os.path.basename(urlparse(self.url).path)
         # Must save the model with the file before accessing it for the checksum
         super(ChecksumFile, self).save(*args, **kwargs)
 
