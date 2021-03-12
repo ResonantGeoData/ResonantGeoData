@@ -1,7 +1,7 @@
-from contextlib import contextmanager
+import contextlib
 import logging
 import os
-from urllib.parse import urlencode, urlparse
+from urllib.parse import urlencode
 
 # from django.contrib.auth import get_user_model
 from django.contrib.gis.db import models
@@ -17,6 +17,7 @@ from rgd.utility import (
     compute_checksum_url,
     patch_internal_presign,
     precheck_fuse,
+    safe_urlopen,
     url_file_to_fuse_path,
     url_file_to_local_path,
 )
@@ -210,8 +211,8 @@ class ChecksumFile(ModifiableEntry, TaskEventMixin):
             if self.type == FileSourceType.FILE_FIELD and self.file.name:
                 self.name = os.path.basename(self.file.name)
             elif self.type == FileSourceType.URL:
-                # TODO: this isn't the best approach
-                self.name = os.path.basename(urlparse(self.url).path)
+                with safe_urlopen(self.url) as r:
+                    self.name = r.info().get_filename()
         # Must save the model with the file before accessing it for the checksum
         super(ChecksumFile, self).save(*args, **kwargs)
 
@@ -310,7 +311,7 @@ class ChecksumFile(ModifiableEntry, TaskEventMixin):
         logger.info(f'vsicurl URL: {vsicurl}')
         return vsicurl
 
-    @contextmanager
+    @contextlib.contextmanager
     def yield_vsi_path(self, internal=False):
         """Wrap ``get_vsi_path`` in a context manager."""
         yield self.get_vsi_path(internal=internal)

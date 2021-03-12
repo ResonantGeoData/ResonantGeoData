@@ -1,20 +1,20 @@
 from functools import reduce
 import os
-from urllib.request import urlopen
 
 from django.db.models import Count
 
 from rgd.geodata import models, tasks
 from rgd.geodata.datastore import datastore, registry
 from rgd.geodata.models.imagery.etl import read_image_file
-from rgd.utility import get_or_create_no_commit
+from rgd.utility import get_or_create_no_commit, safe_urlopen
 
 
 def _get_or_download_checksum_file(name):
     # Check if there is already an image file with this sha or URL
     #  to avoid duplicating data
     try:
-        _ = urlopen(name)  # HACK: see if URL first
+        with safe_urlopen(name) as _:
+            pass  # HACK: see if URL first
         try:
             file_entry = models.ChecksumFile.objects.get(url=name)
         except models.ChecksumFile.DoesNotExist:
