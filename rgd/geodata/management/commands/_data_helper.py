@@ -40,11 +40,12 @@ def _get_or_download_checksum_file(name):
 def _get_or_create_file_model(model, name, skip_signal=False):
     # For models that point to a `ChecksumFile`
     file_entry = _get_or_download_checksum_file(name)
-    entry, _ = model.objects.get_or_create(file=file_entry)
+    # No commit in case we need to skip the signal
+    entry, created = get_or_create_no_commit(model, file=file_entry)
     # In case the last population failed
     if skip_signal:
         entry.skip_signal = True
-    if entry.status != models.mixins.Status.SUCCEEDED:
+    if created or entry.status != models.mixins.Status.SUCCEEDED:
         entry.save()
     return entry
 
