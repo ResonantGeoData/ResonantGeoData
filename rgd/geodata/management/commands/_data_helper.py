@@ -1,11 +1,13 @@
 from functools import reduce
 import os
 
+import dateutil.parser
 from django.db.models import Count
+from django.utils.timezone import make_aware
 
 from rgd.geodata import models, tasks
 from rgd.geodata.datastore import datastore, registry
-from rgd.geodata.models.imagery.etl import read_image_file
+from rgd.geodata.models.imagery.etl import populate_raster_entry, read_image_file
 from rgd.utility import get_or_create_no_commit, safe_urlopen
 
 
@@ -70,10 +72,12 @@ def load_raster_files(raster_files, dates=None, names=None):
         files = []
         dates = []
         names = []
+        cloud_cover = []
         for name, rf in raster_files.items():
             files.append([rf['R'], rf['G'], rf['B']])
             dates.append(rf['acquisition'])
             names.append(name)
+            cloud_cover.append(rf['cloud_cover'])
         raster_files = files
 
     ids = []
@@ -102,17 +106,22 @@ def load_raster_files(raster_files, dates=None, names=None):
                     imset.images.add(image)
                 imset.save()
             # Make raster of that image set
-            raster, created = models.RasterEntry.objects.get_or_create(image_set=imset)
-            if not created and raster.status != models.mixins.Status.SUCCEEDED:
-                raster.save()
+            raster, created = get_or_create_no_commit(models.RasterEntry, image_set=imset)
+            raster.skip_signal = True
+            raster.save()
+            if raster.status != models.mixins.Status.SUCCEEDED:
+                # Run init task in sequence to create associated rastermetaentry
+                populate_raster_entry(raster)
             if dates:
-                raster.rastermetaentry.acquisition_date = dates[i]
+                adt = dateutil.parser.isoparser().isoparse(dates[i])
+                raster.rastermetaentry.acquisition_date = make_aware(adt)
+                raster.rastermetaentry.cloud_cover = cloud_cover[i]
                 raster.rastermetaentry.save(
                     update_fields=[
                         'acquisition_date',
+                        'cloud_cover',
                     ]
                 )
-            if names:
                 raster.name = names[i]
                 raster.save(
                     update_fields=[
