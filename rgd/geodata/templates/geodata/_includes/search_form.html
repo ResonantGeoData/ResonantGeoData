@@ -176,6 +176,20 @@
 
         <div class="column is-full field mb-0">
           <div class="field-label is-normal">
+            <label class="label">Cloud Cover (Min/Max)</label>
+          </div>
+          <div class="field-body">
+            <div class="field">
+              <div class="control">
+                <input class="input" type="text" name="cloud_cover_min" value="{{ request.GET.cloud_cover_min }}">
+                <input class="input" type="text" name="cloud_cover_max" value="{{ request.GET.cloud_cover_max }}">
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="column is-full field mb-0">
+          <div class="field-label is-normal">
             <label class="label">Instrumentation</label>
           </div>
           <div class="field-body">

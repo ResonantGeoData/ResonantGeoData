@@ -103,6 +103,12 @@ class SpatialEntryFilter(filters.FilterSet):
         label='Resolution',
         method='filter_resolution',
     )
+    cloud_cover = filters.RangeFilter(
+        field_name='rastermetaentry__cloud_cover',
+        fields=(forms.FloatField(), forms.FloatField()),
+        help_text='The cloud coverage of the raster.',
+        label='Cloud cover',
+    )
     frame_rate = filters.RangeFilter(
         field_name='fmventry__fmv_file',
         fields=(forms.IntegerField(), forms.IntegerField()),
@@ -269,4 +275,5 @@ class SpatialEntryFilter(filters.FilterSet):
             'num_bands',
             'resolution',
             'frame_rate',
+            'cloud_cover',
         ]
