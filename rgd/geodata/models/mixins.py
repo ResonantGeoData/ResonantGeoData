@@ -1,6 +1,7 @@
 """Mixin helper classes."""
-from collections.abc import Iterable
+from typing import Iterable
 
+from celery import Task
 from django.contrib.gis.db import models
 from django.utils.translation import gettext_lazy as _
 
@@ -13,25 +14,33 @@ class Status(models.TextChoices):
     SUCCEEDED = 'success', _('Succeeded')
 
 
-class TaskEventMixin(object):
-    """A mixin for models that must call a task.
+class TaskEventMixin(models.Model):
+    """A mixin for models that must call a set of celery tasks.
 
-    The task must be assigned as a class attribute.
+    This mixin adds three class attributes:
+
+    * ``task_funcs``, which should be the list of celery task functions that should be run
+      on this model instance. Subclasses should set this attribute.
+    * ``status``, a model field representing task execution status.
+    * ``failure_reason``, a model field that can be set on this instance from within
+      tasks for human-readable error logging.
 
     NOTE: you still need to register the pre/post save event.  on_commit events
     should be registered as post_save events, not pre_save.
     """
 
-    task_funcs = None
-    """The task function."""
+    class Meta:
+        abstract = True
 
-    def _run_task(self):
-        if not isinstance(self.task_funcs, Iterable):
-            self.task_funcs = (self.task_funcs,)
-        if len(self.task_funcs) < 1:
+    failure_reason = models.TextField(null=True)
+    status = models.CharField(max_length=20, default=Status.CREATED, choices=Status.choices)
+
+    task_funcs: Iterable[Task] = []
+
+    def _run_tasks(self) -> None:
+        if not self.task_funcs:
             return
-        if not all([callable(f) for f in self.task_funcs]):
-            raise RuntimeError('Task function(s) must be set to a callable.')  # pragma: no cover
+
         self.status = Status.QUEUED
         self.save(
             update_fields=[
@@ -41,12 +50,12 @@ class TaskEventMixin(object):
         for func in self.task_funcs:
             func.delay(self.id)
 
-    def _post_save_event_task(self, created, *args, **kwargs):
+    def _post_save_event_task(self, created: bool, *args, **kwargs) -> None:
         if not created and kwargs.get('update_fields'):
             return
-        self._run_task()
+        self._run_tasks()
 
-    def _on_commit_event_task(self, *args, **kwargs):
+    def _on_commit_event_task(self, *args, **kwargs) -> None:
         if kwargs.get('update_fields'):
             return
-        self._run_task()
+        self._run_tasks()

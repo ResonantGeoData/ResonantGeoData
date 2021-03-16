@@ -1,11 +1,12 @@
 """Base classes for raster dataset entries."""
 from django.contrib.gis.db import models
 from django.contrib.postgres import fields
+from django.core.validators import MaxValueValidator, MinValueValidator
 from django.utils.translation import gettext_lazy as _
 
 from ... import tasks
 from ..common import ChecksumFile, ModifiableEntry, SpatialEntry
-from ..mixins import Status, TaskEventMixin
+from ..mixins import TaskEventMixin
 
 
 class ImageFile(ModifiableEntry, TaskEventMixin):
@@ -20,8 +21,6 @@ class ImageFile(ModifiableEntry, TaskEventMixin):
     """
 
     task_funcs = (tasks.task_read_image_file,)
-    failure_reason = models.TextField(null=True)
-    status = models.CharField(max_length=20, default=Status.CREATED, choices=Status.choices)
     file = models.ForeignKey(ChecksumFile, on_delete=models.CASCADE)
 
     def image_data_link(self):
@@ -107,8 +106,6 @@ class RasterEntry(ModifiableEntry, TaskEventMixin):
         tasks.task_populate_raster_entry,
         # tasks.task_populate_raster_footprint,
     )
-    failure_reason = models.TextField(null=True)
-    status = models.CharField(max_length=20, default=Status.CREATED, choices=Status.choices)
 
     @property
     def footprint(self):
@@ -140,6 +137,9 @@ class RasterMetaEntry(ModifiableEntry, SpatialEntry):
     resolution = fields.ArrayField(models.FloatField(), size=2)  # AKA scale
     # TODO: skew/transform
     transform = fields.ArrayField(models.FloatField(), size=6)
+    cloud_cover = models.FloatField(
+        null=True, validators=[MinValueValidator(0), MaxValueValidator(100)]
+    )
 
     @property
     def name(self):
@@ -170,8 +170,6 @@ class ConvertedImageFile(ModifiableEntry, TaskEventMixin):
 
     task_funcs = (tasks.task_convert_to_cog,)
     converted_file = models.OneToOneField(ChecksumFile, on_delete=models.SET_NULL, null=True)
-    failure_reason = models.TextField(null=True)
-    status = models.CharField(max_length=20, default=Status.CREATED, choices=Status.choices)
     source_image = models.OneToOneField(ImageEntry, on_delete=models.CASCADE)
 
     def _post_delete(self, *args, **kwargs):
@@ -197,9 +195,6 @@ class SubsampledImage(ModifiableEntry, TaskEventMixin):
     sample_parameters = models.JSONField()
 
     data = models.OneToOneField(ChecksumFile, on_delete=models.SET_NULL, null=True)
-
-    failure_reason = models.TextField(null=True)
-    status = models.CharField(max_length=20, default=Status.CREATED, choices=Status.choices)
 
     def to_kwargs(self):
         """Convert ``sample_parameters`` to kwargs ready for GDAL.
@@ -244,8 +239,6 @@ class KWCOCOArchive(ModifiableEntry, TaskEventMixin):
 
     task_funcs = (tasks.task_load_kwcoco_dataset,)
     name = models.CharField(max_length=1000, blank=True)
-    failure_reason = models.TextField(null=True)
-    status = models.CharField(max_length=20, default=Status.CREATED, choices=Status.choices)
     spec_file = models.OneToOneField(
         ChecksumFile,
         on_delete=models.CASCADE,
