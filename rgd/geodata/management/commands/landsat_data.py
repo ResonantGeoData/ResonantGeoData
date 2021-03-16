@@ -1,9 +1,6 @@
 import json
 import os
 
-from django.conf import settings
-from django.core.management.base import BaseCommand  # , CommandError
-
 from . import _data_helper as helper
 
 SUCCESS_MSG = 'Finished loading all landsat data.'
@@ -22,7 +19,7 @@ def _get_landsat_urls(count):
     return urls
 
 
-class Command(BaseCommand):
+class Command(helper.SynchronousTasksCommand):
     help = 'Populate database with demo landsat data from S3.'
 
     def add_arguments(self, parser):
@@ -32,11 +29,7 @@ class Command(BaseCommand):
         )
 
     def handle(self, *args, **options):
-        # Set celery to run all tasks synchronously
-        eager = getattr(settings, 'CELERY_TASK_ALWAYS_EAGER', False)
-        prop = getattr(settings, 'CELERY_TASK_EAGER_PROPAGATES', False)
-        # settings.CELERY_TASK_ALWAYS_EAGER = True
-        # settings.CELERY_TASK_EAGER_PROPAGATES = True
+        self.set_synchronous()
 
         if options.get('get_count', False):
             n = len(_get_landsat_urls(0))
@@ -48,7 +41,4 @@ class Command(BaseCommand):
         # Run the command
         helper.load_raster_files(_get_landsat_urls(count))
         self.stdout.write(self.style.SUCCESS(SUCCESS_MSG))
-
-        # Reset celery to previous settings
-        settings.CELERY_TASK_ALWAYS_EAGER = eager
-        settings.CELERY_TASK_EAGER_PROPAGATES = prop
+        self.reset_celery()
