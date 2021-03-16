@@ -61,8 +61,45 @@ def _read_image_to_entry(image_entry, image_file_path):
         # A catch-all metadata feild:
         # TODO: image_entry.metadata =
 
+        # These are things I couldn't figure out how to get with gdal directly
+        dtypes = src.dtypes
+        interps = src.colorinterp
+
     # No longer editing image_entry
     image_entry.save()
+
+    # Rasterio is no longer open... using gdal directly:
+    gsrc = gdal.Open(str(image_file_path))  # Have to cast Path to str
+
+    n = gsrc.RasterCount
+    if n != image_entry.number_of_bands:
+        # Sanity check
+        raise ValueError('gdal detects different number of bands than rasterio.')
+    for i in range(n):
+        gdal_band = gsrc.GetRasterBand(i + 1)  # off by 1 indexing
+        band_meta = BandMetaEntry()
+        band_meta.parent_image = image_entry
+        band_meta.band_number = i + 1  # off by 1 indexing
+        band_meta.description = gdal_band.GetDescription()
+        band_meta.nodata_value = gdal_band.GetNoDataValue()
+        try:
+            band_meta.dtype = dtypes[i]
+        except IndexError:
+            pass
+        # TODO: seperate out band stats into separate tasks
+        # bmin, bmax, mean, std = gdal_band.GetStatistics(True, True)
+        # band_meta.min = bmin
+        # band_meta.max = bmax
+        # band_meta.mean = mean
+        # band_meta.std = std
+
+        try:
+            band_meta.interpretation = interps[i].name
+        except IndexError:
+            pass
+
+        # Save this band entirely
+        band_meta.save()
 
     return
 
@@ -79,8 +116,6 @@ def read_image_file(ife):
         ife = ImageFile.objects.get(id=ife)
 
     with ife.file.yield_local_path(vsi=True) as file_path:
-        logger.info(f'The image file path: {file_path}')
-
         image_entry, created = get_or_create_no_commit(
             ImageEntry, defaults=dict(name=ife.file.name), image_file=ife
         )
@@ -249,7 +284,7 @@ def _extract_raster_footprint(image_file_entry):
             # Only implement for first band for now
             footprint = _get_valid_data_footprint(src, 1)
         except Exception as e:  # TODO: be more clever about this
-            logger.info(f'Issue computing valid data footprint: {e}')
+            logger.error(f'Issue computing valid data footprint: {e}')
             footprint = None
     return footprint
 
@@ -294,9 +329,10 @@ def _validate_image_set_is_raster(image_set_entry):
     return last_meta
 
 
-def populate_raster_entry(raster_id):
+def populate_raster_entry(raster_entry):
     """Autopopulate the fields of the raster."""
-    raster_entry = RasterEntry.objects.get(id=raster_id)
+    if not isinstance(raster_entry, RasterEntry):
+        raster_entry = RasterEntry.objects.get(id=raster_entry)
 
     # Has potential to error with failure reason
     meta = _validate_image_set_is_raster(raster_entry.image_set)
@@ -410,7 +446,7 @@ def load_kwcoco_dataset(kwcoco_dataset_id):
         # Delete all previously existing data
         # This should cascade to all the annotations
         for imageentry in ds_entry.image_set.images.all():
-            imageentry.image_file.delete()
+            imageentry.image_file.file.delete()
     else:
         ds_entry.image_set = ImageSet()
     ds_entry.image_set.name = ds_entry.name
@@ -452,7 +488,7 @@ def load_kwcoco_dataset(kwcoco_dataset_id):
             name = os.path.basename(image_file_abs_path)
             image_file = ImageFile()
             image_file.collection = ds_entry.spec_file.collection
-            image_file.skip_task = True
+            image_file.skip_signal = True
             image_file.file = ChecksumFile()
             image_file.file.file.save(name, open(image_file_abs_path, 'rb'))
             image_file.save()

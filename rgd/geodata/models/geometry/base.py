@@ -2,12 +2,10 @@ from django.contrib.gis.db import models
 from django.core.exceptions import ValidationError
 import magic
 
-from rgd.utility import _link_url
-
 from ... import tasks
 from ..common import ChecksumFile, ModifiableEntry, SpatialEntry
 from ..constants import DB_SRID
-from ..mixins import Status, TaskEventMixin
+from ..mixins import TaskEventMixin
 
 
 def validate_archive(field_file):
@@ -30,14 +28,11 @@ class GeometryArchive(ModifiableEntry, TaskEventMixin):
     task_funcs = (tasks.task_read_geometry_archive,)
     file = models.ForeignKey(ChecksumFile, on_delete=models.CASCADE)
 
-    failure_reason = models.TextField(null=True)
-    status = models.CharField(max_length=20, default=Status.CREATED, choices=Status.choices)
-
     def save(self, *args, **kwargs):
         super(GeometryArchive, self).save(*args, **kwargs)
 
     def archive_data_link(self):
-        return _link_url('geodata', 'geometry_archive', self, 'file')
+        return self.file.data_link()
 
     archive_data_link.allow_tags = True
 
@@ -45,7 +40,7 @@ class GeometryArchive(ModifiableEntry, TaskEventMixin):
 class GeometryEntry(ModifiableEntry, SpatialEntry):
     """A holder for geometry vector data."""
 
-    name = models.CharField(max_length=100, blank=True)
+    name = models.CharField(max_length=1000, blank=True)
     description = models.TextField(null=True, blank=True)
 
     data = models.GeometryCollectionField(srid=DB_SRID)  # Can be one or many features

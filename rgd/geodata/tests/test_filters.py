@@ -45,7 +45,7 @@ def test_q_distance(sample_raster_a, sample_raster_b):
     # Make sure all are returned sorted by distance
     filterset = SpatialEntryFilter(
         data={
-            'q': f'SRID=4326;{sample_raster_a.footprint.wkt}',
+            'q': f'SRID=4326;{sample_raster_a.outline.wkt}',
         }
     )
     assert filterset.is_valid()
@@ -54,7 +54,7 @@ def test_q_distance(sample_raster_a, sample_raster_b):
     assert qs.first().spatial_id == sample_raster_a.spatial_id
     filterset = SpatialEntryFilter(
         data={
-            'q': f'SRID=4326;{sample_raster_b.footprint.wkt}',
+            'q': f'SRID=4326;{sample_raster_b.outline.wkt}',
         }
     )
     assert filterset.is_valid()
@@ -68,7 +68,7 @@ def test_raster_intersects(sample_raster_a, sample_raster_b):
     assert SpatialEntry.objects.count() == 2
     filterset = SpatialEntryFilter(
         data={
-            'q': f'SRID=4326;{sample_raster_a.footprint.wkt}',
+            'q': f'SRID=4326;{sample_raster_a.outline.wkt}',
             'predicate': 'intersects',
         }
     )
@@ -82,7 +82,7 @@ def test_geojson_intersects(sample_raster_a, sample_raster_b):
     assert SpatialEntry.objects.count() == 2
     filterset = SpatialEntryFilter(
         data={
-            'q': f'{sample_raster_a.footprint.geojson}',
+            'q': f'{sample_raster_a.outline.geojson}',
             'predicate': 'intersects',
         }
     )

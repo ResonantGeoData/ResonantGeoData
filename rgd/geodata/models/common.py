@@ -1,4 +1,4 @@
-from contextlib import contextmanager
+import contextlib
 import logging
 import os
 from urllib.parse import urlencode, urlparse
@@ -17,14 +17,15 @@ from rgd.utility import (
     compute_checksum_url,
     patch_internal_presign,
     precheck_fuse,
+    safe_urlopen,
     url_file_to_fuse_path,
     url_file_to_local_path,
 )
 
-from .. import tasks
+# from .. import tasks
 from .collection import Collection
 from .constants import DB_SRID
-from .mixins import Status, TaskEventMixin
+from .mixins import TaskEventMixin
 
 logger = logging.getLogger(__name__)
 
@@ -70,7 +71,10 @@ class SpatialEntry(models.Model):
     objects = InheritanceManager()
 
     def __str__(self):
-        return 'Spatial ID: {} (ID: {}, type: {})'.format(self.spatial_id, self.id, type(self))
+        try:
+            return 'Spatial ID: {} (ID: {}, type: {})'.format(self.spatial_id, self.id, type(self))
+        except AttributeError:
+            return super().__str__()
 
     @property
     def subentry(self):
@@ -111,7 +115,7 @@ class ChecksumFile(ModifiableEntry, TaskEventMixin):
 
     """
 
-    name = models.CharField(max_length=100, blank=True)
+    name = models.CharField(max_length=1000, blank=True)
     checksum = models.CharField(max_length=128)  # sha512
     validate_checksum = models.BooleanField(
         default=False
@@ -130,9 +134,9 @@ class ChecksumFile(ModifiableEntry, TaskEventMixin):
     file = S3FileField(null=True, blank=True)
     url = models.TextField(null=True, blank=True)
 
-    task_funcs = (tasks.task_checksum_file_post_save,)
-    failure_reason = models.TextField(null=True)
-    status = models.CharField(max_length=20, default=Status.CREATED, choices=Status.choices)
+    task_funcs = (
+        # tasks.task_checksum_file_post_save,
+    )
 
     class Meta:
         constraints = [
@@ -151,9 +155,6 @@ class ChecksumFile(ModifiableEntry, TaskEventMixin):
                 ),
             )
         ]
-
-    def __str__(self):
-        return self.name
 
     def get_checksum(self):
         """Compute a new checksum without saving it."""
@@ -185,13 +186,36 @@ class ChecksumFile(ModifiableEntry, TaskEventMixin):
         )
         return self.last_validation
 
+    def post_save_job(self):
+        if not self.checksum or self.validate_checksum:
+            if self.validate_checksum:
+                self.validate()
+            else:
+                self.update_checksum()
+            # Reset the user flags
+            self.validate_checksum = False
+            # Simple update save - not full save
+            self.save(
+                update_fields=[
+                    'checksum',
+                    'last_validation',
+                    'validate_checksum',
+                ]
+            )
+
     def save(self, *args, **kwargs):
         if not self.name:
             if self.type == FileSourceType.FILE_FIELD and self.file.name:
                 self.name = os.path.basename(self.file.name)
             elif self.type == FileSourceType.URL:
-                # TODO: this isn't the best approach
-                self.name = os.path.basename(urlparse(self.url).path)
+                try:
+                    with safe_urlopen(self.url) as r:
+                        self.name = r.info().get_filename()
+                except (AttributeError, ValueError):
+                    pass
+                if not self.name:
+                    # Fallback
+                    self.name = os.path.basename(urlparse(self.url).path)
         # Must save the model with the file before accessing it for the checksum
         super(ChecksumFile, self).save(*args, **kwargs)
 
@@ -206,15 +230,15 @@ class ChecksumFile(ModifiableEntry, TaskEventMixin):
         ----------
         vsi : bool
             If FUSE fails, fallback to a Virtual File Systems URL. See
-            ``get_local_vsi_path``. This is especially useful if the file
+            ``get_vsi_path``. This is especially useful if the file
             is being utilized by GDAL and FUSE is not set up.
 
         """
-        if precheck_fuse(self.get_url()):
-            return url_file_to_fuse_path(self.get_url())
+        if precheck_fuse(self.get_url(internal=True)):
+            return url_file_to_fuse_path(self.get_url(internal=True))
         elif vsi:
             logger.info('`yield_local_path` falling back to Virtual File System URL.')
-            return self.yield_local_vsi_path()
+            return self.yield_vsi_path(internal=True)
         # Fallback to loading entire file locally
         logger.info('`yield_local_path` falling back to downloading entire file to local storage.')
         if self.type == FileSourceType.FILE_FIELD:
@@ -222,26 +246,36 @@ class ChecksumFile(ModifiableEntry, TaskEventMixin):
         elif self.type == FileSourceType.URL:
             return url_file_to_local_path(self.url)
 
-    def get_url(self):
-        """Get the URL of the stored resource."""
+    def get_url(self, internal=False):
+        """Get the URL of the stored resource.
+
+        Parameters
+        ----------
+        internal : bool
+            In most cases this URL will be accessible from anywhere. In some
+            cases, this URL will only be accessible from within the container.
+            This flag is for use with internal processes to make sure the host
+            is correctly set to ``minio`` when needed. See
+            ``patch_internal_presign`` for more details.
+
+        """
         if self.type == FileSourceType.FILE_FIELD:
-            with patch_internal_presign(self.file):
+            if internal:
+                with patch_internal_presign(self.file):
+                    url = self.file.url
+            else:
                 url = self.file.url
             return url
         elif self.type == FileSourceType.URL:
             return self.url
 
     def data_link(self):
-        return _link_url('geodata', 'image_file', self, 'get_url')
+        return _link_url(self, 'get_url')
 
     data_link.allow_tags = True
 
-    def get_local_vsi_path(self) -> str:
+    def get_vsi_path(self, internal=False) -> str:
         """Return the GDAL Virtual File Systems [0] URL.
-
-        In most cases this URL will be accessible from anywhere. In some cases,
-        this URL will only be accessible from within the container. See
-        `patch_internal_presign` for more details.
 
         This currently formulates the `/vsicurl/...` URL [1] for internal and
         external files. This is assuming that both are read-only. External
@@ -270,8 +304,7 @@ class ChecksumFile(ModifiableEntry, TaskEventMixin):
         [3] https://rasterio.readthedocs.io/en/latest/topics/switch.html?highlight=vsis3#dataset-identifiers
 
         """
-        with patch_internal_presign(self.file):
-            url = self.get_url()
+        url = self.get_url(internal=internal)
         gdal_options = {
             'url': url,
             'use_head': 'no',
@@ -281,7 +314,7 @@ class ChecksumFile(ModifiableEntry, TaskEventMixin):
         logger.info(f'vsicurl URL: {vsicurl}')
         return vsicurl
 
-    @contextmanager
-    def yield_local_vsi_path(self):
-        """Wrap ``get_local_vsi_path`` in a context manager."""
-        yield self.get_local_vsi_path()
+    @contextlib.contextmanager
+    def yield_vsi_path(self, internal=False):
+        """Wrap ``get_vsi_path`` in a context manager."""
+        yield self.get_vsi_path(internal=internal)
