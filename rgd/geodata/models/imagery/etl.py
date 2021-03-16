@@ -116,8 +116,6 @@ def read_image_file(ife):
         ife = ImageFile.objects.get(id=ife)
 
     with ife.file.yield_local_path(vsi=True) as file_path:
-        logger.info(f'The image file path: {file_path}')
-
         image_entry, created = get_or_create_no_commit(
             ImageEntry, defaults=dict(name=ife.file.name), image_file=ife
         )
@@ -286,7 +284,7 @@ def _extract_raster_footprint(image_file_entry):
             # Only implement for first band for now
             footprint = _get_valid_data_footprint(src, 1)
         except Exception as e:  # TODO: be more clever about this
-            logger.info(f'Issue computing valid data footprint: {e}')
+            logger.error(f'Issue computing valid data footprint: {e}')
             footprint = None
     return footprint
 
@@ -331,9 +329,10 @@ def _validate_image_set_is_raster(image_set_entry):
     return last_meta
 
 
-def populate_raster_entry(raster_id):
+def populate_raster_entry(raster_entry):
     """Autopopulate the fields of the raster."""
-    raster_entry = RasterEntry.objects.get(id=raster_id)
+    if not isinstance(raster_entry, RasterEntry):
+        raster_entry = RasterEntry.objects.get(id=raster_entry)
 
     # Has potential to error with failure reason
     meta = _validate_image_set_is_raster(raster_entry.image_set)

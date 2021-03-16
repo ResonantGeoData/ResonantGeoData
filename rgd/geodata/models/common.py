@@ -156,9 +156,6 @@ class ChecksumFile(ModifiableEntry, TaskEventMixin):
             )
         ]
 
-    def __str__(self):
-        return self.name
-
     def get_checksum(self):
         """Compute a new checksum without saving it."""
         if self.type == FileSourceType.FILE_FIELD:
