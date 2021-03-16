@@ -1,4 +1,5 @@
 from functools import reduce
+import logging
 import os
 
 import dateutil.parser
@@ -10,6 +11,8 @@ from rgd.geodata.datastore import datastore, registry
 from rgd.geodata.models.imagery.etl import populate_raster_entry, read_image_file
 from rgd.utility import get_or_create_no_commit, safe_urlopen
 
+logger = logging.getLogger(__name__)
+
 
 def _get_or_download_checksum_file(name):
     # Check if there is already an image file with this sha or URL
@@ -19,11 +22,13 @@ def _get_or_download_checksum_file(name):
             pass  # HACK: see if URL first
         try:
             file_entry = models.ChecksumFile.objects.get(url=name)
+            logger.info('found existing ChecksumFile')
         except models.ChecksumFile.DoesNotExist:
             file_entry = models.ChecksumFile()
             file_entry.url = name
             file_entry.type = models.FileSourceType.URL
             file_entry.save()
+            logger.info('Made new ChecksumFile')
     except ValueError:
         sha = registry[name].split(':')[1]  # NOTE: assumes sha512
         try:
@@ -44,6 +49,7 @@ def _get_or_create_file_model(model, name, skip_signal=False):
     file_entry = _get_or_download_checksum_file(name)
     # No commit in case we need to skip the signal
     entry, created = get_or_create_no_commit(model, file=file_entry)
+    logger.info(f'Created new associated file model: {created}')
     # In case the last population failed
     if skip_signal:
         entry.skip_signal = True
@@ -60,7 +66,17 @@ def load_image_files(image_files):
         else:
             # Run `read_image_file` sequentially to ensure `ImageEntry` is generated
             entry = _get_or_create_file_model(models.ImageFile, imfile, skip_signal=True)
-            read_image_file(entry)
+            if entry.status != models.mixins.Status.SUCCEEDED:
+                # Run init task in sequence to create associated ImageEntry
+                read_image_file(entry)
+                entry.status = models.mixins.Status.SUCCEEDED
+                entry.failure_reason = ''
+                entry.save(
+                    update_fields=[
+                        'status',
+                        'failure_reason',
+                    ]
+                )
             result = entry.imageentry.pk
         ids.append(result)
     return ids
@@ -112,6 +128,14 @@ def load_raster_files(raster_files, dates=None, names=None):
             if raster.status != models.mixins.Status.SUCCEEDED:
                 # Run init task in sequence to create associated rastermetaentry
                 populate_raster_entry(raster)
+                raster.status = models.mixins.Status.SUCCEEDED
+                raster.failure_reason = ''
+                raster.save(
+                    update_fields=[
+                        'status',
+                        'failure_reason',
+                    ]
+                )
             if dates:
                 adt = dateutil.parser.isoparser().isoparse(dates[i])
                 raster.rastermetaentry.acquisition_date = make_aware(adt)
