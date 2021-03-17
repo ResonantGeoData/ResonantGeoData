@@ -36,11 +36,13 @@ setup(
     packages=find_packages(),
     include_package_data=True,
     install_requires=[
+        'boto3',
         'celery',
         'django==3.2a1',  # See PR #264: due to this bug: https://code.djangoproject.com/ticket/31910
         'django-admin-display',
         'django-allauth',
         'django-cleanup',
+        'django-click',
         'django-configurations[database,email]',
         'django-crispy-forms',
         'django-extensions',
