@@ -6,15 +6,13 @@ from . import api, views
 urlpatterns = [
     # Pages
     path(
-        'geodata/spatial_entries/', views.SpatialEntriesListView.as_view(), name='spatial_entries'
+        r'', views.SpatialEntriesListView.as_view(), name='index'
     ),
     path(
         'geodata/spatial_entries/<int:pk>/',
         views.spatial_entry_redirect_view,
         name='spatial-entry-detail',
     ),
-    # Temporary redirect for home page
-    path(r'', RedirectView.as_view(url='geodata/spatial_entries/', permanent=False), name='index'),
     path(
         'geodata/rasters/<int:pk>/',
         views.RasterEntryDetailView.as_view(),
