@@ -1,6 +1,3 @@
-from django.conf import settings
-from django.core.management.base import BaseCommand  # , CommandError
-
 from . import _data_helper as helper
 
 SUCCESS_MSG = 'Finished loading all demo data.'
@@ -55,16 +52,11 @@ KWCOCO_ARCHIVES = [['demo.kwcoco.json', 'demodata.zip'], ['demo_rle.kwcoco.json'
 RASTER_URLS = []
 
 
-class Command(BaseCommand):
+class Command(helper.SynchronousTasksCommand):
     help = 'Populate database with demo data.'
 
     def handle(self, *args, **options):
-        # Set celery to run all tasks synchronously
-        eager = getattr(settings, 'CELERY_TASK_ALWAYS_EAGER', False)
-        prop = getattr(settings, 'CELERY_TASK_EAGER_PROPAGATES', False)
-        settings.CELERY_TASK_ALWAYS_EAGER = True
-        settings.CELERY_TASK_EAGER_PROPAGATES = True
-
+        self.set_synchronous()
         # Run the command
         helper.load_image_files(IMAGE_FILES)
         helper.load_raster_files(RASTER_FILES)
@@ -72,7 +64,4 @@ class Command(BaseCommand):
         helper.load_fmv_files(FMV_FILES)
         helper.load_kwcoco_archives(KWCOCO_ARCHIVES)
         self.stdout.write(self.style.SUCCESS(SUCCESS_MSG))
-
-        # Reset celery to previous settings
-        settings.CELERY_TASK_ALWAYS_EAGER = eager
-        settings.CELERY_TASK_EAGER_PROPAGATES = prop
+        self.reset_celery()

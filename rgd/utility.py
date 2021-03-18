@@ -1,3 +1,4 @@
+import contextlib
 from contextlib import contextmanager
 import hashlib
 import inspect
@@ -26,6 +27,12 @@ except ImportError:
 logger = logging.getLogger(__name__)
 
 
+@contextmanager
+def safe_urlopen(url, *args, **kwargs):
+    with contextlib.closing(urlopen(url, *args, **kwargs)) as remote:
+        yield remote
+
+
 def _compute_hash(handle, chunk_num_blocks):
     sha = hashlib.sha512()
     while chunk := handle.read(chunk_num_blocks * sha.block_size):
@@ -40,8 +47,8 @@ def compute_checksum_file(field_file: FieldFile, chunk_num_blocks=128):
 
 
 def compute_checksum_url(url: str, chunk_num_blocks=128):
-    remote = urlopen(url)
-    return _compute_hash(remote, chunk_num_blocks)
+    with safe_urlopen(url) as remote:
+        return _compute_hash(remote, chunk_num_blocks)
 
 
 def _link_url(obj, field):
@@ -172,13 +179,13 @@ def get_or_create_no_commit(model, defaults=None, **kwargs):
 
 @contextmanager
 def url_file_to_local_path(url: str, num_blocks=128, block_size=128) -> Generator[Path, None, None]:
-    remote = urlopen(url)
-    field_file_basename = PurePath(os.path.basename(url)).name
-    with tempfile.NamedTemporaryFile('wb', suffix=field_file_basename) as dest_stream:
-        while chunk := remote.read(num_blocks * block_size):
-            dest_stream.write(chunk)
-            dest_stream.flush()
-        yield Path(dest_stream.name)
+    with safe_urlopen(url) as remote:
+        field_file_basename = PurePath(os.path.basename(url)).name
+        with tempfile.NamedTemporaryFile('wb', suffix=field_file_basename) as dest_stream:
+            while chunk := remote.read(num_blocks * block_size):
+                dest_stream.write(chunk)
+                dest_stream.flush()
+            yield Path(dest_stream.name)
 
 
 def precheck_fuse(url: str) -> bool:

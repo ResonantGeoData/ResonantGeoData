@@ -1,6 +1,7 @@
 """Base classes for raster dataset entries."""
 from django.contrib.gis.db import models
 from django.contrib.postgres import fields
+from django.core.validators import MaxValueValidator, MinValueValidator
 from django.utils.translation import gettext_lazy as _
 
 from ... import tasks
@@ -136,6 +137,9 @@ class RasterMetaEntry(ModifiableEntry, SpatialEntry):
     resolution = fields.ArrayField(models.FloatField(), size=2)  # AKA scale
     # TODO: skew/transform
     transform = fields.ArrayField(models.FloatField(), size=6)
+    cloud_cover = models.FloatField(
+        null=True, validators=[MinValueValidator(0), MaxValueValidator(100)]
+    )
 
     @property
     def name(self):
