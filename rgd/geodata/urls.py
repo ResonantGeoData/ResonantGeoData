@@ -5,9 +5,7 @@ from . import api, views
 
 urlpatterns = [
     # Pages
-    path(
-        r'', views.SpatialEntriesListView.as_view(), name='index'
-    ),
+    path(r'', views.SpatialEntriesListView.as_view(), name='index'),
     path(
         'geodata/spatial_entries/<int:pk>/',
         views.spatial_entry_redirect_view,
