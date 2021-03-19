@@ -223,49 +223,56 @@ def _yield_downsampled_raster(raster):
             yield dataset  # Note yield not return
 
 
-def _reproject_raster(src, epsg):
+@contextmanager
+def _reproject_raster(file_path, epsg):
     """Reproject an open raster to given spatial reference.
 
     This will return an open rasterio handle.
 
     """
     dst_crs = rasterio.crs.CRS.from_epsg(epsg)
-    if src.crs == dst_crs:
-        # If raster already in desired CRS, return itself
-        return src
+    with rasterio.open(file_path, 'r') as src:
+        if src.crs == dst_crs:
+            # If raster already in desired CRS, return itself
+            yield src
+            return
 
-    # Get a downsampled version of the original raster
-    with _yield_downsampled_raster(src) as src:
-        workdir = getattr(settings, 'GEODATA_WORKDIR', None)
-        tmpdir = tempfile.mkdtemp(dir=workdir)
-        # If raster is NTIF format, convert first
-        if src.driver == 'NITF':
-            f = src.files[0]
-            output_path = os.path.join(tmpdir, os.path.basename(f)) + '.tiff'
-            ds = gdal.Open(f)
-            ds = gdal.Translate(output_path, ds, options=['-of', 'GTiff'])
-            ds = None
-            src = rasterio.open(output_path, 'r')
+        # Get a downsampled version of the original raster
+        with _yield_downsampled_raster(src) as dsrc:
+            workdir = getattr(settings, 'GEODATA_WORKDIR', None)
+            tmpdir = tempfile.mkdtemp(dir=workdir)
+            # If raster is NTIF format, convert first
+            if dsrc.driver == 'NITF':
+                f = dsrc.files[0]
+                output_path = os.path.join(tmpdir, os.path.basename(f)) + '.tiff'
+                ds = gdal.Open(f)
+                ds = gdal.Translate(output_path, ds, options=['-of', 'GTiff'])
+                ds = None
+                # TODO: this file is not closed properly.
+                dsrc = rasterio.open(output_path, 'r')
 
-        transform, width, height = calculate_default_transform(
-            src.crs, dst_crs, src.width, src.height, *src.bounds
-        )
-        kwargs = src.meta.copy()
-        kwargs.update({'crs': dst_crs, 'transform': transform, 'width': width, 'height': height})
-        path = os.path.join(tmpdir, 'temp_raster')
-        with rasterio.open(path, 'w', **kwargs) as dst:
-            for i in range(1, src.count + 1):
-                reproject(
-                    source=rasterio.band(src, i),
-                    destination=rasterio.band(dst, i),
-                    src_transform=src.transform,
-                    src_crs=src.crs,
-                    dst_transform=transform,
-                    dst_crs=dst_crs,
-                    resampling=Resampling.bilinear,
-                )
-            dst.colorinterp = src.colorinterp
-    return rasterio.open(path, 'r')
+            transform, width, height = calculate_default_transform(
+                dsrc.crs, dst_crs, dsrc.width, dsrc.height, *dsrc.bounds
+            )
+            kwargs = dsrc.meta.copy()
+            kwargs.update(
+                {'crs': dst_crs, 'transform': transform, 'width': width, 'height': height}
+            )
+            path = os.path.join(tmpdir, 'temp_raster')
+            with rasterio.open(path, 'w', **kwargs) as dst:
+                for i in range(1, dsrc.count + 1):
+                    reproject(
+                        source=rasterio.band(dsrc, i),
+                        destination=rasterio.band(dst, i),
+                        src_transform=dsrc.transform,
+                        src_crs=dsrc.crs,
+                        dst_transform=transform,
+                        dst_crs=dst_crs,
+                        resampling=Resampling.bilinear,
+                    )
+                dst.colorinterp = dsrc.colorinterp
+    with rasterio.open(path, 'r') as rsrc:
+        yield rsrc
 
 
 def _extract_raster_footprint(image_file_entry):
@@ -277,12 +284,12 @@ def _extract_raster_footprint(image_file_entry):
     with image_file_entry.file.yield_local_path(vsi=True) as file_path:
         # Reproject the raster to the DB SRID using rasterio directly rather
         #  than transforming the extracted geometry which had issues.
-        src = _reproject_raster(rasterio.open(file_path), DB_SRID)
-        try:
-            # Only implement for first band for now
-            return _get_valid_data_footprint(src, 1)
-        except Exception as e:  # TODO: be more clever about this
-            logger.error(f'Issue computing valid data footprint: {e}')
+        with _reproject_raster(file_path, DB_SRID) as src:
+            try:
+                # Only implement for first band for now
+                return _get_valid_data_footprint(src, 1)
+            except Exception as e:  # TODO: be more clever about this
+                logger.error(f'Issue computing valid data footprint: {e}')
 
 
 def _compare_raster_meta(a, b):

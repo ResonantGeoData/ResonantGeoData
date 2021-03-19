@@ -62,29 +62,30 @@ def read_geometry_archive(archive_id):
     shape_file = shape_files[0]
 
     # load each shapefile using fiona
-    shapes = fiona.open(shape_file)
-
-    geometry_entry, created = get_or_create_no_commit(
-        GeometryEntry, defaults=dict(name=archive.file.name), geometry_archive=archive
-    )
-
-    shapes.meta  # TODO: dump this JSON into the model entry
-
-    crs_wkt = shapes.meta['crs_wkt']
-    logger.info(f'Geometry crs_wkt: {crs_wkt}')
-    spatial_ref = SpatialReference(crs_wkt)
-    logger.info(f'Geometry SRID: {spatial_ref.srid}')
-
-    collection = []
-    for item in shapes:
-        geom = shape(item['geometry'])  # not optimal?
-        # TODO: check this
-        collection.append(
-            transform_geometry(
-                GEOSGeometry(memoryview(dumps(geom, srid=spatial_ref.srid)), srid=spatial_ref.srid),
-                crs_wkt,
-            )
+    with fiona.open(shape_file) as shapes:
+        geometry_entry, created = get_or_create_no_commit(
+            GeometryEntry, defaults=dict(name=archive.file.name), geometry_archive=archive
         )
+
+        shapes.meta  # TODO: dump this JSON into the model entry
+
+        crs_wkt = shapes.meta['crs_wkt']
+        logger.info(f'Geometry crs_wkt: {crs_wkt}')
+        spatial_ref = SpatialReference(crs_wkt)
+        logger.info(f'Geometry SRID: {spatial_ref.srid}')
+
+        collection = []
+        for item in shapes:
+            geom = shape(item['geometry'])  # not optimal?
+            # TODO: check this
+            collection.append(
+                transform_geometry(
+                    GEOSGeometry(
+                        memoryview(dumps(geom, srid=spatial_ref.srid)), srid=spatial_ref.srid
+                    ),
+                    crs_wkt,
+                )
+            )
 
     geometry_entry.data = GeometryCollection(*collection)
     geometry_entry.footprint = geometry_entry.data.convex_hull

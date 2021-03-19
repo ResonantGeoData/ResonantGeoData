@@ -34,17 +34,21 @@ def _extract_klv(fmv_file_entry):
             dataset_path,
         ]
         try:
-            subprocess.check_call(
-                cmd,
-                stdin=open(dataset_path, 'rb'),
-                stdout=open(output_path, 'wb'),
-                stderr=open(stderr_path, 'wb'),
-            )
+            with open(dataset_path, 'rb') as stdin, open(output_path, 'wb') as stdout, open(
+                stderr_path, 'wb'
+            ) as stderr:
+                subprocess.check_call(
+                    cmd,
+                    stdin=stdin,
+                    stdout=stdout,
+                    stderr=stderr,
+                )
         except subprocess.CalledProcessError as exc:
             logger.info('Failed to successfully run dump-klv ({exc!r})')
             raise exc
         # Store result
-        fmv_file_entry.klv_file.save(os.path.basename(output_path), open(output_path, 'rb'))
+        with open(output_path, 'rb') as f:
+            fmv_file_entry.klv_file.save(os.path.basename(output_path), f)
         fmv_file_entry.save(
             update_fields=[
                 'klv_file',
@@ -170,9 +174,8 @@ def _convert_video_to_mp4(fmv_file_entry):
         try:
             subprocess.check_call(cmd)
             # Store result
-            fmv_file_entry.web_video_file.save(
-                os.path.basename(output_path), open(output_path, 'rb')
-            )
+            with open(output_path, 'rb') as f:
+                fmv_file_entry.web_video_file.save(os.path.basename(output_path), f)
             fmv_file_entry.frame_rate = _get_frame_rate_of_video(dataset_path)
             fmv_file_entry.save()
         except subprocess.CalledProcessError as exc:
@@ -181,7 +184,8 @@ def _convert_video_to_mp4(fmv_file_entry):
 
 def _populate_fmv_entry(entry):
     with field_file_to_local_path(entry.fmv_file.klv_file) as path:
-        content = open(path, 'r', encoding='utf-8', errors='ignore').read()
+        with open(path, 'r', encoding='utf-8', errors='ignore') as f:
+            content = f.read()
 
     if not content:
         raise Exception('FLV file not created')
