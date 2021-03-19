@@ -23,9 +23,8 @@ def _extract_klv(fmv_file_entry):
         raise RuntimeError('kwiver not installed. Run `pip install kwiver`.')
 
     video_file = fmv_file_entry.file
-    with video_file.yield_local_path() as dataset_path:
+    with tempfile.TemporaryDirectory() as tmpdir, video_file.yield_local_path() as dataset_path:
         logger.info(f'Running dump-klv with data: {dataset_path}')
-        tmpdir = tempfile.mkdtemp()
         output_path = os.path.join(tmpdir, os.path.basename(video_file.file.name) + '.klv')
         stderr_path = os.path.join(tmpdir, 'stderr.dat')
         cmd = [
@@ -54,7 +53,6 @@ def _extract_klv(fmv_file_entry):
                 'klv_file',
             ]
         )
-        shutil.rmtree(tmpdir)
 
 
 def _get_spatial_ref_of_frame(frame):
@@ -146,9 +144,8 @@ def _get_frame_rate_of_video(file_path):
 
 def _convert_video_to_mp4(fmv_file_entry):
     video_file = fmv_file_entry.file
-    with video_file.yield_local_path() as dataset_path:
+    with video_file.yield_local_path() as dataset_path, tempfile.TemporaryDirectory() as tmpdir:
         logger.info(f'Converting video file: {dataset_path}')
-        tmpdir = tempfile.mkdtemp()
         output_path = os.path.join(tmpdir, os.path.basename(video_file.file.name) + '.mp4')
 
         cmd = [

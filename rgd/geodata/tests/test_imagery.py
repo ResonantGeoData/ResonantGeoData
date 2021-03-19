@@ -125,7 +125,13 @@ def test_multi_file_raster():
     assert meta.crs is not None
 
 
-@pytest.mark.parametrize('name', [LandsatFiles[0], 'landcover_sample_2000.tif',])
+@pytest.mark.parametrize(
+    'name',
+    [
+        LandsatFiles[0],
+        'landcover_sample_2000.tif',
+    ],
+)
 @pytest.mark.django_db(transaction=True)
 def test_raster_footprint(name):
     raster = _make_raster_from_datastore(name)
