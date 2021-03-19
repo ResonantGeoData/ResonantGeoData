@@ -14,6 +14,11 @@
     {{ object.modified }}
   </div>
   <div class="column is-2">
+    <span class="text-has-dark-bg is-block">Acquired:</span>
+    {{ object.acquisition_date }}
+  </div>
+  {% comment %}
+  <div class="column is-2">
     <a id="copyjson" class="button has-icon is-flex is-justify-content-space-between is-secondary is-fullwidth">
       <span>Copy GeoJSON</span>
       <span class="icon is-small">
@@ -28,6 +33,7 @@
       }
     </script>
   </div>
+  {% endcomment %}
 {% endblock extra_title_content %}
 
 {% block content %}
