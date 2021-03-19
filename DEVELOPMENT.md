@@ -10,17 +10,21 @@ This is the simplest configuration for developers to start with.
 2. Run `docker-compose run --rm django ./manage.py createsuperuser`
    and follow the prompts to create your own user
 
+### Add Demo Data (Optional)
+
+1. Run `docker-compose run --rm celery ./manage.py demo_data`
+2. Run `docker-compose run --rm celery ./manage.py landsat_data -c 100`
+
+Please note that the demo data commands need to run in the `celery` docker
+image. For the `landsat_data` command, the `-c` argument is optional and
+allows you to control how much landsat data to ingest; the full dataset can
+take over an hour to ingest.
+
 ### Run Application
 1. Run `docker-compose up`
 2. Access the site, starting at http://localhost:8000/admin/
 3. When finished, use `Ctrl+C`
 
-On Mac, be sure to set:
-
-```bash
-export DOCKER_SOCK=/var/run/docker.sock
-export DOCKER_CMD=/usr/local/bin/docker
-```
 
 ### Application Maintenance
 Occasionally, new package dependencies or schema changes will necessitate
@@ -91,10 +95,8 @@ Useful sub-commands include:
 * `tox -e lint`: Run only the style checks
 * `tox -e type`: Run only the type checks
 * `tox -e test`: Run only the pytest-driven tests
+* `tox -e check-migrations`: Run only the migration tests
+* `tox -e format`: Format the code using Black
 
 To automatically reformat all code to comply with
 some (but not all) of the style checks, run `tox -e format`.
-
-## Sample Algorithms
-
-There are a few sample algorithms on <https://data.kitware.com> in the ResonantGeoData collection.

@@ -101,8 +101,8 @@ def _add_time_to_query(query, timefield, starttime, endtime, has_created=False):
             'modified': 'modified',
         }.get(field)
         if not field_name:
-            raise Exception('Unrecognized time field %s' % field)
-        subquery.append(Q(**{'%s__gte' % field_name: starttime, '%s__lte' % field_name: endtime}))
+            raise Exception(f'Unrecognized time field: {field}')
+        subquery.append(Q(**{f'{field_name}__gte': starttime, f'{field_name}__lte': endtime}))
         if field == 'acquisition' and has_created:
             subquery.append(
                 Q(acquisition_date__isnull=True, created__gte=starttime, created__lte=endtime)
@@ -346,6 +346,7 @@ def extent_summary_spatial(found):
         acquisition, acqusition_date.  collect and convex_hull are geojson
         objects.
     """
+    results = {'count': 0}
     if found and found.count():
         summary = found.aggregate(
             Collect('footprint'),
@@ -353,27 +354,27 @@ def extent_summary_spatial(found):
             Min('acquisition_date'),
             Max('acquisition_date'),
         )
-        results = {
-            'count': found.count(),
-            'collect': json.loads(summary['footprint__collect'].geojson),
-            'convex_hull': json.loads(summary['footprint__collect'].convex_hull.geojson),
-            'extent': {
-                'xmin': summary['footprint__extent'][0],
-                'ymin': summary['footprint__extent'][1],
-                'xmax': summary['footprint__extent'][2],
-                'ymax': summary['footprint__extent'][3],
-            },
-            'acquisition_date': [
-                summary['acquisition_date__min'].isoformat()
-                if summary['acquisition_date__min'] is not None
-                else None,
-                summary['acquisition_date__max'].isoformat()
-                if summary['acquisition_date__max'] is not None
-                else None,
-            ],
-        }
-    else:
-        results = {'count': 0}
+        results.update(
+            {
+                'count': found.count(),
+                'collect': json.loads(summary['footprint__collect'].geojson),
+                'convex_hull': json.loads(summary['footprint__collect'].convex_hull.geojson),
+                'extent': {
+                    'xmin': summary['footprint__extent'][0],
+                    'ymin': summary['footprint__extent'][1],
+                    'xmax': summary['footprint__extent'][2],
+                    'ymax': summary['footprint__extent'][3],
+                },
+                'acquisition_date': [
+                    summary['acquisition_date__min'].isoformat()
+                    if summary['acquisition_date__min'] is not None
+                    else None,
+                    summary['acquisition_date__max'].isoformat()
+                    if summary['acquisition_date__max'] is not None
+                    else None,
+                ],
+            }
+        )
     return results
 
 

@@ -101,8 +101,6 @@ def _read_image_to_entry(image_entry, image_file_path):
         # Save this band entirely
         band_meta.save()
 
-    return
-
 
 def read_image_file(ife):
     """Image ingestion routine.
@@ -225,49 +223,55 @@ def _yield_downsampled_raster(raster):
             yield dataset  # Note yield not return
 
 
-def _reproject_raster(src, epsg):
+@contextmanager
+def _reproject_raster(file_path, epsg):
     """Reproject an open raster to given spatial reference.
 
     This will return an open rasterio handle.
 
     """
     dst_crs = rasterio.crs.CRS.from_epsg(epsg)
-    if src.crs == dst_crs:
-        # If raster already in desired CRS, return itself
-        return src
-
-    # Get a downsampled version of the original raster
-    with _yield_downsampled_raster(src) as src:
+    with rasterio.open(file_path, 'r') as src:
+        if src.crs == dst_crs:
+            # If raster already in desired CRS, return itself
+            yield src
+            return
         workdir = getattr(settings, 'GEODATA_WORKDIR', None)
-        tmpdir = tempfile.mkdtemp(dir=workdir)
-        # If raster is NTIF format, convert first
-        if src.driver == 'NITF':
-            f = src.files[0]
-            output_path = os.path.join(tmpdir, os.path.basename(f)) + '.tiff'
-            ds = gdal.Open(f)
-            ds = gdal.Translate(output_path, ds, options=['-of', 'GTiff'])
-            ds = None
-            src = rasterio.open(output_path, 'r')
+        with tempfile.TemporaryDirectory(dir=workdir) as tmpdir:
+            # Get a downsampled version of the original raster
+            with _yield_downsampled_raster(src) as dsrc:
+                # If raster is NTIF format, convert first
+                if dsrc.driver == 'NITF':
+                    f = dsrc.files[0]
+                    output_path = os.path.join(tmpdir, os.path.basename(f)) + '.tiff'
+                    ds = gdal.Open(f)
+                    ds = gdal.Translate(output_path, ds, options=['-of', 'GTiff'])
+                    ds = None
+                    # TODO: this file is not closed properly.
+                    dsrc = rasterio.open(output_path, 'r')
 
-        transform, width, height = calculate_default_transform(
-            src.crs, dst_crs, src.width, src.height, *src.bounds
-        )
-        kwargs = src.meta.copy()
-        kwargs.update({'crs': dst_crs, 'transform': transform, 'width': width, 'height': height})
-        path = os.path.join(tmpdir, 'temp_raster')
-        with rasterio.open(path, 'w', **kwargs) as dst:
-            for i in range(1, src.count + 1):
-                reproject(
-                    source=rasterio.band(src, i),
-                    destination=rasterio.band(dst, i),
-                    src_transform=src.transform,
-                    src_crs=src.crs,
-                    dst_transform=transform,
-                    dst_crs=dst_crs,
-                    resampling=Resampling.bilinear,
+                transform, width, height = calculate_default_transform(
+                    dsrc.crs, dst_crs, dsrc.width, dsrc.height, *dsrc.bounds
                 )
-            dst.colorinterp = src.colorinterp
-    return rasterio.open(path, 'r')
+                kwargs = dsrc.meta.copy()
+                kwargs.update(
+                    {'crs': dst_crs, 'transform': transform, 'width': width, 'height': height}
+                )
+                path = os.path.join(tmpdir, 'temp_raster')
+                with rasterio.open(path, 'w', **kwargs) as dst:
+                    for i in range(1, dsrc.count + 1):
+                        reproject(
+                            source=rasterio.band(dsrc, i),
+                            destination=rasterio.band(dst, i),
+                            src_transform=dsrc.transform,
+                            src_crs=dsrc.crs,
+                            dst_transform=transform,
+                            dst_crs=dst_crs,
+                            resampling=Resampling.bilinear,
+                        )
+                    dst.colorinterp = dsrc.colorinterp
+            with rasterio.open(path, 'r') as rsrc:
+                yield rsrc
 
 
 def _extract_raster_footprint(image_file_entry):
@@ -279,14 +283,12 @@ def _extract_raster_footprint(image_file_entry):
     with image_file_entry.file.yield_local_path(vsi=True) as file_path:
         # Reproject the raster to the DB SRID using rasterio directly rather
         #  than transforming the extracted geometry which had issues.
-        src = _reproject_raster(rasterio.open(file_path), DB_SRID)
-        try:
-            # Only implement for first band for now
-            footprint = _get_valid_data_footprint(src, 1)
-        except Exception as e:  # TODO: be more clever about this
-            logger.error(f'Issue computing valid data footprint: {e}')
-            footprint = None
-    return footprint
+        with _reproject_raster(file_path, DB_SRID) as src:
+            try:
+                # Only implement for first band for now
+                return _get_valid_data_footprint(src, 1)
+            except Exception as e:  # TODO: be more clever about this
+                logger.error(f'Issue computing valid data footprint: {e}')
 
 
 def _compare_raster_meta(a, b):
@@ -362,15 +364,13 @@ def populate_raster_footprint(raster_id):
     #   this avoids a race condition where footprint might not get set correctly.
     try:
         raster_meta = RasterMetaEntry.objects.get(parent_raster=raster_entry)
+        base_image = raster_entry.image_set.images.first()
+        footprint = _extract_raster_footprint(base_image.image_file.imagefile)
+        if footprint:
+            raster_meta.footprint = footprint
+            raster_meta.save(update_fields=['footprint'])
     except RasterMetaEntry.DoesNotExist:
         logger.error('Cannot populate raster footprint yet due to race condition. Try again later.')
-        return
-    base_image = raster_entry.image_set.images.first()
-    footprint = _extract_raster_footprint(base_image.image_file.imagefile)
-    if footprint:
-        raster_meta.footprint = footprint
-        raster_meta.save(update_fields=['footprint'])
-    return
 
 
 def _fill_annotation_segmentation(annotation_entry, ann_json):
@@ -424,7 +424,6 @@ def _fill_annotation_segmentation(annotation_entry, ann_json):
     if segmentation:
         segmentation.annotation = annotation_entry
         segmentation.save()
-    return
 
 
 def load_kwcoco_dataset(kwcoco_dataset_id):
@@ -440,72 +439,71 @@ def load_kwcoco_dataset(kwcoco_dataset_id):
 
     # TODO: add a setting like this:
     workdir = getattr(settings, 'GEODATA_WORKDIR', None)
-    tmpdir = tempfile.mkdtemp(dir=workdir)
+    with tempfile.TemporaryDirectory(dir=workdir) as tmpdir:
 
-    if ds_entry.image_set:
-        # Delete all previously existing data
-        # This should cascade to all the annotations
-        for imageentry in ds_entry.image_set.images.all():
-            imageentry.image_file.file.delete()
-    else:
-        ds_entry.image_set = ImageSet()
-    ds_entry.image_set.name = ds_entry.name
-    ds_entry.image_set.save()
-    ds_entry.save(
-        update_fields=[
-            'image_set',
-        ]  # noqa: E231
-    )
+        if ds_entry.image_set:
+            # Delete all previously existing data
+            # This should cascade to all the annotations
+            for imageentry in ds_entry.image_set.images.all():
+                imageentry.image_file.file.delete()
+        else:
+            ds_entry.image_set = ImageSet()
+        ds_entry.image_set.name = ds_entry.name
+        ds_entry.image_set.save()
+        ds_entry.save(
+            update_fields=[
+                'image_set',
+            ]  # noqa: E231
+        )
 
-    # Unarchive the images locally so we can import them when loading the spec
-    # Images could come from a URL, so this is optional
-    if ds_entry.image_archive:
-        with ds_entry.image_archive.file as file_obj:
-            logger.info(f'The KWCOCO image archive: {ds_entry.image_archive}')
-            # Place images in a local directory and keep track of root path
-            # Unzip the contents to the working dir
-            with zipfile.ZipFile(file_obj, 'r') as zip_ref:
-                zip_ref.extractall(tmpdir)
-            logger.info(f'The extracted KWCOCO image archive: {tmpdir}')
-    else:
-        pass
-        # TODO: how should we download data from specified URLs?
+        # Unarchive the images locally so we can import them when loading the spec
+        # Images could come from a URL, so this is optional
+        if ds_entry.image_archive:
+            with ds_entry.image_archive.file as file_obj:
+                logger.info(f'The KWCOCO image archive: {ds_entry.image_archive}')
+                # Place images in a local directory and keep track of root path
+                # Unzip the contents to the working dir
+                with zipfile.ZipFile(file_obj, 'r') as zip_ref:
+                    zip_ref.extractall(tmpdir)
+                logger.info(f'The extracted KWCOCO image archive: {tmpdir}')
+        else:
+            pass
+            # TODO: how should we download data from specified URLs?
 
-    # Load the KWCOCO JSON spec and make annotations on the images
-    with ds_entry.spec_file.yield_local_path() as file_path:
-        ds = kwcoco.CocoDataset(str(file_path))
-        # Set the root dir to where the images were extracted / the temp dir
-        # If images are coming from URL, they will download to here
-        ds.img_root = tmpdir
-        # Iterate over images and create an ImageEntry from them.
-        # Any images in the archive that aren't listed in the JSON will be deleted
-        for imgid in ds.imgs.keys():
-            ak = ds.index.gid_to_aids[imgid]
-            img = ds.imgs[imgid]
-            anns = [ds.anns[k] for k in ak]
-            # Create the ImageFile entry to track each image's location
-            image_file_abs_path = os.path.join(ds.img_root, img['file_name'])
-            name = os.path.basename(image_file_abs_path)
-            image_file = ImageFile()
-            image_file.collection = ds_entry.spec_file.collection
-            image_file.skip_signal = True
-            image_file.file = ChecksumFile()
-            image_file.file.file.save(name, open(image_file_abs_path, 'rb'))
-            image_file.save()
-            # Create a new ImageEntry
-            image_entry = read_image_file(image_file)
-            # Add ImageEntry to ImageSet
-            ds_entry.image_set.images.add(image_entry)
-            # Create annotations that link to that ImageEntry
-            for ann in anns:
-                annotation_entry = Annotation()
-                annotation_entry.image = image_entry
-                try:
-                    annotation_entry.label = ds.cats[ann['category_id']]['name']
-                except KeyError:
-                    pass
-                # annotation_entry.annotator =
-                # annotation_entry.notes =
-                _fill_annotation_segmentation(annotation_entry, ann)
+        # Load the KWCOCO JSON spec and make annotations on the images
+        with ds_entry.spec_file.yield_local_path() as file_path:
+            ds = kwcoco.CocoDataset(str(file_path))
+            # Set the root dir to where the images were extracted / the temp dir
+            # If images are coming from URL, they will download to here
+            ds.img_root = tmpdir
+            # Iterate over images and create an ImageEntry from them.
+            # Any images in the archive that aren't listed in the JSON will be deleted
+            for imgid in ds.imgs.keys():
+                ak = ds.index.gid_to_aids[imgid]
+                img = ds.imgs[imgid]
+                anns = [ds.anns[k] for k in ak]
+                # Create the ImageFile entry to track each image's location
+                image_file_abs_path = os.path.join(ds.img_root, img['file_name'])
+                name = os.path.basename(image_file_abs_path)
+                image_file = ImageFile()
+                image_file.collection = ds_entry.spec_file.collection
+                image_file.skip_signal = True
+                image_file.file = ChecksumFile()
+                image_file.file.file.save(name, open(image_file_abs_path, 'rb'))
+                image_file.save()
+                # Create a new ImageEntry
+                image_entry = read_image_file(image_file)
+                # Add ImageEntry to ImageSet
+                ds_entry.image_set.images.add(image_entry)
+                # Create annotations that link to that ImageEntry
+                for ann in anns:
+                    annotation_entry = Annotation()
+                    annotation_entry.image = image_entry
+                    try:
+                        annotation_entry.label = ds.cats[ann['category_id']]['name']
+                    except KeyError:
+                        pass
+                    # annotation_entry.annotator =
+                    # annotation_entry.notes =
+                    _fill_annotation_segmentation(annotation_entry, ann)
     logger.info('Done with KWCOCO ETL routine')
-    return

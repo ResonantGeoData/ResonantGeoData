@@ -7,7 +7,6 @@ services:
     command: ["./manage.py", "runserver", "0.0.0.0:8000"]
     # Log printing via Rich is enhanced by a TTY
     tty: true
-    privileged: true
     env_file: ./dev/.env.docker-compose
     volumes:
       - .:/opt/django-project
@@ -21,7 +20,7 @@ services:
   celery:
     build:
       context: .
-      dockerfile: ./dev/django.Dockerfile
+      dockerfile: ./dev/celery.Dockerfile
     command: [
       "celery",
       "--app", "rgd.celery",
@@ -37,8 +36,6 @@ services:
       - TMPDIR=/tmp/rgd_worker
     volumes:
       - .:/opt/django-project
-      - ${DOCKER_SOCK:-/var/run/docker.sock}:/var/run/docker.sock
-      - ${DOCKER_CMD:-/usr/bin/docker}:/usr/bin/docker
       - /tmp/rgd_worker:/tmp/rgd_worker
     depends_on:
       - postgres

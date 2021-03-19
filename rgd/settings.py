@@ -72,6 +72,10 @@ class RgdMixin(CrispyFormsMixin, GeoDjangoMixin, SwaggerMixin, ConfigMixin):
             'django_cleanup.apps.CleanupConfig',
         ]
 
+        configuration.REST_FRAMEWORK['DEFAULT_AUTHENTICATION_CLASSES'].append(
+            'rest_framework.authentication.BasicAuthentication'
+        )
+
         configuration.AUTHENTICATION_BACKENDS.insert(0, 'rules.permissions.ObjectPermissionBackend')
 
     # This cannot have a default value, since the password and database name are always

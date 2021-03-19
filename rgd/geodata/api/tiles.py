@@ -15,8 +15,7 @@ class BaseTileView(APIView):
         self.check_object_permissions(request, image_entry)
         file_path = image_entry.image_file.file.get_vsi_path(internal=True)
         projection = request.query_params.get('projection', 'EPSG:3857')
-        tile_source = GDALFileTileSource(file_path, projection=projection, encoding='PNG')
-        return tile_source
+        return GDALFileTileSource(file_path, projection=projection, encoding='PNG')
 
 
 class TileMetadataView(BaseTileView):

@@ -65,28 +65,13 @@ def make_raster_for_each_image_entry(modeladmin, request, queryset):
     return rasters
 
 
-def reprocess_image_files(modeladmin, request, queryset):
-    """Trigger the save event task for each ImageFile.
-
-    This will recreate the ImageEntry.
-    """
-    for imf in queryset.all():
-        imf.save()
-    return
-
-
-def reprocess_raster_entries(modeladmin, request, queryset):
-    """Trigger the save event task for each RasterEntry.
-
-    This will repopulate the spatial fields.
-    """
-    for rast in queryset.all():
-        rast.save()
-    return
+def reprocess(modeladmin, request, queryset):
+    """Trigger the save event task for each entry."""
+    for entry in queryset.all():
+        entry.save()
 
 
 def generate_valid_data_footprint(modeladmin, request, queryset):
     """Generate a valid data footprint for each raster."""
     for rast in queryset.all():
         tasks.task_populate_raster_footprint.delay(rast.id)
-    return

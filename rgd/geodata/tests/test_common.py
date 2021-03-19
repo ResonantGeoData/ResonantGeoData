@@ -18,7 +18,8 @@ def file_path():
 def test_checksumfile_file_create(file_path):
     model = common.ChecksumFile()
     model.type = common.FileSourceType.FILE_FIELD
-    model.file.save(FILENAME, open(file_path, 'rb'))
+    with open(file_path, 'rb') as f:
+        model.file.save(FILENAME, f)
     model.save()
     model.post_save_job()
     model.refresh_from_db()
@@ -52,7 +53,8 @@ def test_checksumfile_constraint_mismatch_b(file_path):
     with pytest.raises(IntegrityError):
         model = common.ChecksumFile()
         model.type = common.FileSourceType.URL
-        model.file.save(FILENAME, open(file_path, 'rb'))
+        with open(file_path, 'rb') as f:
+            model.file.save(FILENAME, f)
 
 
 @pytest.mark.django_db(transaction=True)
@@ -79,7 +81,8 @@ def test_checksumfile_constraint_file_with_empty_url(file_path):
     model = common.ChecksumFile()
     model.type = common.FileSourceType.FILE_FIELD
     model.url = ''
-    model.file.save(FILENAME, open(file_path, 'rb'))
+    with open(file_path, 'rb') as f:
+        model.file.save(FILENAME, f)
     assert not model.url
     assert model.file.name
 
@@ -88,7 +91,8 @@ def test_checksumfile_constraint_file_with_empty_url(file_path):
 def test_checksumfile_file_yield_local_path(file_path):
     model = common.ChecksumFile()
     model.type = common.FileSourceType.FILE_FIELD
-    model.file.save(FILENAME, open(file_path, 'rb'))
+    with open(file_path, 'rb') as f:
+        model.file.save(FILENAME, f)
     model.save()
     path = model.yield_local_path()
     with model.yield_local_path() as path:

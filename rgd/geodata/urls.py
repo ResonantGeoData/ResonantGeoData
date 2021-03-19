@@ -1,32 +1,27 @@
 from django.urls import path
-from django.views.generic.base import RedirectView
 
 from . import api, views
 
 urlpatterns = [
     # Pages
-    path(
-        'geodata/spatial_entries/', views.SpatialEntriesListView.as_view(), name='spatial_entries'
-    ),
+    path(r'', views.SpatialEntriesListView.as_view(), name='index'),
     path(
         'geodata/spatial_entries/<int:pk>/',
         views.spatial_entry_redirect_view,
         name='spatial-entry-detail',
     ),
-    # Temporary redirect for home page
-    path(r'', RedirectView.as_view(url='geodata/spatial_entries/', permanent=False), name='index'),
     path(
-        'geodata/rasters/<int:pk>/',
+        'geodata/raster/<int:pk>/',
         views.RasterEntryDetailView.as_view(),
         name='raster-entry-detail',
     ),
     path(
-        'geodata/fmv_entries/<int:pk>/',
+        'geodata/fmv/<int:pk>/',
         views.FMVEntryDetailView.as_view(),
         name='fmv-entry-detail',
     ),
     path(
-        'geodata/geometries/<int:pk>/',
+        'geodata/geometry/<int:pk>/',
         views.GeometryEntryDetailView.as_view(),
         name='geometry-entry-detail',
     ),

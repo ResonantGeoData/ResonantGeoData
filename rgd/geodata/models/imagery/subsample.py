@@ -37,16 +37,15 @@ def _gdal_translate(src_path, dest_path, **kwargs):
 
 def _gdal_translate_helper(source, output_field, prefix='', **kwargs):
     workdir = getattr(settings, 'GEODATA_WORKDIR', None)
-    tmpdir = tempfile.mkdtemp(dir=workdir)
+    with tempfile.TemporaryDirectory(dir=workdir) as tmpdir:
 
-    with source.yield_local_path() as file_path:
-        logger.info(f'The image file path: {file_path}')
-        output_path = os.path.join(tmpdir, prefix + os.path.basename(source.name))
-        _gdal_translate(file_path, output_path, **kwargs)
+        with source.yield_local_path() as file_path:
+            logger.info(f'The image file path: {file_path}')
+            output_path = os.path.join(tmpdir, prefix + os.path.basename(source.name))
+            _gdal_translate(file_path, output_path, **kwargs)
 
-    output_field.save(os.path.basename(output_path), open(output_path, 'rb'))
-
-    return
+        with open(output_path, 'rb') as f:
+            output_field.save(os.path.basename(output_path), f)
 
 
 def convert_to_cog(cog):
@@ -72,35 +71,35 @@ def convert_to_cog(cog):
 
 def _subsample_with_geojson(source, output_field, geojson, prefix=''):
     workdir = getattr(settings, 'GEODATA_WORKDIR', None)
-    tmpdir = tempfile.mkdtemp(dir=workdir)
+    with tempfile.TemporaryDirectory(dir=workdir) as tmpdir:
 
-    with source.yield_local_path() as file_path:
-        # load the raster, mask it by the polygon and crop it
-        with rasterio.open(file_path) as src:
-            out_image, out_transform = mask(src, [geojson], crop=True)
-            out_meta = src.meta.copy()
-            driver = src.driver
+        with source.yield_local_path() as file_path:
+            # load the raster, mask it by the polygon and crop it
+            with rasterio.open(file_path) as src:
+                out_image, out_transform = mask(src, [geojson], crop=True)
+                out_meta = src.meta.copy()
+                driver = src.driver
 
-        output_path = os.path.join(tmpdir, prefix + os.path.basename(source.name))
+            output_path = os.path.join(tmpdir, prefix + os.path.basename(source.name))
 
-    # save the resulting raster
-    out_meta.update(
-        {
-            'driver': driver,
-            'height': out_image.shape[1],
-            'width': out_image.shape[2],
-            'transform': out_transform,
-        }
-    )
+        # save the resulting raster
+        out_meta.update(
+            {
+                'driver': driver,
+                'height': out_image.shape[1],
+                'width': out_image.shape[2],
+                'transform': out_transform,
+            }
+        )
 
-    with rasterio.open(output_path, 'w', **out_meta) as dest:
-        dest.write(out_image)
+        with rasterio.open(output_path, 'w', **out_meta) as dest:
+            dest.write(out_image)
 
-    # Convert subsampled to COG
-    # NOTE: this cannot subsampling produce a COG because it is irregular
-    # _gdal_translate(output_path, output_path, options=COG_OPTIONS)
-    output_field.save(os.path.basename(output_path), open(output_path, 'rb'))
-    return
+        # Convert subsampled to COG
+        # NOTE: this cannot subsampling produce a COG because it is irregular
+        # _gdal_translate(output_path, output_path, options=COG_OPTIONS)
+        with open(output_path, 'rb') as f:
+            output_field.save(os.path.basename(output_path), f)
 
 
 def populate_subsampled_image(subsampled):
