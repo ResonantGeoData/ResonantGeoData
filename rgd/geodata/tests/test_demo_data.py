@@ -47,3 +47,10 @@ def test_entries_in_datastore():
 def test_demo_command_landsat():
     out = _call_command('landsat_data', count=1)
     assert out == demo_data.SUCCESS_MSG.replace('demo', 'landsat') + '\n'
+
+
+@pytest.mark.skip
+@pytest.mark.django_db(transaction=True)
+def test_demo_command_wasabi():
+    out = _call_command('wasabi')
+    assert out == demo_data.SUCCESS_MSG + '\n'

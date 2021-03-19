@@ -14,11 +14,15 @@ This is the simplest configuration for developers to start with.
 
 1. Run `docker-compose run --rm celery ./manage.py demo_data`
 2. Run `docker-compose run --rm celery ./manage.py landsat_data -c 100`
+2. Run `docker-compose run --rm celery ./manage.py wasabi`
 
 Please note that the demo data commands need to run in the `celery` docker
 image. For the `landsat_data` command, the `-c` argument is optional and
 allows you to control how much landsat data to ingest; the full dataset can
 take over an hour to ingest.
+
+The `wasabi` data command can take a particularly long time to run as it is
+processing large, remote video files.
 
 ### Run Application
 1. Run `docker-compose up`
