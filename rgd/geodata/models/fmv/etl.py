@@ -24,7 +24,7 @@ def _extract_klv(fmv_file_entry):
 
     video_file = fmv_file_entry.file
     with video_file.yield_local_path() as dataset_path:
-        logger.info('Running dump-klv with data %s' % (dataset_path))
+        logger.info(f'Running dump-klv with data: {dataset_path}')
         tmpdir = tempfile.mkdtemp()
         output_path = os.path.join(tmpdir, os.path.basename(video_file.file.name) + '.klv')
         stderr_path = os.path.join(tmpdir, 'stderr.dat')
@@ -40,12 +40,9 @@ def _extract_klv(fmv_file_entry):
                 stdout=open(output_path, 'wb'),
                 stderr=open(stderr_path, 'wb'),
             )
-            result = 0
         except subprocess.CalledProcessError as exc:
-            result = exc.returncode
-            logger.info('Failed to successfully run dump-klv (%r)' % (exc))
+            logger.info('Failed to successfully run dump-klv ({exc!r})')
             raise exc
-        logger.info('Finished running dump-klv with result %r' % result)
         # Store result
         fmv_file_entry.klv_file.save(os.path.basename(output_path), open(output_path, 'rb'))
         fmv_file_entry.save(
@@ -146,7 +143,7 @@ def _get_frame_rate_of_video(file_path):
 def _convert_video_to_mp4(fmv_file_entry):
     video_file = fmv_file_entry.file
     with video_file.yield_local_path() as dataset_path:
-        logger.info('Converting video file: %s' % (dataset_path))
+        logger.info(f'Converting video file: {dataset_path}')
         tmpdir = tempfile.mkdtemp()
         output_path = os.path.join(tmpdir, os.path.basename(video_file.file.name) + '.mp4')
 
@@ -172,7 +169,6 @@ def _convert_video_to_mp4(fmv_file_entry):
         logger.info('Running {}'.format(cmd))
         try:
             subprocess.check_call(cmd)
-            result = 0
             # Store result
             fmv_file_entry.web_video_file.save(
                 os.path.basename(output_path), open(output_path, 'rb')
@@ -180,9 +176,7 @@ def _convert_video_to_mp4(fmv_file_entry):
             fmv_file_entry.frame_rate = _get_frame_rate_of_video(dataset_path)
             fmv_file_entry.save()
         except subprocess.CalledProcessError as exc:
-            result = exc.returncode
-            logger.info('Failed to successfully convert video (%r)' % (exc))
-        logger.info('Finished running video conversion: %r' % result)
+            logger.info(f'Failed to successfully convert video ({exc!r})')
 
 
 def _populate_fmv_entry(entry):

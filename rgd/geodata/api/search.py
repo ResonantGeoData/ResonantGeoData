@@ -101,8 +101,8 @@ def _add_time_to_query(query, timefield, starttime, endtime, has_created=False):
             'modified': 'modified',
         }.get(field)
         if not field_name:
-            raise Exception('Unrecognized time field %s' % field)
-        subquery.append(Q(**{'%s__gte' % field_name: starttime, '%s__lte' % field_name: endtime}))
+            raise Exception(f'Unrecognized time field: {field}')
+        subquery.append(Q(**{f'{field_name}__gte': starttime, f'{field_name}__lte': endtime}))
         if field == 'acquisition' and has_created:
             subquery.append(
                 Q(acquisition_date__isnull=True, created__gte=starttime, created__lte=endtime)

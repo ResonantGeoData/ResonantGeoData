@@ -58,7 +58,7 @@ def _link_url(obj, field):
         url = attr()
     else:
         url = attr.url
-    return mark_safe('<a href="%s" download>Download</a>' % (url,))
+    return mark_safe(f'<a href="{url}" download>Download</a>')
 
 
 class MultiPartJsonParser(parsers.MultiPartParser):
