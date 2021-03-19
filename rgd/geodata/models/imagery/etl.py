@@ -101,8 +101,6 @@ def _read_image_to_entry(image_entry, image_file_path):
         # Save this band entirely
         band_meta.save()
 
-    return
-
 
 def read_image_file(ife):
     """Image ingestion routine.
@@ -282,11 +280,9 @@ def _extract_raster_footprint(image_file_entry):
         src = _reproject_raster(rasterio.open(file_path), DB_SRID)
         try:
             # Only implement for first band for now
-            footprint = _get_valid_data_footprint(src, 1)
+            return _get_valid_data_footprint(src, 1)
         except Exception as e:  # TODO: be more clever about this
             logger.error(f'Issue computing valid data footprint: {e}')
-            footprint = None
-    return footprint
 
 
 def _compare_raster_meta(a, b):
@@ -362,15 +358,13 @@ def populate_raster_footprint(raster_id):
     #   this avoids a race condition where footprint might not get set correctly.
     try:
         raster_meta = RasterMetaEntry.objects.get(parent_raster=raster_entry)
+        base_image = raster_entry.image_set.images.first()
+        footprint = _extract_raster_footprint(base_image.image_file.imagefile)
+        if footprint:
+            raster_meta.footprint = footprint
+            raster_meta.save(update_fields=['footprint'])
     except RasterMetaEntry.DoesNotExist:
         logger.error('Cannot populate raster footprint yet due to race condition. Try again later.')
-        return
-    base_image = raster_entry.image_set.images.first()
-    footprint = _extract_raster_footprint(base_image.image_file.imagefile)
-    if footprint:
-        raster_meta.footprint = footprint
-        raster_meta.save(update_fields=['footprint'])
-    return
 
 
 def _fill_annotation_segmentation(annotation_entry, ann_json):
@@ -424,7 +418,6 @@ def _fill_annotation_segmentation(annotation_entry, ann_json):
     if segmentation:
         segmentation.annotation = annotation_entry
         segmentation.save()
-    return
 
 
 def load_kwcoco_dataset(kwcoco_dataset_id):
@@ -508,4 +501,3 @@ def load_kwcoco_dataset(kwcoco_dataset_id):
                 # annotation_entry.notes =
                 _fill_annotation_segmentation(annotation_entry, ann)
     logger.info('Done with KWCOCO ETL routine')
-    return

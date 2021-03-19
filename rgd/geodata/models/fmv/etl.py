@@ -54,7 +54,6 @@ def _extract_klv(fmv_file_entry):
             ]
         )
         shutil.rmtree(tmpdir)
-    return
 
 
 def _get_spatial_ref_of_frame(frame):
@@ -207,7 +206,6 @@ def _populate_fmv_entry(entry):
     entry.footprint = union.convex_hull
 
     entry.save()
-    return True
 
 
 def read_fmv_file(fmv_file_id):
@@ -227,5 +225,3 @@ def read_fmv_file(fmv_file_id):
     )
 
     _populate_fmv_entry(entry)
-
-    return

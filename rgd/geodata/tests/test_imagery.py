@@ -124,13 +124,12 @@ def _run_kwcoco_import(demo):
     f_image_archive = demo['archive']
     f_spec_file = demo['spec']
 
-    kwds = factories.KWCOCOArchiveFactory(
+    return factories.KWCOCOArchiveFactory(
         image_archive__file__filename=f_image_archive,
         image_archive__file__from_path=datastore.fetch(f_image_archive),
         spec_file__file__filename=f_spec_file,
         spec_file__file__from_path=datastore.fetch(f_spec_file),
     )
-    return kwds
 
 
 @pytest.mark.django_db(transaction=True)

@@ -69,11 +69,9 @@ def reprocess(modeladmin, request, queryset):
     """Trigger the save event task for each entry."""
     for entry in queryset.all():
         entry.save()
-    return
 
 
 def generate_valid_data_footprint(modeladmin, request, queryset):
     """Generate a valid data footprint for each raster."""
     for rast in queryset.all():
         tasks.task_populate_raster_footprint.delay(rast.id)
-    return

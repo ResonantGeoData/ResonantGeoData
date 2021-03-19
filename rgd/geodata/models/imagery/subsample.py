@@ -46,8 +46,6 @@ def _gdal_translate_helper(source, output_field, prefix='', **kwargs):
 
     output_field.save(os.path.basename(output_path), open(output_path, 'rb'))
 
-    return
-
 
 def convert_to_cog(cog):
     """Populate ConvertedImageFile with COG file."""
@@ -100,7 +98,6 @@ def _subsample_with_geojson(source, output_field, geojson, prefix=''):
     # NOTE: this cannot subsampling produce a COG because it is irregular
     # _gdal_translate(output_path, output_path, options=COG_OPTIONS)
     output_field.save(os.path.basename(output_path), open(output_path, 'rb'))
-    return
 
 
 def populate_subsampled_image(subsampled):

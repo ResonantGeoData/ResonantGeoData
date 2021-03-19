@@ -65,22 +65,23 @@ class _SpatialDetailView(DetailView):
         return obj
 
     def _get_extent(self):
-        if self.object.footprint is None:
-            extent = {
-                'count': 0,
-            }
-        else:
-            extent = {
-                'count': 1,
-                'collect': self.object.footprint.json,
-                'outline': self.object.outline.json,
-                'extent': {
-                    'xmin': self.object.footprint.extent[0],
-                    'ymin': self.object.footprint.extent[1],
-                    'xmax': self.object.footprint.extent[2],
-                    'ymax': self.object.footprint.extent[3],
-                },
-            }
+        extent = {
+            'count': 0,
+        }
+        if self.object.footprint:
+            extent.update(
+                {
+                    'count': 1,
+                    'collect': self.object.footprint.json,
+                    'outline': self.object.outline.json,
+                    'extent': {
+                        'xmin': self.object.footprint.extent[0],
+                        'ymin': self.object.footprint.extent[1],
+                        'xmax': self.object.footprint.extent[2],
+                        'ymax': self.object.footprint.extent[3],
+                    },
+                }
+            )
         return extent
 
     def get_context_data(self, *args, **kwargs):

@@ -16,8 +16,7 @@ from rgd.geodata.permissions import check_read_perm
 def download_checksum_file(request, pk):
     instance = models.common.ChecksumFile.objects.get(pk=pk)
     check_read_perm(request.user, instance)
-    reponse = HttpResponseRedirect(instance.get_url())
-    return reponse
+    return HttpResponseRedirect(instance.get_url())
 
 
 @swagger_auto_schema(

@@ -9,14 +9,13 @@ logger = get_task_logger(__name__)
 
 
 def _safe_execution(func, *args, **kwargs):
-    """Execute a task and raturn any tracebacks that occur as a string."""
-    tb = ''
+    """Execute a task and return any tracebacks that occur as a string."""
     try:
         func(*args, **kwargs)
+        return ''
     except Exception as exc:
         logger.exception(f'Internal error run `{func.__name__}`: {exc}')
-        tb = traceback.format_exc()
-    return tb
+        return traceback.format_exc()
 
 
 def _run_with_failure_reason(model, func, *args, **kwargs):
@@ -31,7 +30,6 @@ def _run_with_failure_reason(model, func, *args, **kwargs):
     else:
         model.status = Status.SUCCEEDED
     model.save(update_fields=['failure_reason', 'status'])
-    return
 
 
 @shared_task(time_limit=86400)
@@ -41,7 +39,6 @@ def task_read_image_file(file_id):
 
     image_file = ImageFile.objects.get(id=file_id)
     _run_with_failure_reason(image_file, read_image_file, file_id)
-    return
 
 
 @shared_task(time_limit=86400)
@@ -50,7 +47,6 @@ def task_read_geometry_archive(archive_id):
 
     archive = GeometryArchive.objects.get(id=archive_id)
     _run_with_failure_reason(archive, read_geometry_archive, archive_id)
-    return
 
 
 @shared_task(time_limit=86400)
@@ -60,7 +56,6 @@ def task_populate_raster_entry(raster_id):
 
     raster_entry = RasterEntry.objects.get(id=raster_id)
     _run_with_failure_reason(raster_entry, populate_raster_entry, raster_id)
-    return
 
 
 @shared_task(time_limit=86400)
@@ -70,7 +65,6 @@ def task_populate_raster_footprint(raster_id):
 
     raster_entry = RasterEntry.objects.get(id=raster_id)
     _run_with_failure_reason(raster_entry, populate_raster_footprint, raster_id)
-    return
 
 
 @shared_task(time_limit=86400)
@@ -80,7 +74,6 @@ def task_load_kwcoco_dataset(kwcoco_dataset_id):
 
     ds_entry = KWCOCOArchive.objects.get(id=kwcoco_dataset_id)
     _run_with_failure_reason(ds_entry, load_kwcoco_dataset, kwcoco_dataset_id)
-    return
 
 
 @shared_task(time_limit=86400)
@@ -90,7 +83,6 @@ def task_read_fmv_file(file_id):
 
     fmv_file = FMVFile.objects.get(id=file_id)
     _run_with_failure_reason(fmv_file, read_fmv_file, file_id)
-    return
 
 
 @shared_task(time_limit=86400)
@@ -100,7 +92,6 @@ def task_convert_to_cog(conv_id):
 
     cog = ConvertedImageFile.objects.get(id=conv_id)
     _run_with_failure_reason(cog, convert_to_cog, conv_id)
-    return
 
 
 @shared_task(time_limit=86400)
@@ -110,7 +101,6 @@ def task_populate_subsampled_image(subsampled_id):
 
     cog = SubsampledImage.objects.get(id=subsampled_id)
     _run_with_failure_reason(cog, populate_subsampled_image, subsampled_id)
-    return
 
 
 @shared_task(time_limit=86400)
@@ -120,4 +110,3 @@ def task_checksum_file_post_save(checksumfile_id):
     obj = ChecksumFile.objects.get(id=checksumfile_id)
 
     _run_with_failure_reason(obj, obj.post_save_job)
-    return
