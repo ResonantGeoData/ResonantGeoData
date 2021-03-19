@@ -1,13 +1,12 @@
 import os
 import re
-import shlex
 import shutil
 import subprocess
 import tempfile
 
 from celery.utils.log import get_task_logger
 from django.contrib.gis.geos import MultiPoint, MultiPolygon, Point, Polygon
-import docker
+from girder_utils.files import field_file_to_local_path
 import numpy as np
 
 from rgd.utility import get_or_create_no_commit
@@ -17,60 +16,43 @@ from .base import FMVEntry, FMVFile
 logger = get_task_logger(__name__)
 
 
-def _extract_klv_with_docker(fmv_file_entry):
-    logger.info('Entered `_extract_klv_with_docker`')
-    image_name = 'banesullivan/kwiver:dump-klv'
-    video_file = fmv_file_entry.file
-    try:
-        client = docker.from_env(version='auto', timeout=3600)
-        _ = client.images.pull(image_name)
+def _extract_klv(fmv_file_entry):
+    logger.info('Entered `_extract_klv`')
 
-        with video_file.yield_local_path() as dataset_path:
-            logger.info('Running dump-klv with data %s' % (dataset_path))
-            tmpdir = tempfile.mkdtemp()
-            output_path = os.path.join(tmpdir, os.path.basename(video_file.file.name) + '.klv')
-            stderr_path = os.path.join(tmpdir, 'stderr.dat')
-            cmd = [
-                'docker',
-                'run',
-                '--rm',
-                '-i',
-                image_name,
-            ]
-            logger.info(
-                'Running %s <%s >%s 2>%s'
-                % (
-                    ' '.join([shlex.quote(c) for c in cmd]),
-                    shlex.quote(str(dataset_path)),
-                    shlex.quote(output_path),
-                    shlex.quote(stderr_path),
-                )
-            )
-            try:
+    if not shutil.which('kwiver'):
+        raise RuntimeError('kwiver not installed. Run `pip install kwiver`.')
+
+    video_file = fmv_file_entry.file
+    with tempfile.TemporaryDirectory() as tmpdir, video_file.yield_local_path() as dataset_path:
+        logger.info(f'Running dump-klv with data: {dataset_path}')
+        output_path = os.path.join(tmpdir, os.path.basename(video_file.file.name) + '.klv')
+        stderr_path = os.path.join(tmpdir, 'stderr.dat')
+        cmd = [
+            'kwiver',
+            'dump-klv',
+            dataset_path,
+        ]
+        try:
+            with open(dataset_path, 'rb') as stdin, open(output_path, 'wb') as stdout, open(
+                stderr_path, 'wb'
+            ) as stderr:
                 subprocess.check_call(
                     cmd,
-                    stdin=open(dataset_path, 'rb'),
-                    stdout=open(output_path, 'wb'),
-                    stderr=open(stderr_path, 'wb'),
+                    stdin=stdin,
+                    stdout=stdout,
+                    stderr=stderr,
                 )
-                result = 0
-            except subprocess.CalledProcessError as exc:
-                result = exc.returncode
-                logger.info('Failed to successfully run image (%r)' % (exc))
-                raise exc
-            logger.info('Finished running image with result %r' % result)
-            # Store result
-            fmv_file_entry.klv_file.save(os.path.basename(output_path), open(output_path, 'rb'))
-            fmv_file_entry.save(
-                update_fields=[
-                    'klv_file',
-                ]
-            )
-            shutil.rmtree(tmpdir)
-    except Exception as exc:
-        logger.exception('Internal error running dump-klv')
-        raise exc
-    return
+        except subprocess.CalledProcessError as exc:
+            logger.info('Failed to successfully run dump-klv ({exc!r})')
+            raise exc
+        # Store result
+        with open(output_path, 'rb') as f:
+            fmv_file_entry.klv_file.save(os.path.basename(output_path), f)
+        fmv_file_entry.save(
+            update_fields=[
+                'klv_file',
+            ]
+        )
 
 
 def _get_spatial_ref_of_frame(frame):
@@ -162,9 +144,8 @@ def _get_frame_rate_of_video(file_path):
 
 def _convert_video_to_mp4(fmv_file_entry):
     video_file = fmv_file_entry.file
-    with video_file.yield_local_path() as dataset_path:
-        logger.info('Converting video file: %s' % (dataset_path))
-        tmpdir = tempfile.mkdtemp()
+    with video_file.yield_local_path() as dataset_path, tempfile.TemporaryDirectory() as tmpdir:
+        logger.info(f'Converting video file: {dataset_path}')
         output_path = os.path.join(tmpdir, os.path.basename(video_file.file.name) + '.mp4')
 
         cmd = [
@@ -189,23 +170,19 @@ def _convert_video_to_mp4(fmv_file_entry):
         logger.info('Running {}'.format(cmd))
         try:
             subprocess.check_call(cmd)
-            result = 0
             # Store result
-            fmv_file_entry.web_video_file.save(
-                os.path.basename(output_path), open(output_path, 'rb')
-            )
+            with open(output_path, 'rb') as f:
+                fmv_file_entry.web_video_file.save(os.path.basename(output_path), f)
             fmv_file_entry.frame_rate = _get_frame_rate_of_video(dataset_path)
             fmv_file_entry.save()
         except subprocess.CalledProcessError as exc:
-            result = exc.returncode
-            logger.info('Failed to successfully convert video (%r)' % (exc))
-        logger.info('Finished running video conversion: %r' % result)
+            logger.info(f'Failed to successfully convert video ({exc!r})')
 
 
 def _populate_fmv_entry(entry):
-    # Open in text mode
-    with entry.fmv_file.klv_file.open() as file_obj:
-        content = file_obj.read().decode('utf-8')
+    with field_file_to_local_path(entry.fmv_file.klv_file) as path:
+        with open(path, 'r', encoding='utf-8', errors='ignore') as f:
+            content = f.read()
 
     if not content:
         raise Exception('FLV file not created')
@@ -224,16 +201,16 @@ def _populate_fmv_entry(entry):
     entry.footprint = union.convex_hull
 
     entry.save()
-    return True
 
 
 def read_fmv_file(fmv_file_id):
     fmv_file = FMVFile.objects.get(id=fmv_file_id)
+    fmv_file.skip_task = True
 
     validation = True  # TODO: use `fmv_file.file.validate()`
     # Only extraxt the KLV data if it does not exist or the checksum of the video has changed
     if not fmv_file.klv_file or not validation:
-        _extract_klv_with_docker(fmv_file)
+        _extract_klv(fmv_file)
     if not fmv_file.web_video_file or not validation:
         _convert_video_to_mp4(fmv_file)
 
@@ -243,6 +220,3 @@ def read_fmv_file(fmv_file_id):
     )
 
     _populate_fmv_entry(entry)
-    entry.save()
-
-    return

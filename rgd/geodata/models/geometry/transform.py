@@ -8,5 +8,4 @@ def transform_geometry(geometry, source_wkt):
     source = SpatialReference(source_wkt)
     dest = SpatialReference(DB_SRID)
     transform = CoordTransform(source, dest)
-    geometry = geometry.transform(transform, clone=True)
-    return geometry
+    return geometry.transform(transform, clone=True)

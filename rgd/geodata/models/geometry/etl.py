@@ -42,49 +42,49 @@ def read_geometry_archive(archive_id):
 
     # TODO: add a setting like this:
     workdir = getattr(settings, 'GEODATA_WORKDIR', None)
-    tmpdir = tempfile.mkdtemp(dir=workdir)
+    with tempfile.TemporaryDirectory(dir=workdir) as tmpdir:
+        with archive.file.yield_local_path() as archive_path:
+            logger.info(f'The geometry archive: {archive_path}')
 
-    with archive.file.yield_local_path() as archive_path:
-        logger.info(f'The geometry archive: {archive_path}')
+            # Unzip the contents to the working dir
+            with zipfile.ZipFile(archive_path, 'r') as zip_ref:
+                zip_ref.extractall(tmpdir)
 
-        # Unzip the contents to the working dir
-        with zipfile.ZipFile(archive_path, 'r') as zip_ref:
-            zip_ref.extractall(tmpdir)
-
-    msg = 'There must be one and only one shapefile in the archive. Found ({})'
-    shape_files = glob(os.path.join(tmpdir, '*.shp'))
-    if len(shape_files) > 1:
-        raise ValidationError(msg.format(len(shape_files)))
-    elif len(shape_files) == 0:
-        shape_files = glob(os.path.join(tmpdir, '**/*.shp'))
-        if len(shape_files) != 1:
+        msg = 'There must be one and only one shapefile in the archive. Found ({})'
+        shape_files = glob(os.path.join(tmpdir, '*.shp'))
+        if len(shape_files) > 1:
             raise ValidationError(msg.format(len(shape_files)))
-    shape_file = shape_files[0]
+        elif len(shape_files) == 0:
+            shape_files = glob(os.path.join(tmpdir, '**/*.shp'))
+            if len(shape_files) != 1:
+                raise ValidationError(msg.format(len(shape_files)))
+        shape_file = shape_files[0]
 
-    # load each shapefile using fiona
-    shapes = fiona.open(shape_file)
-
-    geometry_entry, created = get_or_create_no_commit(
-        GeometryEntry, defaults=dict(name=archive.file.name), geometry_archive=archive
-    )
-
-    shapes.meta  # TODO: dump this JSON into the model entry
-
-    crs_wkt = shapes.meta['crs_wkt']
-    logger.info(f'Geometry crs_wkt: {crs_wkt}')
-    spatial_ref = SpatialReference(crs_wkt)
-    logger.info(f'Geometry SRID: {spatial_ref.srid}')
-
-    collection = []
-    for item in shapes:
-        geom = shape(item['geometry'])  # not optimal?
-        # TODO: check this
-        collection.append(
-            transform_geometry(
-                GEOSGeometry(memoryview(dumps(geom, srid=spatial_ref.srid)), srid=spatial_ref.srid),
-                crs_wkt,
+        # load each shapefile using fiona
+        with fiona.open(shape_file) as shapes:
+            geometry_entry, created = get_or_create_no_commit(
+                GeometryEntry, defaults=dict(name=archive.file.name), geometry_archive=archive
             )
-        )
+
+            shapes.meta  # TODO: dump this JSON into the model entry
+
+            crs_wkt = shapes.meta['crs_wkt']
+            logger.info(f'Geometry crs_wkt: {crs_wkt}')
+            spatial_ref = SpatialReference(crs_wkt)
+            logger.info(f'Geometry SRID: {spatial_ref.srid}')
+
+            collection = []
+            for item in shapes:
+                geom = shape(item['geometry'])  # not optimal?
+                # TODO: check this
+                collection.append(
+                    transform_geometry(
+                        GEOSGeometry(
+                            memoryview(dumps(geom, srid=spatial_ref.srid)), srid=spatial_ref.srid
+                        ),
+                        crs_wkt,
+                    )
+                )
 
     geometry_entry.data = GeometryCollection(*collection)
     geometry_entry.footprint = geometry_entry.data.convex_hull

@@ -9,7 +9,7 @@ from rgd.geodata.models.imagery.base import (
     ImageFile,
     SubsampledImage,
 )
-from rgd.geodata.models.imagery.etl import read_image_file
+from rgd.geodata.models.imagery.etl import populate_raster_footprint, read_image_file
 from rgd.geodata.models.imagery.subsample import populate_subsampled_image
 
 from . import factories
@@ -32,20 +32,25 @@ LandsatFiles = [
 ]
 
 
-@pytest.mark.parametrize('testfile', SampleFiles)
-@pytest.mark.django_db(transaction=True)
-def test_imagefile_to_rasterentry_centroids(testfile):
+def _make_raster_from_datastore(name):
     imagefile = factories.ImageFileFactory(
-        file__file__filename=testfile['name'],
-        file__file__from_path=datastore.fetch(testfile['name']),
+        file__file__filename=name,
+        file__file__from_path=datastore.fetch(name),
     )
     image_set = factories.ImageSetFactory(
         images=[imagefile.imageentry.id],
     )
     raster = factories.RasterEntryFactory(
-        name=testfile['name'],
+        name=name,
         image_set=image_set,
     )
+    return raster
+
+
+@pytest.mark.parametrize('testfile', SampleFiles)
+@pytest.mark.django_db(transaction=True)
+def test_imagefile_to_rasterentry_centroids(testfile):
+    raster = _make_raster_from_datastore(testfile['name'])
     meta = raster.rastermetaentry
     centroid = meta.outline.centroid
     assert centroid.x == pytest.approx(testfile['centroid']['x'], abs=2e-3)
@@ -120,17 +125,32 @@ def test_multi_file_raster():
     assert meta.crs is not None
 
 
+@pytest.mark.parametrize(
+    'name',
+    [
+        LandsatFiles[0],
+        'landcover_sample_2000.tif',
+    ],
+)
+@pytest.mark.django_db(transaction=True)
+def test_raster_footprint(name):
+    raster = _make_raster_from_datastore(name)
+    populate_raster_footprint(raster.id)
+    meta = raster.rastermetaentry
+    assert meta.footprint
+    assert meta.footprint != meta.outline
+
+
 def _run_kwcoco_import(demo):
     f_image_archive = demo['archive']
     f_spec_file = demo['spec']
 
-    kwds = factories.KWCOCOArchiveFactory(
+    return factories.KWCOCOArchiveFactory(
         image_archive__file__filename=f_image_archive,
         image_archive__file__from_path=datastore.fetch(f_image_archive),
         spec_file__file__filename=f_spec_file,
         spec_file__file__from_path=datastore.fetch(f_spec_file),
     )
-    return kwds
 
 
 @pytest.mark.django_db(transaction=True)

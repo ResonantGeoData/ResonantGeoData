@@ -61,7 +61,7 @@ class Command(helper.SynchronousTasksCommand):
         helper.load_image_files(IMAGE_FILES)
         helper.load_raster_files(RASTER_FILES)
         helper.load_shape_files(SHAPE_FILES)
-        # self._load_fmv_files(FMV_FILES)
+        helper.load_fmv_files(FMV_FILES)
         helper.load_kwcoco_archives(KWCOCO_ARCHIVES)
         self.stdout.write(self.style.SUCCESS(SUCCESS_MSG))
         self.reset_celery()

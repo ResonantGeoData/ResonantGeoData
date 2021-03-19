@@ -49,12 +49,10 @@ setup(
         'django-model-utils',
         'django-oauth-toolkit',
         'djangorestframework',
-        'docker',
         'drf-yasg',
         'GDAL',
         'large-image-source-gdal',
         'numpy',
-        'Pillow',
         'pooch',
         'python-magic',
         'rules',
@@ -81,6 +79,12 @@ setup(
             'kwarray>=0.5.10',
             'kwcoco',
             'kwimage>=0.6.7',
+        ],
+        'fuse': [
+            'simple-httpfs',
+        ],
+        'fmv': [
+            'kwiver',
         ],
     },
 )

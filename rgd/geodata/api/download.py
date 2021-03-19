@@ -16,8 +16,7 @@ from rgd.geodata.permissions import check_read_perm
 def download_checksum_file(request, pk):
     instance = models.common.ChecksumFile.objects.get(pk=pk)
     check_read_perm(request.user, instance)
-    reponse = HttpResponseRedirect(instance.get_url())
-    return reponse
+    return HttpResponseRedirect(instance.get_url())
 
 
 @swagger_auto_schema(
@@ -48,7 +47,7 @@ def download_cog_file(request, pk):
 def _get_status_response(request, model, pk):
     model_class = ''.join([part[:1].upper() + part[1:] for part in model.split('_')])
     if not hasattr(models, model_class):
-        raise AttributeError('No such model (%s)' % model)
+        raise AttributeError(f'No such model ({model})')
     instance = get_object_or_404(getattr(models, model_class), pk=pk)
     check_read_perm(request.user, instance)
     if not hasattr(instance, 'status'):

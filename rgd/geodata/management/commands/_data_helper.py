@@ -58,7 +58,8 @@ def _get_or_download_checksum_file(name):
             path = datastore.fetch(name)
             file_entry = models.ChecksumFile()
             file_entry.name = name
-            file_entry.file.save(os.path.basename(path), open(path, 'rb'))
+            with open(path, 'rb') as f:
+                file_entry.file.save(os.path.basename(path), f)
             file_entry.type = models.FileSourceType.FILE_FIELD
             _save_signal(file_entry, True)
     return file_entry
@@ -159,7 +160,7 @@ def load_shape_files(shape_files):
 
 
 def load_fmv_files(fmv_files):
-    raise NotImplementedError('FMV ETL with Docker is still broken.')
+    return [_get_or_create_file_model(models.FMVFile, fmv).id for fmv in fmv_files]
 
 
 def load_kwcoco_archives(archives):
