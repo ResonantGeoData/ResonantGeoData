@@ -8,7 +8,7 @@ from rgd.geodata.models.mixins import Status
 
 from . import factories
 
-NO_KWIVER = os.environ['NO_KWIVER']
+NO_KWIVER = os.environ.get('NO_KWIVER', False)
 
 
 @pytest.mark.django_db(transaction=True)
