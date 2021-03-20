@@ -31,6 +31,7 @@ setup(
     install_requires=[
         'requests',
         'requests-toolbelt',
+        'geomet',
     ],
     extras_require={'dev': ['ipython']},
 )
