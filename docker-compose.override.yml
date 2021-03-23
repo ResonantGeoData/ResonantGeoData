@@ -26,7 +26,34 @@ services:
       "--app", "rgd.celery",
       "worker",
       "--loglevel", "INFO",
-      "--without-heartbeat"
+      "--without-heartbeat",
+      "-Q default"
+    ]
+    # Docker Compose does not set the TTY width, which causes Celery errors
+    tty: false
+    privileged: true
+    env_file: ./dev/.env.docker-compose
+    environment:
+      - TMPDIR=/tmp/rgd_worker
+    volumes:
+      - .:/opt/django-project
+      - /tmp/rgd_worker:/tmp/rgd_worker
+    depends_on:
+      - postgres
+      - rabbitmq
+      - minio
+
+  celery_priority:
+    build:
+      context: .
+      dockerfile: ./dev/celery.Dockerfile
+    command: [
+      "celery",
+      "--app", "rgd.celery",
+      "worker",
+      "--loglevel", "INFO",
+      "--without-heartbeat",
+      "-Q priority"
     ]
     # Docker Compose does not set the TTY width, which causes Celery errors
     tty: false

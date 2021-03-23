@@ -32,7 +32,7 @@ def _run_with_failure_reason(model, func, *args, **kwargs):
     model.save(update_fields=['failure_reason', 'status'])
 
 
-@shared_task(time_limit=86400)
+@shared_task(time_limit=86400, queue='priority')
 def task_read_image_file(file_id):
     from .models.imagery.base import ImageFile
     from .models.imagery.etl import read_image_file
@@ -41,7 +41,7 @@ def task_read_image_file(file_id):
     _run_with_failure_reason(image_file, read_image_file, file_id)
 
 
-@shared_task(time_limit=86400)
+@shared_task(time_limit=86400, queue='default')
 def task_read_geometry_archive(archive_id):
     from .models.geometry.etl import GeometryArchive, read_geometry_archive
 
@@ -49,7 +49,7 @@ def task_read_geometry_archive(archive_id):
     _run_with_failure_reason(archive, read_geometry_archive, archive_id)
 
 
-@shared_task(time_limit=86400)
+@shared_task(time_limit=86400, queue='priority')
 def task_populate_raster_entry(raster_id):
     from .models.imagery.base import RasterEntry
     from .models.imagery.etl import populate_raster_entry
@@ -58,7 +58,7 @@ def task_populate_raster_entry(raster_id):
     _run_with_failure_reason(raster_entry, populate_raster_entry, raster_id)
 
 
-@shared_task(time_limit=86400)
+@shared_task(time_limit=86400, queue='default')
 def task_populate_raster_footprint(raster_id):
     from .models.imagery.base import RasterEntry
     from .models.imagery.etl import populate_raster_footprint
@@ -67,7 +67,7 @@ def task_populate_raster_footprint(raster_id):
     _run_with_failure_reason(raster_entry, populate_raster_footprint, raster_id)
 
 
-@shared_task(time_limit=86400)
+@shared_task(time_limit=86400, queue='default')
 def task_load_kwcoco_dataset(kwcoco_dataset_id):
     from .models.imagery.base import KWCOCOArchive
     from .models.imagery.etl import load_kwcoco_dataset
@@ -76,7 +76,7 @@ def task_load_kwcoco_dataset(kwcoco_dataset_id):
     _run_with_failure_reason(ds_entry, load_kwcoco_dataset, kwcoco_dataset_id)
 
 
-@shared_task(time_limit=86400)
+@shared_task(time_limit=86400, queue='default')
 def task_read_fmv_file(file_id):
     from .models.fmv.base import FMVFile
     from .models.fmv.etl import read_fmv_file
@@ -85,7 +85,7 @@ def task_read_fmv_file(file_id):
     _run_with_failure_reason(fmv_file, read_fmv_file, file_id)
 
 
-@shared_task(time_limit=86400)
+@shared_task(time_limit=86400, queue='default')
 def task_convert_to_cog(conv_id):
     from .models.imagery.base import ConvertedImageFile
     from .models.imagery.subsample import convert_to_cog
@@ -94,7 +94,7 @@ def task_convert_to_cog(conv_id):
     _run_with_failure_reason(cog, convert_to_cog, conv_id)
 
 
-@shared_task(time_limit=86400)
+@shared_task(time_limit=86400, queue='default')
 def task_populate_subsampled_image(subsampled_id):
     from .models.imagery.base import SubsampledImage
     from .models.imagery.subsample import populate_subsampled_image
@@ -103,7 +103,7 @@ def task_populate_subsampled_image(subsampled_id):
     _run_with_failure_reason(cog, populate_subsampled_image, subsampled_id)
 
 
-@shared_task(time_limit=86400)
+@shared_task(time_limit=86400, queue='default')
 def task_checksum_file_post_save(checksumfile_id):
     from .models.common import ChecksumFile
 
