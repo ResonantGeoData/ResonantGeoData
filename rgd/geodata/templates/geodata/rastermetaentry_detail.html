@@ -69,6 +69,17 @@
     var tiles = map.createLayer('osm', {keepLower: false, attribution: ''});
     tiles.opacity(0.75)
 
+    // Make sure regions outside the extent of the raster do not load null tiles
+    //   this relieves strain on the tile server
+    const dataset_bb = extents.extent;
+    tiles.isValid = (index) => {
+      const tileBounds = tiles.gcsTileBounds(index);
+      return tileBounds.left <= dataset_bb.xmax &&
+        tileBounds.right >= dataset_bb.xmin &&
+        tileBounds.top >= dataset_bb.ymin &&
+        tileBounds.bottom <= dataset_bb.ymax;
+    }
+
     function updateBandThumbnail () {
       selector = document.getElementById('band-selector')
       thumbnail = document.getElementById('thumbnail')
