@@ -27,7 +27,7 @@ services:
       "worker",
       "--loglevel", "INFO",
       "--without-heartbeat",
-      "-Q default"
+      "-X priority"
     ]
     # Docker Compose does not set the TTY width, which causes Celery errors
     tty: false
