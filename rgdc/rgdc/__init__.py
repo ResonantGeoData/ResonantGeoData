@@ -47,7 +47,11 @@ class Rgdc:
         return r
 
     def download_image_entry_file(self, image_entry_id: str) -> Iterator[bytes]:
-        """Download the associated ImageFile data for this ImageEntry directly from S3."""
+        """
+        Download the associated ImageFile data for this ImageEntry directly from S3.
+        
+        Returns a streaming iterator over the image bytes.
+        """
         r = self.session.get(f'geodata/imagery/image_entry/{image_entry_id}/data', stream=True)
         r.raise_for_status()
 
