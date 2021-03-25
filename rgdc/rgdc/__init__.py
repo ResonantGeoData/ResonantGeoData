@@ -13,7 +13,7 @@ __version__ = '0.0000'
 
 
 class RgdcSession(BaseUrlSession):
-    def __init__(self, base_url: str = DEFAULT_RGD_API, credentials: Optional[str] = None):
+    def __init__(self, base_url: str = DEFAULT_RGD_API, username: Optional[str] = None, password: Optional[str] = None):
         """
         Initialize a session with a ResonantGeoData server.
 
@@ -29,14 +29,14 @@ class RgdcSession(BaseUrlSession):
             }
         )
 
-        if credentials:
+        if username and password:
             encoded = b64encode(credentials.encode('utf-8'))
             self.headers['Authorization'] = f'Basic {encoded.decode()}'
 
 
-class RGDC:
-    def __init__(self, base_url: str, credentials: Optional[str] = None):
-        self.session = RgdcSession(base_url=base_url, credentials=credentials)
+class Rgdc:
+    def __init__(self, *args, **kwargs):
+        self.session = RgdcSession(*args, **kwargs)
 
     # TODO: Improve return type to something more specific than Dict
     def list_image_entry_tiles(self, image_entry_id: str) -> Dict:
