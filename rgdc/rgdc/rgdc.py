@@ -43,16 +43,23 @@ class Rgdc:
 
         return r.json()
 
-    def download_image_entry_file(self, image_entry_id: str) -> Iterator[bytes]:
+    def download_image_entry_file(
+        self, image_entry_id: str, chunk_size: int = 1024 * 1024
+    ) -> Iterator[bytes]:
         """
         Download the associated ImageFile data for this ImageEntry directly from S3.
 
-        Returns a streaming iterator over the image bytes.
+        Args:
+            image_entry_id: The ID of the ImageEntry to download.
+            chunk_size: The size (in bytes) of each item in the returned iterator (defaults to 1MB).
+
+        Returns:
+            An iterator of byte chunks.
         """
         r = self.session.get(f'geodata/imagery/image_entry/{image_entry_id}/data', stream=True)
         r.raise_for_status()
 
-        return r.iter_content()
+        return r.iter_content(chunk_size=chunk_size)
 
     def search(
         self,
