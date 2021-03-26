@@ -1,3 +1,4 @@
+from datetime import datetime
 from functools import reduce
 import logging
 import os
@@ -35,6 +36,7 @@ def make_raster_dict(
     date=None,
     cloud_cover=None,
     ancillary_files=None,
+    instrumentation=None,
 ):
     return {
         'images': images,
@@ -42,6 +44,7 @@ def make_raster_dict(
         'acquisition_date': date,
         'cloud_cover': cloud_cover,
         'ancillary_files': ancillary_files,
+        'instrumentation': instrumentation,
     }
 
 
@@ -128,9 +131,14 @@ def load_raster(pks, raster_dict):
     date = raster_dict.get('acquisition_date', None)
     cloud_cover = raster_dict.get('cloud_cover', None)
     name = raster_dict.get('name', None)
+    ancillary = raster_dict.get('ancillary_files', None)
+    instrumentation = raster_dict.get('instrumentation', None)
     if date:
         adt = dateutil.parser.isoparser().isoparse(date)
-        raster.rastermetaentry.acquisition_date = make_aware(adt)
+        try:
+            raster.rastermetaentry.acquisition_date = make_aware(adt)
+        except ValueError:
+            raster.rastermetaentry.acquisition_date = adt
         raster.rastermetaentry.save(
             update_fields=[
                 'acquisition_date',
@@ -150,6 +158,16 @@ def load_raster(pks, raster_dict):
                 'name',
             ]
         )
+    if ancillary:
+        [raster.ancillary_files.add(_get_or_download_checksum_file(af)) for af in ancillary]
+    if instrumentation:
+        for im in raster.image_set.images.all():
+            im.instrumentation = instrumentation
+            im.save(
+                update_fields=[
+                    'instrumentation',
+                ]
+            )
     return raster
 
 
@@ -158,6 +176,7 @@ def load_raster_files(raster_dicts):
     count = len(raster_dicts)
     for i, rf in enumerate(raster_dicts):
         logger.info(f'Processesing raster {i+1} of {count}')
+        start_time = datetime.now()
         imentries = load_image_files(
             [
                 rf.get('images'),
@@ -166,6 +185,7 @@ def load_raster_files(raster_dicts):
         for pks in imentries:
             raster = load_raster(pks, rf)
             ids.append(raster.pk)
+        logger.info("\t Loaded raster in: {}".format(datetime.now() - start_time))
     return ids
 
 

@@ -25,6 +25,7 @@ def _get_landsat_urls(count):
                 date=rf['acquisition'],
                 name=name,
                 cloud_cover=rf['cloud_cover'],
+                instrumentation='OLI_TIRS',
             )
         )
     return rasters
