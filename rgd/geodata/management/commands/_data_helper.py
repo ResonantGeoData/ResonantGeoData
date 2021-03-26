@@ -50,9 +50,8 @@ def _get_or_download_checksum_file(name):
             file_entry.type = models.FileSourceType.URL
             _save_signal(file_entry, True)
     except ValueError:
-        sha = registry[name].split(':')[1]  # NOTE: assumes sha512
         try:
-            file_entry = models.ChecksumFile.objects.get(checksum=sha)
+            file_entry = models.ChecksumFile.objects.get(name=name)
             _save_signal(file_entry, False)
         except models.ChecksumFile.DoesNotExist:
             path = datastore.fetch(name)
