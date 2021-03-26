@@ -42,7 +42,7 @@ class Rgdc:
         r = self.session.get(f'geodata/imagery/image_entry/{image_entry_id}/tiles')
         r.raise_for_status()
 
-        return r
+        return r.json()
 
     def download_image_entry_file(self, image_entry_id: str) -> Iterator[bytes]:
         """
