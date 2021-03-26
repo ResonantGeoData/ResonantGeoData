@@ -36,6 +36,7 @@ def _make_image_urls(base_url, name, sensor='TM'):
             'BQA.TIF',
         ]
         possible_anc = [
+            'ANG.txt',
             'MTL.txt',
         ]
     elif sensor == 'ETM':  # Landsat 7
@@ -54,6 +55,7 @@ def _make_image_urls(base_url, name, sensor='TM'):
             'BQA.TIF',
         ]
         possible_anc = [
+            'ANG.txt',
             'MTL.txt',
         ]
     else:
