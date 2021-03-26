@@ -139,7 +139,7 @@ class Command(helper.SynchronousTasksCommand):
         start_time = datetime.now()
         helper.load_raster_files(_get_raster_dicts(count))
         self.stdout.write(
-            self.style.SUCCESS("--- Completed in: {} ---".format(datetime.now() - start_time))
+            self.style.SUCCESS('--- Completed in: {} ---'.format(datetime.now() - start_time))
         )
         self.stdout.write(self.style.SUCCESS(SUCCESS_MSG))
         self.reset_celery()

@@ -185,7 +185,7 @@ def load_raster_files(raster_dicts):
         for pks in imentries:
             raster = load_raster(pks, rf)
             ids.append(raster.pk)
-        logger.info("\t Loaded raster in: {}".format(datetime.now() - start_time))
+        logger.info('\t Loaded raster in: {}'.format(datetime.now() - start_time))
     return ids
 
 
