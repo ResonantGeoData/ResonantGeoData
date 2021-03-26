@@ -20,29 +20,7 @@ def _format_base_url(base_url):
 
 
 def _make_image_urls(base_url, name, sensor='TM'):
-    if sensor == 'TM':
-        possible_bands = [
-            'B1.TIF',
-            'B2.TIF',
-            'B3.TIF',
-            'B4.TIF',
-            'B5.TIF',
-            'B6.TIF',
-            'B7.TIF',
-            'GCP.txt',
-            'VER.txt',
-            'VER.jpg',
-            'ANG.txt',
-            'BQA.TIF',
-        ]
-        possible_anc = [
-            'ANG.txt',
-            'MTL.txt',
-        ]
-    elif sensor in [
-        'OLI_TIRS',
-        'OLI',
-    ]:  # Landsat 8
+    if sensor == 'OLI_TIRS':  # Landsat 8
         possible_bands = [
             'B1.TIF',
             'B2.TIF',
@@ -79,23 +57,7 @@ def _make_image_urls(base_url, name, sensor='TM'):
             'MTL.txt',
         ]
     else:
-        possible_bands = [
-            'B1.TIF',
-            'B2.TIF',
-            'B3.TIF',
-            'B4.TIF',
-            'B5.TIF',
-            # 'B6.TIF',
-            'B6_VCID_1.TIF',
-            'B6_VCID_2.TIF',
-            'B7.TIF',
-            'B8.TIF',
-            'B9.TIF',
-            'BQA.TIF',
-        ]
-        possible_anc = [
-            'MTL.txt',
-        ]
+        raise ValueError(f'Unknown sensor: {sensor}')
     base_url = _format_base_url(base_url)
     urls = [base_url + '/' + name + '_' + band for band in possible_bands]
     ancillary = [base_url + '/' + name + '_' + ext for ext in possible_anc]
