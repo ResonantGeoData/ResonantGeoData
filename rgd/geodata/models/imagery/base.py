@@ -101,6 +101,7 @@ class RasterEntry(ModifiableEntry, TaskEventMixin):
     description = models.TextField(null=True, blank=True)
 
     image_set = models.OneToOneField(ImageSet, on_delete=models.CASCADE)
+    ancillary_files = models.ManyToManyField(ChecksumFile)
 
     task_funcs = (
         tasks.task_populate_raster_entry,
