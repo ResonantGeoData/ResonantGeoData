@@ -28,7 +28,6 @@ class Rgdc:
         Returns:
             A new Rgdc instance.
         """
-
         auth_header = None
         if username and password:
             encoded_credentials = b64encode(f'{username}:{password}'.encode('utf-8')).decode()
@@ -99,7 +98,7 @@ class Rgdc:
             offset: The number of results to skip.
 
         Returns:
-            An iterator over the result set.
+            An iterator of Spatial Entries.
         """
         # The dict that will be used to store params.
         # Initialize with queries that won't be additionally processed.
