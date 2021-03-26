@@ -9,7 +9,7 @@ from django.db.models import Count
 from django.utils.timezone import make_aware
 
 from rgd.geodata import models
-from rgd.geodata.datastore import datastore, registry
+from rgd.geodata.datastore import datastore
 from rgd.utility import get_or_create_no_commit, safe_urlopen
 
 logger = logging.getLogger(__name__)
@@ -27,6 +27,22 @@ class SynchronousTasksCommand(BaseCommand):
         # Reset celery to previous settings
         settings.CELERY_TASK_ALWAYS_EAGER = self._eager
         settings.CELERY_TASK_EAGER_PROPAGATES = self._prop
+
+
+def make_raster_dict(
+    images,
+    name=None,
+    date=None,
+    cloud_cover=None,
+    ancillary_files=None,
+):
+    return {
+        'images': images,
+        'name': name,
+        'acquisition_date': date,
+        'cloud_cover': cloud_cover,
+        'ancillary_files': ancillary_files,
+    }
 
 
 def _save_signal(entry, created):
@@ -86,66 +102,69 @@ def load_image_files(image_files):
     return ids
 
 
-def load_raster_files(raster_files, dates=None, names=None):
+def load_raster(pks, raster_dict):
+    if not isinstance(pks, (list, tuple)):
+        pks = [
+            pks,
+        ]
+    # Check if an ImageSet already exists containing all of these images
+    q = models.ImageSet.objects.annotate(count=Count('images')).filter(count=len(pks))
+    imsets = reduce(lambda p, id: q.filter(images=id), pks, q).values()
+    if len(imsets) > 0:
+        # Grab first, could be N-many
+        imset = models.ImageSet.objects.get(id=imsets[0]['id'])
+    else:
+        images = models.ImageEntry.objects.filter(pk__in=pks).all()
+        imset = models.ImageSet()
+        imset.save()  # Have to save before adding to ManyToManyField
+        for image in images:
+            imset.images.add(image)
+        imset.save()
+    # Make raster of that image set
+    raster, created = get_or_create_no_commit(models.RasterEntry, image_set=imset)
+    _save_signal(raster, created)
 
-    if isinstance(raster_files, dict):
-        files = []
-        dates = []
-        names = []
-        cloud_cover = []
-        for name, rf in raster_files.items():
-            files.append([rf['R'], rf['G'], rf['B']])
-            dates.append(rf['acquisition'])
-            names.append(name)
-            cloud_cover.append(rf['cloud_cover'])
-        raster_files = files
+    # Add optional metadata
+    date = raster_dict.get('acquisition_date', None)
+    cloud_cover = raster_dict.get('cloud_cover', None)
+    name = raster_dict.get('name', None)
+    if date:
+        adt = dateutil.parser.isoparser().isoparse(date)
+        raster.rastermetaentry.acquisition_date = make_aware(adt)
+        raster.rastermetaentry.save(
+            update_fields=[
+                'acquisition_date',
+            ]
+        )
+    if cloud_cover:
+        raster.rastermetaentry.cloud_cover = cloud_cover
+        raster.rastermetaentry.save(
+            update_fields=[
+                'cloud_cover',
+            ]
+        )
+    if name:
+        raster.name = name
+        raster.save(
+            update_fields=[
+                'name',
+            ]
+        )
+    return raster
 
+
+def load_raster_files(raster_dicts):
     ids = []
-    count = len(raster_files)
-    for i, rf in enumerate(raster_files):
+    count = len(raster_dicts)
+    for i, rf in enumerate(raster_dicts):
         logger.info(f'Processesing raster {i+1} of {count}')
         imentries = load_image_files(
             [
-                rf,
+                rf.get('images'),
             ]
         )
         for pks in imentries:
-            if not isinstance(pks, (list, tuple)):
-                pks = [
-                    pks,
-                ]
-            # Check if an ImageSet already exists containing all of these images
-            q = models.ImageSet.objects.annotate(count=Count('images')).filter(count=len(pks))
-            imsets = reduce(lambda p, id: q.filter(images=id), pks, q).values()
-            if len(imsets) > 0:
-                # Grab first, could be N-many
-                imset = models.ImageSet.objects.get(id=imsets[0]['id'])
-            else:
-                images = models.ImageEntry.objects.filter(pk__in=pks).all()
-                imset = models.ImageSet()
-                imset.save()  # Have to save before adding to ManyToManyField
-                for image in images:
-                    imset.images.add(image)
-                imset.save()
-            # Make raster of that image set
-            raster, created = get_or_create_no_commit(models.RasterEntry, image_set=imset)
-            _save_signal(raster, created)
-            if dates:
-                adt = dateutil.parser.isoparser().isoparse(dates[i])
-                raster.rastermetaentry.acquisition_date = make_aware(adt)
-                raster.rastermetaentry.cloud_cover = cloud_cover[i]
-                raster.rastermetaentry.save(
-                    update_fields=[
-                        'acquisition_date',
-                        'cloud_cover',
-                    ]
-                )
-                raster.name = names[i]
-                raster.save(
-                    update_fields=[
-                        'name',
-                    ]
-                )
+            raster = load_raster(pks, rf)
             ids.append(raster.pk)
     return ids
 

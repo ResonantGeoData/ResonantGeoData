@@ -16,7 +16,18 @@ def _get_landsat_urls(count):
             urls[k] = scenes[k]
     else:
         urls = scenes
-    return urls
+
+    rasters = []
+    for name, rf in urls.items():
+        rasters.append(
+            helper.make_raster_dict(
+                [rf['R'], rf['G'], rf['B']],
+                date=rf['acquisition'],
+                name=name,
+                cloud_cover=rf['cloud_cover'],
+            )
+        )
+    return rasters
 
 
 class Command(helper.SynchronousTasksCommand):
