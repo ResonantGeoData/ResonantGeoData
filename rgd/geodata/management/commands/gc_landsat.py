@@ -9,17 +9,17 @@ from . import _data_helper as helper
 SUCCESS_MSG = 'Finished loading all landsat data.'
 
 
-def _fetch_index_table():
+def _fetch_landsat_index_table():
     # https://data.kitware.com/#item/605cbf9c2fa25629b9e15c5c
     path = datastore.datastore.fetch('landsat_korea.csv')
     return pd.read_csv(path)
 
 
-def _format_base_url(base_url):
+def _format_gs_base_url(base_url):
     return 'http://storage.googleapis.com/' + base_url.replace('gs://', '')
 
 
-def _make_image_urls(base_url, name, sensor='TM'):
+def _get_landsat_urls(base_url, name, sensor='TM'):
     if sensor == 'OLI_TIRS':  # Landsat 8
         possible_bands = [
             'B1.TIF',
@@ -60,18 +60,18 @@ def _make_image_urls(base_url, name, sensor='TM'):
         ]
     else:
         raise ValueError(f'Unknown sensor: {sensor}')
-    base_url = _format_base_url(base_url)
+    base_url = _format_gs_base_url(base_url)
     urls = [base_url + '/' + name + '_' + band for band in possible_bands]
     ancillary = [base_url + '/' + name + '_' + ext for ext in possible_anc]
     return urls, ancillary
 
 
-def _get_raster_dicts(count=0):
-    index = _fetch_index_table()
+def _get_landsat_raster_dicts(count=0):
+    index = _fetch_landsat_index_table()
     rasters = []
     i = 0
     for _, row in index.iterrows():
-        urls, ancillary = _make_image_urls(row['BASE_URL'], row['PRODUCT_ID'], row['SENSOR_ID'])
+        urls, ancillary = _get_landsat_urls(row['BASE_URL'], row['PRODUCT_ID'], row['SENSOR_ID'])
         rasters.append(
             helper.make_raster_dict(
                 urls,
@@ -101,7 +101,7 @@ class Command(helper.SynchronousTasksCommand):
 
         # Run the command
         start_time = datetime.now()
-        helper.load_raster_files(_get_raster_dicts(count))
+        helper.load_raster_files(_get_landsat_raster_dicts(count))
         self.stdout.write(
             self.style.SUCCESS('--- Completed in: {} ---'.format(datetime.now() - start_time))
         )
