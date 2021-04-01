@@ -1,5 +1,6 @@
 import json
-import os
+
+from rgd.geodata import datastore
 
 from . import _data_helper as helper
 
@@ -7,7 +8,7 @@ SUCCESS_MSG = 'Finished loading all landsat data.'
 
 
 def _get_landsat_urls(count):
-    path = os.path.join(os.path.dirname(__file__), 'landsat_texas.json')
+    path = datastore.datastore.fetch('landsat_texas.json')
     with open(path, 'r') as f:
         scenes = json.loads(f.read())
     if count:
