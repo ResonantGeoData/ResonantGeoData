@@ -1,7 +1,7 @@
 from datetime import datetime
 import os
 import tempfile
-import xml.etree.ElementTree as ET
+import xml.etree.ElementTree as ElementTree
 
 import pandas as pd
 
@@ -105,7 +105,7 @@ def _get_sentinel_urls(base_url, granule_id):
         manifest_path = os.path.join(tmpdir, 'manifest.safe')
         with open(manifest_path, 'wb') as f:
             f.write(remote.read())
-        tree = ET.parse(manifest_path)
+        tree = ElementTree.parse(manifest_path)
 
     urls = []
     ancillary = []
