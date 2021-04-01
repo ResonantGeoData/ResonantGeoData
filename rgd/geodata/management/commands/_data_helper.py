@@ -5,13 +5,15 @@ import os
 
 import dateutil.parser
 from django.conf import settings
+from django.core.exceptions import ValidationError
 from django.core.management.base import BaseCommand
+from django.core.validators import URLValidator
 from django.db.models import Count
 from django.utils.timezone import make_aware
 
 from rgd.geodata import models
 from rgd.geodata.datastore import datastore
-from rgd.utility import get_or_create_no_commit, safe_urlopen
+from rgd.utility import get_or_create_no_commit
 
 logger = logging.getLogger(__name__)
 
@@ -58,8 +60,8 @@ def _get_or_download_checksum_file(name):
     # Check if there is already an image file with this sha or URL
     #  to avoid duplicating data
     try:
-        with safe_urlopen(name) as _:
-            pass  # HACK: see if URL first
+        val = URLValidator()
+        val(name)
         try:
             file_entry = models.ChecksumFile.objects.get(url=name)
             _save_signal(file_entry, False)
@@ -67,8 +69,11 @@ def _get_or_download_checksum_file(name):
             file_entry = models.ChecksumFile()
             file_entry.url = name
             file_entry.type = models.FileSourceType.URL
-            _save_signal(file_entry, True)
-    except ValueError:
+            # this is to prevent calling `urlopen` in the save to get the file name.
+            # this is not a great way to set the default name, but its fast
+            file_entry.name = os.path.basename(name)
+            _save_signal(file_entry, False)
+    except ValidationError:
         try:
             file_entry = models.ChecksumFile.objects.get(name=name)
             _save_signal(file_entry, False)
@@ -79,7 +84,7 @@ def _get_or_download_checksum_file(name):
             with open(path, 'rb') as f:
                 file_entry.file.save(os.path.basename(path), f)
             file_entry.type = models.FileSourceType.FILE_FIELD
-            _save_signal(file_entry, True)
+            _save_signal(file_entry, False)
     return file_entry
 
 
@@ -177,14 +182,9 @@ def load_raster_files(raster_dicts):
     for i, rf in enumerate(raster_dicts):
         logger.info(f'Processesing raster {i+1} of {count}')
         start_time = datetime.now()
-        imentries = load_image_files(
-            [
-                rf.get('images'),
-            ]
-        )
-        for pks in imentries:
-            raster = load_raster(pks, rf)
-            ids.append(raster.pk)
+        imentries = load_image_files(rf.get('images'))
+        raster = load_raster(imentries, rf)
+        ids.append(raster.pk)
         logger.info('\t Loaded raster in: {}'.format(datetime.now() - start_time))
     return ids
 
