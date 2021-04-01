@@ -22,7 +22,13 @@ def _fetch_landsat_index_table():
 def _fetch_sentinel_index_table():
     # https://data.kitware.com/#item/6064f7e92fa25629b9319906
     path = datastore.datastore.fetch('sentinel_korea.csv')
-    return pd.read_csv(path)
+    df = pd.read_csv(path)
+    # Handle issue where tiles for a given date were processed multiple times
+    #   to avoid ingesting duplicate data.
+    clean = df.sort_values('PRODUCT_ID').drop_duplicates(
+        ['MGRS_TILE', 'SENSING_TIME'], keep='first'
+    )
+    return clean.sort_index()
 
 
 def _format_gs_base_url(base_url):
