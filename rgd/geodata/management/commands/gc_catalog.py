@@ -161,7 +161,7 @@ class Command(helper.SynchronousTasksCommand):
 
     def add_arguments(self, parser):
         parser.add_argument('satellite', type=str, help='landsat or sentinel')
-        parser.add_argument('-c', '--count', type=int, help='Indicates the number scenes to fetch.')
+        parser.add_argument('-c', '--count', type=int, help='Indicates the number scenes to fetch.', default=0)
 
     def handle(self, *args, **options):
         self.set_synchronous()
