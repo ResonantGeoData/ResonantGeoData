@@ -115,6 +115,11 @@ urlpatterns = [
         api.get.GetRasterEntry.as_view(),
         name='raster-entry',
     ),
+    path(
+        'api/geodata/fmv/<int:pk>',
+        api.get.GetFMVEntry.as_view(),
+        name='fmv-entry',
+    ),
     #############
     # Geoprocessing
     path('api/geoprocess/imagery/cog', api.post.CreateConvertedImageFile.as_view()),

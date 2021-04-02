@@ -144,4 +144,10 @@ class RasterEntrySerializer(serializers.ModelSerializer):
         fields = '__all__'
 
 
+class FMVEntrySerializer(SpatialEntrySerializer):
+    class Meta:
+        model = models.FMVEntry
+        fields = '__all__'
+
+
 utility.make_serializers(globals(), models)

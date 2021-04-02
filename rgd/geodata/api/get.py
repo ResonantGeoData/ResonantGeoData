@@ -66,3 +66,9 @@ class GetGeometryEntryData(RetrieveAPIView, _PermissionMixin):
     serializer_class = serializers.GeometryEntryDataSerializer
     lookup_field = 'pk'
     queryset = models.GeometryEntry.objects.all()
+
+
+class GetFMVEntry(RetrieveAPIView, _PermissionMixin):
+    serializer_class = serializers.FMVEntrySerializer
+    lookup_field = 'pk'
+    queryset = models.FMVEntry.objects.all()
