@@ -28,6 +28,11 @@ class GeometryEntrySerializer(SpatialEntrySerializer):
 
 
 class GeometryEntryDataSerializer(SpatialEntrySerializer):
+    def to_representation(self, value):
+        ret = super().to_representation(value)
+        ret['data'] = json.loads(value.data.geojson)
+        return ret
+
     class Meta:
         model = models.GeometryEntry
         fields = '__all__'
