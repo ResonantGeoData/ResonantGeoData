@@ -87,8 +87,8 @@
       console.log(image_id)
       if (image_id >= 0) {
         tiles.visible(true)
-        tiles.url(`${host}/api/geodata/imagery/image_entry/${image_id}/tiles/{z}/{x}/{y}.png?projection=EPSG:3857`)
-        thumbnail.src = `${host}/api/geodata/imagery/image_entry/${image_id}/thumbnail`
+        tiles.url(`${host}/api/geoprocess/imagery/image_entry/${image_id}/tiles/{z}/{x}/{y}.png?projection=EPSG:3857`)
+        thumbnail.src = `${host}/api/geoprocess/imagery/image_entry/${image_id}/thumbnail`
         thumbnail.hidden = false
       } else {
         tiles.visible(false)

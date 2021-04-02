@@ -91,21 +91,6 @@ urlpatterns = [
         name='image-entry-data',
     ),
     path(
-        'api/geodata/imagery/image_entry/<int:pk>/tiles',
-        api.tiles.TileMetadataView.as_view(),
-        name='image-tile-metadata',
-    ),
-    path(
-        'api/geodata/imagery/image_entry/<int:pk>/tiles/<int:z>/<int:x>/<int:y>.png',
-        api.tiles.TileView.as_view(),
-        name='image-tiles',
-    ),
-    path(
-        'api/geodata/imagery/image_entry/<int:pk>/thumbnail',
-        api.tiles.TileThumnailView.as_view(),
-        name='image-thumbnail',
-    ),
-    path(
         'api/geodata/imagery/image_set/<int:pk>',
         api.get.GetImageSet.as_view(),
         name='image-set',
@@ -122,6 +107,21 @@ urlpatterns = [
     ),
     #############
     # Geoprocessing
+    path(
+        'api/geoprocess/imagery/image_entry/<int:pk>/tiles',
+        api.tiles.TileMetadataView.as_view(),
+        name='image-tile-metadata',
+    ),
+    path(
+        'api/geoprocess/imagery/image_entry/<int:pk>/tiles/<int:z>/<int:x>/<int:y>.png',
+        api.tiles.TileView.as_view(),
+        name='image-tiles',
+    ),
+    path(
+        'api/geoprocess/imagery/image_entry/<int:pk>/thumbnail',
+        api.tiles.TileThumnailView.as_view(),
+        name='image-thumbnail',
+    ),
     path('api/geoprocess/imagery/cog', api.post.CreateConvertedImageFile.as_view()),
     path(
         'api/geoprocess/imagery/cog/<int:pk>',
