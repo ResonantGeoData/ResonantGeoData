@@ -27,6 +27,12 @@ class GeometryEntrySerializer(SpatialEntrySerializer):
         exclude = ['data']
 
 
+class GeometryEntryDataSerializer(SpatialEntrySerializer):
+    class Meta:
+        model = models.GeometryEntry
+        fields = '__all__'
+
+
 class ConvertedImageFileSerializer(serializers.ModelSerializer):
     def validate_source_image(self, value):
         if 'request' in self.context:
@@ -35,33 +41,20 @@ class ConvertedImageFileSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = models.ConvertedImageFile
-        fields = ['source_image', 'pk', 'status', 'failure_reason']
-        read_only_fields = ['pk', 'status', 'failure_reason']
+        fields = '__all__'
+        read_only_fields = ['id', 'status', 'failure_reason', 'converted_file']
 
 
 class ChecksumFileSerializer(serializers.ModelSerializer):
     class Meta:
         model = models.ChecksumFile
-        fields = [
-            'pk',
-            'type',
-            'file',
-            'url',
-            'validate_checksum',
-            'name',
-            'checksum',
-            'last_validation',
-            'modified',
-            'created',
-        ]
-        read_only_fields = ['pk', 'checksum', 'last_validation', 'modified', 'created']
+        fields = '__all__'
+        read_only_fields = ['id', 'checksum', 'last_validation', 'modified', 'created']
 
 
 class SubsampledImageSerializer(serializers.ModelSerializer):
 
-    data = serializers.HyperlinkedRelatedField(
-        many=False, read_only=True, view_name='checksum-file-data'
-    )
+    data = ChecksumFileSerializer(read_only=True)
 
     def validate_source_image(self, value):
         if 'request' in self.context:
@@ -80,17 +73,9 @@ class SubsampledImageSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = models.SubsampledImage
-        fields = [
-            'source_image',
-            'sample_type',
-            'sample_parameters',
-            'pk',
-            'status',
-            'failure_reason',
-            'data',
-        ]
+        fields = '__all__'
         read_only_fields = [
-            'pk',
+            'id',
             'status',
             'failure_reason',
             'data',
@@ -103,6 +88,60 @@ class SubsampledImageSerializer(serializers.ModelSerializer):
             # Trigger save event to reprocess the subsampling
             obj.save()
         return obj
+
+
+class ImageFileSerializer(serializers.ModelSerializer):
+    file = ChecksumFileSerializer()
+
+    class Meta:
+        model = models.ImageFile
+        fields = '__all__'
+
+
+class ImageEntrySerializer(serializers.ModelSerializer):
+    image_file = ImageFileSerializer()
+
+    class Meta:
+        model = models.ImageEntry
+        fields = '__all__'
+        read_only_fields = [
+            'id',
+            'modified',
+            'created',
+            'driver',
+            'height',
+            'width',
+            'number_of_bands',
+        ]
+
+
+class ImageSetSerializer(serializers.ModelSerializer):
+    images = ImageEntrySerializer(many=True)
+
+    class Meta:
+        model = models.ImageSet
+        fields = '__all__'
+        read_only_fields = [
+            'id',
+            'modified',
+            'created',
+        ]
+
+
+class RasterMetaEntrySerializer(SpatialEntrySerializer):
+    class Meta:
+        model = models.RasterMetaEntry
+        fields = '__all__'
+
+
+class RasterEntrySerializer(serializers.ModelSerializer):
+    rastermetaentry = RasterMetaEntrySerializer(read_only=True)
+    image_set = ImageSetSerializer()
+    ancillary_files = ChecksumFileSerializer(many=True)
+
+    class Meta:
+        model = models.RasterEntry
+        fields = '__all__'
 
 
 utility.make_serializers(globals(), models)
