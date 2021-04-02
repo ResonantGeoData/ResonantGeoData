@@ -21,7 +21,7 @@ class SpatialEntrySerializer(serializers.ModelSerializer):
             ret['subentry_pk'] = value.subentry.pk
             ret['subentry_name'] = value.subentry_name
             if subtype == 'RasterMetaEntry':
-                subtype_uri = reverse('raster-entry', args=[value.subentry.pk])
+                subtype_uri = reverse('raster-entry', args=[value.subentry.parent_raster.pk])
             elif subtype == 'GeometryEntry':
                 subtype_uri = reverse('geometry-entry', args=[value.subentry.pk])
             elif subtype == 'FMVEntry':
