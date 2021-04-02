@@ -12,17 +12,28 @@ This is the simplest configuration for developers to start with.
 
 ### Add Demo Data (Optional)
 
-1. Run `docker-compose run --rm celery ./manage.py demo_data`
-2. Run `docker-compose run --rm celery ./manage.py landsat_data -c 100`
-2. Run `docker-compose run --rm celery ./manage.py wasabi`
-
 Please note that the demo data commands need to run in the `celery` docker
-image. For the `landsat_data` command, the `-c` argument is optional and
-allows you to control how much landsat data to ingest; the full dataset can
-take over an hour to ingest.
+image.
+
+Standard demo data for testing:
+- Run `docker-compose run --rm celery ./manage.py demo_data`
+- Run `docker-compose run --rm celery ./manage.py wasabi`
 
 The `wasabi` data command can take a particularly long time to run as it is
 processing large, remote video files.
+
+Cloud hosted satellite imagery:
+- Google Cloud hosted Landsat and Sentinel imagery:
+  - Landsat: `docker-compose run --rm celery ./manage.py gc_catalog landsat`
+  - Sentinel: `docker-compose run --rm celery ./manage.py gc_catalog sentinel`
+- S3 Hosted imagery (soon to go offline by June 2021)
+  - Run `docker-compose run --rm celery ./manage.py s3_landsat`
+
+For the `gc_catalog` and `s3_landsat` commands, the `-c` argument is optional and
+allows you to control how much imagery to ingest; the full dataset can
+take a long time to ingest. These routines actually use a subset of the full
+catalogs hosted on data.kitware.com; [@banesullivan](https://github.com/banesullivan)
+has local scripts to create the subsets of these subsets.
 
 ### Run Application
 1. Run `docker-compose up`

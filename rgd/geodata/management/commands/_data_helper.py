@@ -1,16 +1,19 @@
+from datetime import datetime
 from functools import reduce
 import logging
 import os
 
 import dateutil.parser
 from django.conf import settings
+from django.core.exceptions import ValidationError
 from django.core.management.base import BaseCommand
+from django.core.validators import URLValidator
 from django.db.models import Count
 from django.utils.timezone import make_aware
 
 from rgd.geodata import models
-from rgd.geodata.datastore import datastore, registry
-from rgd.utility import get_or_create_no_commit, safe_urlopen
+from rgd.geodata.datastore import datastore
+from rgd.utility import get_or_create_no_commit
 
 logger = logging.getLogger(__name__)
 
@@ -29,6 +32,24 @@ class SynchronousTasksCommand(BaseCommand):
         settings.CELERY_TASK_EAGER_PROPAGATES = self._prop
 
 
+def make_raster_dict(
+    images,
+    name=None,
+    date=None,
+    cloud_cover=None,
+    ancillary_files=None,
+    instrumentation=None,
+):
+    return {
+        'images': images,
+        'name': name,
+        'acquisition_date': date,
+        'cloud_cover': cloud_cover,
+        'ancillary_files': ancillary_files,
+        'instrumentation': instrumentation,
+    }
+
+
 def _save_signal(entry, created):
     if not created and entry.status == models.mixins.Status.SUCCEEDED:
         entry.skip_signal = True
@@ -39,8 +60,8 @@ def _get_or_download_checksum_file(name):
     # Check if there is already an image file with this sha or URL
     #  to avoid duplicating data
     try:
-        with safe_urlopen(name) as _:
-            pass  # HACK: see if URL first
+        val = URLValidator()
+        val(name)
         try:
             file_entry = models.ChecksumFile.objects.get(url=name)
             _save_signal(file_entry, False)
@@ -48,11 +69,13 @@ def _get_or_download_checksum_file(name):
             file_entry = models.ChecksumFile()
             file_entry.url = name
             file_entry.type = models.FileSourceType.URL
-            _save_signal(file_entry, True)
-    except ValueError:
-        sha = registry[name].split(':')[1]  # NOTE: assumes sha512
+            # this is to prevent calling `urlopen` in the save to get the file name.
+            # this is not a great way to set the default name, but its fast
+            file_entry.name = os.path.basename(name)
+            _save_signal(file_entry, False)
+    except ValidationError:
         try:
-            file_entry = models.ChecksumFile.objects.get(checksum=sha)
+            file_entry = models.ChecksumFile.objects.get(name=name)
             _save_signal(file_entry, False)
         except models.ChecksumFile.DoesNotExist:
             path = datastore.fetch(name)
@@ -61,7 +84,7 @@ def _get_or_download_checksum_file(name):
             with open(path, 'rb') as f:
                 file_entry.file.save(os.path.basename(path), f)
             file_entry.type = models.FileSourceType.FILE_FIELD
-            _save_signal(file_entry, True)
+            _save_signal(file_entry, False)
     return file_entry
 
 
@@ -87,67 +110,82 @@ def load_image_files(image_files):
     return ids
 
 
-def load_raster_files(raster_files, dates=None, names=None):
+def load_raster(pks, raster_dict):
+    if not isinstance(pks, (list, tuple)):
+        pks = [
+            pks,
+        ]
+    # Check if an ImageSet already exists containing all of these images
+    q = models.ImageSet.objects.annotate(count=Count('images')).filter(count=len(pks))
+    imsets = reduce(lambda p, id: q.filter(images=id), pks, q).values()
+    if len(imsets) > 0:
+        # Grab first, could be N-many
+        imset = models.ImageSet.objects.get(id=imsets[0]['id'])
+    else:
+        images = models.ImageEntry.objects.filter(pk__in=pks).all()
+        imset = models.ImageSet()
+        imset.save()  # Have to save before adding to ManyToManyField
+        for image in images:
+            imset.images.add(image)
+        imset.save()
+    # Make raster of that image set
+    raster, created = get_or_create_no_commit(models.RasterEntry, image_set=imset)
+    _save_signal(raster, created)
 
-    if isinstance(raster_files, dict):
-        files = []
-        dates = []
-        names = []
-        cloud_cover = []
-        for name, rf in raster_files.items():
-            files.append([rf['R'], rf['G'], rf['B']])
-            dates.append(rf['acquisition'])
-            names.append(name)
-            cloud_cover.append(rf['cloud_cover'])
-        raster_files = files
-
-    ids = []
-    count = len(raster_files)
-    for i, rf in enumerate(raster_files):
-        logger.info(f'Processesing raster {i+1} of {count}')
-        imentries = load_image_files(
-            [
-                rf,
+    # Add optional metadata
+    date = raster_dict.get('acquisition_date', None)
+    cloud_cover = raster_dict.get('cloud_cover', None)
+    name = raster_dict.get('name', None)
+    ancillary = raster_dict.get('ancillary_files', None)
+    instrumentation = raster_dict.get('instrumentation', None)
+    if date:
+        adt = dateutil.parser.isoparser().isoparse(date)
+        try:
+            raster.rastermetaentry.acquisition_date = make_aware(adt)
+        except ValueError:
+            raster.rastermetaentry.acquisition_date = adt
+        raster.rastermetaentry.save(
+            update_fields=[
+                'acquisition_date',
             ]
         )
-        for pks in imentries:
-            if not isinstance(pks, (list, tuple)):
-                pks = [
-                    pks,
+    if cloud_cover:
+        raster.rastermetaentry.cloud_cover = cloud_cover
+        raster.rastermetaentry.save(
+            update_fields=[
+                'cloud_cover',
+            ]
+        )
+    if name:
+        raster.name = name
+        raster.save(
+            update_fields=[
+                'name',
+            ]
+        )
+    if ancillary:
+        [raster.ancillary_files.add(_get_or_download_checksum_file(af)) for af in ancillary]
+    if instrumentation:
+        for im in raster.image_set.images.all():
+            im.instrumentation = instrumentation
+            im.save(
+                update_fields=[
+                    'instrumentation',
                 ]
-            # Check if an ImageSet already exists containing all of these images
-            q = models.ImageSet.objects.annotate(count=Count('images')).filter(count=len(pks))
-            imsets = reduce(lambda p, id: q.filter(images=id), pks, q).values()
-            if len(imsets) > 0:
-                # Grab first, could be N-many
-                imset = models.ImageSet.objects.get(id=imsets[0]['id'])
-            else:
-                images = models.ImageEntry.objects.filter(pk__in=pks).all()
-                imset = models.ImageSet()
-                imset.save()  # Have to save before adding to ManyToManyField
-                for image in images:
-                    imset.images.add(image)
-                imset.save()
-            # Make raster of that image set
-            raster, created = get_or_create_no_commit(models.RasterEntry, image_set=imset)
-            _save_signal(raster, created)
-            if dates:
-                adt = dateutil.parser.isoparser().isoparse(dates[i])
-                raster.rastermetaentry.acquisition_date = make_aware(adt)
-                raster.rastermetaentry.cloud_cover = cloud_cover[i]
-                raster.rastermetaentry.save(
-                    update_fields=[
-                        'acquisition_date',
-                        'cloud_cover',
-                    ]
-                )
-                raster.name = names[i]
-                raster.save(
-                    update_fields=[
-                        'name',
-                    ]
-                )
-            ids.append(raster.pk)
+            )
+    return raster
+
+
+def load_raster_files(raster_dicts):
+    ids = []
+    count = len(raster_dicts)
+    for i, rf in enumerate(raster_dicts):
+        logger.info(f'Processesing raster {i+1} of {count}')
+        start_time = datetime.now()
+        imentries = load_image_files(rf.get('images'))
+        raster = load_raster(imentries, rf)
+        ids.append(raster.pk)
+        logger.info('\t Loaded raster in: {}'.format(datetime.now() - start_time))
     return ids
 
 

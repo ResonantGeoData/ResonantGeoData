@@ -307,12 +307,10 @@ def _compare_raster_meta(a, b):
 def _validate_image_set_is_raster(image_set_entry):
     """Validate if all of the images in a single ``ImageSet`` are a raster.
 
-    Will check if all have the same spatial reference/geo meta info.
+    Will check if all have a spatial reference/geo meta info but not
+    necessarily the same.
 
-    A ``ValueError`` will be raised if the image set cannot be evaluated as a
-    single raster.
-
-    Returns the meta info if it checks out.
+    Returns the first image's meta info if it checks out.
 
     """
     images = list(image_set_entry.images.all())
@@ -321,14 +319,11 @@ def _validate_image_set_is_raster(image_set_entry):
         raise ValueError('ImageSet returned no images.')
 
     base_image = images.pop()
-    last_meta = _extract_raster_meta(base_image.image_file.imagefile)
+    first_meta = _extract_raster_meta(base_image.image_file.imagefile)
     for image in images:
-        meta = _extract_raster_meta(image.image_file.imagefile)
-        if not _compare_raster_meta(last_meta, meta):
-            raise ValueError('Raster meta mismatch at image: {}'.format(image))
-        last_meta = meta
+        _extract_raster_meta(image.image_file.imagefile)
 
-    return last_meta
+    return first_meta
 
 
 def populate_raster_entry(raster_entry):

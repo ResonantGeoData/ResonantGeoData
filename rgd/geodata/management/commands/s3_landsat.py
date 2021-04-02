@@ -1,5 +1,6 @@
 import json
-import os
+
+from rgd.geodata import datastore
 
 from . import _data_helper as helper
 
@@ -7,7 +8,7 @@ SUCCESS_MSG = 'Finished loading all landsat data.'
 
 
 def _get_landsat_urls(count):
-    path = os.path.join(os.path.dirname(__file__), 'landsat_texas.json')
+    path = datastore.datastore.fetch('landsat_texas.json')
     with open(path, 'r') as f:
         scenes = json.loads(f.read())
     if count:
@@ -16,7 +17,19 @@ def _get_landsat_urls(count):
             urls[k] = scenes[k]
     else:
         urls = scenes
-    return urls
+
+    rasters = []
+    for name, rf in urls.items():
+        rasters.append(
+            helper.make_raster_dict(
+                [rf['R'], rf['G'], rf['B']],
+                date=rf['acquisition'],
+                name=name,
+                cloud_cover=rf['cloud_cover'],
+                instrumentation='OLI_TIRS',
+            )
+        )
+    return rasters
 
 
 class Command(helper.SynchronousTasksCommand):
