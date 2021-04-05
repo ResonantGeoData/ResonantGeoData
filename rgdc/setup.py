@@ -29,10 +29,10 @@ setup(
         'Development Status :: 3 - Alpha',
         'License :: OSI Approved :: Apache Software License',
         'Programming Language :: Python :: 3',
-        'Programming Language :: Python :: 3.8',
+        'Programming Language :: Python :: 3.7',
         'Programming Language :: Python',
     ],
-    python_requires='>=3.8',
+    python_requires='>=3.7',
     packages=find_packages(exclude=['tests']),
     install_requires=[
         'requests',
