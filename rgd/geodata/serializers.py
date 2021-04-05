@@ -113,7 +113,7 @@ class SubsampledImageSerializer(serializers.ModelSerializer):
         return obj
 
 
-class _ImageFileSerializer(serializers.ModelSerializer):
+class ImageFileSerializer(serializers.ModelSerializer):
     file = ChecksumFileSerializer()
 
     class Meta:
@@ -122,7 +122,7 @@ class _ImageFileSerializer(serializers.ModelSerializer):
 
 
 class ImageEntrySerializer(serializers.ModelSerializer):
-    image_file = _ImageFileSerializer()
+    image_file = ImageFileSerializer()
 
     class Meta:
         model = models.ImageEntry
@@ -151,7 +151,7 @@ class ImageSetSerializer(serializers.ModelSerializer):
         ]
 
 
-class _RasterEntrySerializer(serializers.ModelSerializer):
+class RasterEntrySerializer(serializers.ModelSerializer):
     image_set = ImageSetSerializer()
     ancillary_files = ChecksumFileSerializer(many=True)
 
@@ -161,14 +161,14 @@ class _RasterEntrySerializer(serializers.ModelSerializer):
 
 
 class RasterMetaEntrySerializer(SpatialEntrySerializer):
-    parent_raster = _RasterEntrySerializer()
+    parent_raster = RasterEntrySerializer()
 
     class Meta:
         model = models.RasterMetaEntry
         fields = '__all__'
 
 
-class _FMVFileSerializer(serializers.ModelSerializer):
+class FMVFileSerializer(serializers.ModelSerializer):
     file = ChecksumFileSerializer()
 
     class Meta:
@@ -177,7 +177,7 @@ class _FMVFileSerializer(serializers.ModelSerializer):
 
 
 class FMVEntrySerializer(SpatialEntrySerializer):
-    fmv_file = _FMVFileSerializer()
+    fmv_file = FMVFileSerializer()
 
     class Meta:
         model = models.FMVEntry
