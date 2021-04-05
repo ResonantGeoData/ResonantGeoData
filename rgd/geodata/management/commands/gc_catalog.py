@@ -77,8 +77,10 @@ def _get_landsat_urls(base_url, name, sensor='TM'):
     else:
         raise ValueError(f'Unknown sensor: {sensor}')
     base_url = _format_gs_base_url(base_url)
-    urls = [base_url + '/' + name + '_' + band for band in possible_bands]
-    ancillary = [base_url + '/' + name + '_' + ext for ext in possible_anc]
+    # Return tuples of (path, URL) : path is what is saved to model name field
+    # this path should encompass the relative path of the files for the raster
+    urls = [(None, base_url + '/' + name + '_' + band) for band in possible_bands]
+    ancillary = [(None, base_url + '/' + name + '_' + ext) for ext in possible_anc]
     return urls, ancillary
 
 
@@ -115,21 +117,22 @@ def _get_sentinel_urls(base_url, granule_id):
 
     urls = []
     ancillary = []
-
+    # Return tuples of (path, URL) : path is what is saved to model name field
+    # this path should encompass the relative path of the files for the raster
     root = tree.getroot()
     meta = root.find('dataObjectSection')
     for c in meta:
         f = c.find('byteStream').find('fileLocation')
-        href = f.attrib['href'][1::]  # to remove `.`
-        di = href.split('/')[1]
+        href = f.attrib['href'][2::]  # to remove `./`
+        di = href.split('/')[0]
         if di in [
             'GRANULE',
         ]:
-            url = base_url + href
+            url = base_url + '/' + href
             if url[-4:] == '.jp2':
-                urls.append(url)
+                urls.append((href, url))
             else:
-                ancillary.append(url)
+                ancillary.append((href, url))
 
     return urls, ancillary
 
