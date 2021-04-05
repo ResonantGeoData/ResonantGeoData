@@ -33,8 +33,7 @@ def test_entries_in_datastore():
         return f in registry
 
     for f in (
-        demo_data.IMAGE_FILES
-        + demo_data.RASTER_FILES
+        demo_data.RASTER_FILES
         + demo_data.SHAPE_FILES
         + demo_data.FMV_FILES
         + demo_data.KWCOCO_ARCHIVES
