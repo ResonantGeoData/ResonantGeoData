@@ -1,4 +1,5 @@
 from datetime import datetime
+import logging
 import os
 import tempfile
 import xml.etree.ElementTree as ElementTree
@@ -9,6 +10,8 @@ from rgd.geodata import datastore
 from rgd.utility import safe_urlopen
 
 from . import _data_helper as helper
+
+logger = logging.getLogger(__name__)
 
 SUCCESS_MSG = 'Finished loading all {} data.'
 
@@ -84,29 +87,20 @@ def _get_landsat_urls(base_url, name, sensor='TM'):
     return urls, ancillary
 
 
-def _get_landsat_raster_dicts(count=0):
-    index = _fetch_landsat_index_table()
-    rasters = []
-    i = 0
-    for _, row in index.iterrows():
-        urls, ancillary = _get_landsat_urls(row['BASE_URL'], row['PRODUCT_ID'], row['SENSOR_ID'])
-        rasters.append(
-            helper.make_raster_dict(
-                urls,
-                date=row['SENSING_TIME'],
-                name=row['PRODUCT_ID'],
-                cloud_cover=row['CLOUD_COVER'],
-                ancillary_files=ancillary,
-                instrumentation=row['SENSOR_ID'],
-            )
-        )
-        if count > 0 and i >= count - 1:
-            break
-        i += 1
-    return rasters
+def _load_landsat(row):
+    urls, ancillary = _get_landsat_urls(row['BASE_URL'], row['PRODUCT_ID'], row['SENSOR_ID'])
+    rd = helper.make_raster_dict(
+        urls,
+        date=row['SENSING_TIME'],
+        name=row['PRODUCT_ID'],
+        cloud_cover=row['CLOUD_COVER'],
+        ancillary_files=ancillary,
+        instrumentation=row['SENSOR_ID'],
+    )
+    return rd
 
 
-def _get_sentinel_urls(base_url, granule_id):
+def _get_sentinel_urls(base_url):
     base_url = _format_gs_base_url(base_url)
     manifest_url = base_url + '/manifest.safe'
     with safe_urlopen(manifest_url) as remote, tempfile.TemporaryDirectory() as tmpdir:
@@ -142,26 +136,48 @@ def _get_sentinel_urls(base_url, granule_id):
     return urls, ancillary
 
 
-def _get_sentinel_raster_dicts(count=0):
-    index = _fetch_sentinel_index_table()
-    rasters = []
+def _load_sentinel(row):
+    urls, ancillary = _get_sentinel_urls(row['BASE_URL'])
+    rd = helper.make_raster_dict(
+        urls,
+        date=row['SENSING_TIME'],
+        name=row['PRODUCT_ID'],
+        cloud_cover=row['CLOUD_COVER'],
+        ancillary_files=ancillary,
+        instrumentation=row['PRODUCT_ID'].split('_')[0],
+    )
+    return rd
+
+
+def _load_rasters(satellite, count=0):
+    if satellite == 'landsat':
+        index = _fetch_landsat_index_table()
+    elif satellite == 'sentinel':
+        index = _fetch_sentinel_index_table()
+    else:
+        raise ValueError(f'Unknown satellite {satellite}.')
+
     i = 0
+    total = count or len(index)
     for _, row in index.iterrows():
-        urls, ancillary = _get_sentinel_urls(row['BASE_URL'], row['GRANULE_ID'])
-        rasters.append(
-            helper.make_raster_dict(
-                urls,
-                date=row['SENSING_TIME'],
-                name=row['PRODUCT_ID'],
-                cloud_cover=row['CLOUD_COVER'],
-                ancillary_files=ancillary,
-                instrumentation=row['PRODUCT_ID'].split('_')[0],
-            )
-        )
-        if count > 0 and i >= count - 1:
+        if count > 0 and i >= count:
             break
+        logger.info(f'Processesing raster {i+1} of {total}')
+        start_time = datetime.now()
+        try:
+            if satellite == 'landsat':
+                rd = _load_landsat(row)
+            elif satellite == 'sentinel':
+                rd = _load_sentinel(row)
+        except ValueError:
+            logger.info(f'\t Skipped raster {i+1}')
+            i += 1
+            continue
+        imentries = helper.load_image_files(rd.get('images'))
+        helper.load_raster(imentries, rd)
+        logger.info('\t Loaded raster in: {}'.format(datetime.now() - start_time))
         i += 1
-    return rasters
+    return
 
 
 class Command(helper.SynchronousTasksCommand):
@@ -179,16 +195,10 @@ class Command(helper.SynchronousTasksCommand):
         count = options.get('count', 0)
         satellite = options.get('satellite')
 
-        if satellite == 'landsat':
-            data = _get_landsat_raster_dicts(count)
-        elif satellite == 'sentinel':
-            data = _get_sentinel_raster_dicts(count)
-        else:
-            raise ValueError(f'Unknown satellite {satellite}.')
-
-        # Run the command
         start_time = datetime.now()
-        helper.load_raster_files(data)
+
+        _load_rasters(satellite, count)
+
         self.stdout.write(
             self.style.SUCCESS('--- Completed in: {} ---'.format(datetime.now() - start_time))
         )
