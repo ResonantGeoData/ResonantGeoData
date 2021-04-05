@@ -87,7 +87,7 @@ def test_download_checksum_file_url(admin_api_client, checksum_file_url):
 @pytest.mark.django_db(transaction=True)
 def test_download_image_entry_file(admin_api_client, astro_image):
     pk = astro_image.pk
-    response = admin_api_client.get(f'/api/geodata/imagery/image_entry/{pk}/data')
+    response = admin_api_client.get(f'/api/geodata/imagery/{pk}/data')
     assert status.is_redirect(response.status_code)
 
 
@@ -120,28 +120,28 @@ def test_create_get_subsampled_image(admin_api_client, astro_image):
         'sample_type': 'pixel box',
         'sample_parameters': {'umax': 100, 'umin': 0, 'vmax': 200, 'vmin': 0},
     }
-    response = admin_api_client.post('/api/geodata/imagery/subsample', payload)
+    response = admin_api_client.post('/api/geoprocess/imagery/subsample', payload)
     assert response.status_code == 201
     assert response.data
-    pk = response.data['pk']
-    sub = models.imagery.SubsampledImage.objects.get(pk=pk)
+    id = response.data['id']
+    sub = models.imagery.SubsampledImage.objects.get(id=id)
     assert sub.data
     # Test the GET
-    response = admin_api_client.get(f'/api/geodata/imagery/subsample/{pk}')
+    response = admin_api_client.get(f'/api/geoprocess/imagery/subsample/{id}')
     assert response.status_code == 200
     assert response.data
     # Now test to make sure the serializer prevents duplicates
-    response = admin_api_client.post('/api/geodata/imagery/subsample', payload)
+    response = admin_api_client.post('/api/geoprocess/imagery/subsample', payload)
     assert response.status_code == 201
     assert response.data
-    assert pk == response.data['pk']  # Compare against original PK
+    assert id == response.data['id']  # Compare against original PK
 
 
 @pytest.mark.django_db(transaction=True)
 def test_create_and_download_cog(admin_api_client, landsat_image):
     """Test POST for ConvertedImageFile model."""
     response = admin_api_client.post(
-        '/api/geodata/imagery/cog',
+        '/api/geoprocess/imagery/cog',
         {'source_image': landsat_image.id},
     )
     assert response.status_code == 201
@@ -152,5 +152,5 @@ def test_create_and_download_cog(admin_api_client, landsat_image):
     assert cog.converted_file
     # Also test download endpoint here:
     pk = cog.pk
-    response = admin_api_client.get(f'/api/geodata/imagery/cog/{pk}/data')
+    response = admin_api_client.get(f'/api/geoprocess/imagery/cog/{pk}/data')
     assert status.is_redirect(response.status_code)

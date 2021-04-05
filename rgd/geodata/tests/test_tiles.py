@@ -16,7 +16,7 @@ def image_entry():
 
 @pytest.mark.django_db(transaction=True)
 def test_metadata(api_client, image_entry):
-    response = api_client.get(f'/api/geodata/imagery/image_entry/{image_entry.pk}/tiles')
+    response = api_client.get(f'/api/geoprocess/imagery/{image_entry.pk}/tiles')
     metadata = response.data
     assert metadata['levels'] == 15
     assert metadata['sizeX'] == metadata['sizeY']
@@ -26,13 +26,13 @@ def test_metadata(api_client, image_entry):
 
 @pytest.mark.django_db(transaction=True)
 def test_tile(api_client, image_entry):
-    response = api_client.get(f'/api/geodata/imagery/image_entry/{image_entry.pk}/tiles/1/0/0.png')
+    response = api_client.get(f'/api/geoprocess/imagery/{image_entry.pk}/tiles/1/0/0.png')
     assert response.status_code == 200
     assert response['Content-Type'] == 'image/png'
 
 
 @pytest.mark.django_db(transaction=True)
 def test_thumbnail(api_client, image_entry):
-    response = api_client.get(f'/api/geodata/imagery/image_entry/{image_entry.pk}/thumbnail')
+    response = api_client.get(f'/api/geoprocess/imagery/{image_entry.pk}/thumbnail')
     assert response.status_code == 200
     assert response['Content-Type'] == 'image/png'

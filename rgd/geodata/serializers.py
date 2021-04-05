@@ -14,6 +14,24 @@ class SpatialEntrySerializer(serializers.ModelSerializer):
         ret = super().to_representation(value)
         ret['footprint'] = json.loads(value.footprint.geojson)
         ret['outline'] = json.loads(value.outline.geojson)
+        # Add hyperlink to get view for subtype if SpatialEntry
+        if type(value).__name__ != value.subentry_type:
+            subtype = value.subentry_type
+            ret['subentry_type'] = subtype
+            ret['subentry_pk'] = value.subentry.pk
+            ret['subentry_name'] = value.subentry_name
+            if subtype == 'RasterMetaEntry':
+                ret['subentry_pk'] = value.subentry.pk
+                subtype_uri = reverse('raster-meta-entry', args=[value.subentry.pk])
+            elif subtype == 'GeometryEntry':
+                subtype_uri = reverse('geometry-entry', args=[value.subentry.pk])
+            elif subtype == 'FMVEntry':
+                subtype_uri = reverse('fmv-entry', args=[value.subentry.pk])
+            if 'request' in self.context:
+                request = self.context['request']
+                ret['detail'] = request.build_absolute_uri(subtype_uri)
+            else:
+                ret['detail'] = subtype_uri
         return ret
 
     class Meta:
@@ -27,6 +45,17 @@ class GeometryEntrySerializer(SpatialEntrySerializer):
         exclude = ['data']
 
 
+class GeometryEntryDataSerializer(GeometryEntrySerializer):
+    def to_representation(self, value):
+        ret = super().to_representation(value)
+        ret['data'] = json.loads(value.data.geojson)
+        return ret
+
+    class Meta:
+        model = models.GeometryEntry
+        fields = '__all__'
+
+
 class ConvertedImageFileSerializer(serializers.ModelSerializer):
     def validate_source_image(self, value):
         if 'request' in self.context:
@@ -35,33 +64,20 @@ class ConvertedImageFileSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = models.ConvertedImageFile
-        fields = ['source_image', 'pk', 'status', 'failure_reason']
-        read_only_fields = ['pk', 'status', 'failure_reason']
+        fields = '__all__'
+        read_only_fields = ['id', 'status', 'failure_reason', 'converted_file']
 
 
 class ChecksumFileSerializer(serializers.ModelSerializer):
     class Meta:
         model = models.ChecksumFile
-        fields = [
-            'pk',
-            'type',
-            'file',
-            'url',
-            'validate_checksum',
-            'name',
-            'checksum',
-            'last_validation',
-            'modified',
-            'created',
-        ]
-        read_only_fields = ['pk', 'checksum', 'last_validation', 'modified', 'created']
+        fields = '__all__'
+        read_only_fields = ['id', 'checksum', 'last_validation', 'modified', 'created']
 
 
 class SubsampledImageSerializer(serializers.ModelSerializer):
 
-    data = serializers.HyperlinkedRelatedField(
-        many=False, read_only=True, view_name='checksum-file-data'
-    )
+    data = ChecksumFileSerializer(read_only=True)
 
     def validate_source_image(self, value):
         if 'request' in self.context:
@@ -80,17 +96,9 @@ class SubsampledImageSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = models.SubsampledImage
-        fields = [
-            'source_image',
-            'sample_type',
-            'sample_parameters',
-            'pk',
-            'status',
-            'failure_reason',
-            'data',
-        ]
+        fields = '__all__'
         read_only_fields = [
-            'pk',
+            'id',
             'status',
             'failure_reason',
             'data',
@@ -103,6 +111,90 @@ class SubsampledImageSerializer(serializers.ModelSerializer):
             # Trigger save event to reprocess the subsampling
             obj.save()
         return obj
+
+
+class ImageFileSerializer(serializers.ModelSerializer):
+    file = ChecksumFileSerializer()
+
+    class Meta:
+        model = models.ImageFile
+        fields = '__all__'
+
+
+class ImageEntrySerializer(serializers.ModelSerializer):
+    image_file = ImageFileSerializer()
+
+    class Meta:
+        model = models.ImageEntry
+        fields = '__all__'
+        read_only_fields = [
+            'id',
+            'modified',
+            'created',
+            'driver',
+            'height',
+            'width',
+            'number_of_bands',
+        ]
+
+
+class ImageSetSerializer(serializers.ModelSerializer):
+    images = ImageEntrySerializer(many=True)
+
+    class Meta:
+        model = models.ImageSet
+        fields = '__all__'
+        read_only_fields = [
+            'id',
+            'modified',
+            'created',
+        ]
+
+
+class RasterEntrySerializer(serializers.ModelSerializer):
+    image_set = ImageSetSerializer()
+    ancillary_files = ChecksumFileSerializer(many=True)
+
+    class Meta:
+        model = models.RasterEntry
+        fields = '__all__'
+
+
+class RasterMetaEntrySerializer(SpatialEntrySerializer):
+    parent_raster = RasterEntrySerializer()
+
+    class Meta:
+        model = models.RasterMetaEntry
+        fields = '__all__'
+
+
+class FMVFileSerializer(serializers.ModelSerializer):
+    file = ChecksumFileSerializer()
+
+    class Meta:
+        model = models.FMVFile
+        fields = '__all__'
+
+
+class FMVEntrySerializer(SpatialEntrySerializer):
+    fmv_file = FMVFileSerializer()
+
+    class Meta:
+        model = models.FMVEntry
+        exclude = ['ground_frames', 'ground_union', 'flight_path', 'frame_numbers']
+
+
+class FMVEntryDataSerializer(FMVEntrySerializer):
+    def to_representation(self, value):
+        ret = super().to_representation(value)
+        ret['ground_frames'] = json.loads(value.ground_frames.geojson)
+        ret['ground_union'] = json.loads(value.ground_union.geojson)
+        ret['flight_path'] = json.loads(value.flight_path.geojson)
+        return ret
+
+    class Meta:
+        model = models.FMVEntry
+        fields = '__all__'
 
 
 utility.make_serializers(globals(), models)
