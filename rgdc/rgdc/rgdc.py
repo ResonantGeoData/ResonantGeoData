@@ -37,7 +37,6 @@ class Rgdc:
 
         self.session = RgdcSession(base_url=api_url, auth_header=auth_header)
 
-    # TODO: Improve return type to something more specific than Dict
     def list_image_entry_tiles(self, image_entry_id: str) -> Dict:
         """List geodata imagery image_entry tiles."""
         r = self.session.get(f'geodata/imagery/image_entry/{image_entry_id}/tiles')
