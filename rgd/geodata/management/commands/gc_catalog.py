@@ -113,6 +113,11 @@ def _get_sentinel_urls(base_url, granule_id):
         manifest_path = os.path.join(tmpdir, 'manifest.safe')
         with open(manifest_path, 'wb') as f:
             f.write(remote.read())
+        # Now check to see if `MTD_TL.xml` is in the manifest ONCE - if more or less, skip it.
+        # Ask Matthew Bernstein for insight
+        with open(manifest_path, 'r') as f:
+            if f.read().count('MTD_TL.xml') != 1:
+                raise ValueError('This entry is bad.')
         tree = ElementTree.parse(manifest_path)
 
     urls = []
