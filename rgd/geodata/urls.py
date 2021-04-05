@@ -96,7 +96,7 @@ urlpatterns = [
         name='image-set',
     ),
     path(
-        'api/geodata/imagery/raster_meta_entry/<int:pk>',
+        'api/geodata/imagery/raster/<int:pk>',
         api.get.GetRasterMetaEntry.as_view(),
         name='raster-meta-entry',
     ),
