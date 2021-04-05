@@ -36,7 +36,9 @@ class Command(helper.SynchronousTasksCommand):
     help = 'Populate database with demo landsat data from S3.'
 
     def add_arguments(self, parser):
-        parser.add_argument('-c', '--count', type=int, help='Indicates the number scenes to fetch.')
+        parser.add_argument(
+            '-c', '--count', type=int, help='Indicates the number scenes to fetch.', default=0
+        )
         parser.add_argument(
             '-g', '--get_count', help='Use to fetch the number of available rasters.'
         )
