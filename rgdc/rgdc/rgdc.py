@@ -1,13 +1,15 @@
 from base64 import b64encode
 import json
 from json.decoder import JSONDecodeError
-from typing import Dict, Iterator, Optional, Tuple, Union
+from pathlib import Path
+import tempfile
+from typing import Dict, Iterator, List, Optional, Tuple, Union
 
 from geomet import wkt
 
 from .session import RgdcSession
 from .types import DATETIME_OR_STR_TUPLE, SEARCH_DATATYPE_CHOICE, SEARCH_PREDICATE_CHOICE
-from .utils import DEFAULT_RGD_API, datetime_to_str, results
+from .utils import DEFAULT_RGD_API, datetime_to_str, iterate_response_bytes, results
 
 
 class Rgdc:
@@ -60,6 +62,76 @@ class Rgdc:
         r.raise_for_status()
 
         return r.iter_content(chunk_size=chunk_size)
+
+    def download_raster_entry(
+        self,
+        raster_meta_entry_id: Union[str, int],
+        pathname: Optional[str] = None,
+        nest_with_name: bool = False,
+    ):
+        """
+        Download the image set associated with a raster entry to disk.
+
+        Args:
+            raster_meta_entry_id: The id of the RasterMetaEntry, which is a child to the desired raster entry.
+            pathname: The directory to download the image set to. If not supplied, a temporary directory will be used.
+            nest_with_name: If True, nests the download within an additional directory, using the raster entry name.
+
+        Returns:
+            The directory containing the downloaded image set.
+        """
+        r = self.session.get(f'geodata/imagery/raster/{raster_meta_entry_id}')
+        r.raise_for_status()
+        parent_raster = r.json().get('parent_raster', {})
+
+        # Create dirs after request to avoid empty dirs if failed
+        if pathname is None:
+            pathname = tempfile.mkdtemp()
+
+        # Handle optional nesting with raster entry name
+        path = Path(pathname)
+        parent_raster_name: Optional[str] = parent_raster.get('name')
+
+        if nest_with_name and parent_raster_name:
+            path = path / parent_raster_name
+
+        # Ensure base download directory exists
+        if not path.exists():
+            path.mkdir()
+
+        # If no images to download, return empty path
+        images = parent_raster.get('image_set', {}).get('images', {})
+        if images is None:
+            return str(path)
+
+        # Otherwise, iterate through images and download
+        for image in images:
+            # Get required fields
+            file = image.get('image_file', {}).get('file', {})
+            filepath = file.get('name')
+            file_download_url = file.get('file')
+
+            # Skip image if some fields are missing
+            if not (file and filepath and file_download_url):
+                continue
+
+            # Parse file path to identifiy nested directories
+            filepath: str = filepath.lstrip('/')
+            split_filepath: List[str] = filepath.split('/')
+            parent_dirname = '/'.join(split_filepath[:-1])
+            filename = split_filepath[-1]
+
+            # Create nested directory if necessary
+            parent_path = path / parent_dirname if parent_dirname else path
+            parent_path.mkdir(parents=True, exist_ok=True)
+
+            # Download contents to file
+            file_path = parent_path / filename
+            with open(file_path, 'wb') as open_file_path:
+                for chunk in iterate_response_bytes(file_download_url):
+                    open_file_path.write(chunk)
+
+        return str(path)
 
     def search(
         self,
