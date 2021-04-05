@@ -65,17 +65,19 @@ def _get_or_create_checksum_file_url(url, name=None):
     try:
         file_entry = models.ChecksumFile.objects.get(url=url)
         _save_signal(file_entry, False)
+        if name:
+            file_entry.name = name
+            file_entry.save(update_fields=['name'])
     except models.ChecksumFile.DoesNotExist:
         file_entry = models.ChecksumFile()
         file_entry.url = url
         file_entry.type = models.FileSourceType.URL
+        if not name:
+            # this is to prevent calling `urlopen` in the save to get the file name.
+            # this is not a great way to set the default name, but its fast
+            name = os.path.basename(url)
+        file_entry.name = name
         _save_signal(file_entry, True)
-    if not name:
-        # this is to prevent calling `urlopen` in the save to get the file name.
-        # this is not a great way to set the default name, but its fast
-        name = os.path.basename(url)
-    file_entry.name = name
-    file_entry.save(update_fields=['name'])
     return file_entry
 
 
