@@ -7,6 +7,7 @@ import os
 from pathlib import Path, PurePath
 import tempfile
 from typing import Generator
+from urllib.error import HTTPError
 from urllib.parse import urlparse
 from urllib.request import urlopen
 
@@ -192,6 +193,12 @@ def precheck_fuse(url: str) -> bool:
         return False
     parsed = urlparse(url)
     if parsed.scheme not in ['https', 'http']:
+        return False
+    try:
+        # The FUSE lib will not catch URL errors
+        with safe_urlopen(url) as _:
+            pass
+    except HTTPError:
         return False
     return True
 
