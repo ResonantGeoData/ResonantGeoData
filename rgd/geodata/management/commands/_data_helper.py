@@ -80,7 +80,6 @@ def _get_or_create_checksum_file_url(url, name=None):
 
 
 def _get_or_create_checksum_file_datastore(file, name=None):
-    """This will download data from the datastore to a ChecksumFile model."""
     try:
         file_entry = models.ChecksumFile.objects.get(name=file)
         _save_signal(file_entry, False)
