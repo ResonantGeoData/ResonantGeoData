@@ -50,10 +50,10 @@ class GetImageSet(RetrieveAPIView, _PermissionMixin):
     queryset = models.ImageSet.objects.all()
 
 
-class GetRasterEntry(RetrieveAPIView, _PermissionMixin):
-    serializer_class = serializers.RasterEntrySerializer
+class GetRasterMetaEntry(RetrieveAPIView, _PermissionMixin):
+    serializer_class = serializers.RasterMetaEntrySerializer
     lookup_field = 'pk'
-    queryset = models.RasterEntry.objects.all()
+    queryset = models.RasterMetaEntry.objects.all()
 
 
 class GetGeometryEntry(RetrieveAPIView, _PermissionMixin):
@@ -70,5 +70,11 @@ class GetGeometryEntryData(RetrieveAPIView, _PermissionMixin):
 
 class GetFMVEntry(RetrieveAPIView, _PermissionMixin):
     serializer_class = serializers.FMVEntrySerializer
+    lookup_field = 'pk'
+    queryset = models.FMVEntry.objects.all()
+
+
+class GetFMVDataEntry(RetrieveAPIView, _PermissionMixin):
+    serializer_class = serializers.FMVEntryDataSerializer
     lookup_field = 'pk'
     queryset = models.FMVEntry.objects.all()

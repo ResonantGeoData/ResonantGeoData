@@ -21,7 +21,8 @@ class SpatialEntrySerializer(serializers.ModelSerializer):
             ret['subentry_pk'] = value.subentry.pk
             ret['subentry_name'] = value.subentry_name
             if subtype == 'RasterMetaEntry':
-                subtype_uri = reverse('raster-entry', args=[value.subentry.parent_raster.pk])
+                ret['subentry_pk'] = value.subentry.pk
+                subtype_uri = reverse('raster-meta-entry', args=[value.subentry.pk])
             elif subtype == 'GeometryEntry':
                 subtype_uri = reverse('geometry-entry', args=[value.subentry.pk])
             elif subtype == 'FMVEntry':
@@ -44,7 +45,7 @@ class GeometryEntrySerializer(SpatialEntrySerializer):
         exclude = ['data']
 
 
-class GeometryEntryDataSerializer(SpatialEntrySerializer):
+class GeometryEntryDataSerializer(GeometryEntrySerializer):
     def to_representation(self, value):
         ret = super().to_representation(value)
         ret['data'] = json.loads(value.data.geojson)
@@ -112,7 +113,7 @@ class SubsampledImageSerializer(serializers.ModelSerializer):
         return obj
 
 
-class ImageFileSerializer(serializers.ModelSerializer):
+class _ImageFileSerializer(serializers.ModelSerializer):
     file = ChecksumFileSerializer()
 
     class Meta:
@@ -121,7 +122,7 @@ class ImageFileSerializer(serializers.ModelSerializer):
 
 
 class ImageEntrySerializer(serializers.ModelSerializer):
-    image_file = ImageFileSerializer()
+    image_file = _ImageFileSerializer()
 
     class Meta:
         model = models.ImageEntry
@@ -150,14 +151,7 @@ class ImageSetSerializer(serializers.ModelSerializer):
         ]
 
 
-class RasterMetaEntrySerializer(SpatialEntrySerializer):
-    class Meta:
-        model = models.RasterMetaEntry
-        fields = '__all__'
-
-
-class RasterEntrySerializer(serializers.ModelSerializer):
-    rastermetaentry = RasterMetaEntrySerializer(read_only=True)
+class _RasterEntrySerializer(serializers.ModelSerializer):
     image_set = ImageSetSerializer()
     ancillary_files = ChecksumFileSerializer(many=True)
 
@@ -166,7 +160,38 @@ class RasterEntrySerializer(serializers.ModelSerializer):
         fields = '__all__'
 
 
+class RasterMetaEntrySerializer(SpatialEntrySerializer):
+    parent_raster = _RasterEntrySerializer()
+
+    class Meta:
+        model = models.RasterMetaEntry
+        fields = '__all__'
+
+
+class _FMVFileSerializer(serializers.ModelSerializer):
+    file = ChecksumFileSerializer()
+
+    class Meta:
+        model = models.FMVFile
+        fields = '__all__'
+
+
 class FMVEntrySerializer(SpatialEntrySerializer):
+    fmv_file = _FMVFileSerializer()
+
+    class Meta:
+        model = models.FMVEntry
+        exclude = ['ground_frames', 'ground_union', 'flight_path', 'frame_numbers']
+
+
+class FMVEntryDataSerializer(FMVEntrySerializer):
+    def to_representation(self, value):
+        ret = super().to_representation(value)
+        ret['ground_frames'] = json.loads(value.ground_frames.geojson)
+        ret['ground_union'] = json.loads(value.ground_union.geojson)
+        ret['flight_path'] = json.loads(value.flight_path.geojson)
+        return ret
+
     class Meta:
         model = models.FMVEntry
         fields = '__all__'

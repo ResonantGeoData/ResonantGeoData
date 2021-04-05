@@ -96,14 +96,19 @@ urlpatterns = [
         name='image-set',
     ),
     path(
-        'api/geodata/imagery/raster_entry/<int:pk>',
-        api.get.GetRasterEntry.as_view(),
-        name='raster-entry',
+        'api/geodata/imagery/raster_meta_entry/<int:pk>',
+        api.get.GetRasterMetaEntry.as_view(),
+        name='raster-meta-entry',
     ),
     path(
         'api/geodata/fmv/<int:pk>',
         api.get.GetFMVEntry.as_view(),
         name='fmv-entry',
+    ),
+    path(
+        'api/geodata/fmv/<int:pk>/data',
+        api.get.GetFMVDataEntry.as_view(),
+        name='fmv-entry-data',
     ),
     #############
     # Geoprocessing
