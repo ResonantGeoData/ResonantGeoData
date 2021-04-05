@@ -1,5 +1,6 @@
 from datetime import datetime
 import logging
+import multiprocessing
 import os
 import tempfile
 import xml.etree.ElementTree as ElementTree
@@ -149,35 +150,35 @@ def _load_sentinel(row):
     return rd
 
 
-def _load_rasters(satellite, count=0):
-    if satellite == 'landsat':
-        index = _fetch_landsat_index_table()
-    elif satellite == 'sentinel':
-        index = _fetch_sentinel_index_table()
-    else:
-        raise ValueError(f'Unknown satellite {satellite}.')
+class GCLoader:
+    def __init__(self, satellite):
+        if satellite not in ['landsat', 'sentinel']:
+            raise ValueError(f'Unknown satellite {satellite}.')
+        self.satellite = satellite
 
-    i = 0
-    total = count or len(index)
-    for _, row in index.iterrows():
-        if count > 0 and i >= count:
-            break
-        logger.info(f'Processesing raster {i+1} of {total}')
-        start_time = datetime.now()
+        if self.satellite == 'landsat':
+            self.index = _fetch_landsat_index_table()
+        elif self.satellite == 'sentinel':
+            self.index = _fetch_sentinel_index_table()
+
+    def _load_raster(self, index):
+        row = self.index.iloc[index]
         try:
-            if satellite == 'landsat':
+            if self.satellite == 'landsat':
                 rd = _load_landsat(row)
-            elif satellite == 'sentinel':
+            elif self.satellite == 'sentinel':
                 rd = _load_sentinel(row)
         except ValueError:
-            logger.info(f'\t Skipped raster {i+1}')
-            i += 1
-            continue
+            return None
         imentries = helper.load_image_files(rd.get('images'))
         helper.load_raster(imentries, rd)
-        logger.info('\t Loaded raster in: {}'.format(datetime.now() - start_time))
-        i += 1
-    return
+
+    def load_rasters(self, count=None):
+        if not count:
+            count = len(self.index)
+        logger.info(f'Processing {count} rasters...')
+        pool = multiprocessing.Pool(multiprocessing.cpu_count())
+        pool.map(self._load_raster, range(count))
 
 
 class Command(helper.SynchronousTasksCommand):
@@ -186,18 +187,19 @@ class Command(helper.SynchronousTasksCommand):
     def add_arguments(self, parser):
         parser.add_argument('satellite', type=str, help='landsat or sentinel')
         parser.add_argument(
-            '-c', '--count', type=int, help='Indicates the number scenes to fetch.', default=0
+            '-c', '--count', type=int, help='Indicates the number scenes to fetch.', default=None
         )
 
     def handle(self, *args, **options):
         self.set_synchronous()
 
-        count = options.get('count', 0)
+        count = options.get('count', None)
         satellite = options.get('satellite')
 
         start_time = datetime.now()
 
-        _load_rasters(satellite, count)
+        loader = GCLoader(satellite)
+        loader.load_rasters(count)
 
         self.stdout.write(
             self.style.SUCCESS('--- Completed in: {} ---'.format(datetime.now() - start_time))
