@@ -2,7 +2,7 @@ from typing import Optional
 
 from requests_toolbelt.sessions import BaseUrlSession
 
-__version__ = '0.0000'
+from .version import __version__
 
 
 class RgdcSession(BaseUrlSession):

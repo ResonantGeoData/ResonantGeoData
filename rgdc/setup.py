@@ -2,7 +2,8 @@ from pathlib import Path
 
 from setuptools import find_packages, setup
 
-readme_file = Path(__file__).parent / 'README.md'
+base_dir = Path(__file__).parent
+readme_file = base_dir / 'README.md'
 if readme_file.exists():
     with readme_file.open() as f:
         long_description = f.read()
@@ -10,8 +11,13 @@ else:
     # When this is first installed in development Docker, README.md is not available
     long_description = ''
 
+# Load version
+with open(base_dir / 'rgdc' / 'version.py') as version_file:
+    version = version_file.read().replace('__version__ = ', '').replace("'", '').strip()
+
 setup(
     name='rgdc',
+    version=version,
     description='',
     long_description=long_description,
     long_description_content_type='text/markdown',
