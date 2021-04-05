@@ -3,7 +3,6 @@ from . import _data_helper as helper
 SUCCESS_MSG = 'Finished loading all demo data.'
 
 # Names of files in the datastore
-IMAGE_FILES = []
 RASTER_FILES = [
     ['20091021202517-01000100-VIS_0001.ntf'],
     ['aerial_rgba_000003.tiff'],
@@ -58,7 +57,6 @@ class Command(helper.SynchronousTasksCommand):
     def handle(self, *args, **options):
         self.set_synchronous()
         # Run the command
-        helper.load_image_files(IMAGE_FILES)
         helper.load_raster_files([helper.make_raster_dict(im) for im in RASTER_FILES])
         helper.load_shape_files(SHAPE_FILES)
         helper.load_fmv_files(FMV_FILES)

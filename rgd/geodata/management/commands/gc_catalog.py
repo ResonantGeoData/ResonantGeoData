@@ -1,4 +1,6 @@
 from datetime import datetime
+import logging
+import multiprocessing
 import os
 import tempfile
 import xml.etree.ElementTree as ElementTree
@@ -9,6 +11,8 @@ from rgd.geodata import datastore
 from rgd.utility import safe_urlopen
 
 from . import _data_helper as helper
+
+logger = logging.getLogger(__name__)
 
 SUCCESS_MSG = 'Finished loading all {} data.'
 
@@ -77,83 +81,104 @@ def _get_landsat_urls(base_url, name, sensor='TM'):
     else:
         raise ValueError(f'Unknown sensor: {sensor}')
     base_url = _format_gs_base_url(base_url)
-    urls = [base_url + '/' + name + '_' + band for band in possible_bands]
-    ancillary = [base_url + '/' + name + '_' + ext for ext in possible_anc]
+    # Return tuples of (path, URL) : path is what is saved to model name field
+    # this path should encompass the relative path of the files for the raster
+    urls = [(None, base_url + '/' + name + '_' + band) for band in possible_bands]
+    ancillary = [(None, base_url + '/' + name + '_' + ext) for ext in possible_anc]
     return urls, ancillary
 
 
-def _get_landsat_raster_dicts(count=0):
-    index = _fetch_landsat_index_table()
-    rasters = []
-    i = 0
-    for _, row in index.iterrows():
-        urls, ancillary = _get_landsat_urls(row['BASE_URL'], row['PRODUCT_ID'], row['SENSOR_ID'])
-        rasters.append(
-            helper.make_raster_dict(
-                urls,
-                date=row['SENSING_TIME'],
-                name=row['PRODUCT_ID'],
-                cloud_cover=row['CLOUD_COVER'],
-                ancillary_files=ancillary,
-                instrumentation=row['SENSOR_ID'],
-            )
-        )
-        if count > 0 and i >= count - 1:
-            break
-        i += 1
-    return rasters
+def _load_landsat(row):
+    urls, ancillary = _get_landsat_urls(row['BASE_URL'], row['PRODUCT_ID'], row['SENSOR_ID'])
+    rd = helper.make_raster_dict(
+        urls,
+        date=row['SENSING_TIME'],
+        name=row['PRODUCT_ID'],
+        cloud_cover=row['CLOUD_COVER'],
+        ancillary_files=ancillary,
+        instrumentation=row['SENSOR_ID'],
+    )
+    return rd
 
 
-def _get_sentinel_urls(base_url, granule_id):
+def _get_sentinel_urls(base_url):
     base_url = _format_gs_base_url(base_url)
     manifest_url = base_url + '/manifest.safe'
     with safe_urlopen(manifest_url) as remote, tempfile.TemporaryDirectory() as tmpdir:
         manifest_path = os.path.join(tmpdir, 'manifest.safe')
         with open(manifest_path, 'wb') as f:
             f.write(remote.read())
+        # Now check to see if `MTD_TL.xml` is in the manifest ONCE - if more or less, skip it.
+        # Ask Matthew Bernstein for insight
+        with open(manifest_path, 'r') as f:
+            if f.read().count('MTD_TL.xml') != 1:
+                raise ValueError('This entry is bad.')
         tree = ElementTree.parse(manifest_path)
 
     urls = []
     ancillary = []
-
+    # Return tuples of (path, URL) : path is what is saved to model name field
+    # this path should encompass the relative path of the files for the raster
     root = tree.getroot()
     meta = root.find('dataObjectSection')
     for c in meta:
         f = c.find('byteStream').find('fileLocation')
-        href = f.attrib['href'][1::]  # to remove `.`
-        di = href.split('/')[1]
+        href = f.attrib['href'][2::]  # to remove `./`
+        di = href.split('/')[0]
         if di in [
             'GRANULE',
         ]:
-            url = base_url + href
+            url = base_url + '/' + href
             if url[-4:] == '.jp2':
-                urls.append(url)
+                urls.append((href, url))
             else:
-                ancillary.append(url)
+                ancillary.append((href, url))
 
     return urls, ancillary
 
 
-def _get_sentinel_raster_dicts(count=0):
-    index = _fetch_sentinel_index_table()
-    rasters = []
-    i = 0
-    for _, row in index.iterrows():
-        urls, ancillary = _get_sentinel_urls(row['BASE_URL'], row['GRANULE_ID'])
-        rasters.append(
-            helper.make_raster_dict(
-                urls,
-                date=row['SENSING_TIME'],
-                name=row['PRODUCT_ID'],
-                cloud_cover=row['CLOUD_COVER'],
-                ancillary_files=ancillary,
-                instrumentation=row['PRODUCT_ID'].split('_')[0],
-            )
-        )
-        if count > 0 and i >= count - 1:
-            break
-        i += 1
-    return rasters
+def _load_sentinel(row):
+    urls, ancillary = _get_sentinel_urls(row['BASE_URL'])
+    rd = helper.make_raster_dict(
+        urls,
+        date=row['SENSING_TIME'],
+        name=row['PRODUCT_ID'],
+        cloud_cover=row['CLOUD_COVER'],
+        ancillary_files=ancillary,
+        instrumentation=row['PRODUCT_ID'].split('_')[0],
+    )
+    return rd
+
+
+class GCLoader:
+    def __init__(self, satellite):
+        if satellite not in ['landsat', 'sentinel']:
+            raise ValueError(f'Unknown satellite {satellite}.')
+        self.satellite = satellite
+
+        if self.satellite == 'landsat':
+            self.index = _fetch_landsat_index_table()
+        elif self.satellite == 'sentinel':
+            self.index = _fetch_sentinel_index_table()
+
+    def _load_raster(self, index):
+        row = self.index.iloc[index]
+        try:
+            if self.satellite == 'landsat':
+                rd = _load_landsat(row)
+            elif self.satellite == 'sentinel':
+                rd = _load_sentinel(row)
+        except ValueError:
+            return None
+        imentries = helper.load_image_files(rd.get('images'))
+        helper.load_raster(imentries, rd)
+
+    def load_rasters(self, count=None):
+        if not count:
+            count = len(self.index)
+        logger.info(f'Processing {count} rasters...')
+        pool = multiprocessing.Pool(multiprocessing.cpu_count())
+        pool.map(self._load_raster, range(count))
 
 
 class Command(helper.SynchronousTasksCommand):
@@ -162,25 +187,20 @@ class Command(helper.SynchronousTasksCommand):
     def add_arguments(self, parser):
         parser.add_argument('satellite', type=str, help='landsat or sentinel')
         parser.add_argument(
-            '-c', '--count', type=int, help='Indicates the number scenes to fetch.', default=0
+            '-c', '--count', type=int, help='Indicates the number scenes to fetch.', default=None
         )
 
     def handle(self, *args, **options):
         self.set_synchronous()
 
-        count = options.get('count', 0)
+        count = options.get('count', None)
         satellite = options.get('satellite')
 
-        if satellite == 'landsat':
-            data = _get_landsat_raster_dicts(count)
-        elif satellite == 'sentinel':
-            data = _get_sentinel_raster_dicts(count)
-        else:
-            raise ValueError(f'Unknown satellite {satellite}.')
-
-        # Run the command
         start_time = datetime.now()
-        helper.load_raster_files(data)
+
+        loader = GCLoader(satellite)
+        loader.load_rasters(count)
+
         self.stdout.write(
             self.style.SUCCESS('--- Completed in: {} ---'.format(datetime.now() - start_time))
         )

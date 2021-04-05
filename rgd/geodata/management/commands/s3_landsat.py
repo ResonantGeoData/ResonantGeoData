@@ -22,7 +22,7 @@ def _get_landsat_urls(count):
     for name, rf in urls.items():
         rasters.append(
             helper.make_raster_dict(
-                [rf['R'], rf['G'], rf['B']],
+                [(None, rf['R']), (None, rf['G']), (None, rf['B'])],
                 date=rf['acquisition'],
                 name=name,
                 cloud_cover=rf['cloud_cover'],
