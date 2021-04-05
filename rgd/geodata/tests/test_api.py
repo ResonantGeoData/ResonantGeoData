@@ -87,7 +87,7 @@ def test_download_checksum_file_url(admin_api_client, checksum_file_url):
 @pytest.mark.django_db(transaction=True)
 def test_download_image_entry_file(admin_api_client, astro_image):
     pk = astro_image.pk
-    response = admin_api_client.get(f'/api/geodata/imagery/image_entry/{pk}/data')
+    response = admin_api_client.get(f'/api/geodata/imagery/{pk}/data')
     assert status.is_redirect(response.status_code)
 
 

@@ -81,12 +81,12 @@ urlpatterns = [
         name='geometry-entry-data',
     ),
     path(
-        'api/geodata/imagery/image_entry/<int:pk>',
+        'api/geodata/imagery/<int:pk>',
         api.get.GetImageEntry.as_view(),
         name='image-entry',
     ),
     path(
-        'api/geodata/imagery/image_entry/<int:pk>/data',
+        'api/geodata/imagery/<int:pk>/data',
         api.download.download_image_entry_file,
         name='image-entry-data',
     ),
@@ -113,17 +113,17 @@ urlpatterns = [
     #############
     # Geoprocessing
     path(
-        'api/geoprocess/imagery/image_entry/<int:pk>/tiles',
+        'api/geoprocess/imagery/<int:pk>/tiles',
         api.tiles.TileMetadataView.as_view(),
         name='image-tile-metadata',
     ),
     path(
-        'api/geoprocess/imagery/image_entry/<int:pk>/tiles/<int:z>/<int:x>/<int:y>.png',
+        'api/geoprocess/imagery/<int:pk>/tiles/<int:z>/<int:x>/<int:y>.png',
         api.tiles.TileView.as_view(),
         name='image-tiles',
     ),
     path(
-        'api/geoprocess/imagery/image_entry/<int:pk>/thumbnail',
+        'api/geoprocess/imagery/<int:pk>/thumbnail',
         api.tiles.TileThumnailView.as_view(),
         name='image-thumbnail',
     ),
