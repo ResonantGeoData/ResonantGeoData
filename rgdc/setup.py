@@ -18,7 +18,7 @@ with open(base_dir / 'rgdc' / 'version.py') as version_file:
 setup(
     name='rgdc',
     version=version,
-    description='',
+    description='Make web requests to a ResonantGeoData instance.',
     long_description=long_description,
     long_description_content_type='text/markdown',
     license='Apache 2.0',
