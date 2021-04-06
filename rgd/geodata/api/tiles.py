@@ -27,6 +27,15 @@ class TileMetadataView(BaseTileView):
         return Response(metadata)
 
 
+class TileInternalMetadataView(BaseTileView):
+    """Returns additional known metadata about the tile source."""
+
+    def get(self, request: Request, pk: int) -> Response:
+        tile_source = self.get_tile_source(request, pk)
+        metadata = tile_source.getInternalMetadata()
+        return Response(metadata)
+
+
 class TileView(BaseTileView):
     """Returns tile binary."""
 
@@ -37,6 +46,22 @@ class TileView(BaseTileView):
         return HttpResponse(tile_binary, content_type=mime_type)
 
 
+class TileCornersView(BaseTileView):
+    """Returns bounds of a tile for a given x, y, z index."""
+
+    def get(self, request: Request, pk: int, x: int, y: int, z: int) -> HttpResponse:
+        tile_source = self.get_tile_source(request, pk)
+        xmin, ymin, xmax, ymax = tile_source.getTileCorners(z, x, y)
+        metadata = {
+            'xmin': xmin,
+            'xmax': xmax,
+            'ymin': ymin,
+            'ymax': ymax,
+            'proj4': tile_source.getProj4String(),
+        }
+        return Response(metadata)
+
+
 class TileThumnailView(BaseTileView):
     """Returns tile thumbnail."""
 
@@ -44,3 +69,21 @@ class TileThumnailView(BaseTileView):
         tile_source = self.get_tile_source(request, pk)
         thumb_data, mime_type = tile_source.getThumbnail(encoding='PNG')
         return HttpResponse(thumb_data, content_type=mime_type)
+
+
+class TileBandInfoView(BaseTileView):
+    """Returns band information."""
+
+    def get(self, request: Request, pk: int) -> Response:
+        tile_source = self.get_tile_source(request, pk)
+        metadata = tile_source.getBandInformation()
+        return Response(metadata)
+
+
+class TileSingleBandInfoView(BaseTileView):
+    """Returns single band information."""
+
+    def get(self, request: Request, pk: int, band: int) -> Response:
+        tile_source = self.get_tile_source(request, pk)
+        metadata = tile_source.getOneBandInformation(band)
+        return Response(metadata)
