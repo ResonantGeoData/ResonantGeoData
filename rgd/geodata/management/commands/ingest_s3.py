@@ -9,7 +9,7 @@ import djclick as click
 def _iter_matching_objects(
     s3_client, bucket: str, prefix: str, include_regex: str
 ) -> Generator[dict, None, None]:
-    paginator = s3_client.get_paginator('list_objects_v2')
+    paginator = s3_client.get_paginator('list_objects')
     page_iter = paginator.paginate(Bucket=bucket, Prefix=prefix)
     include_pattern = re.compile(include_regex)
 
@@ -26,6 +26,7 @@ def _iter_matching_objects(
 @click.option('--region', default='us-east-1')
 @click.option('--access-key-id')
 @click.option('--secret-access-key')
+@click.option('--google', is_flag=True, default=False)
 def ingest_s3(
     bucket: str,
     include_regex: str,
@@ -33,6 +34,7 @@ def ingest_s3(
     region: str,
     access_key_id: Optional[str],
     secret_access_key: Optional[str],
+    google: bool,
 ) -> None:
     if access_key_id and secret_access_key:
         boto3_params = {
@@ -47,7 +49,9 @@ def ingest_s3(
             )
         }
 
+    if google:  # Google Cloud Storage
+        boto3_params['endpoint_url'] = 'https://storage.googleapis.com'
+
     s3_client = boto3.client('s3', **boto3_params)
     for obj in _iter_matching_objects(s3_client, bucket, prefix, include_regex):
-        url = f's3://{bucket}/{obj["Key"]}'
-        print(url)  # TODO create database record(s)
+        print(obj['Key'])  # TODO create database record(s)
