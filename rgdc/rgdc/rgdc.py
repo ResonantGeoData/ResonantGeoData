@@ -200,7 +200,7 @@ class Rgdc:
                 # Allow failure on invalid format
                 query = wkt.dumps()
 
-            params['query'] = query
+            params['q'] = query
 
         # Process range params
 
