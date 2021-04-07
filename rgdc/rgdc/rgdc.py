@@ -39,7 +39,7 @@ class Rgdc:
 
     def list_image_entry_tiles(self, image_entry_id: str) -> Dict:
         """List geodata imagery image_entry tiles."""
-        r = self.session.get(f'geodata/imagery/image_entry/{image_entry_id}/tiles')
+        r = self.session.get(f'geodata/imagery/{image_entry_id}/tiles')
         r.raise_for_status()
 
         return r.json()
@@ -57,7 +57,7 @@ class Rgdc:
         Returns:
             An iterator of byte chunks.
         """
-        r = self.session.get(f'geodata/imagery/image_entry/{image_entry_id}/data', stream=True)
+        r = self.session.get(f'geodata/imagery/{image_entry_id}/data', stream=True)
         r.raise_for_status()
 
         return r.iter_content(chunk_size=chunk_size)
@@ -245,4 +245,4 @@ class Rgdc:
             params['frame_rate_min'] = frmin
             params['frame_rate_max'] = frmax
 
-        return results([self.session.get('geodata/search', params=params)])
+        return results([self.session.get('geosearch', params=params)])
