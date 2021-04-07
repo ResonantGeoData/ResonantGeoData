@@ -85,7 +85,10 @@ class ImageSetAdmin(OSMGeoAdmin):
         'modified',
         'created',
     )
-    actions = (actions.make_raster_from_image_set,)
+    actions = (
+        actions.make_raster_from_image_set,
+        actions.clean_empty_image_sets,
+    )
 
 
 class BandMetaEntryInline(admin.StackedInline):
@@ -187,6 +190,7 @@ class RasterEntryAdmin(OSMGeoAdmin):
     actions = (
         actions.reprocess,
         actions.generate_valid_data_footprint,
+        actions.clean_empty_rasters,
     )
 
 
