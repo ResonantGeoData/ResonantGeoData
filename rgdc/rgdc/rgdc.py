@@ -77,7 +77,7 @@ class Rgdc:
             nest_with_name: If True, nests the download within an additional directory, using the raster entry name.
 
         Returns:
-            The directory containing the downloaded image set.
+            A dictionary of the paths to all files downloaded under the directory.
         """
         r = self.session.get(f'geodata/imagery/raster/{raster_meta_entry_id}')
         r.raise_for_status()
@@ -98,21 +98,14 @@ class Rgdc:
         if not path.exists():
             path.mkdir()
 
-        # If no images to download, return empty path
-        images = parent_raster.get('image_set', {}).get('images', {})
-        if images is None:
-            return str(path)
-
-        # Otherwise, iterate through images and download
-        for image in images:
-            # Get required fields
-            file = image.get('image_file', {}).get('file', {})
+        def download_file_from_url(file):
             filepath = file.get('name')
-            file_download_url = file.get('file')
+            file_download_url = file.get('download_url')
 
             # Skip image if some fields are missing
             if not (file and filepath and file_download_url):
-                continue
+                # TODO: throw a warning to let user know this file failed
+                return
 
             # Parse file path to identifiy nested directories
             filepath: str = filepath.lstrip('/')
@@ -129,8 +122,31 @@ class Rgdc:
             with open(file_path, 'wb') as open_file_path:
                 for chunk in iterate_response_bytes(file_download_url):
                     open_file_path.write(chunk)
+            return file_path
 
-        return str(path)
+        images = []
+        ancillary = []
+
+        images = parent_raster.get('image_set', {}).get('images', [])
+        for image in images:
+            file = image.get('image_file', {}).get('file', {})
+            file_path = download_file_from_url(file)
+            if file_path:
+                images.append(file_path)
+
+        ancillary = parent_raster.get('ancillary_files', [])
+        for file in ancillary:
+            file_path = download_file_from_url(file)
+            if file_path:
+                ancillary.append(file_path)
+
+        files = {
+            'path': path,
+            'images': images,
+            'ancillary': ancillary,
+        }
+
+        return files
 
     def search(
         self,
@@ -198,7 +214,7 @@ class Rgdc:
 
             if isinstance(query, dict):
                 # Allow failure on invalid format
-                query = wkt.dumps()
+                query = wkt.dumps(query)
 
             params['q'] = query
 
