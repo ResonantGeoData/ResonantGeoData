@@ -11,7 +11,7 @@ from tqdm import tqdm
 
 from .session import RgdcSession
 from .types import DATETIME_OR_STR_TUPLE, SEARCH_DATATYPE_CHOICE, SEARCH_PREDICATE_CHOICE
-from .utils import DEFAULT_RGD_API, datetime_to_str, iterate_response_bytes
+from .utils import DEFAULT_RGD_API, datetime_to_str, download_checksum_file_to_path
 
 
 @dataclass
@@ -148,32 +148,6 @@ class Rgdc:
         if not path.exists():
             path.mkdir()
 
-        def download_file_from_url(file: Dict):
-            filepath = file.get('name')
-            file_download_url = file.get('download_url')
-
-            # Skip image if some fields are missing
-            if not (file and filepath and file_download_url):
-                # TODO: throw a warning to let user know this file failed
-                return
-
-            # Parse file path to identifiy nested directories
-            filepath: str = filepath.lstrip('/')
-            split_filepath: List[str] = filepath.split('/')
-            parent_dirname = '/'.join(split_filepath[:-1])
-            filename = split_filepath[-1]
-
-            # Create nested directory if necessary
-            parent_path = path / parent_dirname if parent_dirname else path
-            parent_path.mkdir(parents=True, exist_ok=True)
-
-            # Download contents to file
-            file_path = parent_path / filename
-            with open(file_path, 'wb') as open_file_path:
-                for chunk in iterate_response_bytes(file_download_url):
-                    open_file_path.write(chunk)
-            return file_path
-
         # Initialize dataclass
         raster_download = RasterDownload(path, [], [])
 
@@ -181,14 +155,14 @@ class Rgdc:
         images = parent_raster.get('image_set', {}).get('images', [])
         for image in tqdm(images, desc='Downloading image files'):
             file = image.get('image_file', {}).get('file', {})
-            file_path = download_file_from_url(file)
+            file_path = download_checksum_file_to_path(file, path)
             if file_path:
                 raster_download.images.append(file_path)
 
         # Download ancillary files
         ancillary = parent_raster.get('ancillary_files', [])
         for file in tqdm(ancillary, desc='Downloading ancillary files'):
-            file_path = download_file_from_url(file)
+            file_path = download_checksum_file_to_path(file, path)
             if file_path:
                 raster_download.ancillary.append(file_path)
 
