@@ -9,7 +9,7 @@ from geomet import wkt
 
 from .session import RgdcSession
 from .types import DATETIME_OR_STR_TUPLE, SEARCH_DATATYPE_CHOICE, SEARCH_PREDICATE_CHOICE
-from .utils import DEFAULT_RGD_API, datetime_to_str, iterate_response_bytes, results
+from .utils import DEFAULT_RGD_API, datetime_to_str, iterate_response_bytes
 
 
 class Rgdc:
