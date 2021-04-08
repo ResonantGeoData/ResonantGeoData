@@ -63,6 +63,47 @@ class Rgdc:
 
         return r.iter_content(chunk_size=chunk_size)
 
+    def download_image_entry_thumbnail(
+        self,
+        image_entry_id: str,
+    ) -> bytes:
+        """
+        Download the generated thumbnail for this ImageEntry.
+
+        Args:
+            image_entry_id: The ID of the ImageEntry to download.
+
+        Returns:
+            Thumbnail bytes.
+        """
+        r = self.session.get(f'geoprocess/imagery/{image_entry_id}/thumbnail')
+        r.raise_for_status()
+        return r.content
+
+    def download_raster_entry_thumbnail(
+        self,
+        raster_meta_entry_id: Union[str, int],
+        band: int = 0,
+    ) -> bytes:
+        """
+        Download the generated thumbnail for this ImageEntry.
+
+        Args:
+            raster_meta_entry_id: The id of the RasterMetaEntry, which is a child to the desired raster entry.
+            band: The index of the image in the raster's image set to produce thumbnail from.
+
+        Returns:
+            Thumbnail bytes.
+        """
+        r = self.session.get(f'geodata/imagery/raster/{raster_meta_entry_id}')
+        r.raise_for_status()
+        parent_raster = r.json().get('parent_raster', {})
+        images = parent_raster.get('image_set', {}).get('images', [])
+        try:
+            return self.download_image_entry_thumbnail(images[band]['id'])
+        except IndexError:
+            raise IndexError(f'Band index ({band}) out of range.')
+
     def download_raster_entry(
         self,
         raster_meta_entry_id: Union[str, int],
