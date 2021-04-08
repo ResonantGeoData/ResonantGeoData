@@ -38,6 +38,7 @@ setup(
         'requests',
         'requests-toolbelt',
         'geomet',
+        'tqdm',
     ],
     extras_require={'dev': ['ipython']},
 )

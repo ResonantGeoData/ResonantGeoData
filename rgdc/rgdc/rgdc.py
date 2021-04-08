@@ -6,6 +6,7 @@ import tempfile
 from typing import Dict, Iterator, List, Optional, Tuple, Union
 
 from geomet import wkt
+from tqdm import tqdm
 
 from .session import RgdcSession
 from .types import DATETIME_OR_STR_TUPLE, SEARCH_DATATYPE_CHOICE, SEARCH_PREDICATE_CHOICE
@@ -128,14 +129,14 @@ class Rgdc:
         ancillary_paths = []
 
         images = parent_raster.get('image_set', {}).get('images', [])
-        for image in images:
+        for image in tqdm(images, desc='Downloading image files'):
             file = image.get('image_file', {}).get('file', {})
             file_path = download_file_from_url(file)
             if file_path:
                 image_paths.append(file_path)
 
         ancillary = parent_raster.get('ancillary_files', [])
-        for file in ancillary:
+        for file in tqdm(ancillary, desc='Downloading ancillary files'):
             file_path = download_file_from_url(file)
             if file_path:
                 ancillary_paths.append(file_path)
