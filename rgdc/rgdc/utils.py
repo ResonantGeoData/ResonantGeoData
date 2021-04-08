@@ -19,13 +19,6 @@ def pager(session: Session, url: str, **kwargs) -> Iterator[Response]:
             break
 
 
-def results(responses: Iterator[Response]) -> Iterator[dict]:
-    for response in responses:
-        response.raise_for_status()
-        for result in response.json()['results']:
-            yield result
-
-
 def iterate_response_bytes(
     url: str, chunk_size: int = 1024 * 1024, raise_for_status: bool = True
 ) -> Iterator[bytes]:

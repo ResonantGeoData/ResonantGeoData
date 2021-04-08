@@ -261,4 +261,6 @@ class Rgdc:
             params['frame_rate_min'] = frmin
             params['frame_rate_max'] = frmax
 
-        return results([self.session.get('geosearch', params=params)])
+        response = self.session.get('geosearch', params=params)
+        response.raise_for_status()
+        return [result for result in response.json()['results']]
