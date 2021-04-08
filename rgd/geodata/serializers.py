@@ -69,6 +69,11 @@ class ConvertedImageFileSerializer(serializers.ModelSerializer):
 
 
 class ChecksumFileSerializer(serializers.ModelSerializer):
+    def to_representation(self, value):
+        ret = super().to_representation(value)
+        ret['download_url'] = value.get_url()
+        return ret
+
     class Meta:
         model = models.ChecksumFile
         fields = '__all__'
