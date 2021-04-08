@@ -124,21 +124,21 @@ class Rgdc:
                     open_file_path.write(chunk)
             return file_path
 
-        images = []
-        ancillary = []
+        image_paths = []
+        ancillary_paths = []
 
         images = parent_raster.get('image_set', {}).get('images', [])
         for image in images:
             file = image.get('image_file', {}).get('file', {})
             file_path = download_file_from_url(file)
             if file_path:
-                images.append(file_path)
+                image_paths.append(file_path)
 
         ancillary = parent_raster.get('ancillary_files', [])
         for file in ancillary:
             file_path = download_file_from_url(file)
             if file_path:
-                ancillary.append(file_path)
+                ancillary_paths.append(file_path)
 
         files = {
             'path': path,
