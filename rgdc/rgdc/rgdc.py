@@ -192,7 +192,7 @@ class Rgdc:
             offset: The number of results to skip.
 
         Returns:
-            An iterator of Spatial Entries.
+            An list of Spatial Entries.
         """
         # The dict that will be used to store params.
         # Initialize with queries that won't be additionally processed.
