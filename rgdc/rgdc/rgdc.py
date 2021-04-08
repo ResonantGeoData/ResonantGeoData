@@ -1,4 +1,5 @@
 from base64 import b64encode
+from dataclasses import dataclass
 import json
 from json.decoder import JSONDecodeError
 from pathlib import Path
@@ -11,6 +12,13 @@ from tqdm import tqdm
 from .session import RgdcSession
 from .types import DATETIME_OR_STR_TUPLE, SEARCH_DATATYPE_CHOICE, SEARCH_PREDICATE_CHOICE
 from .utils import DEFAULT_RGD_API, datetime_to_str, iterate_response_bytes
+
+
+@dataclass
+class RasterDownload:
+    path: Path
+    images: List[Path]
+    ancillary: List[Path]
 
 
 class Rgdc:
@@ -38,7 +46,7 @@ class Rgdc:
 
         self.session = RgdcSession(base_url=api_url, auth_header=auth_header)
 
-    def list_image_entry_tiles(self, image_entry_id: str) -> Dict:
+    def list_image_entry_tiles(self, image_entry_id: Union[str, int]) -> Dict:
         """List geodata imagery image_entry tiles."""
         r = self.session.get(f'geodata/imagery/{image_entry_id}/tiles')
         r.raise_for_status()
@@ -46,7 +54,7 @@ class Rgdc:
         return r.json()
 
     def download_image_entry_file(
-        self, image_entry_id: str, chunk_size: int = 1024 * 1024
+        self, image_entry_id: Union[str, int], chunk_size: int = 1024 * 1024
     ) -> Iterator[bytes]:
         """
         Download the associated ImageFile data for this ImageEntry directly from S3.
@@ -65,7 +73,7 @@ class Rgdc:
 
     def download_image_entry_thumbnail(
         self,
-        image_entry_id: str,
+        image_entry_id: Union[str, int],
     ) -> bytes:
         """
         Download the generated thumbnail for this ImageEntry.
@@ -109,7 +117,7 @@ class Rgdc:
         raster_meta_entry_id: Union[str, int],
         pathname: Optional[str] = None,
         nest_with_name: bool = False,
-    ):
+    ) -> RasterDownload:
         """
         Download the image set associated with a raster entry to disk.
 
@@ -140,7 +148,7 @@ class Rgdc:
         if not path.exists():
             path.mkdir()
 
-        def download_file_from_url(file):
+        def download_file_from_url(file: Dict):
             filepath = file.get('name')
             file_download_url = file.get('download_url')
 
@@ -166,29 +174,25 @@ class Rgdc:
                     open_file_path.write(chunk)
             return file_path
 
-        image_paths = []
-        ancillary_paths = []
+        # Initialize dataclass
+        raster_download = RasterDownload(path, [], [])
 
+        # Download images
         images = parent_raster.get('image_set', {}).get('images', [])
         for image in tqdm(images, desc='Downloading image files'):
             file = image.get('image_file', {}).get('file', {})
             file_path = download_file_from_url(file)
             if file_path:
-                image_paths.append(file_path)
+                raster_download.images.append(file_path)
 
+        # Download ancillary files
         ancillary = parent_raster.get('ancillary_files', [])
         for file in tqdm(ancillary, desc='Downloading ancillary files'):
             file_path = download_file_from_url(file)
             if file_path:
-                ancillary_paths.append(file_path)
+                raster_download.ancillary.append(file_path)
 
-        files = {
-            'path': path,
-            'images': image_paths,
-            'ancillary': ancillary_paths,
-        }
-
-        return files
+        return raster_download
 
     def search(
         self,
