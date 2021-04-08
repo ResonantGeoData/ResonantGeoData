@@ -143,8 +143,8 @@ class Rgdc:
 
         files = {
             'path': path,
-            'images': images,
-            'ancillary': ancillary,
+            'images': image_paths,
+            'ancillary': ancillary_paths,
         }
 
         return files
