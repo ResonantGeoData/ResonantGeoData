@@ -38,7 +38,6 @@ setup(
     install_requires=[
         'celery',
         'django>=3.2',  # See PR #264: due to this bug: https://code.djangoproject.com/ticket/31910
-        'django-admin-display',
         'django-allauth',
         'django-cleanup',
         'django-configurations[database,email]',
@@ -58,7 +57,7 @@ setup(
         'rules',
         'uritemplate',
         # Production-only
-        'django-composed-configuration[prod]',
+        'django-composed-configuration[prod]>=0.16',
         'django-s3-file-field[minio]',
         'flower',
         'gunicorn',
