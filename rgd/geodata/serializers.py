@@ -69,6 +69,11 @@ class ConvertedImageFileSerializer(serializers.ModelSerializer):
 
 
 class ChecksumFileSerializer(serializers.ModelSerializer):
+    def to_representation(self, value):
+        ret = super().to_representation(value)
+        ret['download_url'] = value.get_url()
+        return ret
+
     class Meta:
         model = models.ChecksumFile
         fields = '__all__'
@@ -123,6 +128,16 @@ class ImageFileSerializer(serializers.ModelSerializer):
 
 class ImageEntrySerializer(serializers.ModelSerializer):
     image_file = ImageFileSerializer()
+
+    def to_representation(self, value):
+        ret = super().to_representation(value)
+        realtive_thumbnail_uri = reverse('image-thumbnail', args=[value.id])
+        if 'request' in self.context:
+            request = self.context['request']
+            ret['thumbnail'] = request.build_absolute_uri(realtive_thumbnail_uri)
+        else:
+            ret['thumbnail'] = realtive_thumbnail_uri
+        return ret
 
     class Meta:
         model = models.ImageEntry

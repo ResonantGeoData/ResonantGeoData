@@ -43,7 +43,7 @@ module "django" {
   }
   # This defaults to 1, but may be changed
   heroku_worker_dyno_quantity = 0
-  heroku_web_dyno_size        = "hobby"
-  heroku_worker_dyno_size     = "hobby"
+  heroku_web_dyno_size        = "standard-2x"
+  heroku_worker_dyno_size     = "standard-1x"
   heroku_postgresql_plan      = "hobby-basic"
 }
