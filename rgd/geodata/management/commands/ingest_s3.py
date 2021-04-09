@@ -1,3 +1,4 @@
+import multiprocessing
 import re
 from typing import Generator, Optional
 
@@ -17,6 +18,19 @@ def _iter_matching_objects(
         for obj in page['Contents']:
             if include_pattern.match(obj['Key']):
                 yield obj
+
+
+class CloudLoader:
+    def __init__(self, bucket: str):
+        self.bucket = bucket
+
+    def load_object(self, obj: dict) -> None:
+        key = obj['Key']
+        if key.startswith('$') and key.endswith('$'):
+            # To avoid `$folder$`, etc. objects
+            return
+        url = f's3://{self.bucket}/{key}'
+        print(url)  # TODO create database record(s)
 
 
 @click.command()
@@ -53,5 +67,7 @@ def ingest_s3(
         boto3_params['endpoint_url'] = 'https://storage.googleapis.com'
 
     s3_client = boto3.client('s3', **boto3_params)
-    for obj in _iter_matching_objects(s3_client, bucket, prefix, include_regex):
-        print(obj['Key'])  # TODO create database record(s)
+
+    loader = CloudLoader(bucket)
+    pool = multiprocessing.Pool(multiprocessing.cpu_count())
+    pool.map(loader.load_object, _iter_matching_objects(s3_client, bucket, prefix, include_regex))
