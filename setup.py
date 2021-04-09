@@ -79,6 +79,7 @@ setup(
             'kwarray>=0.5.10',
             'kwcoco',
             'kwimage>=0.6.7',
+            'large-image-converter',
         ],
         'fuse': [
             'simple-httpfs',
