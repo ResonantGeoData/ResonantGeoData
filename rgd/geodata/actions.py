@@ -1,5 +1,6 @@
 from . import tasks
-from .models.imagery import ImageSet, RasterEntry
+from ..utility import get_or_create_no_commit
+from .models.imagery import ConvertedImageFile, ImageSet, RasterEntry
 
 
 def _make_image_set_from_images(images):
@@ -89,3 +90,9 @@ def clean_empty_rasters(modeladmin, request, queryset):
     for raster in queryset.all():
         if len(raster.image_set.images) < 1:
             raster.image_set.delete()
+
+
+def convert_images(modeladmin, request, queryset):
+    for image in queryset.all():
+        entry, created = get_or_create_no_commit(ConvertedImageFile, source_image=image)
+        entry.save()
