@@ -65,12 +65,15 @@ class RgdMixin(CrispyFormsMixin, GeoDjangoMixin, SwaggerMixin, ConfigMixin):
         # Install additional apps
         configuration.INSTALLED_APPS += [
             's3_file_field',
-            'django.contrib.humanize',
             'rules.apps.AutodiscoverRulesConfig',  # TODO: need this?
             # To ensure that exceptions inside other apps' signal handlers do not affect the
             # integrity of file deletions within transactions, CleanupConfig should be last.
             'django_cleanup.apps.CleanupConfig',
         ]
+
+        configuration.REST_FRAMEWORK['DEFAULT_AUTHENTICATION_CLASSES'].append(
+            'rest_framework.authentication.BasicAuthentication'
+        )
 
         configuration.AUTHENTICATION_BACKENDS.insert(0, 'rules.permissions.ObjectPermissionBackend')
 

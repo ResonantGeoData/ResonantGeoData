@@ -144,7 +144,6 @@ class RLESegmentation(Segmentation):
         self.height = height
         self.width = width
         self.blob = self._array_to_blob(counts)
-        return
 
     def to_rle(self):
         """Generate an RLE JSON spec from the entry."""

@@ -33,8 +33,7 @@ def test_entries_in_datastore():
         return f in registry
 
     for f in (
-        demo_data.IMAGE_FILES
-        + demo_data.RASTER_FILES
+        demo_data.RASTER_FILES
         + demo_data.SHAPE_FILES
         + demo_data.FMV_FILES
         + demo_data.KWCOCO_ARCHIVES
@@ -45,5 +44,12 @@ def test_entries_in_datastore():
 @pytest.mark.skip
 @pytest.mark.django_db(transaction=True)
 def test_demo_command_landsat():
-    out = _call_command('landsat_data', count=1)
+    out = _call_command('s3_landsat', count=1)
     assert out == demo_data.SUCCESS_MSG.replace('demo', 'landsat') + '\n'
+
+
+@pytest.mark.skip
+@pytest.mark.django_db(transaction=True)
+def test_demo_command_wasabi():
+    out = _call_command('wasabi')
+    assert out == demo_data.SUCCESS_MSG + '\n'

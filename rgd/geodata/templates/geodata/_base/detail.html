@@ -14,6 +14,10 @@
     {{ object.modified }}
   </div>
   <div class="column is-2">
+    <span class="text-has-dark-bg is-block">Acquired:</span>
+    {{ object.acquisition_date }}
+  </div>
+  <div class="column is-2">
     <a id="copyjson" class="button has-icon is-flex is-justify-content-space-between is-secondary is-fullwidth">
       <span>Copy GeoJSON</span>
       <span class="icon is-small">
@@ -22,9 +26,16 @@
     </a>
 
     <script>
-      document.getElementById("copyjson").onclick = function(){
-        document.getElementById("json").select();
-        document.execCommand('copy');
+      document.getElementById("copyjson").onclick = function () {
+        // We have to create a visible element in the document in order
+        // to copy its content to the clipboard, at least in Chrome.
+        var el = document.getElementById("json");
+        var tempInput = document.createElement("input");
+        tempInput.value = el.value;
+        document.body.appendChild(tempInput);
+        tempInput.select();
+        document.execCommand("copy");
+        document.body.removeChild(tempInput);
       }
     </script>
   </div>
@@ -35,9 +46,7 @@
   <div class="columns m-0">
     <div class="column is-sidebar is-one-quarter p-0">
       <div class="column is-sidebar-content">
-        <textarea id="json" class="is-hidden" readonly>
-          {{ object.footprint.json }}
-        </textarea>
+        <input id="json" class="is-hidden" value="{{ object.footprint.json }}" readonly />
 
         <div style="overflow-x:auto;">
           <table class="table">

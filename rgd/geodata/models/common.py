@@ -262,10 +262,9 @@ class ChecksumFile(ModifiableEntry, TaskEventMixin):
         if self.type == FileSourceType.FILE_FIELD:
             if internal:
                 with patch_internal_presign(self.file):
-                    url = self.file.url
+                    return self.file.url
             else:
-                url = self.file.url
-            return url
+                return self.file.url
         elif self.type == FileSourceType.URL:
             return self.url
 

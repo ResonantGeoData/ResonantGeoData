@@ -7,6 +7,7 @@ import os
 from pathlib import Path, PurePath
 import tempfile
 from typing import Generator
+from urllib.error import HTTPError
 from urllib.parse import urlparse
 from urllib.request import urlopen
 
@@ -42,8 +43,7 @@ def _compute_hash(handle, chunk_num_blocks):
 
 def compute_checksum_file(field_file: FieldFile, chunk_num_blocks=128):
     with field_file.open() as f:
-        hash = _compute_hash(f, chunk_num_blocks)
-    return hash
+        return _compute_hash(f, chunk_num_blocks)
 
 
 def compute_checksum_url(url: str, chunk_num_blocks=128):
@@ -59,7 +59,7 @@ def _link_url(obj, field):
         url = attr()
     else:
         url = attr.url
-    return mark_safe('<a href="%s" download>Download</a>' % (url,))
+    return mark_safe(f'<a href="{url}" download>Download</a>')
 
 
 class MultiPartJsonParser(parsers.MultiPartParser):
@@ -88,8 +88,7 @@ def create_serializer(model, fields=None):
 
     meta_class = type('Meta', (), {'model': model, 'fields': fields})
     serializer_name = model.__name__ + 'Serializer'
-    serializer_class = type(serializer_name, (serializers.ModelSerializer,), {'Meta': meta_class})
-    return serializer_class
+    return type(serializer_name, (serializers.ModelSerializer,), {'Meta': meta_class})
 
 
 def create_serializers(models_file, fields=None):
@@ -127,7 +126,7 @@ def create_viewset(serializer, parsers=(MultiPartJsonParser,)):
     """Dynamically create viewset for API router."""
     model = serializer.Meta.model
     model_name = model.__name__
-    viewset_class = type(
+    return type(
         model_name + 'ViewSet',
         (viewsets.ModelViewSet,),
         {
@@ -138,7 +137,6 @@ def create_viewset(serializer, parsers=(MultiPartJsonParser,)):
             'filterset_fields': get_filter_fields(model),
         },
     )
-    return viewset_class
 
 
 def make_serializers(serializer_scope, models):
@@ -195,6 +193,12 @@ def precheck_fuse(url: str) -> bool:
         return False
     parsed = urlparse(url)
     if parsed.scheme not in ['https', 'http']:
+        return False
+    try:
+        # The FUSE lib will not catch URL errors
+        with safe_urlopen(url) as _:
+            pass
+    except HTTPError:
         return False
     return True
 

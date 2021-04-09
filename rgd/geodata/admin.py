@@ -60,6 +60,7 @@ class ChecksumFileAdmin(OSMGeoAdmin):
         'checksum',
         'last_validation',
     ) + TASK_EVENT_READONLY
+    actions = (actions.reprocess,)
 
 
 @admin.register(KWCOCOArchive)
@@ -72,6 +73,7 @@ class KWCOCOArchiveAdmin(OSMGeoAdmin):
         'created',
     )
     readonly_fields = ('image_set',) + TASK_EVENT_READONLY
+    actions = (actions.reprocess,)
 
 
 @admin.register(ImageSet)
@@ -83,7 +85,10 @@ class ImageSetAdmin(OSMGeoAdmin):
         'modified',
         'created',
     )
-    actions = (actions.make_raster_from_image_set,)
+    actions = (
+        actions.make_raster_from_image_set,
+        actions.clean_empty_image_sets,
+    )
 
 
 class BandMetaEntryInline(admin.StackedInline):
@@ -183,8 +188,9 @@ class RasterEntryAdmin(OSMGeoAdmin):
     ) + TASK_EVENT_READONLY
     inlines = (RasterMetaEntryInline,)
     actions = (
-        actions.reprocess_raster_entries,
+        actions.reprocess,
         actions.generate_valid_data_footprint,
+        actions.clean_empty_rasters,
     )
 
 
@@ -244,7 +250,7 @@ class ImageFileAdmin(OSMGeoAdmin, _FileGetNameMixin):
         'modified',
         'created',
     ) + TASK_EVENT_READONLY
-    actions = (actions.reprocess_image_files,)
+    actions = (actions.reprocess,)
 
 
 @admin.register(ConvertedImageFile)
@@ -257,6 +263,7 @@ class ConvertedImageFileAdmin(OSMGeoAdmin):
         'created',
     )
     readonly_fields = ('converted_file',) + TASK_EVENT_READONLY
+    actions = (actions.reprocess,)
 
 
 @admin.register(SubsampledImage)
@@ -270,6 +277,7 @@ class SubsampledImageAdmin(OSMGeoAdmin):
         'created',
     )
     readonly_fields = ('data',) + TASK_EVENT_READONLY
+    actions = (actions.reprocess,)
 
 
 class GeometryEntryInline(admin.StackedInline):
@@ -306,6 +314,7 @@ class GeometryArchiveAdmin(OSMGeoAdmin, _FileGetNameMixin):
         'created',
     ) + TASK_EVENT_READONLY
     inlines = (GeometryEntryInline,)
+    actions = (actions.reprocess,)
 
 
 class FMVEntryInline(admin.StackedInline):
@@ -343,6 +352,7 @@ class FMVFileAdmin(OSMGeoAdmin, _FileGetNameMixin):
         'frame_rate',
     ) + TASK_EVENT_READONLY
     inlines = (FMVEntryInline,)
+    actions = (actions.reprocess,)
 
 
 class CollectionMembershipInline(admin.TabularInline):

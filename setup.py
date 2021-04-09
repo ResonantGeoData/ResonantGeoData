@@ -38,8 +38,7 @@ setup(
     install_requires=[
         'boto3',
         'celery',
-        'django==3.2a1',  # See PR #264: due to this bug: https://code.djangoproject.com/ticket/31910
-        'django-admin-display',
+        'django>=3.2',  # See PR #264: due to this bug: https://code.djangoproject.com/ticket/31910
         'django-allauth',
         'django-cleanup',
         'django-click',
@@ -51,25 +50,23 @@ setup(
         'django-model-utils',
         'django-oauth-toolkit',
         'djangorestframework',
-        'docker',
         'drf-yasg',
         'GDAL',
         'large-image-source-gdal',
         'numpy',
-        'Pillow',
         'pooch',
         'python-magic',
         'rules',
         'uritemplate',
         # Production-only
-        'django-composed-configuration[prod]',
+        'django-composed-configuration[prod]>=0.16',
         'django-s3-file-field[minio]',
         'flower',
         'gunicorn',
     ],
     extras_require={
         'dev': [
-            'django-composed-configuration[dev]',
+            'django-composed-configuration[dev]>=0.16',
             'django-debug-toolbar',
             'django-s3-file-field[minio]',
             'ipython',
@@ -83,6 +80,12 @@ setup(
             'kwarray>=0.5.10',
             'kwcoco',
             'kwimage>=0.6.7',
+        ],
+        'fuse': [
+            'simple-httpfs',
+        ],
+        'fmv': [
+            'kwiver',
         ],
     },
 )

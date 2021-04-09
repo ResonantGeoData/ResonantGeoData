@@ -38,11 +38,13 @@ def drf_yasg_get_summary_and_description(self):
                 re.sub(r'\n', ' ', re.sub(r'\n\n+', '\r', re.sub(r'\r', '', description))),
             )
             if summary:
-                summary = '%s %s' % (method, summary.rstrip('.'))
+                info = summary.rstrip('.')
+                summary = f'{method} {info}'
             else:
-                summary = '%s %s' % (method, ' '.join(self.operation_keys[:-1]))
+                info = ' '.join(self.operation_keys[:-1])
+                summary = f'{method} {info}'
     if summary is None:
-        summary = '%s %s' % (method, description)
+        summary = f'{method} {description}'
     summary = summary[:120]
 
     return summary, description
