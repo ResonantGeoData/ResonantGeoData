@@ -6,6 +6,8 @@ import boto3
 import botocore
 import djclick as click
 
+from . import _data_helper as helper
+
 
 def _iter_matching_objects(
     s3_client, bucket: str, prefix: str, include_regex: str
@@ -13,24 +15,30 @@ def _iter_matching_objects(
     paginator = s3_client.get_paginator('list_objects')
     page_iter = paginator.paginate(Bucket=bucket, Prefix=prefix)
     include_pattern = re.compile(include_regex)
+    # To avoid `$folder$`, etc. objects
+    exclude_pattern = re.compile(r'\$.+\$')
 
     for page in page_iter:
         for obj in page['Contents']:
-            if include_pattern.match(obj['Key']):
+            if include_pattern.match(obj['Key']) and not exclude_pattern.search(obj['Key']):
                 yield obj
 
 
 class CloudLoader:
-    def __init__(self, bucket: str):
+    def __init__(self, bucket: str, region: str, google: bool = False):
         self.bucket = bucket
+        self.google = google
+        self.region = region
+
+    def _format_url(self, base_url):
+        if self.google:
+            return 'http://storage.googleapis.com/' + base_url
+        return f'https://{self.region}.amazonaws.com/' + base_url
 
     def load_object(self, obj: dict) -> None:
         key = obj['Key']
-        if key.startswith('$') and key.endswith('$'):
-            # To avoid `$folder$`, etc. objects
-            return
-        url = f's3://{self.bucket}/{key}'
-        print(url)  # TODO create database record(s)
+        url = self._format_url(f'{self.bucket}/{key}')
+        _ = helper._get_or_create_checksum_file_url(url, name=obj['Key'])
 
 
 @click.command()
@@ -68,6 +76,6 @@ def ingest_s3(
 
     s3_client = boto3.client('s3', **boto3_params)
 
-    loader = CloudLoader(bucket)
+    loader = CloudLoader(bucket, region, google=google)
     pool = multiprocessing.Pool(multiprocessing.cpu_count())
     pool.map(loader.load_object, _iter_matching_objects(s3_client, bucket, prefix, include_regex))
