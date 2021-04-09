@@ -10,13 +10,16 @@ from . import _data_helper as helper
 
 
 def _iter_matching_objects(
-    s3_client, bucket: str, prefix: str, include_regex: str
+    s3_client,
+    bucket: str,
+    prefix: str,
+    include_regex: str,
+    exclude_regex: str,
 ) -> Generator[dict, None, None]:
     paginator = s3_client.get_paginator('list_objects')
     page_iter = paginator.paginate(Bucket=bucket, Prefix=prefix)
     include_pattern = re.compile(include_regex)
-    # To avoid `$folder$`, etc. objects
-    exclude_pattern = re.compile(r'\$.+\$')
+    exclude_pattern = re.compile(exclude_regex)
 
     for page in page_iter:
         for obj in page['Contents']:
@@ -44,6 +47,7 @@ class CloudLoader:
 @click.command()
 @click.argument('bucket')
 @click.option('--include-regex', default='')
+@click.option('--exclude-regex', default=r'\$.+\$')
 @click.option('--prefix', default='')
 @click.option('--region', default='us-east-1')
 @click.option('--access-key-id')
@@ -52,6 +56,7 @@ class CloudLoader:
 def ingest_s3(
     bucket: str,
     include_regex: str,
+    exclude_regex: str,
     prefix: str,
     region: str,
     access_key_id: Optional[str],
@@ -78,4 +83,7 @@ def ingest_s3(
 
     loader = CloudLoader(bucket, region, google=google)
     pool = multiprocessing.Pool(multiprocessing.cpu_count())
-    pool.map(loader.load_object, _iter_matching_objects(s3_client, bucket, prefix, include_regex))
+    pool.map(
+        loader.load_object,
+        _iter_matching_objects(s3_client, bucket, prefix, include_regex, exclude_regex),
+    )
