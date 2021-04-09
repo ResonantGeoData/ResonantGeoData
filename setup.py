@@ -64,7 +64,7 @@ setup(
     ],
     extras_require={
         'dev': [
-            'django-composed-configuration[dev]',
+            'django-composed-configuration[dev]>=0.16',
             'django-debug-toolbar',
             'django-s3-file-field[minio]',
             'ipython',
