@@ -47,7 +47,7 @@ class CloudLoader:
 @click.command()
 @click.argument('bucket')
 @click.option('--include-regex', default='')
-@click.option('--exclude-regex', default=r'\$.+\$')
+@click.option('--exclude-regex', default=r'\$\w+\$')
 @click.option('--prefix', default='')
 @click.option('--region', default='us-east-1')
 @click.option('--access-key-id')
