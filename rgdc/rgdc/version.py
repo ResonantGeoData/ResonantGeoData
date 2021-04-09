@@ -1,1 +1,1 @@
-__version__ = '0.1.0-client.0'
+__version__ = '0.1.0'
