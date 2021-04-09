@@ -32,8 +32,8 @@ class CloudLoader:
 
     def _format_url(self, base_url):
         if self.google:
-            return 'http://storage.googleapis.com/' + base_url
-        return f'https://{self.region}.amazonaws.com/' + base_url
+            return f'http://storage.googleapis.com/{base_url}'
+        return f'https://{self.region}.amazonaws.com/{base_url}'
 
     def load_object(self, obj: dict) -> None:
         key = obj['Key']
