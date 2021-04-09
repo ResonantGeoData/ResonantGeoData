@@ -4,11 +4,11 @@ import re
 import pkg_resources
 import pytest
 
-RGDC_VERSION_REGEX = r'(\d+\.\d+\.\d+)-client\.\d+'
+RGDC_VERSION_REGEX = r'__version__ = \'(.*)\''
 
 
 @pytest.fixture
-def rgdc_base_version():
+def rgdc_version():
     base_dir = Path(__file__).parent.parent.parent.parent
     version_file = base_dir / 'rgdc' / 'rgdc' / 'version.py'
 
@@ -19,9 +19,9 @@ def rgdc_base_version():
     return version.group(1)
 
 
-def test_client_version_match(rgdc_base_version):
+def test_client_version_match(rgdc_version):
     rgd_version = next(
         pkg.version for pkg in pkg_resources.working_set if pkg.key == 'resonantgeodata'
     )
 
-    assert rgd_version == rgdc_base_version
+    assert rgd_version == rgdc_version
