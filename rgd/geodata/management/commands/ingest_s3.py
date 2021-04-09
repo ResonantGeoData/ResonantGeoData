@@ -38,7 +38,7 @@ class CloudLoader:
     def load_object(self, obj: dict) -> None:
         key = obj['Key']
         url = self._format_url(f'{self.bucket}/{key}')
-        _ = helper._get_or_create_checksum_file_url(url, name=obj['Key'])
+        helper._get_or_create_checksum_file_url(url, name=obj['Key'])
 
 
 @click.command()
