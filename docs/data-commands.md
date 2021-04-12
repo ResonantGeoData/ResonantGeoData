@@ -59,3 +59,5 @@ Here are some examples on how to ingest files automatically from Google Cloud St
 Since this command is only creating `ChecksumFile` records and we have that
 model's associated tasks to only run on demand, this command can run in the
 lighter `django` image.
+
+For all available options, run `docker-compose run --rm django ./manage.py ingest_s3 --help`
