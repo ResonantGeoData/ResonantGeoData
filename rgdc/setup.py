@@ -24,6 +24,7 @@ setup(
     license='Apache 2.0',
     author='Kitware, Inc.',
     author_email='kitware@kitware.com',
+    url='https://github.com/ResonantGeoData/ResonantGeoData',
     keywords='',
     classifiers=[
         'Development Status :: 3 - Alpha',
