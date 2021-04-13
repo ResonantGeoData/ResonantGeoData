@@ -34,7 +34,6 @@ def convert_to_cog(cog):
     with input_output_path_helper(src, output, prefix='cog_') as (input_path, output_path):
         large_image_converter.convert(str(input_path), str(output_path))
 
-    cog.converted_file.save()
     cog.save(
         update_fields=[
             'converted_file',
