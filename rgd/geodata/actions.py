@@ -1,5 +1,5 @@
 from . import tasks
-from .models.imagery import ImageSet, RasterEntry
+from .models.imagery import ImageFile, ImageSet, RasterEntry
 
 
 def _make_image_set_from_images(images):
@@ -10,6 +10,12 @@ def _make_image_set_from_images(images):
         imset.images.add(image)
     imset.save()
     return imset
+
+
+def make_image_files(modeladmin, request, queryset):
+    """Make ImageFile from ChecksumFile."""
+    for file in queryset.all():
+        ImageFile.objects.get_or_create(file=file)
 
 
 def make_image_set_from_image_entries(modeladmin, request, queryset):

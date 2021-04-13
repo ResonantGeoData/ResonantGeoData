@@ -60,7 +60,7 @@ class ChecksumFileAdmin(OSMGeoAdmin):
         'checksum',
         'last_validation',
     ) + TASK_EVENT_READONLY
-    actions = (actions.reprocess,)
+    actions = (actions.reprocess, actions.make_image_files)
 
 
 @admin.register(KWCOCOArchive)
