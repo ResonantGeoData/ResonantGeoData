@@ -243,9 +243,7 @@ def patch_internal_presign(f: FieldFile):
 
 
 @contextmanager
-def input_output_path_helper(
-    source: ChecksumFile, output: FieldFile, prefix: str = '', suffix: str = ''
-):
+def input_output_path_helper(source, output: FieldFile, prefix: str = '', suffix: str = ''):
     """Yeild source and output paths between a ChecksumFile and a FileFeild.
 
     The output path is saved to the output field after yeilding.
