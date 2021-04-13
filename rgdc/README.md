@@ -10,7 +10,7 @@ pip install rgdc
 
 # Usage
 ### Search and display results
-```
+```python
 import json
 import matplotlib.pyplot as plt
 import numpy as np
@@ -50,7 +50,7 @@ plt.title(f'Count: {len(q)}')
 ```
 
 ### Inspect raster
-```
+```python
 import imageio
 from io import BytesIO
 import requests
@@ -72,7 +72,7 @@ plt.show()
 ```
 
 ### Download Raster
-```
+```python
 import rasterio
 from rasterio.plot import show
 
