@@ -19,6 +19,7 @@ setup(
     license='Apache 2.0',
     author='Kitware, Inc.',
     author_email='kitware@kitware.com',
+    url='https://github.com/ResonantGeoData/ResonantGeoData',
     keywords='',
     classifiers=[
         'Development Status :: 3 - Alpha',
@@ -36,10 +37,12 @@ setup(
     packages=find_packages(),
     include_package_data=True,
     install_requires=[
+        'boto3',
         'celery',
         'django>=3.2',  # See PR #264: due to this bug: https://code.djangoproject.com/ticket/31910
         'django-allauth',
         'django-cleanup',
+        'django-click',
         'django-configurations[database,email]',
         'django-crispy-forms',
         'django-extensions',
