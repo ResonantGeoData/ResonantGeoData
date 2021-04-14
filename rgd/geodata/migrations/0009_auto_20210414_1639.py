@@ -4,7 +4,7 @@ from django.db import migrations, models
 
 
 def move_instrumentation_for_rasters(apps, schema_editor):
-    RasterMetaEntry = apps.get_model('geodata', 'RasterMetaEntry')
+    RasterMetaEntry = apps.get_model('geodata', 'RasterMetaEntry')  # noqa
     for r in RasterMetaEntry.objects.all():
         r.instrumentation = r.parent_raster.image_set.images.first().instrumentation
         r.save(update_fields=['instrumentation'])
