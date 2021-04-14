@@ -86,7 +86,7 @@ class SpatialEntryFilter(filters.FilterSet):
         label='Datatype',
     )
     instrumentation = filters.CharFilter(
-        field_name='rastermetaentry__parent_raster__image_set__images__instrumentation',
+        field_name='instrumentation',
         help_text='The instrumentation used to acquire at least one of these data.',
         label='Instrumentation',
         lookup_expr='icontains',
