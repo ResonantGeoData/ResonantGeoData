@@ -61,7 +61,6 @@ class SpatialEntryFilter(filters.FilterSet):
         field_name='acquisition_date',
         help_text='The ISO 8601 formatted date and time when data was acquired.',
         label='Acquired',
-        method='filter_acquired',
     )
     created = filters.IsoDateTimeFromToRangeFilter(
         field_name='created',
@@ -163,29 +162,6 @@ class SpatialEntryFilter(filters.FilterSet):
             return queryset.filter(rastermetaentry__isnull=False)
         if value == 'fmv':
             return queryset.filter(fmventry__isnull=False)
-        return queryset
-
-    def filter_acquired(self, queryset, name, value):
-        """Filter by when the data was acquired.
-
-        There is a special where filtering by acquisition, created is also filtered
-        for `RasterEntry`.
-        """
-        if value:
-            if value.start is not None:
-                queryset = queryset.filter(
-                    (
-                        Q(acquisition_date__gte=str(value.start))
-                        | Q(rastermetaentry__parent_raster__created__gte=str(value.start))
-                    )
-                )
-            if value.stop is not None:
-                queryset = queryset.filter(
-                    (
-                        Q(acquisition_date__lte=str(value.stop))
-                        | Q(rastermetaentry__parent_raster__created__lte=str(value.stop))
-                    )
-                )
         return queryset
 
     def filter_created(self, queryset, name, value):
