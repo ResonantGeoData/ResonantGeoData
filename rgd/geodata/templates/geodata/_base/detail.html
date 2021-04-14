@@ -57,6 +57,18 @@
               </tr>
             </thead>
             <tbody>
+              <tr>
+                <td>Acquisition Date</td>
+                <td>{{ object.acquisition_date }}</td>
+              </tr>
+              <tr>
+                <td>Area</td>
+                <td>{{ object.footprint.area | floatformat:-2 }}</td>
+              </tr>
+              <tr>
+                <td>Instrumentation</td>
+                <td>{{ object.instrumentation }}</td>
+              </tr>
               {% block meta_table_body %}{% endblock %}
             </tbody>
           </table>
