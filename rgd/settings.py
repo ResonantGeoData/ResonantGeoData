@@ -65,6 +65,7 @@ class RgdMixin(CrispyFormsMixin, GeoDjangoMixin, SwaggerMixin, ConfigMixin):
         # Install additional apps
         configuration.INSTALLED_APPS += [
             's3_file_field',
+            'rgd.stac.apps.STACConfig',
             'rules.apps.AutodiscoverRulesConfig',  # TODO: need this?
             # To ensure that exceptions inside other apps' signal handlers do not affect the
             # integrity of file deletions within transactions, CleanupConfig should be last.
