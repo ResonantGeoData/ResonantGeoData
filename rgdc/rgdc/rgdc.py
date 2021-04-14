@@ -183,7 +183,6 @@ class Rgdc:
         resolution: Optional[Tuple[int, int]] = None,
         cloud_cover: Optional[Tuple[float, float]] = None,
         frame_rate: Optional[Tuple[int, int]] = None,
-        offset: Optional[int] = None,
     ) -> Iterator[Dict]:
         """
         Search for geospatial entries based on various criteria.
@@ -207,7 +206,6 @@ class Rgdc:
             resolution: The min/max resolution of the raster.
             cloud_cover: The min/max cloud coverage of the raster.
             frame_rate: The min/max frame rate of the video.
-            offset: The number of results to skip.
 
         Returns:
             An list of Spatial Entries.
@@ -219,7 +217,6 @@ class Rgdc:
             'relates': relates,
             'datatype': datatype,
             'instrumentation': instrumentation,
-            'offset': offset,
         }
 
         if query:
