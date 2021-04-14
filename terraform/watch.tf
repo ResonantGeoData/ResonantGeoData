@@ -7,7 +7,7 @@ resource "aws_route53_record" "watch" {
 }
 
 resource "aws_route53_record" "www-watch" {
-  zone_id = aws_route53_zone.primary.zone_id
+  zone_id = aws_route53_zone.common.zone_id
   name    = "watch.resonantgeodata.com"
   type    = "A"
 
