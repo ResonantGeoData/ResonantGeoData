@@ -602,6 +602,7 @@ class SearchSpatialEntryView(ListAPIView):
     serializer_class = serializers.SpatialEntrySerializer
     filter_backends = [DjangoFilterBackend]
     filterset_class = SpatialEntryFilter
+    pagination_class = None
 
     def get_queryset(self):
         return filter_read_perm(self.request.user, super().get_queryset())
