@@ -208,11 +208,11 @@ class Rgdc:
             resolution: The min/max resolution of the raster.
             cloud_cover: The min/max cloud coverage of the raster.
             frame_rate: The min/max frame rate of the video.
-            limit: The maximum number of results to return.
+            limit: The maximum number of results to return. Default: all.
             offset: The number of results to skip.
 
         Returns:
-            An list of Spatial Entries.
+            A list of Spatial Entries.
         """
         # The dict that will be used to store params.
         # Initialize with queries that won't be additionally processed.
@@ -281,6 +281,20 @@ class Rgdc:
             params['frame_rate_min'] = frmin
             params['frame_rate_max'] = frmax
 
+        results = []
         response = self.session.get('geosearch', params=params)
         response.raise_for_status()
-        return [result for result in response.json()['results']]
+        last_results = response.json()['results']
+        results.extend(last_results)
+
+        # scroll through all pages
+        if limit is None:
+            params['offset'] += len(last_results)
+            while last_results:
+                response = self.session.get('geosearch', params=params)
+                response.raise_for_status()
+                last_results = response.json()['results']
+                results.extend(last_results)
+                params['offset'] += len(last_results)
+
+        return results
