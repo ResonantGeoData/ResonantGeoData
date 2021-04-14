@@ -13,7 +13,7 @@ resource "aws_route53_record" "www-watch" {
 
   alias {
     name                   = "RDG-ELB1-758710195.us-west-2.elb.amazonaws.com"
-    zone_id                = aws_elb.main.zone_id
+    zone_id                = "us-west-2"
     evaluate_target_health = true
   }
 }
