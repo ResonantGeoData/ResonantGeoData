@@ -11,7 +11,12 @@ from tqdm import tqdm
 
 from .session import RgdcSession
 from .types import DATETIME_OR_STR_TUPLE, SEARCH_DATATYPE_CHOICE, SEARCH_PREDICATE_CHOICE
-from .utils import DEFAULT_RGD_API, datetime_to_str, download_checksum_file_to_path
+from .utils import (
+    DEFAULT_RGD_API,
+    datetime_to_str,
+    download_checksum_file_to_path,
+    limit_offset_pager,
+)
 
 
 @dataclass
@@ -185,7 +190,7 @@ class Rgdc:
         frame_rate: Optional[Tuple[int, int]] = None,
         limit: Optional[int] = None,
         offset: Optional[int] = None,
-    ) -> Iterator[Dict]:
+    ) -> List[Dict]:
         """
         Search for geospatial entries based on various criteria.
 
@@ -212,7 +217,7 @@ class Rgdc:
             offset: The number of results to skip.
 
         Returns:
-            An list of Spatial Entries.
+            A list of Spatial Entries.
         """
         # The dict that will be used to store params.
         # Initialize with queries that won't be additionally processed.
@@ -281,6 +286,4 @@ class Rgdc:
             params['frame_rate_min'] = frmin
             params['frame_rate_max'] = frmax
 
-        response = self.session.get('geosearch', params=params)
-        response.raise_for_status()
-        return [result for result in response.json()['results']]
+        return list(limit_offset_pager(self.session, 'geosearch', params=params))
