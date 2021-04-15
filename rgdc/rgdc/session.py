@@ -1,8 +1,8 @@
 from typing import Optional
 
-from requests_toolbelt.sessions import BaseUrlSession
 from requests.adapters import HTTPAdapter
 from requests.packages.urllib3.util.retry import Retry
+from requests_toolbelt.sessions import BaseUrlSession
 
 from .version import __version__
 
@@ -28,7 +28,7 @@ class RgdcSession(BaseUrlSession):
             self.headers['Authorization'] = auth_header
 
 
-def retry_RgdcSession(*args, retries: Optional[int] = 5, **kwargs):
+def retry_rgdcsession(*args, retries: Optional[int] = 5, **kwargs):
     """
     Initialize a session with a ResonantGeoData server with automatic retries.
 

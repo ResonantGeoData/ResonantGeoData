@@ -94,9 +94,7 @@ class Rgdc:
         return r.content
 
     def _id(self, search_result):
-        """
-        Helper function to get the id of a returned SpatialEntry
-        """
+        """Get the id of a returned SpatialEntry."""
         return search_result['subentry_pk']
 
     def download_raster_entry_thumbnail(
