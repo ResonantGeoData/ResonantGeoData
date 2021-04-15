@@ -1,7 +1,7 @@
 from django.db import models
 
 from rgd.stac.models.asset.role import AssetRole
-from rgd.stac.models.asset.type import MediaType
+from rgd.stac.models.mediatype import MediaType
 
 
 class AbstractAsset(models.Model):
