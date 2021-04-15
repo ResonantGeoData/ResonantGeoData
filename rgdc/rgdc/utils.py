@@ -86,7 +86,7 @@ def download_checksum_file_to_path(file: Dict, path: Path, overwrite: bool):
     Args:
         file: A RGD ChecksumFile serialized as a Dict.
         path: The root path to download this file to.
-        overwrite: if True, replace files existing on disk
+        overwrite: If True, replace files existing on disk.
 
     Returns:
         The path on disk the file was downloaded to.
