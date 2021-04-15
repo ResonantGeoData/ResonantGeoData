@@ -117,6 +117,7 @@ class Rgdc:
         raster_meta_entry_id: Union[str, int],
         pathname: Optional[str] = None,
         nest_with_name: bool = False,
+        overwrite: bool = False,
     ) -> RasterDownload:
         """
         Download the image set associated with a raster entry to disk.
@@ -125,6 +126,7 @@ class Rgdc:
             raster_meta_entry_id: The id of the RasterMetaEntry, which is a child to the desired raster entry.
             pathname: The directory to download the image set to. If not supplied, a temporary directory will be used.
             nest_with_name: If True, nests the download within an additional directory, using the raster entry name.
+            overwrite: If True, replace files existing on disk
 
         Returns:
             A dictionary of the paths to all files downloaded under the directory.
@@ -155,14 +157,14 @@ class Rgdc:
         images = parent_raster.get('image_set', {}).get('images', [])
         for image in tqdm(images, desc='Downloading image files'):
             file = image.get('image_file', {}).get('file', {})
-            file_path = download_checksum_file_to_path(file, path)
+            file_path = download_checksum_file_to_path(file, path, overwrite=overwrite)
             if file_path:
                 raster_download.images.append(file_path)
 
         # Download ancillary files
         ancillary = parent_raster.get('ancillary_files', [])
         for file in tqdm(ancillary, desc='Downloading ancillary files'):
-            file_path = download_checksum_file_to_path(file, path)
+            file_path = download_checksum_file_to_path(file, path, overwrite=overwrite)
             if file_path:
                 raster_download.ancillary.append(file_path)
 
