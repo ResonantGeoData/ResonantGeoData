@@ -16,6 +16,7 @@ from .utils import (
     datetime_to_str,
     download_checksum_file_to_path,
     limit_offset_pager,
+    spatial_subentry_id,
 )
 
 
@@ -93,10 +94,6 @@ class Rgdc:
         r.raise_for_status()
         return r.content
 
-    def _id(self, search_result):
-        """Get the id of a returned SpatialEntry."""
-        return search_result['subentry_pk']
-
     def download_raster_entry_thumbnail(
         self,
         raster_meta_entry_id: Union[str, int, dict],
@@ -113,7 +110,7 @@ class Rgdc:
             Thumbnail bytes.
         """
         if isinstance(raster_meta_entry_id, dict):
-            raster_meta_entry_id = self._id(raster_meta_entry_id)
+            raster_meta_entry_id = spatial_subentry_id(raster_meta_entry_id)
 
         r = self.session.get(f'geodata/imagery/raster/{raster_meta_entry_id}')
         r.raise_for_status()
@@ -144,7 +141,7 @@ class Rgdc:
             A dictionary of the paths to all files downloaded under the directory.
         """
         if isinstance(raster_meta_entry_id, dict):
-            raster_meta_entry_id = self._id(raster_meta_entry_id)
+            raster_meta_entry_id = spatial_subentry_id(raster_meta_entry_id)
 
         r = self.session.get(f'geodata/imagery/raster/{raster_meta_entry_id}')
         r.raise_for_status()
