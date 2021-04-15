@@ -190,7 +190,7 @@ class Rgdc:
         frame_rate: Optional[Tuple[int, int]] = None,
         limit: Optional[int] = None,
         offset: Optional[int] = None,
-    ) -> Iterator[Dict]:
+    ) -> List[Dict]:
         """
         Search for geospatial entries based on various criteria.
 
@@ -286,4 +286,4 @@ class Rgdc:
             params['frame_rate_min'] = frmin
             params['frame_rate_max'] = frmax
 
-        yield from limit_offset_pager(self.session, 'geosearch', params=params)
+        return list(limit_offset_pager(self.session, 'geosearch', params=params))

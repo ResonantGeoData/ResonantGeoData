@@ -1,6 +1,6 @@
 from datetime import datetime
 from pathlib import Path
-from typing import Dict, Iterator, List, Optional
+from typing import Dict, Generator, Iterator, List, Optional
 
 import requests
 from requests import Response, Session
@@ -20,7 +20,7 @@ def pager(session: Session, url: str, **kwargs) -> Iterator[Response]:
             break
 
 
-def limit_offset_pager(session: Session, url: str, **kwargs) -> Iterator[Response]:
+def limit_offset_pager(session: Session, url: str, **kwargs) -> Generator[Dict, None, None]:
     """Exhaust a DRF Paginated list, respecting limit/offset."""
     # Default params kwarg
     if not kwargs.get('params'):
