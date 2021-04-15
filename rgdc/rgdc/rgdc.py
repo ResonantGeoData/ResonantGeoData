@@ -55,8 +55,6 @@ class Rgdc:
     def list_image_entry_tiles(self, image_entry_id: Union[str, int]) -> Dict:
         """List geodata imagery image_entry tiles."""
         r = self.session.get(f'geodata/imagery/{image_entry_id}/tiles')
-        r.raise_for_status()
-
         return r.json()
 
     def download_image_entry_file(
@@ -73,8 +71,6 @@ class Rgdc:
             An iterator of byte chunks.
         """
         r = self.session.get(f'geodata/imagery/{image_entry_id}/data', stream=True)
-        r.raise_for_status()
-
         return r.iter_content(chunk_size=chunk_size)
 
     def download_image_entry_thumbnail(
@@ -91,7 +87,6 @@ class Rgdc:
             Thumbnail bytes.
         """
         r = self.session.get(f'geoprocess/imagery/{image_entry_id}/thumbnail')
-        r.raise_for_status()
         return r.content
 
     def download_raster_entry_thumbnail(
@@ -113,7 +108,6 @@ class Rgdc:
             raster_meta_entry_id = spatial_subentry_id(raster_meta_entry_id)
 
         r = self.session.get(f'geodata/imagery/raster/{raster_meta_entry_id}')
-        r.raise_for_status()
         parent_raster = r.json().get('parent_raster', {})
         images = parent_raster.get('image_set', {}).get('images', [])
         try:
@@ -144,7 +138,6 @@ class Rgdc:
             raster_meta_entry_id = spatial_subentry_id(raster_meta_entry_id)
 
         r = self.session.get(f'geodata/imagery/raster/{raster_meta_entry_id}')
-        r.raise_for_status()
         parent_raster = r.json().get('parent_raster', {})
 
         # Create dirs after request to avoid empty dirs if failed

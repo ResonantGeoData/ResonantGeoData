@@ -1,5 +1,6 @@
 from typing import Optional
 
+from requests import Response
 from requests.adapters import HTTPAdapter
 from requests.packages.urllib3.util.retry import Retry
 from requests_toolbelt.sessions import BaseUrlSession
@@ -40,3 +41,10 @@ class RgdcSession(BaseUrlSession):
         adapter = HTTPAdapter(max_retries=retry)
         self.mount('https://', adapter)
         self.mount('http://', adapter)
+
+        # Define hook to assert that a request succeeded
+        def assert_status_hook(response: Response, *args, **kwargs):
+            response.raise_for_status()
+
+        # Response field is present by default
+        self.hooks['response'].append(assert_status_hook)
