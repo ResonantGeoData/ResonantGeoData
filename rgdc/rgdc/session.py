@@ -1,6 +1,8 @@
 from typing import Optional
 
 from requests_toolbelt.sessions import BaseUrlSession
+from requests.adapters import HTTPAdapter
+from requests.packages.urllib3.util.retry import Retry
 
 from .version import __version__
 
@@ -24,3 +26,24 @@ class RgdcSession(BaseUrlSession):
 
         if auth_header:
             self.headers['Authorization'] = auth_header
+
+
+def retry_RgdcSession(*args, retries: Optional[int] = 5, **kwargs):
+    """
+    Initialize a session with a ResonantGeoData server with automatic retries.
+
+    See RgdcSession for args.
+
+    References:
+        https://www.peterbe.com/plog/best-practice-with-retries-with-requests
+        https://findwork.dev/blog/advanced-usage-python-requests-timeouts-retries-hooks/
+    """
+    session = RgdcSession(*args, **kwargs)
+    retry = Retry(
+        total=retries, status_forcelist=[429, 503], method_whitelist=['GET'], backoff_factor=1
+    )
+    adapter = HTTPAdapter(max_retries=retry)
+    session.mount('https://', adapter)
+    session.mount('http://', adapter)
+
+    return session

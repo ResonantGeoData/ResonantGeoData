@@ -9,7 +9,7 @@ from typing import Dict, Iterator, List, Optional, Tuple, Union
 from geomet import wkt
 from tqdm import tqdm
 
-from .session import RgdcSession
+from .session import retry_RgdcSession
 from .types import DATETIME_OR_STR_TUPLE, SEARCH_DATATYPE_CHOICE, SEARCH_PREDICATE_CHOICE
 from .utils import DEFAULT_RGD_API, datetime_to_str, download_checksum_file_to_path
 
@@ -44,7 +44,7 @@ class Rgdc:
             encoded_credentials = b64encode(f'{username}:{password}'.encode('utf-8')).decode()
             auth_header = f'Basic {encoded_credentials}'
 
-        self.session = RgdcSession(base_url=api_url, auth_header=auth_header)
+        self.session = retry_RgdcSession(base_url=api_url, auth_header=auth_header)
 
     def list_image_entry_tiles(self, image_entry_id: Union[str, int]) -> Dict:
         """List geodata imagery image_entry tiles."""
