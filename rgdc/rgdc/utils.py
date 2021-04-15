@@ -79,14 +79,14 @@ def datetime_to_str(value: object):
     return value
 
 
-def download_checksum_file_to_path(file: Dict, path: Path, overwrite: bool):
+def download_checksum_file_to_path(file: Dict, path: Path, keep_existing: bool):
     """
     Download a RGD ChecksumFile to a given path.
 
     Args:
         file: A RGD ChecksumFile serialized as a Dict.
         path: The root path to download this file to.
-        overwrite: If True, replace files existing on disk.
+        keep_existing: If False, replace files existing on disk.
 
     Returns:
         The path on disk the file was downloaded to.
@@ -111,7 +111,7 @@ def download_checksum_file_to_path(file: Dict, path: Path, overwrite: bool):
 
     # Download contents to file
     file_path = parent_path / filename
-    if not file_path.is_file() or overwrite:
+    if not (file_path.is_file() and keep_existing):
         with open(file_path, 'wb') as open_file_path:
             for chunk in iterate_response_bytes(file_download_url):
                 open_file_path.write(chunk)
