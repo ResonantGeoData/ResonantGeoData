@@ -8,12 +8,19 @@ from .version import __version__
 
 
 class RgdcSession(BaseUrlSession):
-    def __init__(self, base_url: str, auth_header: Optional[str] = None):
+    def __init__(
+        self, base_url: str, auth_header: Optional[str] = None, retries: Optional[int] = 5
+    ):
         """
         Initialize a session with a ResonantGeoData server.
 
         base_url: The base url of the RGD API instance.
         auth_header: If provided, set as the `Authorization` header on each request
+        retries: Number of times to retry a failed request
+
+        References:
+            https://www.peterbe.com/plog/best-practice-with-retries-with-requests
+            https://findwork.dev/blog/advanced-usage-python-requests-timeouts-retries-hooks/
         """
         base_url = f'{base_url.rstrip("/")}/'  # tolerate input with or without trailing slash
         super().__init__(base_url=base_url)
@@ -27,23 +34,9 @@ class RgdcSession(BaseUrlSession):
         if auth_header:
             self.headers['Authorization'] = auth_header
 
-
-def retry_rgdcsession(*args, retries: Optional[int] = 5, **kwargs):
-    """
-    Initialize a session with a ResonantGeoData server with automatic retries.
-
-    See RgdcSession for args.
-
-    References:
-        https://www.peterbe.com/plog/best-practice-with-retries-with-requests
-        https://findwork.dev/blog/advanced-usage-python-requests-timeouts-retries-hooks/
-    """
-    session = RgdcSession(*args, **kwargs)
-    retry = Retry(
-        total=retries, status_forcelist=[429, 503], method_whitelist=['GET'], backoff_factor=1
-    )
-    adapter = HTTPAdapter(max_retries=retry)
-    session.mount('https://', adapter)
-    session.mount('http://', adapter)
-
-    return session
+        retry = Retry(
+            total=retries, status_forcelist=[429, 503], method_whitelist=['GET'], backoff_factor=1
+        )
+        adapter = HTTPAdapter(max_retries=retry)
+        self.mount('https://', adapter)
+        self.mount('http://', adapter)

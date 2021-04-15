@@ -119,6 +119,6 @@ def download_checksum_file_to_path(file: Dict, path: Path, overwrite: bool):
     return file_path
 
 
-def spatial_subentry_id(self, search_result):
+def spatial_subentry_id(search_result):
     """Get the id of a returned SpatialEntry."""
     return search_result['subentry_pk']
