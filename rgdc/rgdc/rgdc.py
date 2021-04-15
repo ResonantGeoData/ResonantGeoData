@@ -88,21 +88,30 @@ class Rgdc:
         r.raise_for_status()
         return r.content
 
+    def _id(self, search_result):
+        """
+        Helper function to get the id of a returned SpatialEntry
+        """
+        return search_result['subentry_pk']
+
     def download_raster_entry_thumbnail(
         self,
-        raster_meta_entry_id: Union[str, int],
+        raster_meta_entry_id: Union[str, int, dict],
         band: int = 0,
     ) -> bytes:
         """
         Download the generated thumbnail for this ImageEntry.
 
         Args:
-            raster_meta_entry_id: The id of the RasterMetaEntry, which is a child to the desired raster entry.
+            raster_meta_entry_id: The id of the RasterMetaEntry, which is a child to the desired raster entry, or search result.
             band: The index of the image in the raster's image set to produce thumbnail from.
 
         Returns:
             Thumbnail bytes.
         """
+        if isinstance(raster_meta_entry_id, dict):
+            raster_meta_entry_id = self._id(raster_meta_entry_id)
+
         r = self.session.get(f'geodata/imagery/raster/{raster_meta_entry_id}')
         r.raise_for_status()
         parent_raster = r.json().get('parent_raster', {})
@@ -114,7 +123,7 @@ class Rgdc:
 
     def download_raster_entry(
         self,
-        raster_meta_entry_id: Union[str, int],
+        raster_meta_entry_id: Union[str, int, dict],
         pathname: Optional[str] = None,
         nest_with_name: bool = False,
         overwrite: bool = False,
@@ -123,7 +132,7 @@ class Rgdc:
         Download the image set associated with a raster entry to disk.
 
         Args:
-            raster_meta_entry_id: The id of the RasterMetaEntry, which is a child to the desired raster entry.
+            raster_meta_entry_id: The id of the RasterMetaEntry, which is a child to the desired raster entry, or search result.
             pathname: The directory to download the image set to. If not supplied, a temporary directory will be used.
             nest_with_name: If True, nests the download within an additional directory, using the raster entry name.
             overwrite: If True, replace files existing on disk
@@ -131,6 +140,9 @@ class Rgdc:
         Returns:
             A dictionary of the paths to all files downloaded under the directory.
         """
+        if isinstance(raster_meta_entry_id, dict):
+            raster_meta_entry_id = self._id(raster_meta_entry_id)
+
         r = self.session.get(f'geodata/imagery/raster/{raster_meta_entry_id}')
         r.raise_for_status()
         parent_raster = r.json().get('parent_raster', {})
