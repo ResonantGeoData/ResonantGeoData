@@ -54,7 +54,7 @@ class Rgdc:
 
     def list_image_entry_tiles(self, image_entry_id: Union[str, int]) -> Dict:
         """List geodata imagery image_entry tiles."""
-        r = self.session.get(f'geodata/imagery/{image_entry_id}/tiles')
+        r = self.session.get(f'geoprocess/imagery/{image_entry_id}/tiles')
         return r.json()
 
     def download_image_entry_file(
