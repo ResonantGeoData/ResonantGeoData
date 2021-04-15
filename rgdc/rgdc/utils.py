@@ -1,6 +1,6 @@
 from datetime import datetime
 from pathlib import Path
-from typing import Dict, Iterator, List
+from typing import Dict, Iterator, List, Optional
 
 import requests
 from requests import Response, Session
@@ -17,6 +17,44 @@ def pager(session: Session, url: str, **kwargs) -> Iterator[Response]:
         if 'next' in r.links:
             url = r.links['next']['url']
         else:
+            break
+
+
+def limit_offset_pager(session: Session, url: str, **kwargs) -> Iterator[Response]:
+    """Exhaust a DRF Paginated list, respecting limit/offset."""
+    # Default params kwarg
+    if not kwargs.get('params'):
+        kwargs['params'] = {}
+
+    params: Optional[Dict] = kwargs['params']
+    total_limit = params.get('limit')
+
+    # Default offset
+    if params.get('offset') is None:
+        params['offset'] = 0
+
+    num_results = 0
+    while True:
+        # Update limit
+        if total_limit:
+            params['limit'] = total_limit - num_results
+
+        # Make request and raise exception if failed
+        r = session.get(url, **kwargs)
+        r.raise_for_status()
+
+        # Yield results
+        results = r.json()['results']
+        yield from results
+
+        # Update offset and num_results
+        params['offset'] += len(results)
+        num_results += len(results)
+
+        # Check if there is no more data, or if we've reached our limit
+        no_more_data = 'next' not in r.links or not results
+        limit_reached = total_limit and num_results >= total_limit
+        if no_more_data or limit_reached:
             break
 
 

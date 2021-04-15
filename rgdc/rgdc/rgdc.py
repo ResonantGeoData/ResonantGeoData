@@ -11,7 +11,12 @@ from tqdm import tqdm
 
 from .session import RgdcSession
 from .types import DATETIME_OR_STR_TUPLE, SEARCH_DATATYPE_CHOICE, SEARCH_PREDICATE_CHOICE
-from .utils import DEFAULT_RGD_API, datetime_to_str, download_checksum_file_to_path
+from .utils import (
+    DEFAULT_RGD_API,
+    datetime_to_str,
+    download_checksum_file_to_path,
+    limit_offset_pager,
+)
 
 
 @dataclass
@@ -281,6 +286,4 @@ class Rgdc:
             params['frame_rate_min'] = frmin
             params['frame_rate_max'] = frmax
 
-        response = self.session.get('geosearch', params=params)
-        response.raise_for_status()
-        return [result for result in response.json()['results']]
+        yield from limit_offset_pager(self.session, 'geosearch', params=params)
