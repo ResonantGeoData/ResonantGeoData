@@ -129,7 +129,7 @@ class Rgdc:
             raster_meta_entry_id: The id of the RasterMetaEntry, which is a child to the desired raster entry, or search result.
             pathname: The directory to download the image set to. If not supplied, a temporary directory will be used.
             nest_with_name: If True, nests the download within an additional directory, using the raster entry name.
-            keep_existing: If False, replace files existing on disk
+            keep_existing: If False, replace files existing on disk. Only valid if `pathname` is given.
 
         Returns:
             A dictionary of the paths to all files downloaded under the directory.
