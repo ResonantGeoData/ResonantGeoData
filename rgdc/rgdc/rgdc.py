@@ -16,6 +16,7 @@ from .utils import (
     datetime_to_str,
     download_checksum_file_to_path,
     limit_offset_pager,
+    spatial_subentry_id,
 )
 
 
@@ -53,9 +54,7 @@ class Rgdc:
 
     def list_image_entry_tiles(self, image_entry_id: Union[str, int]) -> Dict:
         """List geodata imagery image_entry tiles."""
-        r = self.session.get(f'geodata/imagery/{image_entry_id}/tiles')
-        r.raise_for_status()
-
+        r = self.session.get(f'geoprocess/imagery/{image_entry_id}/tiles')
         return r.json()
 
     def download_image_entry_file(
@@ -72,8 +71,6 @@ class Rgdc:
             An iterator of byte chunks.
         """
         r = self.session.get(f'geodata/imagery/{image_entry_id}/data', stream=True)
-        r.raise_for_status()
-
         return r.iter_content(chunk_size=chunk_size)
 
     def download_image_entry_thumbnail(
@@ -90,26 +87,27 @@ class Rgdc:
             Thumbnail bytes.
         """
         r = self.session.get(f'geoprocess/imagery/{image_entry_id}/thumbnail')
-        r.raise_for_status()
         return r.content
 
     def download_raster_entry_thumbnail(
         self,
-        raster_meta_entry_id: Union[str, int],
+        raster_meta_entry_id: Union[str, int, dict],
         band: int = 0,
     ) -> bytes:
         """
         Download the generated thumbnail for this ImageEntry.
 
         Args:
-            raster_meta_entry_id: The id of the RasterMetaEntry, which is a child to the desired raster entry.
+            raster_meta_entry_id: The id of the RasterMetaEntry, which is a child to the desired raster entry, or search result.
             band: The index of the image in the raster's image set to produce thumbnail from.
 
         Returns:
             Thumbnail bytes.
         """
+        if isinstance(raster_meta_entry_id, dict):
+            raster_meta_entry_id = spatial_subentry_id(raster_meta_entry_id)
+
         r = self.session.get(f'geodata/imagery/raster/{raster_meta_entry_id}')
-        r.raise_for_status()
         parent_raster = r.json().get('parent_raster', {})
         images = parent_raster.get('image_set', {}).get('images', [])
         try:
@@ -119,23 +117,27 @@ class Rgdc:
 
     def download_raster_entry(
         self,
-        raster_meta_entry_id: Union[str, int],
+        raster_meta_entry_id: Union[str, int, dict],
         pathname: Optional[str] = None,
         nest_with_name: bool = False,
+        keep_existing: bool = True,
     ) -> RasterDownload:
         """
         Download the image set associated with a raster entry to disk.
 
         Args:
-            raster_meta_entry_id: The id of the RasterMetaEntry, which is a child to the desired raster entry.
+            raster_meta_entry_id: The id of the RasterMetaEntry, which is a child to the desired raster entry, or search result.
             pathname: The directory to download the image set to. If not supplied, a temporary directory will be used.
             nest_with_name: If True, nests the download within an additional directory, using the raster entry name.
+            keep_existing: If False, replace files existing on disk. Only valid if `pathname` is given.
 
         Returns:
             A dictionary of the paths to all files downloaded under the directory.
         """
+        if isinstance(raster_meta_entry_id, dict):
+            raster_meta_entry_id = spatial_subentry_id(raster_meta_entry_id)
+
         r = self.session.get(f'geodata/imagery/raster/{raster_meta_entry_id}')
-        r.raise_for_status()
         parent_raster = r.json().get('parent_raster', {})
 
         # Create dirs after request to avoid empty dirs if failed
@@ -160,14 +162,14 @@ class Rgdc:
         images = parent_raster.get('image_set', {}).get('images', [])
         for image in tqdm(images, desc='Downloading image files'):
             file = image.get('image_file', {}).get('file', {})
-            file_path = download_checksum_file_to_path(file, path)
+            file_path = download_checksum_file_to_path(file, path, keep_existing=keep_existing)
             if file_path:
                 raster_download.images.append(file_path)
 
         # Download ancillary files
         ancillary = parent_raster.get('ancillary_files', [])
         for file in tqdm(ancillary, desc='Downloading ancillary files'):
-            file_path = download_checksum_file_to_path(file, path)
+            file_path = download_checksum_file_to_path(file, path, keep_existing=keep_existing)
             if file_path:
                 raster_download.ancillary.append(file_path)
 

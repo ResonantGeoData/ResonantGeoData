@@ -79,13 +79,14 @@ def datetime_to_str(value: object):
     return value
 
 
-def download_checksum_file_to_path(file: Dict, path: Path):
+def download_checksum_file_to_path(file: Dict, path: Path, keep_existing: bool):
     """
     Download a RGD ChecksumFile to a given path.
 
     Args:
         file: A RGD ChecksumFile serialized as a Dict.
         path: The root path to download this file to.
+        keep_existing: If False, replace files existing on disk.
 
     Returns:
         The path on disk the file was downloaded to.
@@ -110,8 +111,14 @@ def download_checksum_file_to_path(file: Dict, path: Path):
 
     # Download contents to file
     file_path = parent_path / filename
-    with open(file_path, 'wb') as open_file_path:
-        for chunk in iterate_response_bytes(file_download_url):
-            open_file_path.write(chunk)
+    if not (file_path.is_file() and keep_existing):
+        with open(file_path, 'wb') as open_file_path:
+            for chunk in iterate_response_bytes(file_download_url):
+                open_file_path.write(chunk)
 
     return file_path
+
+
+def spatial_subentry_id(search_result):
+    """Get the id of a returned SpatialEntry."""
+    return search_result['subentry_pk']
