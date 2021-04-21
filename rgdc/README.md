@@ -62,7 +62,7 @@ load_image = lambda imbytes: imageio.imread(BytesIO(imbytes))
 
 count = len(raster['parent_raster']['image_set']['images'])
 for i in range(count):
-    thumb_bytes = client.download_raster_entry_thumbnail(q[0], band=i)
+    thumb_bytes = client.download_raster_thumbnail(q[0], band=i)
     thumb = load_image(thumb_bytes)
     plt.subplot(1, count, i+1)
     plt.imshow(thumb)
@@ -76,7 +76,7 @@ plt.show()
 import rasterio
 from rasterio.plot import show
 
-paths = client.download_raster_entry(q[0])
+paths = client.download_raster(q[0])
 rasters = [rasterio.open(im) for im in paths.images]
 for i, src in enumerate(rasters):
     plt.subplot(1, count, i+1)
