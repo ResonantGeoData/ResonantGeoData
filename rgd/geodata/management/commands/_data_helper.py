@@ -187,13 +187,12 @@ def load_raster(pks, raster_dict):
             for path, af in ancillary
         ]
     if instrumentation:
-        for im in raster.image_set.images.all():
-            im.instrumentation = instrumentation
-            im.save(
-                update_fields=[
-                    'instrumentation',
-                ]
-            )
+        raster.rastermetaentry.instrumentation = instrumentation
+        raster.rastermetaentry.save(
+            update_fields=[
+                'instrumentation',
+            ]
+        )
     return raster
 
 

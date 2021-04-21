@@ -26,6 +26,7 @@ from .models.imagery.base import (
 
 SPATIAL_ENTRY_FILTERS = (
     'acquisition_date',
+    'instrumentation',
     'modified',
     'created',
 )
@@ -142,7 +143,7 @@ class ImageEntryAdmin(OSMGeoAdmin):
         'modified',
         'created',
     )
-    list_filter = ('instrumentation', 'number_of_bands', 'driver')
+    list_filter = ('number_of_bands', 'driver')
     actions = (
         actions.make_image_set_from_image_entries,
         actions.make_raster_from_image_entries,
