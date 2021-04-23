@@ -90,6 +90,12 @@ class RgdMixin(CrispyFormsMixin, GeoDjangoMixin, SwaggerMixin, ConfigMixin):
 
     CELERY_WORKER_SEND_TASK_EVENTS = True
 
+    RGD_FILE_FIELD_PREFIX = values.Value(
+        default=None,
+        environ=True,
+        environ_prefix='DJANGO',
+    )
+
 
 class DevelopmentConfiguration(RgdMixin, DevelopmentBaseConfiguration):
     pass
