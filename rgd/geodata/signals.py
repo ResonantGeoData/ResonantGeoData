@@ -1,6 +1,7 @@
 from functools import wraps
 import os
 
+from allauth.account.signals import user_signed_up
 from django.db import transaction
 from django.db.models.signals import m2m_changed, post_delete, post_save
 from django.dispatch import receiver
@@ -109,3 +110,10 @@ def _post_delete_converted_image_file(sender, instance, *args, **kwargs):
 @skip_signal()
 def _post_delete_subsampled_image(sender, instance, *args, **kwargs):
     transaction.on_commit(lambda: instance._post_delete(*args, **kwargs))
+
+
+@receiver(user_signed_up)
+def set_new_user_inactive(sender, **kwargs):
+    user = kwargs.get('user')
+    user.is_active = False
+    user.save(update_fields=['is_active'])
