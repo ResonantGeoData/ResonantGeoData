@@ -80,7 +80,7 @@ setup(
             'scipy',
             'kwarray>=0.5.10',
             'kwcoco',
-            'kwimage>=0.6.7',
+            'kwimage[headless]>=0.6.7',
         ],
         'fuse': [
             'simple-httpfs',
