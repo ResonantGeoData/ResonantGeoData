@@ -1,4 +1,6 @@
 from django.contrib import admin
+from django.contrib.auth.admin import UserAdmin
+from django.contrib.auth.models import User
 from django.contrib.gis.admin import OSMGeoAdmin
 
 from . import actions
@@ -35,6 +37,23 @@ TASK_EVENT_READONLY = (
     'failure_reason',
     'status',
 )
+
+admin.site.unregister(User)
+
+
+@admin.register(User)
+class CustomUserAdmin(UserAdmin):
+    actions = [
+        actions.make_users_active,
+        actions.make_users_staff,
+    ]
+
+    list_display = (
+        'username',
+        'is_staff',
+        'is_superuser',
+        'is_active',
+    )
 
 
 class _FileGetNameMixin:

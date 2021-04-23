@@ -95,3 +95,19 @@ def clean_empty_rasters(modeladmin, request, queryset):
     for raster in queryset.all():
         if len(raster.image_set.images) < 1:
             raster.image_set.delete()
+
+
+def make_users_active(modeladmin, request, queryset):
+    """Make each user active."""
+    for user in queryset.all():
+        if not user.is_active:
+            user.is_active = True
+            user.save(update_fields=['is_active'])
+
+
+def make_users_staff(modeladmin, request, queryset):
+    """Make each user staff."""
+    for user in queryset.all():
+        if not user.is_staff:
+            user.is_staff = True
+            user.save(update_fields=['is_staff'])
