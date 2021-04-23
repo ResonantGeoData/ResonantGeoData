@@ -104,6 +104,12 @@ class ProductionConfiguration(RgdMixin, ProductionBaseConfiguration):
     pass
 
 
+class AWSProductionConfiguration(RgdMixin, ProductionBaseConfiguration):
+    AWS_S3_ACCESS_KEY_ID = None
+    AWS_S3_SECRET_ACCESS_KEY = None
+    AWS_S3_REGION_NAME = None
+
+
 class HerokuProductionConfiguration(RgdMixin, HerokuProductionBaseConfiguration):
     # Use different env var names (with no DJANGO_ prefix) for services that Heroku auto-injects
     DATABASES = values.DatabaseURLValue(
