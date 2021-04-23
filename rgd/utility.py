@@ -245,7 +245,7 @@ def patch_internal_presign(f: FieldFile):
 
 def uuid_prefix_filename(instance: Any, filename: str):
     """Use a variable in settings to add a prefix to the path and keep the random uuid."""
-    prefix = settings.S3_FILE_FIELD_PREFIX
+    prefix = settings.RGD_FILE_FIELD_PREFIX
     if prefix:
         return f'{prefix}/{uuid4()}/{filename}'
     return f'{uuid4()}/{filename}'

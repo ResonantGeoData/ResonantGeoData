@@ -90,7 +90,7 @@ class RgdMixin(CrispyFormsMixin, GeoDjangoMixin, SwaggerMixin, ConfigMixin):
 
     CELERY_WORKER_SEND_TASK_EVENTS = True
 
-    S3_FILE_FIELD_PREFIX = values.Value(default=None, environ=True)
+    RGD_FILE_FIELD_PREFIX = values.Value(default=None, environ=True)
 
 
 class DevelopmentConfiguration(RgdMixin, DevelopmentBaseConfiguration):
