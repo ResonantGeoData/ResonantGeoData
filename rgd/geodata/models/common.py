@@ -20,6 +20,7 @@ from rgd.utility import (
     safe_urlopen,
     url_file_to_fuse_path,
     url_file_to_local_path,
+    uuid_prefix_filename,
 )
 
 # from .. import tasks
@@ -138,7 +139,7 @@ class ChecksumFile(ModifiableEntry, TaskEventMixin):
     )
 
     type = models.IntegerField(choices=FileSourceType.choices, default=FileSourceType.FILE_FIELD)
-    file = S3FileField(null=True, blank=True)
+    file = S3FileField(null=True, blank=True, upload_to=uuid_prefix_filename)
     url = models.TextField(null=True, blank=True)
 
     task_funcs = (
