@@ -68,6 +68,13 @@ class SpatialEntry(models.Model):
     footprint = models.PolygonField(srid=DB_SRID)
     outline = models.PolygonField(srid=DB_SRID)
 
+    instrumentation = models.CharField(
+        max_length=100,
+        null=True,
+        blank=True,
+        help_text='The instrumentation used to acquire these data.',
+    )
+
     objects = InheritanceManager()
 
     def __str__(self):

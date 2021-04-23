@@ -38,13 +38,6 @@ class ImageEntry(ModifiableEntry):
     name = models.CharField(max_length=1000, blank=True)
     description = models.TextField(null=True, blank=True)
 
-    instrumentation = models.CharField(
-        max_length=100,
-        null=True,
-        blank=True,
-        help_text='The instrumentation used to acquire these data.',
-    )
-
     image_file = models.OneToOneField(ImageFile, on_delete=models.CASCADE)
     driver = models.CharField(max_length=100)
     height = models.PositiveIntegerField()

@@ -11,7 +11,13 @@ from tqdm import tqdm
 
 from .session import RgdcSession
 from .types import DATETIME_OR_STR_TUPLE, SEARCH_DATATYPE_CHOICE, SEARCH_PREDICATE_CHOICE
-from .utils import DEFAULT_RGD_API, datetime_to_str, download_checksum_file_to_path
+from .utils import (
+    DEFAULT_RGD_API,
+    datetime_to_str,
+    download_checksum_file_to_path,
+    limit_offset_pager,
+    spatial_subentry_id,
+)
 
 
 @dataclass
@@ -46,91 +52,92 @@ class Rgdc:
 
         self.session = RgdcSession(base_url=api_url, auth_header=auth_header)
 
-    def list_image_entry_tiles(self, image_entry_id: Union[str, int]) -> Dict:
-        """List geodata imagery image_entry tiles."""
-        r = self.session.get(f'geodata/imagery/{image_entry_id}/tiles')
-        r.raise_for_status()
-
+    def list_image_tiles(self, image_id: Union[str, int]) -> Dict:
+        """List geodata imagery tiles."""
+        r = self.session.get(f'geoprocess/imagery/{image_id}/tiles')
         return r.json()
 
-    def download_image_entry_file(
-        self, image_entry_id: Union[str, int], chunk_size: int = 1024 * 1024
+    def download_image_file(
+        self, image_id: Union[str, int], chunk_size: int = 1024 * 1024
     ) -> Iterator[bytes]:
         """
         Download the associated ImageFile data for this ImageEntry directly from S3.
 
         Args:
-            image_entry_id: The ID of the ImageEntry to download.
+            image_id: The ID of the ImageEntry to download.
             chunk_size: The size (in bytes) of each item in the returned iterator (defaults to 1MB).
 
         Returns:
             An iterator of byte chunks.
         """
-        r = self.session.get(f'geodata/imagery/{image_entry_id}/data', stream=True)
-        r.raise_for_status()
-
+        r = self.session.get(f'geodata/imagery/{image_id}/data', stream=True)
         return r.iter_content(chunk_size=chunk_size)
 
-    def download_image_entry_thumbnail(
+    def download_image_thumbnail(
         self,
-        image_entry_id: Union[str, int],
+        image_id: Union[str, int],
     ) -> bytes:
         """
         Download the generated thumbnail for this ImageEntry.
 
         Args:
-            image_entry_id: The ID of the ImageEntry to download.
+            image_id: The ID of the ImageEntry to download.
 
         Returns:
             Thumbnail bytes.
         """
-        r = self.session.get(f'geoprocess/imagery/{image_entry_id}/thumbnail')
-        r.raise_for_status()
+        r = self.session.get(f'geoprocess/imagery/{image_id}/thumbnail')
         return r.content
 
-    def download_raster_entry_thumbnail(
+    def download_raster_thumbnail(
         self,
-        raster_meta_entry_id: Union[str, int],
+        raster_meta_id: Union[str, int, dict],
         band: int = 0,
     ) -> bytes:
         """
         Download the generated thumbnail for this ImageEntry.
 
         Args:
-            raster_meta_entry_id: The id of the RasterMetaEntry, which is a child to the desired raster entry.
+            raster_meta_id: The id of the RasterMetaEntry, which is a child to the desired raster entry, or search result.
             band: The index of the image in the raster's image set to produce thumbnail from.
 
         Returns:
             Thumbnail bytes.
         """
-        r = self.session.get(f'geodata/imagery/raster/{raster_meta_entry_id}')
-        r.raise_for_status()
+        if isinstance(raster_meta_id, dict):
+            raster_meta_id = spatial_subentry_id(raster_meta_id)
+
+        r = self.session.get(f'geodata/imagery/raster/{raster_meta_id}')
         parent_raster = r.json().get('parent_raster', {})
         images = parent_raster.get('image_set', {}).get('images', [])
         try:
-            return self.download_image_entry_thumbnail(images[band]['id'])
+            return self.download_image_thumbnail(images[band]['id'])
         except IndexError:
             raise IndexError(f'Band index ({band}) out of range.')
 
-    def download_raster_entry(
+    def download_raster(
         self,
-        raster_meta_entry_id: Union[str, int],
+        raster_meta_id: Union[str, int, dict],
         pathname: Optional[str] = None,
         nest_with_name: bool = False,
+        keep_existing: bool = True,
     ) -> RasterDownload:
         """
         Download the image set associated with a raster entry to disk.
 
         Args:
-            raster_meta_entry_id: The id of the RasterMetaEntry, which is a child to the desired raster entry.
+            raster_meta_id: The id of the RasterMetaEntry, which is a child to the desired raster entry, or search result.
             pathname: The directory to download the image set to. If not supplied, a temporary directory will be used.
             nest_with_name: If True, nests the download within an additional directory, using the raster entry name.
+            keep_existing: If False, replace files existing on disk. Only valid if `pathname` is given.
 
         Returns:
             A dictionary of the paths to all files downloaded under the directory.
         """
-        r = self.session.get(f'geodata/imagery/raster/{raster_meta_entry_id}')
-        r.raise_for_status()
+        if isinstance(raster_meta_id, dict):
+            raster_meta_id = spatial_subentry_id(raster_meta_id)
+
+        r = self.session.get(f'geodata/imagery/raster/{raster_meta_id}')
         parent_raster = r.json().get('parent_raster', {})
 
         # Create dirs after request to avoid empty dirs if failed
@@ -155,14 +162,14 @@ class Rgdc:
         images = parent_raster.get('image_set', {}).get('images', [])
         for image in tqdm(images, desc='Downloading image files'):
             file = image.get('image_file', {}).get('file', {})
-            file_path = download_checksum_file_to_path(file, path)
+            file_path = download_checksum_file_to_path(file, path, keep_existing=keep_existing)
             if file_path:
                 raster_download.images.append(file_path)
 
         # Download ancillary files
         ancillary = parent_raster.get('ancillary_files', [])
         for file in tqdm(ancillary, desc='Downloading ancillary files'):
-            file_path = download_checksum_file_to_path(file, path)
+            file_path = download_checksum_file_to_path(file, path, keep_existing=keep_existing)
             if file_path:
                 raster_download.ancillary.append(file_path)
 
@@ -185,7 +192,7 @@ class Rgdc:
         frame_rate: Optional[Tuple[int, int]] = None,
         limit: Optional[int] = None,
         offset: Optional[int] = None,
-    ) -> Iterator[Dict]:
+    ) -> List[Dict]:
         """
         Search for geospatial entries based on various criteria.
 
@@ -212,7 +219,7 @@ class Rgdc:
             offset: The number of results to skip.
 
         Returns:
-            An list of Spatial Entries.
+            A list of Spatial Entries.
         """
         # The dict that will be used to store params.
         # Initialize with queries that won't be additionally processed.
@@ -281,6 +288,4 @@ class Rgdc:
             params['frame_rate_min'] = frmin
             params['frame_rate_max'] = frmax
 
-        response = self.session.get('geosearch', params=params)
-        response.raise_for_status()
-        return [result for result in response.json()['results']]
+        return list(limit_offset_pager(self.session, 'geosearch', params=params))
