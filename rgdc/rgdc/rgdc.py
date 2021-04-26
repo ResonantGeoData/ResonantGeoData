@@ -1,5 +1,6 @@
 from base64 import b64encode
 from dataclasses import dataclass
+import getpass
 import json
 from json.decoder import JSONDecodeError
 from pathlib import Path
@@ -28,6 +29,18 @@ class RasterDownload:
 
 
 class Rgdc:
+    @classmethod
+    def from_login_prompt(cls, *args, **kwargs):
+        """
+        Return an authenticated Rgdc instance from a login prompt.
+
+        Accepts the same positional/keyword arguments as the class constructor EXCEPT for `username` and `password`.
+        """
+        username = input('Username: ')
+        password = getpass.getpass()
+
+        return cls(*args, **kwargs, username=username, password=password)
+
     def __init__(
         self,
         api_url: str = DEFAULT_RGD_API,
