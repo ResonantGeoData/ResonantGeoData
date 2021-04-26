@@ -41,7 +41,7 @@ class Rgdc:
         Args:
             api_url: The base url of the RGD API instance.
             username: The username to authenticate to the instance with, if any.
-            password: The password associated with the provided username.
+            password: The password associated with the provided username. If None, a prompt will be provided.
 
         Returns:
             A new Rgdc instance.
