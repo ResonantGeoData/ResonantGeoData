@@ -1,5 +1,6 @@
 from base64 import b64encode
 from dataclasses import dataclass
+import getpass
 import json
 from json.decoder import JSONDecodeError
 from pathlib import Path
@@ -40,12 +41,17 @@ class Rgdc:
         Args:
             api_url: The base url of the RGD API instance.
             username: The username to authenticate to the instance with, if any.
-            password: The password associated with the provided username.
+            password: The password associated with the provided username. If None, a prompt will be provided.
 
         Returns:
             A new Rgdc instance.
         """
         auth_header = None
+
+        # Prompt for password if not provided
+        if username is not None and password is None:
+            password = getpass.getpass()
+
         if username and password:
             encoded_credentials = b64encode(f'{username}:{password}'.encode('utf-8')).decode()
             auth_header = f'Basic {encoded_credentials}'
