@@ -1,8 +1,7 @@
-name: rgdc python client
+name: RGDC Tests
 on:
   push:
     branches: "*"
-    tags: "v*"
   pull_request:
     branches: "**"
 jobs:
@@ -17,19 +16,10 @@ jobs:
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
-          pip install setuptools wheel twine
+          pip install setuptools wheel
       - name: Install rgdc
         working-directory: ./rgdc
         run: pip install -e .
       - name: Test (not implemented)
         working-directory: ./rgdc
         run: python -c "from rgdc import Rgdc; print('Import went okay!')"
-      - name: Build and Publish to PyPI
-        if: github.event_name == 'push' && startsWith(github.event.ref, 'refs/tags')
-        working-directory: ./rgdc
-        env:
-          TWINE_USERNAME: __token__
-          TWINE_PASSWORD: ${{ secrets.PYPI_API_TOKEN }}
-        run: |
-          python setup.py sdist bdist_wheel
-          twine upload --skip-existing dist/*
