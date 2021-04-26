@@ -29,18 +29,6 @@ class RasterDownload:
 
 
 class Rgdc:
-    @classmethod
-    def from_login_prompt(cls, *args, **kwargs):
-        """
-        Return an authenticated Rgdc instance from a login prompt.
-
-        Accepts the same positional/keyword arguments as the class constructor EXCEPT for `username` and `password`.
-        """
-        username = input('Username: ')
-        password = getpass.getpass()
-
-        return cls(*args, **kwargs, username=username, password=password)
-
     def __init__(
         self,
         api_url: str = DEFAULT_RGD_API,
@@ -59,6 +47,11 @@ class Rgdc:
             A new Rgdc instance.
         """
         auth_header = None
+
+        # Prompt for password if not provided
+        if username is not None and password is None:
+            password = getpass.getpass()
+
         if username and password:
             encoded_credentials = b64encode(f'{username}:{password}'.encode('utf-8')).decode()
             auth_header = f'Basic {encoded_credentials}'
