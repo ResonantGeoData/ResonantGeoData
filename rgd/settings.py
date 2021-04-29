@@ -11,6 +11,9 @@ from composed_configuration import (
     TestingBaseConfiguration,
 )
 from configurations import values
+import django_stubs_ext
+
+django_stubs_ext.monkeypatch()
 
 
 class GeoDjangoMixin(ConfigMixin):
