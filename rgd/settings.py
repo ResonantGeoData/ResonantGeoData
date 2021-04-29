@@ -81,7 +81,6 @@ class RgdMixin(CrispyFormsMixin, GeoDjangoMixin, SwaggerMixin, ConfigMixin):
     # set by the service admin
     DATABASES = values.DatabaseURLValue(
         environ_name='DATABASE_URL',
-        environ_prefix='DJANGO',
         environ_required=True,
         # Additional kwargs to DatabaseURLValue are passed to dj-database-url
         engine='django.contrib.gis.db.backends.postgis',
@@ -90,11 +89,7 @@ class RgdMixin(CrispyFormsMixin, GeoDjangoMixin, SwaggerMixin, ConfigMixin):
 
     CELERY_WORKER_SEND_TASK_EVENTS = True
 
-    RGD_FILE_FIELD_PREFIX = values.Value(
-        default=None,
-        environ=True,
-        environ_prefix='DJANGO',
-    )
+    RGD_FILE_FIELD_PREFIX = values.Value(default=None)
 
 
 class DevelopmentConfiguration(RgdMixin, DevelopmentBaseConfiguration):
