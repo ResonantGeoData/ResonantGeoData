@@ -81,6 +81,7 @@ class RgdMixin(CrispyFormsMixin, GeoDjangoMixin, SwaggerMixin, ConfigMixin):
     # set by the service admin
     DATABASES = values.DatabaseURLValue(
         environ_name='DATABASE_URL',
+        environ_prefix='DJANGO',
         environ_required=True,
         # Additional kwargs to DatabaseURLValue are passed to dj-database-url
         engine='django.contrib.gis.db.backends.postgis',
