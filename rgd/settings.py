@@ -108,6 +108,7 @@ class AWSProductionConfiguration(RgdMixin, ProductionBaseConfiguration):
     AWS_S3_ACCESS_KEY_ID = None
     AWS_S3_SECRET_ACCESS_KEY = None
     AWS_S3_REGION_NAME = None
+    SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'http')
 
 
 class HerokuProductionConfiguration(RgdMixin, HerokuProductionBaseConfiguration):
