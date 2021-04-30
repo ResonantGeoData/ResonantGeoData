@@ -120,7 +120,11 @@ class AWSProductionConfiguration(RgdMixin, ProductionBaseConfiguration):
             'formatter': 'rich',
         }
         # Override default console logger to send to file
-        configuration.LOGGING['loggers'][''] = {'level': 'INFO', 'handlers': ['file'], 'propagate': False}
+        configuration.LOGGING['loggers'][''] = {
+            'level': 'INFO',
+            'handlers': ['file'],
+            'propagate': False,
+        }
 
 
 class HerokuProductionConfiguration(RgdMixin, HerokuProductionBaseConfiguration):
