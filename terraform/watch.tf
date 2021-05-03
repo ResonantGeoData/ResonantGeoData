@@ -7,13 +7,9 @@ resource "aws_route53_record" "watch" {
 }
 
 resource "aws_route53_record" "www-watch" {
-  zone_id = aws_route53_zone.common.zone_id
   name    = "watch.resonantgeodata.com"
-  type    = "A"
-
-  alias {
-    name                   = "RDG-ELB1-758710195.us-west-2.elb.amazonaws.com"
-    zone_id                = "Z1H1FL5HABSF5"
-    evaluate_target_health = true
-  }
+  type    = "CNAME"
+  ttl     = "300"
+  zone_id = aws_route53_zone.common.zone_id
+  records = ["RDG-ELB1-758710195.us-west-2.elb.amazonaws.com."]
 }
