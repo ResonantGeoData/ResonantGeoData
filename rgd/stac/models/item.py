@@ -1,6 +1,8 @@
+from django.contrib.gis.db.models.fields import GeometryField
+from django.contrib.postgres.fields import DateTimeRangeField
 from django.db import models
 
-from rgd.stac.models import Asset
+from rgd.stac.models import Collection
 from rgd.stac.models.extensions import ExtendableModel
 
 
@@ -22,16 +24,27 @@ class Item(ExtendableModel):
     Items are represented in JSON format and are very flexible. Any JSON object
     that contains all the required fields is a valid STAC Item.
 
+    Additional metadata fields can be added to the GeoJSON Object Properties.
 
-class ItemProperty(ExtendableModel):
-    """Additional metadata fields can be added to the GeoJSON Object Properties.
-
-    The only required field is datetime but it is recommended to add more
-    fields, see Additional Fields resources below.
+    The only required field is datetime (or start_datetime+end_datetime) but it
+    is recommended to add more fields.
     """
 
-    item = models.OneToOneField[Item, Item](
-        Item,
+    collection = models.ForeignKey[Collection, Collection](
+        Collection,
         on_delete=models.CASCADE,
-        related_name='properties',
+        related_name='items',
+        help_text='Each item belongs to a single collection.',
+    )
+    geometry = GeometryField(
+        help_text=(
+            'Defines the full footprint of the asset represented by this item, '
+            'formatted according to RFC 7946, section 3.1. The footprint should '
+            'be the default GeoJSON geometry, though additional geometries can '
+            'be included. Coordinates are specified in Longitude/Latitude or '
+            'Longitude/Latitude/Elevation based on WGS 84.'
+        ),
+    )
+    datetime = DateTimeRangeField(
+        help_text='The searchable date and time of the metadata.',
     )
