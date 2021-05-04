@@ -3,18 +3,7 @@ from django.db import models
 from rgd.stac.models import Collection
 from rgd.stac.models.extensions import ModelExtension
 
-
-class CollectionKeywords(models.Model):
-    """The roles field is used to describe the purpose of each asset."""
-
-    name = models.TextField[str, str](
-        unique=True,
-        help_text="A keyword to describe the Collection.",
-    )
-    description = models.TextField[str, str](
-        help_text='Multi-line description to add further asset keyword information.',
-    )
-
+from .models import CollectionKeyword
 
 collection = ModelExtension(
     title='Core Collection Fields',
@@ -24,8 +13,8 @@ collection = ModelExtension(
 
 
 fields = {
-    'keywords': models.ManyToManyField[CollectionKeywords, CollectionKeywords](
-        CollectionKeywords,
+    'keywords': models.ManyToManyField[CollectionKeyword, CollectionKeyword](
+        CollectionKeyword,
         help_text='List of keywords describing the Collection.',
     ),
 }

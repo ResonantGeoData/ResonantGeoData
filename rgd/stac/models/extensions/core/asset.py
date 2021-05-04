@@ -2,20 +2,8 @@ from django.db import models
 
 from rgd.stac.models import Asset
 from rgd.stac.models.extensions import ModelExtension
-from rgd.stac.models.extensions.core.mediatype import MediaType
 
-
-class AssetRole(models.Model):
-    """The roles field is used to describe the purpose of each asset."""
-
-    name = models.TextField[str, str](
-        unique=True,
-        help_text="The name of the asset's role.",
-    )
-    description = models.TextField[str, str](
-        help_text='Multi-line description to add further asset role information.',
-    )
-
+from .models import AssetRole, MediaType
 
 asset = ModelExtension(
     title='Core Asset Fields',
