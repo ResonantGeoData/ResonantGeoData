@@ -1,31 +1,6 @@
 from django.db import models
 
-from rgd.stac.models import Asset
 from rgd.stac.models.extensions import ExtendableModel
-
-
-class CollectionAsset(models.Model):
-    """Through table for unique `key`."""
-
-    collection = models.ForeignKey['Collection', 'Collection'](
-        'Collection',
-        related_name='+',
-        on_delete=models.CASCADE,
-    )
-    asset = models.ForeignKey[Asset, Asset](
-        Asset,
-        related_name='+',
-        on_delete=models.CASCADE,
-    )
-    key = models.TextField[str, str]()
-
-    class Meta:
-        constraints = [
-            models.UniqueConstraint(
-                fields=['collection', 'asset', 'key'],
-                name='collectionasset_unique_key',
-            )
-        ]
 
 
 class Collection(ExtendableModel):
@@ -39,8 +14,8 @@ class Collection(ExtendableModel):
     they share field names.
     """
 
-    assets = models.ManyToManyField[Asset, Asset](
-        Asset,
-        through=CollectionAsset,
-        related_name='collections',
+    parent = models.ForeignKey['Collection', 'Collection'](
+        'self',
+        on_delete=models.CASCADE,
+        help_text='The parent Collection or `NULL` if this Collection is a root.',
     )

@@ -4,30 +4,6 @@ from rgd.stac.models import Asset
 from rgd.stac.models.extensions import ExtendableModel
 
 
-class ItemAsset(models.Model):
-    """Through table for unique `key`."""
-
-    item = models.ForeignKey['Item', 'Item'](
-        'Item',
-        related_name='+',
-        on_delete=models.CASCADE,
-    )
-    asset = models.ForeignKey[Asset, Asset](
-        Asset,
-        related_name='+',
-        on_delete=models.CASCADE,
-    )
-    key = models.TextField[str, str]()
-
-    class Meta:
-        constraints = [
-            models.UniqueConstraint(
-                fields=['item', 'asset', 'key'],
-                name='itemasset_unique_key',
-            )
-        ]
-
-
 class Item(ExtendableModel):
     """A GeoJSON Feature augmented with foreign members relevant to a STAC object.
 
@@ -45,13 +21,6 @@ class Item(ExtendableModel):
 
     Items are represented in JSON format and are very flexible. Any JSON object
     that contains all the required fields is a valid STAC Item.
-    """
-
-    assets = models.ManyToManyField[Asset, Asset](
-        Asset,
-        through=ItemAsset,
-        related_name='items',
-    )
 
 
 class ItemProperty(ExtendableModel):
