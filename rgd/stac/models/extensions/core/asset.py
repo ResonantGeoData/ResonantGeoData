@@ -13,9 +13,7 @@ asset = ModelExtension(
 
 
 fields = {
-    'href': models.URLField[str, str](
-        help_text='URI to the asset object.',
-    ),
+    'file': models.FileField(),
     'type': models.ForeignKey[MediaType, MediaType](
         MediaType,
         on_delete=models.PROTECT,
