@@ -1,7 +1,7 @@
 from rgd.stac.models.asset import Asset
 from rgd.stac.models.catalog import Catalog
 from rgd.stac.models.collection import Collection
-from rgd.stac.models.item import Item, ItemProperty
+from rgd.stac.models.item import Item, ItemProperties
 from rgd.stac.models.link import Link
 
 from .extensions.common_metadata.basics import basics as CommonBasics
@@ -19,7 +19,7 @@ __all__ = [
     'Catalog',
     'Collection',
     'Item',
-    'ItemProperty',
+    'ItemProperties',
     'Link',
     'CommonBasics',
     'CommonDateAndTime',
