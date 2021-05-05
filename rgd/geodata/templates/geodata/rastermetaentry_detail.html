@@ -48,7 +48,7 @@
 
   <div class="slidecontainer">
     <label for="rasterOpacityRange">Raster Layer Opacity: </label>
-    <input type="range" min="1" max="100" value="75" class="slider" id="rasterOpacityRange" onChange="updateTilesOpacity(event, value)">
+    <input type="range" min="1" max="100" value="100" class="slider" id="rasterOpacityRange" onChange="updateTilesOpacity(event, value)">
   </div>
 
   <div class="thumbnailContainer">
@@ -66,14 +66,11 @@
     let extents = JSON.parse('{{ extents|escapejs }}');
     var outline = JSON.parse(extents['outline'])["coordinates"][0]
 
-    var tiles = map.createLayer('osm', {keepLower: false, attribution: ''});
-    tiles.opacity(0.75)
-
     // Make sure regions outside the extent of the raster do not load null tiles
     //   this relieves strain on the tile server
     const dataset_bb = extents.extent;
-    tiles.isValid = (index) => {
-      const tileBounds = tiles.gcsTileBounds(index);
+    tileLayer.isValid = (index) => {
+      const tileBounds = tileLayer.gcsTileBounds(index);
       return tileBounds.left <= dataset_bb.xmax &&
         tileBounds.right >= dataset_bb.xmin &&
         tileBounds.top >= dataset_bb.ymin &&
@@ -86,21 +83,21 @@
       var image_id = Number(selector.value);
       console.log(image_id)
       if (image_id >= 0) {
-        tiles.visible(true)
-        tiles.url(`${host}/api/geoprocess/imagery/${image_id}/tiles/{z}/{x}/{y}.png?projection=EPSG:3857`)
+        tileLayer.visible(true)
+        tileLayer.url(`${host}/api/geoprocess/imagery/${image_id}/tiles/{z}/{x}/{y}.png?projection=EPSG:3857`)
         thumbnail.src = `${host}/api/geoprocess/imagery/${image_id}/thumbnail`
         thumbnail.hidden = false
       } else {
-        tiles.visible(false)
+        tileLayer.visible(false)
         thumbnail.hidden = true
       }
-      // TODO: clear tiles when `none` is selected
+      // TODO: clear tileLayer when `none` is selected
     }
     updateBandThumbnail()
 
     function updateTilesOpacity(e, value) {
       value = Number(value) / 100.0;
-      tiles.opacity(value);
+      tileLayer.opacity(value);
     }
 
     // Add collected polygons to map

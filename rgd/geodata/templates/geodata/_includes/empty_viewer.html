@@ -35,10 +35,12 @@
       node: '#map',
       clampBoundsX: true
     })
-    basemapLayer = map.createLayer('osm', {
+    var basemapLayer = map.createLayer('osm', {
       source: getCookie('basemapChoice', 'osm'),
       gcs: 'EPSG:3857' // web mercator
     });
+
+    var tileLayer = map.createLayer('osm', {keepLower: false, attribution: ''});
 
     // Increase zoom range from default of 16
     map.zoomRange({
