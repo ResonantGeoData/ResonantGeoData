@@ -22,6 +22,7 @@ from osgeo import gdal
 import rasterio
 from rasterio import Affine, MemoryFile
 import rasterio.features
+import rasterio.shutil
 import rasterio.warp
 from rasterio.warp import Resampling, calculate_default_transform, reproject
 
@@ -173,7 +174,16 @@ def _get_valid_data_footprint(src, band_num):
     # shape = tuple(np.min([src.shape, MAX_LOAD_SHAPE], axis=0))
     # mask = src.read_masks(band_num, out_shape=shape, resampling=5)
     # TODO: fix transform to match this resampling
-    mask = src.dataset_mask()
+    if not src.nodata:
+        workdir = getattr(settings, 'GEODATA_WORKDIR', None)
+        with tempfile.TemporaryDirectory(dir=workdir) as tmpdir:
+            output_path = os.path.join(tmpdir, os.path.basename(src.name))
+            rasterio.shutil.copy(src, output_path, driver=src.driver)
+            with rasterio.open(output_path, 'r+') as src:
+                src.nodata = 0
+                mask = src.dataset_mask()
+    else:
+        mask = src.dataset_mask()
 
     # Extract feature shapes and values from the array.
     # Assumes already working in correct spatial reference
