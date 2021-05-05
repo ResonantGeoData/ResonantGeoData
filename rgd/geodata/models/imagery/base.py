@@ -94,7 +94,7 @@ class RasterEntry(ModifiableEntry, TaskEventMixin):
     description = models.TextField(null=True, blank=True)
 
     image_set = models.OneToOneField(ImageSet, on_delete=models.CASCADE)
-    ancillary_files = models.ManyToManyField(ChecksumFile)
+    ancillary_files = models.ManyToManyField(ChecksumFile, blank=True)
 
     task_funcs = (
         tasks.task_populate_raster_entry,
@@ -132,7 +132,7 @@ class RasterMetaEntry(ModifiableEntry, SpatialEntry):
     # TODO: skew/transform
     transform = fields.ArrayField(models.FloatField(), size=6)
     cloud_cover = models.FloatField(
-        null=True, validators=[MinValueValidator(0), MaxValueValidator(100)]
+        null=True, validators=[MinValueValidator(0), MaxValueValidator(100)], blank=True
     )
 
     @property
