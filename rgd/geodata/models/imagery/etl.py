@@ -176,7 +176,7 @@ def _get_valid_data_footprint(src, band_num):
     if not src.nodata:
         workdir = getattr(settings, 'GEODATA_WORKDIR', None)
         with tempfile.TemporaryDirectory(dir=workdir) as tmpdir:
-            output_path = os.path.join(tmpdir, os.path.basename(src.name))
+            output_path = os.path.join(tmpdir, 'temp')
             rasterio.shutil.copy(src, output_path, driver=src.driver)
             with rasterio.open(output_path, 'r+') as src:
                 src.nodata = 0
