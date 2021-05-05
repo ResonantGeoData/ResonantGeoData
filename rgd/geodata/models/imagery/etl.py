@@ -347,15 +347,11 @@ def populate_raster_entry(raster_entry):
                 'name',
             ]
         )
-    footprint = meta.pop('footprint')
     raster_meta, created = get_or_create_no_commit(RasterMetaEntry, parent_raster=raster_entry)
     # Not using `defaults` here because we want `meta` to always get updated.
     for k, v in meta.items():
         # Yeah. This is sketchy, but it works.
         setattr(raster_meta, k, v)
-    if not raster_meta.footprint:
-        # Only set if not already set since this func defaults it to using outline
-        raster_meta.footprint = footprint
     raster_meta.save()
     return True
 
