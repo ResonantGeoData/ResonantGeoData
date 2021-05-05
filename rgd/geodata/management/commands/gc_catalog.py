@@ -18,14 +18,12 @@ SUCCESS_MSG = 'Finished loading all {} data.'
 
 
 def _fetch_landsat_index_table():
-    # https://data.kitware.com/#item/605cbf9c2fa25629b9e15c5c
-    path = datastore.datastore.fetch('landsat_korea.csv')
+    path = datastore.datastore.fetch('landsat.csv')
     return pd.read_csv(path)
 
 
 def _fetch_sentinel_index_table():
-    # https://data.kitware.com/#item/6064f7e92fa25629b9319906
-    path = datastore.datastore.fetch('sentinel_korea.csv')
+    path = datastore.datastore.fetch('sentinel.csv')
     df = pd.read_csv(path)
     # Handle issue where tiles for a given date were processed multiple times
     #   to avoid ingesting duplicate data.
