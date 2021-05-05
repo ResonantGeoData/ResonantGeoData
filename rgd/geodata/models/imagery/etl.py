@@ -139,8 +139,7 @@ def _extract_raster_outline(src):
             (src.bounds.left, src.bounds.top),  # Close the loop
         )
     )
-
-    return transform_geometry(Polygon(coords, srid=src.crs.to_epsg()), src.crs.to_epsg())
+    return transform_geometry(Polygon(coords, srid=src.crs.to_epsg()), src.crs.to_wkt())
 
 
 def _extract_raster_meta(image_file_entry):
