@@ -23,12 +23,13 @@ import rasterio
 from rasterio import Affine, MemoryFile
 import rasterio.features
 import rasterio.warp
-from rasterio.warp import Resampling, calculate_default_transform, reproject, transform_bounds
+from rasterio.warp import Resampling, calculate_default_transform, reproject
 
 from rgd.utility import get_or_create_no_commit
 
 from ..common import ChecksumFile
 from ..constants import DB_SRID
+from ..geometry.transform import transform_geometry
 from .annotation import Annotation, PolygonSegmentation, RLESegmentation, Segmentation
 from .base import (
     BandMetaEntry,
@@ -127,21 +128,18 @@ def read_image_file(ife):
     return image_entry
 
 
-def _extract_raster_outline_fast(src):
-    dst_crs = rasterio.crs.CRS.from_epsg(DB_SRID)
-    left, bottom, right, top = transform_bounds(
-        src.crs, dst_crs, src.bounds.left, src.bounds.bottom, src.bounds.right, src.bounds.top
-    )
+def _extract_raster_outline(src):
     coords = np.array(
         (
-            (left, top),
-            (right, top),
-            (right, bottom),
-            (left, bottom),
-            (left, top),  # Close the loop
+            (src.bounds.left, src.bounds.top),
+            (src.bounds.right, src.bounds.top),
+            (src.bounds.right, src.bounds.bottom),
+            (src.bounds.left, src.bounds.bottom),
+            (src.bounds.left, src.bounds.top),  # Close the loop
         )
     )
-    return Polygon(coords, srid=DB_SRID)
+
+    return transform_geometry(Polygon(coords, srid=src.crs.to_epsg()), src.crs.to_epsg())
 
 
 def _extract_raster_meta(image_file_entry):
@@ -164,7 +162,7 @@ def _extract_raster_meta(image_file_entry):
             ]
             raster_meta['resolution'] = src.res
             raster_meta['transform'] = src.transform.to_gdal()  # TODO: check this
-            raster_meta['outline'] = _extract_raster_outline_fast(src)
+            raster_meta['outline'] = _extract_raster_outline(src)
             raster_meta['footprint'] = raster_meta['outline']
     return raster_meta
 
