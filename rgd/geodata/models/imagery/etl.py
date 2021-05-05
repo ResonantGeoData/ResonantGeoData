@@ -1,6 +1,5 @@
 """Helper methods for creating a ``GDALRaster`` entry from a raster file."""
 from contextlib import contextmanager
-import json
 import os
 import tempfile
 import zipfile
@@ -25,6 +24,8 @@ import rasterio.features
 import rasterio.shutil
 import rasterio.warp
 from rasterio.warp import Resampling, calculate_default_transform, reproject
+from shapely.geometry import shape
+from shapely.ops import unary_union
 
 from rgd.utility import get_or_create_no_commit
 
@@ -173,23 +174,36 @@ def _get_valid_data_footprint(src, band_num):
     # shape = tuple(np.min([src.shape, MAX_LOAD_SHAPE], axis=0))
     # mask = src.read_masks(band_num, out_shape=shape, resampling=5)
     # TODO: fix transform to match this resampling
+    nodata = 0
     if not src.nodata:
         workdir = getattr(settings, 'GEODATA_WORKDIR', None)
         with tempfile.TemporaryDirectory(dir=workdir) as tmpdir:
             output_path = os.path.join(tmpdir, 'temp')
             rasterio.shutil.copy(src, output_path, driver=src.driver)
             with rasterio.open(output_path, 'r+') as src:
-                src.nodata = 0
+                nodata = 0
+                src.nodata = nodata
                 mask = src.dataset_mask()
     else:
+        nodata = src.nodata
         mask = src.dataset_mask()
 
     # Extract feature shapes and values from the array.
     # Assumes already working in correct spatial reference
+    geoms = []
     for geom, val in rasterio.features.shapes(mask, transform=src.transform):
         # Ignore the 0-feature and only return on valid data feature
-        if val:
-            return GEOSGeometry(json.dumps(geom))
+        if val != nodata:
+            geoms.append(shape(geom))
+    if geoms:
+        if len(geoms) > 1:
+            # If multiple polygons, take the convex hull
+            geom = unary_union(geoms)
+            return GEOSGeometry(geom.to_wkt()).convex_hull
+        else:
+            # if only one, avoid taking convex hull
+            geom = unary_union(geoms)
+            return GEOSGeometry(geoms[0].to_wkt())
 
     raise ValueError('No valid raster footprint found.')
 
