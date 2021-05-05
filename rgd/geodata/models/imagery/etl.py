@@ -1,6 +1,5 @@
 """Helper methods for creating a ``GDALRaster`` entry from a raster file."""
 from contextlib import contextmanager
-import json
 import os
 import tempfile
 import zipfile
@@ -22,13 +21,17 @@ from osgeo import gdal
 import rasterio
 from rasterio import Affine, MemoryFile
 import rasterio.features
+import rasterio.shutil
 import rasterio.warp
-from rasterio.warp import Resampling, calculate_default_transform, reproject, transform_bounds
+from rasterio.warp import Resampling, calculate_default_transform, reproject
+from shapely.geometry import shape
+from shapely.ops import unary_union
 
 from rgd.utility import get_or_create_no_commit
 
 from ..common import ChecksumFile
 from ..constants import DB_SRID
+from ..geometry.transform import transform_geometry
 from .annotation import Annotation, PolygonSegmentation, RLESegmentation, Segmentation
 from .base import (
     BandMetaEntry,
@@ -127,21 +130,17 @@ def read_image_file(ife):
     return image_entry
 
 
-def _extract_raster_outline_fast(src):
-    dst_crs = rasterio.crs.CRS.from_epsg(DB_SRID)
-    left, bottom, right, top = transform_bounds(
-        src.crs, dst_crs, src.bounds.left, src.bounds.bottom, src.bounds.right, src.bounds.top
-    )
+def _extract_raster_outline(src):
     coords = np.array(
         (
-            (left, top),
-            (right, top),
-            (right, bottom),
-            (left, bottom),
-            (left, top),  # Close the loop
+            (src.bounds.left, src.bounds.top),
+            (src.bounds.right, src.bounds.top),
+            (src.bounds.right, src.bounds.bottom),
+            (src.bounds.left, src.bounds.bottom),
+            (src.bounds.left, src.bounds.top),  # Close the loop
         )
     )
-    return Polygon(coords, srid=DB_SRID)
+    return transform_geometry(Polygon(coords, srid=src.crs.to_epsg()), src.crs.to_wkt())
 
 
 def _extract_raster_meta(image_file_entry):
@@ -164,7 +163,7 @@ def _extract_raster_meta(image_file_entry):
             ]
             raster_meta['resolution'] = src.res
             raster_meta['transform'] = src.transform.to_gdal()  # TODO: check this
-            raster_meta['outline'] = _extract_raster_outline_fast(src)
+            raster_meta['outline'] = _extract_raster_outline(src)
             raster_meta['footprint'] = raster_meta['outline']
     return raster_meta
 
@@ -175,14 +174,36 @@ def _get_valid_data_footprint(src, band_num):
     # shape = tuple(np.min([src.shape, MAX_LOAD_SHAPE], axis=0))
     # mask = src.read_masks(band_num, out_shape=shape, resampling=5)
     # TODO: fix transform to match this resampling
-    mask = src.dataset_mask()
+    nodata = 0
+    if not src.nodata:
+        workdir = getattr(settings, 'GEODATA_WORKDIR', None)
+        with tempfile.TemporaryDirectory(dir=workdir) as tmpdir:
+            output_path = os.path.join(tmpdir, 'temp')
+            rasterio.shutil.copy(src, output_path, driver=src.driver)
+            with rasterio.open(output_path, 'r+') as src:
+                nodata = 0
+                src.nodata = nodata
+                mask = src.dataset_mask()
+    else:
+        nodata = src.nodata
+        mask = src.dataset_mask()
 
     # Extract feature shapes and values from the array.
     # Assumes already working in correct spatial reference
+    geoms = []
     for geom, val in rasterio.features.shapes(mask, transform=src.transform):
         # Ignore the 0-feature and only return on valid data feature
-        if val:
-            return GEOSGeometry(json.dumps(geom))
+        if val != nodata:
+            geoms.append(shape(geom))
+    if geoms:
+        if len(geoms) > 1:
+            # If multiple polygons, take the convex hull
+            geom = unary_union(geoms)
+            return GEOSGeometry(geom.to_wkt()).convex_hull
+        else:
+            # if only one, avoid taking convex hull
+            geom = unary_union(geoms)
+            return GEOSGeometry(geoms[0].to_wkt())
 
     raise ValueError('No valid raster footprint found.')
 
@@ -340,15 +361,11 @@ def populate_raster_entry(raster_entry):
                 'name',
             ]
         )
-    footprint = meta.pop('footprint')
     raster_meta, created = get_or_create_no_commit(RasterMetaEntry, parent_raster=raster_entry)
     # Not using `defaults` here because we want `meta` to always get updated.
     for k, v in meta.items():
         # Yeah. This is sketchy, but it works.
         setattr(raster_meta, k, v)
-    if not raster_meta.footprint:
-        # Only set if not already set since this func defaults it to using outline
-        raster_meta.footprint = footprint
     raster_meta.save()
     return True
 

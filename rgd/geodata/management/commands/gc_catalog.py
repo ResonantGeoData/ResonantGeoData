@@ -151,7 +151,7 @@ def _load_sentinel(row):
 
 
 class GCLoader:
-    def __init__(self, satellite):
+    def __init__(self, satellite, footprint=False):
         if satellite not in ['landsat', 'sentinel']:
             raise ValueError(f'Unknown satellite {satellite}.')
         self.satellite = satellite
@@ -160,6 +160,8 @@ class GCLoader:
             self.index = _fetch_landsat_index_table()
         elif self.satellite == 'sentinel':
             self.index = _fetch_sentinel_index_table()
+
+        self.footprint = footprint
 
     def _load_raster(self, index):
         row = self.index.iloc[index]
@@ -171,7 +173,7 @@ class GCLoader:
         except ValueError:
             return None
         imentries = helper.load_image_files(rd.get('images'))
-        helper.load_raster(imentries, rd)
+        helper.load_raster(imentries, rd, footprint=self.footprint)
 
     def load_rasters(self, count=None):
         if not count:
@@ -189,16 +191,24 @@ class Command(helper.SynchronousTasksCommand):
         parser.add_argument(
             '-c', '--count', type=int, help='Indicates the number scenes to fetch.', default=None
         )
+        parser.add_argument(
+            '-f',
+            '--footprint',
+            action='store_true',
+            default=False,
+            help='Compute the valid data footprints',
+        )
 
     def handle(self, *args, **options):
         self.set_synchronous()
 
         count = options.get('count', None)
         satellite = options.get('satellite')
+        footprint = options.get('footprint')
 
         start_time = datetime.now()
 
-        loader = GCLoader(satellite)
+        loader = GCLoader(satellite, footprint=footprint)
         loader.load_rasters(count)
 
         self.stdout.write(

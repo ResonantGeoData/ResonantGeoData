@@ -15,13 +15,13 @@ from rgd.geodata.models.imagery.subsample import populate_subsampled_image
 from . import factories
 
 SampleFiles = [
-    {'name': '20091021202517-01000100-VIS_0001.ntf', 'centroid': {'x': -84.111, 'y': 39.781}},
-    {'name': 'aerial_rgba_000003.tiff', 'centroid': {'x': -122.005, 'y': 37.336}},
-    {'name': 'cclc_schu_100.tif', 'centroid': {'x': -76.852, 'y': 42.402}},
-    {'name': 'landcover_sample_2000.tif', 'centroid': {'x': -75.228, 'y': 42.955}},
-    {'name': 'paris_france_10.tiff', 'centroid': {'x': 2.549, 'y': 49.004}},
-    {'name': 'rgb_geotiff.tiff', 'centroid': {'x': -117.189, 'y': 33.169}},
-    {'name': 'RomanColosseum_WV2mulitband_10.tif', 'centroid': {'x': 12.492, 'y': 41.890}},
+    {'name': '20091021202517-01000100-VIS_0001.ntf', 'centroid': {'x': -84.11, 'y': 39.78}},
+    {'name': 'aerial_rgba_000003.tiff', 'centroid': {'x': -122.01, 'y': 37.34}},
+    {'name': 'cclc_schu_100.tif', 'centroid': {'x': -76.85, 'y': 42.40}},
+    {'name': 'landcover_sample_2000.tif', 'centroid': {'x': -75.35, 'y': 42.96}},
+    {'name': 'paris_france_10.tiff', 'centroid': {'x': 2.55, 'y': 49.00}},
+    {'name': 'rgb_geotiff.tiff', 'centroid': {'x': -117.19, 'y': 33.17}},
+    {'name': 'RomanColosseum_WV2mulitband_10.tif', 'centroid': {'x': 12.50, 'y': 41.89}},
 ]
 
 # These test files are dramatically downsampled for rapid testing
@@ -30,6 +30,8 @@ LandsatFiles = [
     'LC08_L1TP_034032_20200429_20200509_01_T1_sr_band2.tif',
     'LC08_L1TP_034032_20200429_20200509_01_T1_sr_band3.tif',
 ]
+
+TOLERANCE = 2e-2
 
 
 def _make_raster_from_datastore(name):
@@ -53,8 +55,8 @@ def test_imagefile_to_rasterentry_centroids(testfile):
     raster = _make_raster_from_datastore(testfile['name'])
     meta = raster.rastermetaentry
     centroid = meta.outline.centroid
-    assert centroid.x == pytest.approx(testfile['centroid']['x'], abs=2e-3)
-    assert centroid.y == pytest.approx(testfile['centroid']['y'], abs=2e-3)
+    assert centroid.x == pytest.approx(testfile['centroid']['x'], abs=TOLERANCE)
+    assert centroid.y == pytest.approx(testfile['centroid']['y'], abs=TOLERANCE)
 
 
 @pytest.mark.parametrize('testfile', SampleFiles)
@@ -77,8 +79,8 @@ def test_imagefile_url_to_rasterentry_centroids(testfile):
     # Sanity check
     assert imagefile.file.type == FileSourceType.URL
     # Make sure the file contents were read correctly
-    assert centroid.x == pytest.approx(testfile['centroid']['x'], abs=2e-3)
-    assert centroid.y == pytest.approx(testfile['centroid']['y'], abs=2e-3)
+    assert centroid.x == pytest.approx(testfile['centroid']['x'], abs=TOLERANCE)
+    assert centroid.y == pytest.approx(testfile['centroid']['y'], abs=TOLERANCE)
 
 
 @pytest.mark.django_db(transaction=True)

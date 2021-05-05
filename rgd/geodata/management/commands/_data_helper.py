@@ -13,6 +13,7 @@ from django.utils.timezone import make_aware
 
 from rgd.geodata import models
 from rgd.geodata.datastore import datastore
+from rgd.geodata.models.imagery import etl
 from rgd.utility import get_or_create_no_commit
 
 logger = logging.getLogger(__name__)
@@ -128,7 +129,7 @@ def load_image_files(image_files):
     return ids
 
 
-def load_raster(pks, raster_dict):
+def load_raster(pks, raster_dict, footprint=False):
     if not isinstance(pks, (list, tuple)):
         pks = [
             pks,
@@ -193,17 +194,19 @@ def load_raster(pks, raster_dict):
                 'instrumentation',
             ]
         )
+    if footprint:
+        etl.populate_raster_footprint(raster.id)
     return raster
 
 
-def load_raster_files(raster_dicts):
+def load_raster_files(raster_dicts, footprint=False):
     ids = []
     count = len(raster_dicts)
     for i, rf in enumerate(raster_dicts):
         logger.info(f'Processesing raster {i+1} of {count}')
         start_time = datetime.now()
         imentries = load_image_files(rf.get('images'))
-        raster = load_raster(imentries, rf)
+        raster = load_raster(imentries, rf, footprint=footprint)
         ids.append(raster.pk)
         logger.info('\t Loaded raster in: {}'.format(datetime.now() - start_time))
     return ids
