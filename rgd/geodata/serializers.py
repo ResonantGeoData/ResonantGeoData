@@ -222,6 +222,13 @@ class STACRasterSerializer(serializers.BaseSerializer):
             datetime=(instance.acquisition_date or instance.modified or instance.created),
             properties={},
         )
+        # Add assets
+        for image_entry in instance.parent_raster.image_set.images.all():
+            asset = pystac.Asset(
+                href=image_entry.image_file.file.get_url(),
+                title=image_entry.image_file.file.name,
+            )
+            item.add_asset(f'image-{image_entry.pk}', asset)
         return item.to_dict()
 
 
