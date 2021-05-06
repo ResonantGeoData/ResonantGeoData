@@ -218,7 +218,7 @@ class STACRasterSerializer(serializers.BaseSerializer):
         item = pystac.Item(
             id=instance.pk,
             geometry=json.loads(instance.footprint.json),
-            bbox=instance.footprint.extent,
+            bbox=instance.extent,
             datetime=(instance.acquisition_date or instance.modified or instance.created),
             properties={},
         )
