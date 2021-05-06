@@ -112,6 +112,11 @@ class RasterEntry(ModifiableEntry, TaskEventMixin):
         return self.rastermetaentry.outline
 
     @property
+    def acquisition_date(self):
+        """Pointer to RasterMetaEntry acquisition_date."""
+        return self.rastermetaentry.acquisition_date
+
+    @property
     def count(self):
         """Get number of bands across all images in image set."""
         n = 0
