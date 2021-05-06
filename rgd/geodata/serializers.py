@@ -1,5 +1,6 @@
 import json
 
+from pyproj import CRS
 import pystac
 from rest_framework import serializers
 from rest_framework.reverse import reverse
@@ -235,6 +236,13 @@ class STACRasterSerializer(serializers.BaseSerializer):
                 title=ancillary_file.name,
             )
             item.add_asset(f'ancillary-{ancillary_file.pk}', asset)
+        # 'proj' extension
+        item.ext.enable('projection')
+
+        item.ext.projection.apply(
+            epsg=CRS.from_proj4(instance.crs).to_epsg(),
+            transform=instance.transform,
+        )
         return item.to_dict()
 
 
