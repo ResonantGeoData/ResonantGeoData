@@ -41,6 +41,7 @@
     });
 
     var tileLayer = map.createLayer('osm', {keepLower: false, attribution: ''});
+    tileLayer.visible(false)
 
     // Increase zoom range from default of 16
     map.zoomRange({
