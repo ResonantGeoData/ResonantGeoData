@@ -229,6 +229,12 @@ class STACRasterSerializer(serializers.BaseSerializer):
                 title=image_entry.image_file.file.name,
             )
             item.add_asset(f'image-{image_entry.pk}', asset)
+        for ancillary_file in instance.parent_raster.ancillary_files.all():
+            asset = pystac.Asset(
+                href=ancillary_file.get_url(),
+                title=ancillary_file.name,
+            )
+            item.add_asset(f'ancillary-{ancillary_file.pk}', asset)
         return item.to_dict()
 
 
