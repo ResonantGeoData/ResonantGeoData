@@ -218,7 +218,7 @@ class STACRasterSerializer(serializers.BaseSerializer):
     def to_representation(self, instance: models.RasterMetaEntry) -> dict:
         item = pystac.Item(
             id=instance.pk,
-            geometry=instance.footprint.json,
+            geometry=json.loads(instance.footprint.json),
             bbox=instance.footprint.extent,
             datetime=(instance.acquisition_date or instance.modified or instance.created),
             properties={},
