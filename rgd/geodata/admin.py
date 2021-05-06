@@ -26,12 +26,19 @@ from .models.imagery.base import (
     SubsampledImage,
 )
 
+MODIFIABLE_FILTERS = (
+    'modified',
+    'created',
+)
+
 SPATIAL_ENTRY_FILTERS = (
     'acquisition_date',
     'instrumentation',
     'modified',
     'created',
 )
+
+TASK_EVENT_FILTERS = ('status',)
 
 TASK_EVENT_READONLY = (
     'failure_reason',
@@ -81,6 +88,14 @@ class ChecksumFileAdmin(OSMGeoAdmin):
         'last_validation',
     ) + TASK_EVENT_READONLY
     actions = (actions.reprocess, actions.make_image_files)
+    list_filter = (
+        MODIFIABLE_FILTERS
+        + TASK_EVENT_FILTERS
+        + (
+            'type',
+            'collection',
+        )
+    )
 
 
 @admin.register(KWCOCOArchive)
@@ -94,6 +109,7 @@ class KWCOCOArchiveAdmin(OSMGeoAdmin):
     )
     readonly_fields = ('image_set',) + TASK_EVENT_READONLY
     actions = (actions.reprocess,)
+    list_filter = MODIFIABLE_FILTERS + TASK_EVENT_FILTERS
 
 
 @admin.register(ImageSet)
@@ -109,6 +125,7 @@ class ImageSetAdmin(OSMGeoAdmin):
         actions.make_raster_from_image_set,
         actions.clean_empty_image_sets,
     )
+    list_filter = MODIFIABLE_FILTERS
 
 
 class BandMetaEntryInline(admin.StackedInline):
@@ -132,11 +149,6 @@ class BandMetaEntryInline(admin.StackedInline):
         'nodata_value',
         'dtype',
         'band_number',
-    )
-    list_filter = (
-        'parent_image',
-        'interpretation',
-        'dtype',
     )
 
     def has_add_permission(self, request, obj=None):
@@ -162,7 +174,10 @@ class ImageEntryAdmin(OSMGeoAdmin):
         'modified',
         'created',
     )
-    list_filter = ('number_of_bands', 'driver')
+    list_filter = MODIFIABLE_FILTERS + (
+        'number_of_bands',
+        'driver',
+    )
     actions = (
         actions.make_image_set_from_image_entries,
         actions.make_raster_from_image_entries,
@@ -189,7 +204,6 @@ class RasterMetaEntryInline(admin.StackedInline):
         'created',
         'parent_raster',
     )
-    list_filter = SPATIAL_ENTRY_FILTERS + ('crs',)
     modifiable = False  # To still show the footprint and outline
 
 
@@ -199,6 +213,8 @@ class RasterEntryAdmin(OSMGeoAdmin):
         'id',
         'name',
         'status',
+        'count',
+        'acquisition_date',
         'modified',
         'created',
     )
@@ -212,6 +228,7 @@ class RasterEntryAdmin(OSMGeoAdmin):
         actions.generate_valid_data_footprint,
         actions.clean_empty_rasters,
     )
+    list_filter = MODIFIABLE_FILTERS + TASK_EVENT_FILTERS
 
 
 class SegmentationInline(admin.StackedInline):
@@ -254,6 +271,10 @@ class AnnotationAdmin(OSMGeoAdmin):
         'line',
     )
     inlines = (SegmentationInline, PolygonSegmentationInline, RLESegmentationInline)
+    list_filter = MODIFIABLE_FILTERS + (
+        'annotator',
+        'label',
+    )
 
 
 @admin.register(ImageFile)
@@ -271,6 +292,7 @@ class ImageFileAdmin(OSMGeoAdmin, _FileGetNameMixin):
         'created',
     ) + TASK_EVENT_READONLY
     actions = (actions.reprocess,)
+    list_filter = MODIFIABLE_FILTERS + TASK_EVENT_FILTERS
 
 
 @admin.register(ConvertedImageFile)
@@ -284,6 +306,7 @@ class ConvertedImageFileAdmin(OSMGeoAdmin):
     )
     readonly_fields = ('converted_file',) + TASK_EVENT_READONLY
     actions = (actions.reprocess,)
+    list_filter = MODIFIABLE_FILTERS + TASK_EVENT_FILTERS
 
 
 @admin.register(SubsampledImage)
@@ -298,6 +321,7 @@ class SubsampledImageAdmin(OSMGeoAdmin):
     )
     readonly_fields = ('data',) + TASK_EVENT_READONLY
     actions = (actions.reprocess,)
+    list_filter = MODIFIABLE_FILTERS + TASK_EVENT_FILTERS
 
 
 class GeometryEntryInline(admin.StackedInline):
@@ -310,7 +334,7 @@ class GeometryEntryInline(admin.StackedInline):
         'modified',
         'created',
     )
-    list_filter = SPATIAL_ENTRY_FILTERS
+    list_filter = MODIFIABLE_FILTERS + SPATIAL_ENTRY_FILTERS
     readonly_fields = (
         'modified',
         'created',
@@ -335,6 +359,7 @@ class GeometryArchiveAdmin(OSMGeoAdmin, _FileGetNameMixin):
     ) + TASK_EVENT_READONLY
     inlines = (GeometryEntryInline,)
     actions = (actions.reprocess,)
+    list_filter = MODIFIABLE_FILTERS + TASK_EVENT_FILTERS
 
 
 class FMVEntryInline(admin.StackedInline):
@@ -373,6 +398,7 @@ class FMVFileAdmin(OSMGeoAdmin, _FileGetNameMixin):
     ) + TASK_EVENT_READONLY
     inlines = (FMVEntryInline,)
     actions = (actions.reprocess,)
+    list_filter = MODIFIABLE_FILTERS
 
 
 class CollectionMembershipInline(admin.TabularInline):
