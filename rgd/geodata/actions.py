@@ -83,6 +83,12 @@ def generate_valid_data_footprint(modeladmin, request, queryset):
         tasks.task_populate_raster_footprint.delay(rast.id)
 
 
+def generate_outline(modeladmin, request, queryset):
+    """Generate a the outline for each raster."""
+    for rast in queryset.all():
+        tasks.task_populate_raster_outline.delay(rast.id)
+
+
 def clean_empty_image_sets(modeladmin, request, queryset):
     """Delete empty `ImageSet`s."""
     for imset in queryset.all():

@@ -370,6 +370,19 @@ def populate_raster_entry(raster_entry):
     return True
 
 
+def populate_raster_outline(raster_id):
+    raster_entry = RasterEntry.objects.get(id=raster_id)
+    base_image = raster_entry.image_set.images.first()
+    with base_image.image_file.file.yield_local_path(vsi=True) as path:
+        with rasterio.open(path) as src:
+            raster_entry.rastermetaentry.outline = _extract_raster_outline(src)
+    raster_entry.rastermetaentry.save(
+        update_fields=[
+            'outline',
+        ]
+    )
+
+
 def populate_raster_footprint(raster_id):
     raster_entry = RasterEntry.objects.get(id=raster_id)
     # Only set the footprint if the RasterMetaEntry has been created already
