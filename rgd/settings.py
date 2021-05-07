@@ -110,10 +110,6 @@ class AWSProductionConfiguration(RgdMixin, ProductionBaseConfiguration):
     AWS_S3_REGION_NAME = None
     SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'http')
 
-    CELERY_BROKER_URL = values.Value(
-        environ_name='CLOUDAMQP_URL', environ_prefix=None, environ_required=True
-    )
-
     @staticmethod
     def before_binding(configuration: Type[ComposedConfiguration]):
         # Create a new file handler
