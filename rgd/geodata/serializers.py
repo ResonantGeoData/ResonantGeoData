@@ -243,6 +243,10 @@ class STACRasterSerializer(serializers.BaseSerializer):
             epsg=CRS.from_proj4(instance.crs).to_epsg(),
             transform=instance.transform,
         )
+        # 'eo' extension
+        item.ext.enable('eo')
+        item.ext.eo.apply(cloud_cover=instance.cloud_cover, bands=[])
+
         return item.to_dict()
 
 
