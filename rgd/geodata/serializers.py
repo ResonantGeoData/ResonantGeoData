@@ -223,22 +223,8 @@ class STACRasterSerializer(serializers.BaseSerializer):
             datetime=(instance.acquisition_date or instance.modified or instance.created),
             properties={},
         )
-        # Add assets
-        for image_entry in instance.parent_raster.image_set.images.all():
-            asset = pystac.Asset(
-                href=image_entry.image_file.file.get_url(),
-                title=image_entry.image_file.file.name,
-            )
-            item.add_asset(f'image-{image_entry.pk}', asset)
-        for ancillary_file in instance.parent_raster.ancillary_files.all():
-            asset = pystac.Asset(
-                href=ancillary_file.get_url(),
-                title=ancillary_file.name,
-            )
-            item.add_asset(f'ancillary-{ancillary_file.pk}', asset)
         # 'proj' extension
         item.ext.enable('projection')
-
         item.ext.projection.apply(
             epsg=CRS.from_proj4(instance.crs).to_epsg(),
             transform=instance.transform,
@@ -246,6 +232,30 @@ class STACRasterSerializer(serializers.BaseSerializer):
         # 'eo' extension
         item.ext.enable('eo')
         item.ext.eo.apply(cloud_cover=instance.cloud_cover, bands=[])
+        # Add assets
+        for image_entry in instance.parent_raster.image_set.images.all():
+            asset = pystac.Asset(
+                href=image_entry.image_file.file.get_url(),
+                title=image_entry.image_file.file.name,
+            )
+            item.ext.eo.set_bands(
+                bands=[
+                    pystac.extensions.eo.Band.create(
+                        name=f'band{bandmeta.band_number}',
+                        description=bandmeta.description,
+                    )
+                    for bandmeta in image_entry.bandmetaentry_set.all()
+                ],
+                asset=asset,
+            )
+            item.add_asset(f'image-{image_entry.pk}', asset)
+
+        for ancillary_file in instance.parent_raster.ancillary_files.all():
+            asset = pystac.Asset(
+                href=ancillary_file.get_url(),
+                title=ancillary_file.name,
+            )
+            item.add_asset(f'ancillary-{ancillary_file.pk}', asset)
 
         return item.to_dict()
 
