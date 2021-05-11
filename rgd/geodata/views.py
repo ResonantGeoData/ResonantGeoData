@@ -58,6 +58,19 @@ class SpatialEntriesListView(_SpatialListView):
     template_name = 'geodata/spatial_entries.html'
 
 
+class StatisticsView(generic.ListView):
+    paginate_by = None
+    model = SpatialEntry
+    context_object_name = 'spatial_entries'
+    template_name = 'geodata/statistics.html'
+
+    def get_context_data(self, *args, **kwargs):
+        context = super().get_context_data(*args, **kwargs)
+        context['count'] = len(self.object_list)
+        context['coordinates'] = json.dumps([o.footprint.centroid.json for o in self.object_list])
+        return context
+
+
 class _SpatialDetailView(DetailView):
     def get_object(self):
         obj = super().get_object()
