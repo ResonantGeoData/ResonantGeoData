@@ -16,6 +16,4 @@ def ingest_s3(
     for e in email:
         e = e.strip()
         logger.info(f'Whitelisting `{e}`')
-        w = WhitelistedEmail()
-        w.email = e
-        w.save()
+        WhitelistedEmail.objects.get_or_create(email=e)
