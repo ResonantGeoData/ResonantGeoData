@@ -5,7 +5,7 @@ from django.contrib.gis.admin import OSMGeoAdmin
 
 from . import actions
 from .models.collection import Collection, CollectionMembership
-from .models.common import ChecksumFile
+from .models.common import ChecksumFile, WhitelistedEmail
 from .models.fmv.base import FMVEntry, FMVFile
 from .models.geometry.base import GeometryArchive, GeometryEntry
 from .models.imagery.annotation import (
@@ -69,6 +69,14 @@ class _FileGetNameMixin:
 
     get_name.short_description = 'Name'
     get_name.admin_order_field = 'file__name'
+
+
+@admin.register(WhitelistedEmail)
+class WhitelistedEmailAdmin(OSMGeoAdmin):
+    list_display = (
+        'id',
+        'email',
+    )
 
 
 @admin.register(ChecksumFile)
