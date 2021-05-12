@@ -121,6 +121,24 @@ class Rgdc:
         except IndexError:
             raise IndexError(f'Band index ({band}) out of range.')
 
+    def get_raster(self, raster_meta_id: Union[str, int, dict], stac: bool = False) -> Dict:
+        """Get raster entry detail.
+
+        Args:
+            stac: Optionally return as STAC Item dictionary/JSON.
+
+        Returns:
+            Serialized object representation.
+        """
+        if isinstance(raster_meta_id, dict):
+            raster_meta_id = spatial_subentry_id(raster_meta_id)
+
+        if stac:
+            r = self.session.get(f'geodata/imagery/raster/{raster_meta_id}/stac')
+        else:
+            r = self.session.get(f'geodata/imagery/raster/{raster_meta_id}')
+        return r.json()
+
     def download_raster(
         self,
         raster_meta_id: Union[str, int, dict],

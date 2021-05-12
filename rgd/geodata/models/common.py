@@ -327,6 +327,10 @@ class ChecksumFile(ModifiableEntry, TaskEventMixin):
         yield self.get_vsi_path(internal=internal)
 
 
+class WhitelistedEmail(models.Model):
+    email = models.EmailField()
+
+
 class SpatialAsset(SpatialEntry):
     """Any spatially referenced asset set.
 

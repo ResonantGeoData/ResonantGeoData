@@ -57,6 +57,7 @@ setup(
         'numpy',
         'pooch',
         'python-magic',
+        'pystac',
         'rules',
         'uritemplate',
         # Production-only
