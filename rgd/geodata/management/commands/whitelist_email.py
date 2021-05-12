@@ -14,6 +14,7 @@ def ingest_s3(
     email: List[str],
 ) -> None:
     for e in email:
+        e = e.strip()
         logger.info(f'Whitelisting `{e}`')
         w = WhitelistedEmail()
         w.email = e
