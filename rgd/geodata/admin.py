@@ -4,7 +4,7 @@ from django.contrib.auth.models import User
 from django.contrib.gis.admin import OSMGeoAdmin
 
 from . import actions
-from .models.collection import Collection, CollectionMembership
+from .models.collection import Collection, CollectionPermission
 from .models.common import ChecksumFile
 from .models.fmv.base import FMVEntry, FMVFile
 from .models.geometry.base import GeometryArchive, GeometryEntry
@@ -401,8 +401,8 @@ class FMVFileAdmin(OSMGeoAdmin, _FileGetNameMixin):
     list_filter = MODIFIABLE_FILTERS
 
 
-class CollectionMembershipInline(admin.TabularInline):
-    model = CollectionMembership
+class CollectionPermissionInline(admin.TabularInline):
+    model = CollectionPermission
     fk_name = 'collection'
     fields = ('user', 'role')
     extra = 1
@@ -411,4 +411,4 @@ class CollectionMembershipInline(admin.TabularInline):
 @admin.register(Collection)
 class CollectionAdmin(OSMGeoAdmin):
     fields = ('name',)
-    inlines = (CollectionMembershipInline,)
+    inlines = (CollectionPermissionInline,)

@@ -12,7 +12,7 @@ class Collection(models.Model):
         default_related_name = 'collections'
 
 
-class CollectionMembership(models.Model):
+class CollectionPermission(models.Model):
     READER = 1
     OWNER = 2
     ROLE_CHOICES = [
@@ -37,4 +37,4 @@ class CollectionMembership(models.Model):
                 name='unique_user',
             )
         ]
-        default_related_name = 'collection_memberships'
+        default_related_name = 'collection_permissions'
