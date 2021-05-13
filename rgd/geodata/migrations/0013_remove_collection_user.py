@@ -8,7 +8,7 @@ class Migration(migrations.Migration):
 
     dependencies = [
         migrations.swappable_dependency(settings.AUTH_USER_MODEL),
-        ('geodata', '0011_auto_20210505_1552'),
+        ('geodata', '0012_whitelistedemail'),
     ]
 
     operations = [
