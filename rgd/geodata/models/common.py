@@ -325,3 +325,7 @@ class ChecksumFile(ModifiableEntry, TaskEventMixin):
     def yield_vsi_path(self, internal=False):
         """Wrap ``get_vsi_path`` in a context manager."""
         yield self.get_vsi_path(internal=internal)
+
+
+class WhitelistedEmail(models.Model):
+    email = models.EmailField()
