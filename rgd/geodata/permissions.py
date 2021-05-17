@@ -1,5 +1,6 @@
 from typing import Optional
 
+from django.conf import settings
 from django.contrib.auth.backends import BaseBackend
 from django.core.exceptions import PermissionDenied
 from django.db.models.functions import Coalesce
@@ -86,22 +87,27 @@ def filter_perm(user, queryset, role):
     # Called outside of view
     if user is None:
         return queryset
-    # Admins can see all
-    if user.is_active and (user.is_staff or user.is_superuser):
+    # Must be logged in
+    if not user.is_active or user.is_anonymous:
+        return queryset.none()
+    # Superusers can see all (not staff users)
+    if user.is_active and user.is_superuser:
         return queryset
     # No relationship to collection
     path = get_collection_membership_path(queryset.model)
     if path is None:
         return queryset
-    # Must be logged in
-    if not user.is_active or user.is_anonymous:
-        return queryset.none()
     # Check permissions
     # `path` can be an empty string (meaning queryset is `CollectionPermission`)
     user_path = (path + '__' if path != '' else path) + 'user'
     role_path = (path + '__' if path != '' else path) + 'role'
     queryset = annotate_queryset(queryset)
-    return queryset.filter(**{user_path: user.pk}).exclude(**{role_path + '__lt': role})
+    filtered = queryset.filter(**{user_path: user.pk}).exclude(**{role_path + '__lt': role})
+    # Check setting for unassigned permissions
+    if settings.RGD_GLOBAL_READ_ACCESS:
+        unassigned = queryset.filter(**{'_collection_permissions__user': None})
+        return unassigned.union(filtered)  # This union throws an error
+    return filtered
 
 
 def filter_read_perm(user, queryset):
