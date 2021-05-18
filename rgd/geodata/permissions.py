@@ -105,7 +105,7 @@ def filter_perm(user, queryset, role):
     filtered = queryset.filter(**{user_path: user.pk}).exclude(**{role_path + '__lt': role})
     # Check setting for unassigned permissions
     if settings.RGD_GLOBAL_READ_ACCESS:
-        unassigned = queryset.filter(**{'_collection_permissions__user': None})
+        unassigned = queryset.filter(**{user_path: None})
         return unassigned.union(filtered)  # This union throws an error
     return filtered
 
