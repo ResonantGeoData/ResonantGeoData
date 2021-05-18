@@ -111,7 +111,7 @@ def filter_perm(user, queryset, role):
 
 
 def filter_read_perm(user, queryset):
-    """Filter a queryset to what the user may edit."""
+    """Filter a queryset to what the user may read."""
     return filter_perm(user, queryset, models.CollectionPermission.READER)
 
 
