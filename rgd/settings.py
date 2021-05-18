@@ -15,7 +15,7 @@ from configurations import values
 
 class GeoDjangoMixin(ConfigMixin):
     # A setting to allow read access to all users if permissions are unassigned
-    RGD_GLOBAL_READ_ACCESS = values.Value(default=True)
+    RGD_GLOBAL_READ_ACCESS = values.Value(default=False)
 
     @staticmethod
     def before_binding(configuration: Type[ComposedConfiguration]):
