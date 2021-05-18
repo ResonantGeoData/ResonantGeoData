@@ -53,6 +53,7 @@ setup(
         'djangorestframework',
         'drf-yasg',
         'GDAL',
+        'large-image>=1.4.3',
         'large-image-source-gdal',
         'numpy',
         'pooch',
