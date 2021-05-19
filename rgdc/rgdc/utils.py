@@ -130,7 +130,6 @@ def spatial_subentry_id(search_result):
 
 
 def spatial_search_params(
-    self,
     query: Optional[Union[Dict, str]] = None,
     predicate: Optional[SEARCH_PREDICATE_CHOICE] = None,
     relates: Optional[str] = None,
