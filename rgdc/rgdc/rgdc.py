@@ -1,22 +1,19 @@
 from base64 import b64encode
 from dataclasses import dataclass
 import getpass
-import json
-from json.decoder import JSONDecodeError
 from pathlib import Path
 import tempfile
 from typing import Dict, Iterator, List, Optional, Tuple, Union
 
-from geomet import wkt
 from tqdm import tqdm
 
 from .session import RgdcSession
 from .types import DATETIME_OR_STR_TUPLE, SEARCH_PREDICATE_CHOICE
 from .utils import (
     DEFAULT_RGD_API,
-    datetime_to_str,
     download_checksum_file_to_path,
     limit_offset_pager,
+    spatial_search_params,
     spatial_subentry_id,
 )
 
@@ -199,55 +196,6 @@ class Rgdc:
 
         return raster_download
 
-    def _spatial_search_params(
-        self,
-        query: Optional[Union[Dict, str]] = None,
-        predicate: Optional[SEARCH_PREDICATE_CHOICE] = None,
-        relates: Optional[str] = None,
-        distance: Optional[Tuple[float, float]] = None,
-        acquired: Optional[DATETIME_OR_STR_TUPLE] = None,
-        instrumentation: Optional[str] = None,
-        limit: Optional[int] = None,
-        offset: Optional[int] = None,
-    ) -> Dict:
-        # The dict that will be used to store params.
-        # Initialize with queries that won't be additionally processed.
-        params = {
-            'predicate': predicate,
-            'relates': relates,
-            'instrumentation': instrumentation,
-            'limit': limit,
-            'offset': offset,
-        }
-
-        if query:
-            if isinstance(query, str):
-                try:
-                    query = json.loads(query)
-                except JSONDecodeError:
-                    pass
-
-            if isinstance(query, dict):
-                # Allow failure on invalid format
-                query = wkt.dumps(query)
-
-            params['q'] = query
-
-        # Process range params
-
-        if distance and len(distance) == 2:
-            dmin, dmax = distance
-            params['distance_min'] = dmin
-            params['distance_max'] = dmax
-
-        # TODO: Determine if the before/after param order needs to be swapped?
-        if acquired and len(acquired) == 2:
-            amin, amax = acquired
-            params['acquired_before'] = datetime_to_str(amax)
-            params['acquired_after'] = datetime_to_str(amin)
-
-        return params
-
     def search(
         self,
         query: Optional[Union[Dict, str]] = None,
@@ -280,7 +228,7 @@ class Rgdc:
         Returns:
             A list of Spatial Entries.
         """
-        params = self._spatial_search_params(
+        params = spatial_search_params(
             query=query,
             predicate=predicate,
             relates=relates,
@@ -330,7 +278,7 @@ class Rgdc:
         Returns:
             A list of Spatial Entries in STAC Item format.
         """
-        params = self._spatial_search_params(
+        params = spatial_search_params(
             query=query,
             predicate=predicate,
             relates=relates,

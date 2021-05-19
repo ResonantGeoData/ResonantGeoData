@@ -1,9 +1,14 @@
 from datetime import datetime
+import json
+from json.decoder import JSONDecodeError
 from pathlib import Path
-from typing import Dict, Generator, Iterator, List, Optional
+from typing import Dict, Generator, Iterator, List, Optional, Tuple, Union
 
+from geomet import wkt
 import requests
 from requests import Response, Session
+
+from .types import DATETIME_OR_STR_TUPLE, SEARCH_PREDICATE_CHOICE
 
 DEFAULT_RGD_API = 'https://www.resonantgeodata.com/api'
 
@@ -122,3 +127,53 @@ def download_checksum_file_to_path(file: Dict, path: Path, keep_existing: bool):
 def spatial_subentry_id(search_result):
     """Get the id of a returned SpatialEntry."""
     return search_result['subentry_pk']
+
+
+def spatial_search_params(
+    self,
+    query: Optional[Union[Dict, str]] = None,
+    predicate: Optional[SEARCH_PREDICATE_CHOICE] = None,
+    relates: Optional[str] = None,
+    distance: Optional[Tuple[float, float]] = None,
+    acquired: Optional[DATETIME_OR_STR_TUPLE] = None,
+    instrumentation: Optional[str] = None,
+    limit: Optional[int] = None,
+    offset: Optional[int] = None,
+) -> Dict:
+    # The dict that will be used to store params.
+    # Initialize with queries that won't be additionally processed.
+    params = {
+        'predicate': predicate,
+        'relates': relates,
+        'instrumentation': instrumentation,
+        'limit': limit,
+        'offset': offset,
+    }
+
+    if query:
+        if isinstance(query, str):
+            try:
+                query = json.loads(query)
+            except JSONDecodeError:
+                pass
+
+        if isinstance(query, dict):
+            # Allow failure on invalid format
+            query = wkt.dumps(query)
+
+        params['q'] = query
+
+    # Process range params
+
+    if distance and len(distance) == 2:
+        dmin, dmax = distance
+        params['distance_min'] = dmin
+        params['distance_max'] = dmax
+
+    # TODO: Determine if the before/after param order needs to be swapped?
+    if acquired and len(acquired) == 2:
+        amin, amax = acquired
+        params['acquired_before'] = datetime_to_str(amax)
+        params['acquired_after'] = datetime_to_str(amin)
+
+    return params
