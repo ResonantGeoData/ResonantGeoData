@@ -1,7 +1,7 @@
 import pytest
 
 from rgd.geodata.datastore import datastore
-from rgd.geodata.filters import SpatialEntryFilter
+from rgd.geodata.filters import RasterMetaEntryFilter, SpatialEntryFilter
 from rgd.geodata.models import RasterMetaEntry, SpatialEntry
 
 from . import factories
@@ -10,8 +10,8 @@ from . import factories
 @pytest.fixture
 def sample_raster_a():
     imagefile = factories.ImageFileFactory(
-        file__file__filename='20091021202517-01000100-VIS_0001.ntf',
-        file__file__from_path=datastore.fetch('20091021202517-01000100-VIS_0001.ntf'),
+        file__file__filename='RomanColosseum_WV2mulitband_10.tif',
+        file__file__from_path=datastore.fetch('RomanColosseum_WV2mulitband_10.tif'),
     )
     image_set = factories.ImageSetFactory(
         images=[imagefile.imageentry.id],
@@ -66,14 +66,27 @@ def test_q_distance(sample_raster_a, sample_raster_b):
 @pytest.mark.django_db(transaction=True)
 def test_raster_intersects(sample_raster_a, sample_raster_b):
     assert SpatialEntry.objects.count() == 2
-    filterset = SpatialEntryFilter(
+    filterset = RasterMetaEntryFilter(
         data={
             'q': f'SRID=4326;{sample_raster_a.outline.wkt}',
             'predicate': 'intersects',
         }
     )
     assert filterset.is_valid()
-    qs = filterset.filter_queryset(SpatialEntry.objects.all())
+    qs = filterset.filter_queryset(RasterMetaEntry.objects.all())
+    assert qs.count() == 1
+
+
+@pytest.mark.django_db(transaction=True)
+def test_raster_num_bands(sample_raster_a, sample_raster_b):
+    assert SpatialEntry.objects.count() == 2
+    filterset = RasterMetaEntryFilter(
+        data={
+            'num_bands_max': 2,
+        }
+    )
+    assert filterset.is_valid()
+    qs = filterset.filter_queryset(RasterMetaEntry.objects.all())
     assert qs.count() == 1
 
 
