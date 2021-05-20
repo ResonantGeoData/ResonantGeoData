@@ -1,0 +1,43 @@
+{% extends "geodata/_base/detail.html" %}
+
+{% block meta_table_body %}
+  <tr>
+    <td>Description</td>
+    <td>{{ object.description }}</td>
+  </tr>
+{% endblock %}
+
+{% block extra_meta %}
+  <br/>
+{% endblock %}
+
+{% block detail %}
+
+    {% include 'geodata/_includes/vtkjs_viewer.html' %}
+
+    <script>
+      const reader = vtk.IO.XML.vtkXMLPolyDataReader.newInstance();
+
+      function loadBase64Content (contentToLoad) {
+        var buffer = vtk.Common.Core.vtkBase64.toArrayBuffer(contentToLoad);
+        reader.parseAsArrayBuffer(buffer);
+        return reader.getOutputData(0);
+      }
+
+      const contentToLoad = '{{ object.vtp_data.base64_content }}'
+
+      const polydata = loadBase64Content(contentToLoad);
+
+      var actor = vtk.Rendering.Core.vtkActor.newInstance();
+      var mapper = vtk.Rendering.Core.vtkMapper.newInstance();
+
+      actor.setMapper(mapper);
+      mapper.setInputData(polydata);
+
+      renderer.addActor(actor);
+
+      renderer.resetCamera();
+      renderWindow.render();
+    </script>
+
+{% endblock %}

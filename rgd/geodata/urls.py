@@ -25,6 +25,11 @@ urlpatterns = [
         views.GeometryEntryDetailView.as_view(),
         name='geometry-entry-detail',
     ),
+    path(
+        'geodata/point_cloud/<int:pk>/',
+        views.PointCloudEntryDetailView.as_view(),
+        name='point-cloud-entry-detail',
+    ),
     #############
     # Search
     path('api/geosearch/near_point', api.search.search_near_point),

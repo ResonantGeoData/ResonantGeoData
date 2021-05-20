@@ -12,7 +12,15 @@ from .filters import SpatialEntryFilter
 from .models.common import SpatialEntry
 from .models.fmv.base import FMVEntry
 from .models.geometry import GeometryEntry
-from .models.imagery.base import RasterMetaEntry
+from .models.imagery import RasterMetaEntry
+from .models.threed import PointCloudEntry
+
+
+class PermissionDetailView(DetailView):
+    def get_object(self):
+        obj = super().get_object()
+        permissions.check_read_perm(self.request.user, obj)
+        return obj
 
 
 def query_params(params):
@@ -58,12 +66,7 @@ class SpatialEntriesListView(_SpatialListView):
     template_name = 'geodata/spatial_entries.html'
 
 
-class _SpatialDetailView(DetailView):
-    def get_object(self):
-        obj = super().get_object()
-        permissions.check_read_perm(self.request.user, obj)
-        return obj
-
+class _SpatialDetailView(PermissionDetailView):
     def _get_extent(self):
         extent = {
             'count': 0,
@@ -134,3 +137,12 @@ def spatial_entry_redirect_view(request, pk):
     else:
         raise ValueError()
     return redirect(reverse(name, kwargs={'pk': sub.pk}))
+
+
+class PointCloudEntryDetailView(PermissionDetailView):
+    model = PointCloudEntry
+
+    def get_context_data(self, *args, **kwargs):
+        context = super().get_context_data(*args, **kwargs)
+        # context['frame_rate'] = json.dumps(self.object.fmv_file.frame_rate)
+        return context
