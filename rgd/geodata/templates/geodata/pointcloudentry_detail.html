@@ -5,6 +5,30 @@
     <td>Description</td>
     <td>{{ object.description }}</td>
   </tr>
+  <tr>
+    <td>VTP Data</td>
+    <td>{{ object.data_link }}</td>
+  </tr>
+  <tr>
+    <td>Source Data</td>
+    <td>{{ object.source.data_link }}</td>
+  </tr>
+
+  {% if object.pointcloudmetaentry %}
+    <tr>
+      <td>Acquisition Date</td>
+      <td>{{ object.pointcloudmetaentry.acquisition_date }}</td>
+    </tr>
+    <tr>
+      <td>Area</td>
+      <td>{{ object.pointcloudmetaentry.footprint.area | floatformat:-2 }}</td>
+    </tr>
+    <tr>
+      <td>Instrumentation</td>
+      <td>{{ object.pointcloudmetaentry.instrumentation }}</td>
+    </tr>
+  {% endif %}
+
 {% endblock %}
 
 {% block extra_meta %}
