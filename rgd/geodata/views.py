@@ -10,9 +10,9 @@ from rgd.geodata import permissions
 from .api import search
 from .filters import SpatialEntryFilter
 from .models.common import SpatialEntry
-from .models.fmv.base import FMVEntry
+from .models.fmv import FMVEntry
 from .models.geometry import GeometryEntry
-from .models.imagery.base import RasterMetaEntry
+from .models.imagery import RasterMetaEntry
 
 
 def query_params(params):

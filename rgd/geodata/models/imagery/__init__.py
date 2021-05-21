@@ -8,14 +8,7 @@ type should be added, subclassing the appropriate base models.
 from .annotation import Annotation, PolygonSegmentation, RLESegmentation, Segmentation
 
 # flake8: noqa
-from .base import (
-    BandMetaEntry,
-    ConvertedImageFile,
-    ImageEntry,
-    ImageFile,
-    ImageSet,
-    KWCOCOArchive,
-    RasterEntry,
-    RasterMetaEntry,
-    SubsampledImage,
-)
+from .base import BandMetaEntry, ImageEntry, ImageFile, ImageSet
+from .kwcoco import KWCOCOArchive
+from .processed import ConvertedImageFile, SubsampledImage
+from .raster import RasterEntry, RasterMetaEntry

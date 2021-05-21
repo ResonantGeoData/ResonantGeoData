@@ -2,13 +2,8 @@ import pytest
 
 from rgd.geodata.datastore import datastore
 from rgd.geodata.models.common import FileSourceType
+from rgd.geodata.models.imagery import ConvertedImageFile, ImageEntry, ImageFile, SubsampledImage
 from rgd.geodata.models.imagery.annotation import Annotation, RLESegmentation
-from rgd.geodata.models.imagery.base import (
-    ConvertedImageFile,
-    ImageEntry,
-    ImageFile,
-    SubsampledImage,
-)
 from rgd.geodata.models.imagery.etl import populate_raster_footprint, read_image_file
 from rgd.geodata.models.imagery.subsample import populate_subsampled_image
 

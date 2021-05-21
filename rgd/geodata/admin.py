@@ -6,23 +6,21 @@ from django.contrib.gis.admin import OSMGeoAdmin
 from . import actions
 from .models.collection import Collection, CollectionPermission
 from .models.common import ChecksumFile, WhitelistedEmail
-from .models.fmv.base import FMVEntry, FMVFile
-from .models.geometry.base import GeometryArchive, GeometryEntry
-from .models.imagery.annotation import (
+from .models.fmv import FMVEntry, FMVFile
+from .models.geometry import GeometryArchive, GeometryEntry
+from .models.imagery import (
     Annotation,
-    PolygonSegmentation,
-    RLESegmentation,
-    Segmentation,
-)
-from .models.imagery.base import (
     BandMetaEntry,
     ConvertedImageFile,
     ImageEntry,
     ImageFile,
     ImageSet,
     KWCOCOArchive,
+    PolygonSegmentation,
     RasterEntry,
     RasterMetaEntry,
+    RLESegmentation,
+    Segmentation,
     SubsampledImage,
 )
 

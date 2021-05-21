@@ -33,16 +33,10 @@ from ..common import ChecksumFile
 from ..constants import DB_SRID
 from ..geometry.transform import transform_geometry
 from .annotation import Annotation, PolygonSegmentation, RLESegmentation, Segmentation
-from .base import (
-    BandMetaEntry,
-    ConvertedImageFile,
-    ImageEntry,
-    ImageFile,
-    ImageSet,
-    KWCOCOArchive,
-    RasterEntry,
-    RasterMetaEntry,
-)
+from .base import BandMetaEntry, ImageEntry, ImageFile, ImageSet
+from .kwcoco import KWCOCOArchive
+from .processed import ConvertedImageFile
+from .raster import RasterEntry, RasterMetaEntry
 
 logger = get_task_logger(__name__)
 
