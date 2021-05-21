@@ -2,7 +2,7 @@
 from django.contrib.gis.db import models
 
 from ... import tasks
-from ..common import ChecksumFile, ModifiableEntry
+from ..common import ChecksumFile, ModifiableEntry, SpatialEntry
 from ..mixins import TaskEventMixin
 
 
@@ -93,3 +93,12 @@ class ImageSet(ModifiableEntry):
         for image in self.images.all():
             annots[image.pk] = image.annotation_set.all()
         return annots
+
+
+class ImageSetSpatial(ModifiableEntry, SpatialEntry):
+    """Arbitrary register an ImageSet to a location."""
+
+    name = models.CharField(max_length=1000, blank=True)
+    description = models.TextField(null=True, blank=True)
+
+    image_set = models.OneToOneField(ImageSet, on_delete=models.CASCADE)
