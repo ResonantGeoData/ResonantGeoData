@@ -71,8 +71,10 @@ def read_point_cloud_file(pc_file):
         raise ValueError(f'Extension `{ext}` unsupported for point cloud conversion.')
     try:
         pc_entry.vtp_data
-    except:
+    except ChecksumFile.DoesNotExist:
         pc_entry.vtp_data = ChecksumFile()
+    if not pc_entry.vtp_data.collection:
+        pc_entry.vtp_data.collection = pc_file.file.collection
     _file_conversion_helper(pc_file.file, pc_entry.vtp_data.file, method, extension='.vtp')
     # Save the record
     pc_entry.save()
