@@ -13,7 +13,7 @@ from .models.common import SpatialEntry
 from .models.fmv.base import FMVEntry
 from .models.geometry import GeometryEntry
 from .models.imagery import RasterMetaEntry
-from .models.threed import PointCloudEntry
+from .models.threed import PointCloudEntry, PointCloudMetaEntry
 
 
 class PermissionDetailView(DetailView):
@@ -134,6 +134,9 @@ def spatial_entry_redirect_view(request, pk):
         name = 'geometry-entry-detail'
     elif isinstance(sub, FMVEntry):
         name = 'fmv-entry-detail'
+    elif isinstance(sub, PointCloudMetaEntry):
+        name = 'point-cloud-entry-detail'
+        sub = sub.parent_point_cloud
     else:
         raise ValueError()
     return redirect(reverse(name, kwargs={'pk': sub.pk}))

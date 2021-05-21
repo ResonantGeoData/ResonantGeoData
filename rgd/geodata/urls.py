@@ -128,7 +128,7 @@ urlpatterns = [
     path(
         'api/geodata/point_cloud/<int:pk>/base64',
         api.get.GetPointCloudEntryData.as_view(),
-        name='point-cloud-entry',
+        name='point-cloud-entry-data',
     ),
     #############
     # Geoprocessing
