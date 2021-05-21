@@ -34,7 +34,7 @@ def _use_pyntcloud_pyvista(input_path, output_path):
     from pyntcloud import PyntCloud
 
     cloud = PyntCloud.from_file(input_path)
-    mesh = cloud.to_instance("pyvista", mesh=False)
+    mesh = cloud.to_instance('pyvista', mesh=False)
     _save_pyvista(mesh, output_path)
 
 

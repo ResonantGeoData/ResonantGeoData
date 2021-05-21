@@ -288,10 +288,10 @@ class PointCloudEntryDataSerializer(PointCloudEntrySerializer):
         # Extract data as base64
         with value.vtp_data.yield_local_path() as path:
             with open(path, 'rb') as data:
-                dataContent = data.read()
-                base64Content = base64.b64encode(dataContent)
-                base64Content = base64Content.decode().replace('\n', '')
-        ret['vtp_data'] = base64Content
+                data_content = data.read()
+                base64_content = base64.b64encode(data_content)
+                base64_content = base64_content.decode().replace('\n', '')
+        ret['vtp_data'] = base64_content
         return ret
 
 
