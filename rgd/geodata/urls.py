@@ -120,6 +120,16 @@ urlpatterns = [
         api.get.GetFMVDataEntry.as_view(),
         name='fmv-entry-data',
     ),
+    path(
+        'api/geodata/point_cloud/<int:pk>',
+        api.get.GetPointCloudEntry.as_view(),
+        name='point-cloud-entry',
+    ),
+    path(
+        'api/geodata/point_cloud/<int:pk>/base64',
+        api.get.GetPointCloudEntryData.as_view(),
+        name='point-cloud-entry',
+    ),
     #############
     # Geoprocessing
     path(

@@ -84,3 +84,17 @@ class GetFMVDataEntry(RetrieveAPIView, _PermissionMixin):
     serializer_class = serializers.FMVEntryDataSerializer
     lookup_field = 'pk'
     queryset = models.FMVEntry.objects.all()
+
+
+class GetPointCloudEntry(
+    RetrieveAPIView,
+):  # _PermissionMixin):
+    serializer_class = serializers.PointCloudEntrySerializer
+    lookup_field = 'pk'
+    queryset = models.PointCloudEntry.objects.all()
+
+
+class GetPointCloudEntryData(RetrieveAPIView):
+    serializer_class = serializers.PointCloudEntryDataSerializer
+    lookup_field = 'pk'
+    queryset = models.PointCloudEntry.objects.all()

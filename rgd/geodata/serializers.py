@@ -1,3 +1,4 @@
+import base64
 import json
 
 from pyproj import CRS
@@ -258,6 +259,40 @@ class STACRasterSerializer(serializers.BaseSerializer):
             item.add_asset(f'ancillary-{ancillary_file.pk}', asset)
 
         return item.to_dict()
+
+
+class PointCloudFileSerializer(serializers.ModelSerializer):
+    file = ChecksumFileSerializer()
+
+    class Meta:
+        model = models.PointCloudFile
+        fields = '__all__'
+
+
+class PointCloudEntrySerializer(serializers.ModelSerializer):
+    source = PointCloudFileSerializer()
+    vtp_data = ChecksumFileSerializer()
+
+    def to_representation(self, value):
+        ret = super().to_representation(value)
+        return ret
+
+    class Meta:
+        model = models.PointCloudEntry
+        fields = '__all__'
+
+
+class PointCloudEntryDataSerializer(PointCloudEntrySerializer):
+    def to_representation(self, value):
+        ret = super().to_representation(value)
+        # Extract data as base64
+        with value.vtp_data.yield_local_path() as path:
+            with open(path, 'rb') as data:
+                dataContent = data.read()
+                base64Content = base64.b64encode(dataContent)
+                base64Content = base64Content.decode().replace('\n', '')
+        ret['vtp_data'] = base64Content
+        return ret
 
 
 utility.make_serializers(globals(), models)

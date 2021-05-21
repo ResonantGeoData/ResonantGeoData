@@ -141,8 +141,3 @@ def spatial_entry_redirect_view(request, pk):
 
 class PointCloudEntryDetailView(PermissionDetailView):
     model = PointCloudEntry
-
-    def get_context_data(self, *args, **kwargs):
-        context = super().get_context_data(*args, **kwargs)
-        # context['frame_rate'] = json.dumps(self.object.fmv_file.frame_rate)
-        return context

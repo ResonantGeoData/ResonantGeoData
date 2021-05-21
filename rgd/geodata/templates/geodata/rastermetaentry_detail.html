@@ -62,7 +62,6 @@
   {% include 'geodata/_includes/empty_viewer.html' %}
 
   <script>
-    var host = window.location.protocol + "//" + window.location.host;
     let extents = JSON.parse('{{ extents|escapejs }}');
     var outline = JSON.parse(extents['outline'])["coordinates"][0]
 

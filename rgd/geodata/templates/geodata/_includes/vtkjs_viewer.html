@@ -6,10 +6,11 @@
   <div id="vtkContainer"></div>
 
   <script type="text/javascript">
-    const container = document.getElementById("vtkContainer")
+    // console.log(vtk.Rendering.OpenGL.vtkRenderWindow.newInstance().getGLInformations())
+    const vtkContainer = document.getElementById("vtkContainer")
     var fullScreenRenderer = vtk.Rendering.Misc.vtkFullScreenRenderWindow.newInstance({
-      rootContainer: container,
-      containerStyle: { height: "calc(100vh - 140px)", width: "75%", position: "absolute" }
+      rootContainer: vtkContainer,
+      containerStyle: { height: "calc(100vh - 140px)", width: "75%", position: "absolute"}
     });
 
     var renderWindow = fullScreenRenderer.getRenderWindow();
