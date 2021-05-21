@@ -49,6 +49,9 @@ SHAPE_FILES = [
 FMV_FILES = []
 KWCOCO_ARCHIVES = [['demo.kwcoco.json', 'demodata.zip'], ['demo_rle.kwcoco.json', 'demo_rle.zip']]
 RASTER_URLS = []
+POINT_CLOUD_FILES = [
+    'topo.vtk',
+]
 
 
 class Command(helper.SynchronousTasksCommand):
@@ -74,5 +77,6 @@ class Command(helper.SynchronousTasksCommand):
         helper.load_shape_files(SHAPE_FILES)
         helper.load_fmv_files(FMV_FILES)
         helper.load_kwcoco_archives(KWCOCO_ARCHIVES)
+        helper.load_point_cloud_files(POINT_CLOUD_FILES)
         self.stdout.write(self.style.SUCCESS(SUCCESS_MSG))
         self.reset_celery()
