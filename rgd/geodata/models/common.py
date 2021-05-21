@@ -66,7 +66,7 @@ class SpatialEntry(models.Model):
     acquisition_date = models.DateTimeField(null=True, default=None, blank=True)
 
     # This can be used with GeoDjango's geographic database functions for spatial indexing
-    footprint = models.PolygonField(srid=DB_SRID)
+    footprint = models.GeometryField(srid=DB_SRID)
     outline = models.PolygonField(srid=DB_SRID)
 
     instrumentation = models.CharField(
@@ -325,3 +325,23 @@ class ChecksumFile(ModifiableEntry, TaskEventMixin):
     def yield_vsi_path(self, internal=False):
         """Wrap ``get_vsi_path`` in a context manager."""
         yield self.get_vsi_path(internal=internal)
+
+
+class WhitelistedEmail(models.Model):
+    email = models.EmailField()
+
+
+class SpatialAsset(SpatialEntry):
+    """Any spatially referenced asset set.
+
+    This can be any collection of files that have a spatial reference and are
+    not explictly handled by the other SpatialEntry subtypes. For example, this
+    model can be used to hold a collection of PDF documents or slide decks that
+    have a georeference.
+
+    """
+
+    name = models.CharField(max_length=1000, blank=True)
+    description = models.TextField(null=True, blank=True)
+
+    files = models.ManyToManyField(ChecksumFile)

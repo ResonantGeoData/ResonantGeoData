@@ -56,6 +56,12 @@ class GetRasterMetaEntry(RetrieveAPIView, _PermissionMixin):
     queryset = models.RasterMetaEntry.objects.all()
 
 
+class GetRasterMetaEntrySTAC(RetrieveAPIView, _PermissionMixin):
+    serializer_class = serializers.STACRasterSerializer
+    lookup_field = 'pk'
+    queryset = models.RasterMetaEntry.objects.all()
+
+
 class GetGeometryEntry(RetrieveAPIView, _PermissionMixin):
     serializer_class = serializers.GeometryEntrySerializer
     lookup_field = 'pk'

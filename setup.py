@@ -53,10 +53,12 @@ setup(
         'djangorestframework',
         'drf-yasg',
         'GDAL',
+        'large-image>=1.6.0',
         'large-image-source-gdal',
         'numpy',
         'pooch',
         'python-magic',
+        'pystac',
         'rules',
         'uritemplate',
         # Production-only
