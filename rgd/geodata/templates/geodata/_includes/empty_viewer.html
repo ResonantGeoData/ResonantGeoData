@@ -35,10 +35,14 @@
       node: '#map',
       clampBoundsX: true
     })
-    basemapLayer = map.createLayer('osm', {
+    var basemapLayer = map.createLayer('osm', {
       source: getCookie('basemapChoice', 'osm'),
       gcs: 'EPSG:3857' // web mercator
     });
+
+    // Tile layer for showing rasters/images with large_image
+    var tileLayer = map.createLayer('osm', {keepLower: false, attribution: ''});
+    tileLayer.visible(false)
 
     // Increase zoom range from default of 16
     map.zoomRange({

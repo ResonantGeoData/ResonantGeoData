@@ -42,6 +42,13 @@ class Command(helper.SynchronousTasksCommand):
         parser.add_argument(
             '-g', '--get_count', help='Use to fetch the number of available rasters.'
         )
+        parser.add_argument(
+            '-f',
+            '--footprint',
+            action='store_true',
+            default=False,
+            help='Compute the valid data footprints',
+        )
 
     def handle(self, *args, **options):
         self.set_synchronous()
@@ -52,8 +59,9 @@ class Command(helper.SynchronousTasksCommand):
             return
 
         count = options.get('count', 0)
+        footprint = options.get('footprint')
 
         # Run the command
-        helper.load_raster_files(_get_landsat_urls(count))
+        helper.load_raster_files(_get_landsat_urls(count), footprint=footprint)
         self.stdout.write(self.style.SUCCESS(SUCCESS_MSG))
         self.reset_celery()

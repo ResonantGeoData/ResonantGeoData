@@ -101,6 +101,11 @@ urlpatterns = [
         name='raster-meta-entry',
     ),
     path(
+        'api/geodata/imagery/raster/<int:pk>/stac',
+        api.get.GetRasterMetaEntrySTAC.as_view(),
+        name='raster-meta-entry-stac',
+    ),
+    path(
         'api/geodata/fmv/<int:pk>',
         api.get.GetFMVEntry.as_view(),
         name='fmv-entry',

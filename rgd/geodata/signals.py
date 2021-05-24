@@ -1,11 +1,12 @@
 from functools import wraps
 import os
 
+from allauth.account.signals import user_signed_up
 from django.db import transaction
 from django.db.models.signals import m2m_changed, post_delete, post_save
 from django.dispatch import receiver
 
-from .models.common import ChecksumFile
+from .models.common import ChecksumFile, WhitelistedEmail
 from .models.fmv import FMVFile
 from .models.geometry import GeometryArchive
 from .models.imagery import (
@@ -109,3 +110,14 @@ def _post_delete_converted_image_file(sender, instance, *args, **kwargs):
 @skip_signal()
 def _post_delete_subsampled_image(sender, instance, *args, **kwargs):
     transaction.on_commit(lambda: instance._post_delete(*args, **kwargs))
+
+
+@receiver(user_signed_up)
+def set_new_user_inactive(sender, **kwargs):
+    user = kwargs.get('user')
+    try:
+        WhitelistedEmail.objects.get(email=user.email)
+        user.is_active = True
+    except WhitelistedEmail.DoesNotExist:
+        user.is_active = False
+    user.save(update_fields=['is_active'])

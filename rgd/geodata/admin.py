@@ -1,9 +1,11 @@
 from django.contrib import admin
+from django.contrib.auth.admin import UserAdmin
+from django.contrib.auth.models import User
 from django.contrib.gis.admin import OSMGeoAdmin
 
 from . import actions
-from .models.collection import Collection, CollectionMembership
-from .models.common import ChecksumFile
+from .models.collection import Collection, CollectionPermission
+from .models.common import ChecksumFile, WhitelistedEmail
 from .models.fmv.base import FMVEntry, FMVFile
 from .models.geometry.base import GeometryArchive, GeometryEntry
 from .models.imagery.annotation import (
@@ -24,16 +26,41 @@ from .models.imagery.base import (
     SubsampledImage,
 )
 
-SPATIAL_ENTRY_FILTERS = (
-    'acquisition_date',
+MODIFIABLE_FILTERS = (
     'modified',
     'created',
 )
+
+SPATIAL_ENTRY_FILTERS = (
+    'acquisition_date',
+    'instrumentation',
+    'modified',
+    'created',
+)
+
+TASK_EVENT_FILTERS = ('status',)
 
 TASK_EVENT_READONLY = (
     'failure_reason',
     'status',
 )
+
+admin.site.unregister(User)
+
+
+@admin.register(User)
+class CustomUserAdmin(UserAdmin):
+    actions = [
+        actions.make_users_active,
+        actions.make_users_staff,
+    ]
+
+    list_display = (
+        'username',
+        'is_staff',
+        'is_superuser',
+        'is_active',
+    )
 
 
 class _FileGetNameMixin:
@@ -42,6 +69,14 @@ class _FileGetNameMixin:
 
     get_name.short_description = 'Name'
     get_name.admin_order_field = 'file__name'
+
+
+@admin.register(WhitelistedEmail)
+class WhitelistedEmailAdmin(OSMGeoAdmin):
+    list_display = (
+        'id',
+        'email',
+    )
 
 
 @admin.register(ChecksumFile)
@@ -61,6 +96,14 @@ class ChecksumFileAdmin(OSMGeoAdmin):
         'last_validation',
     ) + TASK_EVENT_READONLY
     actions = (actions.reprocess, actions.make_image_files)
+    list_filter = (
+        MODIFIABLE_FILTERS
+        + TASK_EVENT_FILTERS
+        + (
+            'type',
+            'collection',
+        )
+    )
 
 
 @admin.register(KWCOCOArchive)
@@ -74,6 +117,7 @@ class KWCOCOArchiveAdmin(OSMGeoAdmin):
     )
     readonly_fields = ('image_set',) + TASK_EVENT_READONLY
     actions = (actions.reprocess,)
+    list_filter = MODIFIABLE_FILTERS + TASK_EVENT_FILTERS
 
 
 @admin.register(ImageSet)
@@ -89,6 +133,7 @@ class ImageSetAdmin(OSMGeoAdmin):
         actions.make_raster_from_image_set,
         actions.clean_empty_image_sets,
     )
+    list_filter = MODIFIABLE_FILTERS
 
 
 class BandMetaEntryInline(admin.StackedInline):
@@ -112,11 +157,6 @@ class BandMetaEntryInline(admin.StackedInline):
         'nodata_value',
         'dtype',
         'band_number',
-    )
-    list_filter = (
-        'parent_image',
-        'interpretation',
-        'dtype',
     )
 
     def has_add_permission(self, request, obj=None):
@@ -142,7 +182,10 @@ class ImageEntryAdmin(OSMGeoAdmin):
         'modified',
         'created',
     )
-    list_filter = ('instrumentation', 'number_of_bands', 'driver')
+    list_filter = MODIFIABLE_FILTERS + (
+        'number_of_bands',
+        'driver',
+    )
     actions = (
         actions.make_image_set_from_image_entries,
         actions.make_raster_from_image_entries,
@@ -170,7 +213,6 @@ class RasterMetaEntryInline(admin.StackedInline):
         'created',
         'parent_raster',
     )
-    list_filter = SPATIAL_ENTRY_FILTERS + ('crs',)
     modifiable = False  # To still show the footprint and outline
 
 
@@ -180,6 +222,8 @@ class RasterEntryAdmin(OSMGeoAdmin):
         'id',
         'name',
         'status',
+        'count',
+        'acquisition_date',
         'modified',
         'created',
     )
@@ -193,6 +237,7 @@ class RasterEntryAdmin(OSMGeoAdmin):
         actions.generate_valid_data_footprint,
         actions.clean_empty_rasters,
     )
+    list_filter = MODIFIABLE_FILTERS + TASK_EVENT_FILTERS
 
 
 class SegmentationInline(admin.StackedInline):
@@ -235,6 +280,10 @@ class AnnotationAdmin(OSMGeoAdmin):
         'line',
     )
     inlines = (SegmentationInline, PolygonSegmentationInline, RLESegmentationInline)
+    list_filter = MODIFIABLE_FILTERS + (
+        'annotator',
+        'label',
+    )
 
 
 @admin.register(ImageFile)
@@ -252,6 +301,7 @@ class ImageFileAdmin(OSMGeoAdmin, _FileGetNameMixin):
         'created',
     ) + TASK_EVENT_READONLY
     actions = (actions.reprocess,)
+    list_filter = MODIFIABLE_FILTERS + TASK_EVENT_FILTERS
 
 
 @admin.register(ConvertedImageFile)
@@ -265,6 +315,7 @@ class ConvertedImageFileAdmin(OSMGeoAdmin):
     )
     readonly_fields = ('converted_file',) + TASK_EVENT_READONLY
     actions = (actions.reprocess,)
+    list_filter = MODIFIABLE_FILTERS + TASK_EVENT_FILTERS
 
 
 @admin.register(SubsampledImage)
@@ -279,6 +330,7 @@ class SubsampledImageAdmin(OSMGeoAdmin):
     )
     readonly_fields = ('data',) + TASK_EVENT_READONLY
     actions = (actions.reprocess,)
+    list_filter = MODIFIABLE_FILTERS + TASK_EVENT_FILTERS
 
 
 class GeometryEntryInline(admin.StackedInline):
@@ -291,7 +343,7 @@ class GeometryEntryInline(admin.StackedInline):
         'modified',
         'created',
     )
-    list_filter = SPATIAL_ENTRY_FILTERS
+    list_filter = MODIFIABLE_FILTERS + SPATIAL_ENTRY_FILTERS
     readonly_fields = (
         'modified',
         'created',
@@ -316,6 +368,7 @@ class GeometryArchiveAdmin(OSMGeoAdmin, _FileGetNameMixin):
     ) + TASK_EVENT_READONLY
     inlines = (GeometryEntryInline,)
     actions = (actions.reprocess,)
+    list_filter = MODIFIABLE_FILTERS + TASK_EVENT_FILTERS
 
 
 class FMVEntryInline(admin.StackedInline):
@@ -354,10 +407,11 @@ class FMVFileAdmin(OSMGeoAdmin, _FileGetNameMixin):
     ) + TASK_EVENT_READONLY
     inlines = (FMVEntryInline,)
     actions = (actions.reprocess,)
+    list_filter = MODIFIABLE_FILTERS
 
 
-class CollectionMembershipInline(admin.TabularInline):
-    model = CollectionMembership
+class CollectionPermissionInline(admin.TabularInline):
+    model = CollectionPermission
     fk_name = 'collection'
     fields = ('user', 'role')
     extra = 1
@@ -366,4 +420,4 @@ class CollectionMembershipInline(admin.TabularInline):
 @admin.register(Collection)
 class CollectionAdmin(OSMGeoAdmin):
     fields = ('name',)
-    inlines = (CollectionMembershipInline,)
+    inlines = (CollectionPermissionInline,)

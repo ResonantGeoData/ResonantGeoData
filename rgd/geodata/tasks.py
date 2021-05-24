@@ -68,6 +68,15 @@ def task_populate_raster_footprint(raster_id):
 
 
 @shared_task(time_limit=86400)
+def task_populate_raster_outline(raster_id):
+    from .models.imagery.base import RasterEntry
+    from .models.imagery.etl import populate_raster_outline
+
+    raster_entry = RasterEntry.objects.get(id=raster_id)
+    _run_with_failure_reason(raster_entry, populate_raster_outline, raster_id)
+
+
+@shared_task(time_limit=86400)
 def task_load_kwcoco_dataset(kwcoco_dataset_id):
     from .models.imagery.base import KWCOCOArchive
     from .models.imagery.etl import load_kwcoco_dataset

@@ -84,6 +84,12 @@ def generate_valid_data_footprint(modeladmin, request, queryset):
         tasks.task_populate_raster_footprint.delay(rast.id)
 
 
+def generate_outline(modeladmin, request, queryset):
+    """Generate a the outline for each raster."""
+    for rast in queryset.all():
+        tasks.task_populate_raster_outline.delay(rast.id)
+
+
 def clean_empty_image_sets(modeladmin, request, queryset):
     """Delete empty `ImageSet`s."""
     for imset in queryset.all():
@@ -102,3 +108,19 @@ def convert_images(modeladmin, request, queryset):
     for image in queryset.all():
         entry, created = get_or_create_no_commit(ConvertedImageFile, source_image=image)
         entry.save()
+
+
+def make_users_active(modeladmin, request, queryset):
+    """Make each user active."""
+    for user in queryset.all():
+        if not user.is_active:
+            user.is_active = True
+            user.save(update_fields=['is_active'])
+
+
+def make_users_staff(modeladmin, request, queryset):
+    """Make each user staff."""
+    for user in queryset.all():
+        if not user.is_staff:
+            user.is_staff = True
+            user.save(update_fields=['is_staff'])

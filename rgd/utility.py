@@ -6,10 +6,11 @@ import logging
 import os
 from pathlib import Path, PurePath
 import tempfile
-from typing import Generator
+from typing import Any, Generator
 from urllib.error import HTTPError
 from urllib.parse import urlparse
 from urllib.request import urlopen
+from uuid import uuid4
 
 from django.conf import settings
 from django.db.models import fields
@@ -262,3 +263,11 @@ def input_output_path_helper(source, output: FieldFile, prefix: str = '', suffix
                 # Save the file contents to the output field only on success
                 with open(output_path, 'rb') as f:
                     output.save(os.path.basename(output_path), f)
+
+
+def uuid_prefix_filename(instance: Any, filename: str):
+    """Use a variable in settings to add a prefix to the path and keep the random uuid."""
+    prefix = settings.RGD_FILE_FIELD_PREFIX
+    if prefix:
+        return f'{prefix}/{uuid4()}/{filename}'
+    return f'{uuid4()}/{filename}'

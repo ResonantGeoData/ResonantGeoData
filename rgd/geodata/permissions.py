@@ -1,5 +1,6 @@
 from typing import Optional
 
+from django.conf import settings
 from django.contrib.auth.backends import BaseBackend
 from django.core.exceptions import PermissionDenied
 from django.db.models.functions import Coalesce
@@ -16,67 +17,67 @@ def annotate_queryset(queryset):
     model = queryset.model
     if model == models.SpatialEntry:
         return queryset.annotate(
-            _collection_memberships__user=Coalesce(
-                'fmventry__fmv_file__file__collection__collection_memberships__user',
-                'geometryentry__geometry_archive__file__collection__collection_memberships__user',
-                'rastermetaentry__parent_raster__image_set__images__image_file__file__collection__collection_memberships__user',
+            _collection_permissions__user=Coalesce(
+                'fmventry__fmv_file__file__collection__collection_permissions__user',
+                'geometryentry__geometry_archive__file__collection__collection_permissions__user',
+                'rastermetaentry__parent_raster__image_set__images__image_file__file__collection__collection_permissions__user',
             ),
-            _collection_memberships__role=Coalesce(
-                'fmventry__fmv_file__file__collection__collection_memberships__role',
-                'geometryentry__geometry_archive__file__collection__collection_memberships__role',
-                'rastermetaentry__parent_raster__image_set__images__image_file__file__collection__collection_memberships__role',
+            _collection_permissions__role=Coalesce(
+                'fmventry__fmv_file__file__collection__collection_permissions__role',
+                'geometryentry__geometry_archive__file__collection__collection_permissions__role',
+                'rastermetaentry__parent_raster__image_set__images__image_file__file__collection__collection_permissions__role',
             ),
         )
     return queryset
 
 
 def get_collection_membership_path(model) -> Optional[str]:
-    """Get the path to the 'CollectionMembership' model.
+    """Get the path to the 'CollectionPermission' model.
 
     Relationships are represented as 'dunder's ('__'). Returning `None`
     means the model is explicitly unprotected.
     """
     # Collection
-    if issubclass(model, models.CollectionMembership):
+    if issubclass(model, models.CollectionPermission):
         return ''
     if issubclass(model, models.Collection):
-        return 'collection_memberships'
+        return 'collection_permissions'
     # Common
     if issubclass(model, models.ChecksumFile):
-        return 'collection__collection_memberships'
+        return 'collection__collection_permissions'
     # Imagery
     if issubclass(model, models.ImageEntry):
-        return 'image_file__file__collection__collection_memberships'
+        return 'image_file__file__collection__collection_permissions'
     if issubclass(model, models.ImageSet):
-        return 'images__image_file__file__collection__collection_memberships'
+        return 'images__image_file__file__collection__collection_permissions'
     if issubclass(model, models.RasterEntry):
-        return 'image_set__images__image_file__file__collection__collection_memberships'
+        return 'image_set__images__image_file__file__collection__collection_permissions'
     if issubclass(model, models.RasterMetaEntry):
         return (
-            'parent_raster__image_set__images__image_file__file__collection__collection_memberships'
+            'parent_raster__image_set__images__image_file__file__collection__collection_permissions'
         )
     if issubclass(model, models.BandMetaEntry):
-        return 'parent_image__image_file__file__collection__collection_memberships'
+        return 'parent_image__image_file__file__collection__collection_permissions'
     if issubclass(model, models.ConvertedImageFile):
-        return 'source_image__image_file__file__collection__collection_memberships'
+        return 'source_image__image_file__file__collection__collection_permissions'
     if issubclass(model, models.SubsampledImage):
-        return 'source_image__image_file__file__collection__collection_memberships'
+        return 'source_image__image_file__file__collection__collection_permissions'
     if issubclass(model, models.KWCOCOArchive):
-        return 'spec_file__collection__collection_memberships'
+        return 'spec_file__collection__collection_permissions'
     # Annotation
     if issubclass(model, models.Annotation):
-        return 'image__image_file__collection__collection_memberships'
+        return 'image__image_file__collection__collection_permissions'
     if issubclass(model, models.Segmentation):
-        return 'annotation__image__image_file__collection__collection_memberships'
+        return 'annotation__image__image_file__collection__collection_permissions'
     # Geometry
     if issubclass(model, models.GeometryEntry):
-        return 'geometry_archive__file__collection__collection_memberships'
+        return 'geometry_archive__file__collection__collection_permissions'
     # FMV
     if issubclass(model, models.FMVEntry):
-        return 'fmv_file__file__collection__collection_memberships'
+        return 'fmv_file__file__collection__collection_permissions'
     # SpatialEntry
     if model == models.SpatialEntry:
-        return '_collection_memberships'
+        return '_collection_permissions'
 
     raise NotImplementedError
 
@@ -86,32 +87,37 @@ def filter_perm(user, queryset, role):
     # Called outside of view
     if user is None:
         return queryset
-    # Admins can see all
-    if user.is_active and (user.is_staff or user.is_superuser):
+    # Must be logged in
+    if not user.is_active or user.is_anonymous:
+        return queryset.none()
+    # Superusers can see all (not staff users)
+    if user.is_active and user.is_superuser:
         return queryset
     # No relationship to collection
     path = get_collection_membership_path(queryset.model)
     if path is None:
         return queryset
-    # Must be logged in
-    if not user.is_active or user.is_anonymous:
-        return queryset.none()
     # Check permissions
-    # `path` can be an empty string (meaning queryset is `CollectionMembership`)
+    # `path` can be an empty string (meaning queryset is `CollectionPermission`)
     user_path = (path + '__' if path != '' else path) + 'user'
     role_path = (path + '__' if path != '' else path) + 'role'
     queryset = annotate_queryset(queryset)
-    return queryset.filter(**{user_path: user.pk}).exclude(**{role_path + '__lt': role})
+    filtered = queryset.filter(**{user_path: user.pk}).exclude(**{role_path + '__lt': role})
+    # Check setting for unassigned permissions
+    if settings.RGD_GLOBAL_READ_ACCESS:
+        unassigned = queryset.filter(**{user_path + '__isnull': True})
+        return unassigned | filtered
+    return filtered
 
 
 def filter_read_perm(user, queryset):
-    """Filter a queryset to what the user may edit."""
-    return filter_perm(user, queryset, models.CollectionMembership.READER)
+    """Filter a queryset to what the user may read."""
+    return filter_perm(user, queryset, models.CollectionPermission.READER)
 
 
 def filter_write_perm(user, queryset):
     """Filter a queryset to what the user may edit."""
-    return filter_perm(user, queryset, models.CollectionMembership.OWNER)
+    return filter_perm(user, queryset, models.CollectionPermission.OWNER)
 
 
 def check_read_perm(user, obj):

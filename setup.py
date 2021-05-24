@@ -12,7 +12,7 @@ else:
 
 setup(
     name='resonantgeodata',
-    version='0.1.0',
+    version='0.1.1',
     description='',
     long_description=long_description,
     long_description_content_type='text/markdown',
@@ -53,10 +53,12 @@ setup(
         'djangorestframework',
         'drf-yasg',
         'GDAL',
+        'large-image>=1.6.0',
         'large-image-source-gdal',
         'numpy',
         'pooch',
         'python-magic',
+        'pystac',
         'rules',
         'uritemplate',
         # Production-only
@@ -80,7 +82,7 @@ setup(
             'scipy',
             'kwarray>=0.5.10',
             'kwcoco',
-            'kwimage>=0.6.7',
+            'kwimage[headless]>=0.6.7',
             'large-image-converter',
         ],
         'fuse': [

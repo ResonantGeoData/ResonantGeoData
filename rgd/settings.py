@@ -14,6 +14,9 @@ from configurations import values
 
 
 class GeoDjangoMixin(ConfigMixin):
+    # A setting to allow read access to all users if permissions are unassigned
+    RGD_GLOBAL_READ_ACCESS = values.Value(default=False)
+
     @staticmethod
     def before_binding(configuration: Type[ComposedConfiguration]):
         configuration.INSTALLED_APPS += ['django.contrib.gis']
@@ -89,6 +92,8 @@ class RgdMixin(CrispyFormsMixin, GeoDjangoMixin, SwaggerMixin, ConfigMixin):
     )
 
     CELERY_WORKER_SEND_TASK_EVENTS = True
+
+    RGD_FILE_FIELD_PREFIX = values.Value(default=None)
 
 
 class DevelopmentConfiguration(RgdMixin, DevelopmentBaseConfiguration):

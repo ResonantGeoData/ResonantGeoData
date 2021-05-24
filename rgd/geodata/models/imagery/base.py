@@ -38,13 +38,6 @@ class ImageEntry(ModifiableEntry):
     name = models.CharField(max_length=1000, blank=True)
     description = models.TextField(null=True, blank=True)
 
-    instrumentation = models.CharField(
-        max_length=100,
-        null=True,
-        blank=True,
-        help_text='The instrumentation used to acquire these data.',
-    )
-
     image_file = models.OneToOneField(ImageFile, on_delete=models.CASCADE)
     driver = models.CharField(max_length=100)
     height = models.PositiveIntegerField()
@@ -101,7 +94,7 @@ class RasterEntry(ModifiableEntry, TaskEventMixin):
     description = models.TextField(null=True, blank=True)
 
     image_set = models.OneToOneField(ImageSet, on_delete=models.CASCADE)
-    ancillary_files = models.ManyToManyField(ChecksumFile)
+    ancillary_files = models.ManyToManyField(ChecksumFile, blank=True)
 
     task_funcs = (
         tasks.task_populate_raster_entry,
@@ -117,6 +110,11 @@ class RasterEntry(ModifiableEntry, TaskEventMixin):
     def outline(self):
         """Pointer to RasterMetaEntry outline."""
         return self.rastermetaentry.outline
+
+    @property
+    def acquisition_date(self):
+        """Pointer to RasterMetaEntry acquisition_date."""
+        return self.rastermetaentry.acquisition_date
 
     @property
     def count(self):
@@ -139,7 +137,7 @@ class RasterMetaEntry(ModifiableEntry, SpatialEntry):
     # TODO: skew/transform
     transform = fields.ArrayField(models.FloatField(), size=6)
     cloud_cover = models.FloatField(
-        null=True, validators=[MinValueValidator(0), MaxValueValidator(100)]
+        null=True, validators=[MinValueValidator(0), MaxValueValidator(100)], blank=True
     )
 
     @property
