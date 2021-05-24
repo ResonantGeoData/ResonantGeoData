@@ -1,6 +1,8 @@
 from django.http import HttpResponse
 from django.shortcuts import get_object_or_404
+from large_image.exceptions import TileSourceException
 from large_image_source_gdal import GDALFileTileSource
+from large_image_source_pil import PILFileTileSource
 from rest_framework.request import Request
 from rest_framework.response import Response
 from rest_framework.views import APIView
@@ -13,9 +15,13 @@ class BaseTileView(APIView):
         """Return the built tile source."""
         image_entry = get_object_or_404(ImageEntry, pk=pk)
         self.check_object_permissions(request, image_entry)
-        file_path = image_entry.image_file.file.get_vsi_path(internal=True)
         projection = request.query_params.get('projection', 'EPSG:3857')
-        return GDALFileTileSource(file_path, projection=projection, encoding='PNG')
+        try:
+            file_path = image_entry.image_file.file.get_vsi_path(internal=True)
+            return GDALFileTileSource(file_path, projection=projection, encoding='PNG')
+        except TileSourceException:
+            with image_entry.image_file.file.yield_local_path() as file_path:
+                return PILFileTileSource(file_path)
 
 
 class TileMetadataView(BaseTileView):

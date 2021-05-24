@@ -55,6 +55,7 @@ setup(
         'GDAL',
         'large-image>=1.6.0',
         'large-image-source-gdal',
+        'large-image-source-pil',
         'numpy',
         'pooch',
         'python-magic',
