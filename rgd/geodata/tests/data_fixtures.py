@@ -72,6 +72,22 @@ def sample_raster_b():
 
 
 @pytest.fixture
+def sample_raster_c():
+    imagefile = factories.ImageFileFactory(
+        file__file__filename='RomanColosseum_WV2mulitband_10.tif',
+        file__file__from_path=datastore.fetch('RomanColosseum_WV2mulitband_10.tif'),
+    )
+    image_set = factories.ImageSetFactory(
+        images=[imagefile.imageentry.id],
+    )
+    raster = factories.RasterEntryFactory(
+        name='RomanColosseum_WV2mulitband_10.tif',
+        image_set=image_set,
+    )
+    return raster.rastermetaentry
+
+
+@pytest.fixture
 def sample_raster_multi():
     # These test files are dramatically downsampled for rapid testing
     landsat_files = [
