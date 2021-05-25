@@ -14,7 +14,7 @@ from . import models
 class SpatialEntrySerializer(serializers.ModelSerializer):
     def to_representation(self, value):
         ret = super().to_representation(value)
-        ret['footprint'] = json.loads(value.footprint.geojson)
+        # NOTE: including footprint can cause the search results to blow up in size
         ret['outline'] = json.loads(value.outline.geojson)
         # Add hyperlink to get view for subtype if SpatialEntry
         if type(value).__name__ != value.subentry_type:
@@ -38,13 +38,13 @@ class SpatialEntrySerializer(serializers.ModelSerializer):
 
     class Meta:
         model = models.SpatialEntry
-        fields = '__all__'
+        exclude = ['footprint', 'outline']
 
 
 class GeometryEntrySerializer(SpatialEntrySerializer):
     class Meta:
         model = models.GeometryEntry
-        exclude = ['data']
+        exclude = ['data', 'footprint', 'outline']
 
 
 class GeometryEntryDataSerializer(GeometryEntrySerializer):
@@ -182,7 +182,7 @@ class RasterMetaEntrySerializer(SpatialEntrySerializer):
 
     class Meta:
         model = models.RasterMetaEntry
-        fields = '__all__'
+        exclude = ['footprint', 'outline']
 
 
 class FMVFileSerializer(serializers.ModelSerializer):
@@ -198,7 +198,7 @@ class FMVEntrySerializer(SpatialEntrySerializer):
 
     class Meta:
         model = models.FMVEntry
-        exclude = ['ground_frames', 'ground_union', 'flight_path', 'frame_numbers']
+        exclude = ['ground_frames', 'ground_union', 'flight_path', 'frame_numbers', 'outline', 'footprint']
 
 
 class FMVEntryDataSerializer(FMVEntrySerializer):
