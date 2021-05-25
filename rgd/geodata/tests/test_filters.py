@@ -43,7 +43,8 @@ def test_raster_intersects(sample_raster_a, sample_raster_b):
 
 
 @pytest.mark.django_db(transaction=True)
-def test_raster_num_bands(sample_raster_a, sample_raster_b):
+def test_raster_num_bands(sample_raster_b, sample_raster_c):
+    # b has many bands and c has 1 band
     assert models.SpatialEntry.objects.count() == 2
     filterset = RasterMetaEntryFilter(
         data={
