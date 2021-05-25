@@ -215,6 +215,33 @@ class RasterMetaEntryInline(admin.StackedInline):
     modifiable = False  # To still show the footprint and outline
 
 
+@admin.register(RasterMetaEntry)
+class RasterMetaEntryAdmin(OSMGeoAdmin):
+    list_display = (
+        'id',
+        'name',
+        'acquisition_date',
+        'modified',
+        'created',
+    )
+    readonly_fields = (
+        'crs',
+        'origin',
+        'extent',
+        'resolution',
+        'transform',
+        'parent_raster',
+        'modified',
+        'created',
+    )
+    actions = (
+        actions.reprocess_rastermeta,
+    )
+    list_filter = SPATIAL_ENTRY_FILTERS + MODIFIABLE_FILTERS
+
+    modifiable = False  # To still show the footprint and outline
+
+
 @admin.register(RasterEntry)
 class RasterEntryAdmin(OSMGeoAdmin):
     list_display = (

@@ -77,6 +77,12 @@ def reprocess(modeladmin, request, queryset):
         entry.save()
 
 
+def reprocess_rastermeta(modeladmin, request, queryset):
+    """Trigger the save event task for each entry."""
+    for entry in queryset.all():
+        entry.parent_raster.save()
+
+
 def generate_valid_data_footprint(modeladmin, request, queryset):
     """Generate a valid data footprint for each raster."""
     for rast in queryset.all():
