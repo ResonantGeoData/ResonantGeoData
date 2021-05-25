@@ -24,12 +24,6 @@ SampleFiles = [
     {'name': 'RomanColosseum_WV2mulitband_10.tif', 'centroid': {'x': 12.50, 'y': 41.89}},
 ]
 
-# These test files are dramatically downsampled for rapid testing
-LandsatFiles = [
-    'LC08_L1TP_034032_20200429_20200509_01_T1_sr_band1.tif',
-    'LC08_L1TP_034032_20200429_20200509_01_T1_sr_band2.tif',
-    'LC08_L1TP_034032_20200429_20200509_01_T1_sr_band3.tif',
-]
 
 TOLERANCE = 2e-2
 
@@ -96,41 +90,16 @@ def test_repopulate_image_entry():
 
 
 @pytest.mark.django_db(transaction=True)
-def test_multi_file_raster():
+def test_multi_file_raster(sample_raster_multi):
     """Test the use case where a raster is generated from multiple files."""
-    b1 = factories.ImageFileFactory(
-        file__file__filename=LandsatFiles[0],
-        file__file__from_path=datastore.fetch(LandsatFiles[0]),
-    )
-    b2 = factories.ImageFileFactory(
-        file__file__filename=LandsatFiles[1],
-        file__file__from_path=datastore.fetch(LandsatFiles[1]),
-    )
-    b3 = factories.ImageFileFactory(
-        file__file__filename=LandsatFiles[2],
-        file__file__from_path=datastore.fetch(LandsatFiles[2]),
-    )
-    image_set = factories.ImageSetFactory(
-        images=[
-            b1.imageentry.id,
-            b2.imageentry.id,
-            b3.imageentry.id,
-        ],
-    )
-    # Create a RasterEntry from the three band image entries
-    raster = factories.RasterEntryFactory(
-        name='Multi File Test',
-        image_set=image_set,
-    )
-    meta = raster.rastermetaentry
-    assert raster.image_set.count == 3
-    assert meta.crs is not None
+    assert sample_raster_multi.parent_raster.image_set.count == 3
+    assert sample_raster_multi.crs is not None
 
 
 @pytest.mark.parametrize(
     'name',
     [
-        LandsatFiles[0],
+        'LC08_L1TP_034032_20200429_20200509_01_T1_sr_band1.tif',
         'landcover_sample_2000.tif',
     ],
 )
