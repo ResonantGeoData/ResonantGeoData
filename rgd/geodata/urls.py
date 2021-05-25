@@ -5,6 +5,7 @@ from . import api, views
 urlpatterns = [
     # Pages
     path(r'', views.SpatialEntriesListView.as_view(), name='index'),
+    path(r'geodata/raster/', views.RasterMetaEntriesListView.as_view(), name='raster-search'),
     path(
         'geodata/spatial_entries/<int:pk>/',
         views.spatial_entry_redirect_view,
@@ -48,6 +49,7 @@ urlpatterns = [
     path('api/geosearch/raster/geojson/extent', api.search.search_geojson_extent_raster),
     path('api/geosearch/geometry/geojson/extent', api.search.search_geojson_extent_geometry),
     path('api/geosearch', api.search.SearchSpatialEntryView.as_view()),
+    path('api/geosearch/raster', api.search.SearchRasterMetaEntrySTACView.as_view()),
     #############
     # Other
     path(

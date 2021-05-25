@@ -35,7 +35,7 @@ bbox = {
     ]
 }
 
-q = client.search(query=json.dumps(bbox), predicate='intersects', datatype='raster')
+q = client.search(query=json.dumps(bbox), predicate='intersects')
 
 for s in q:
     print(s['subentry_name'])

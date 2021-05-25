@@ -1,0 +1,43 @@
+{% block raster_search_fields %}
+  <div class="column is-full field mb-0">
+    <div class="field-label is-normal">
+      <label class="label">Number of Bands (Min/Max)</label>
+    </div>
+    <div class="field-body">
+      <div class="field">
+        <div class="control">
+          <input class="input" type="text" name="num_bands_min" value="{{ request.GET.num_bands_min }}">
+          <input class="input" type="text" name="num_bands_max" value="{{ request.GET.num_bands_max }}">
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="column is-full field mb-0">
+    <div class="field-label is-normal">
+      <label class="label">Resolution (Min/Max)</label>
+    </div>
+    <div class="field-body">
+      <div class="field">
+        <div class="control">
+          <input class="input" type="text" name="resolution_min" value="{{ request.GET.resolution_min }}">
+          <input class="input" type="text" name="resolution_max" value="{{ request.GET.resolution_max }}">
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="column is-full field mb-0">
+    <div class="field-label is-normal">
+      <label class="label">Cloud Cover (Min/Max)</label>
+    </div>
+    <div class="field-body">
+      <div class="field">
+        <div class="control">
+          <input class="input" type="text" name="cloud_cover_min" value="{{ request.GET.cloud_cover_min }}">
+          <input class="input" type="text" name="cloud_cover_max" value="{{ request.GET.cloud_cover_max }}">
+        </div>
+      </div>
+    </div>
+  </div>
+{% endblock %}

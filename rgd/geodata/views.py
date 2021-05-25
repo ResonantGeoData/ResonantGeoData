@@ -8,7 +8,7 @@ from rest_framework.reverse import reverse
 from rgd.geodata import permissions
 
 from .api import search
-from .filters import SpatialEntryFilter
+from .filters import RasterMetaEntryFilter, SpatialEntryFilter
 from .models.common import SpatialEntry
 from .models.fmv import FMVEntry
 from .models.geometry import GeometryEntry
@@ -28,7 +28,7 @@ class _SpatialListView(generic.ListView):
     paginate_by = 15
 
     def get_queryset(self):
-        filterset = SpatialEntryFilter(data=self.request.GET)
+        filterset = self.filter(data=self.request.GET)
         assert filterset.is_valid()
         queryset = filterset.filter_queryset(self.model.objects.all())
         return permissions.filter_read_perm(self.request.user, queryset)
@@ -54,8 +54,16 @@ class _SpatialListView(generic.ListView):
 
 class SpatialEntriesListView(_SpatialListView):
     model = SpatialEntry
+    filter = SpatialEntryFilter
     context_object_name = 'spatial_entries'
     template_name = 'geodata/spatial_entries.html'
+
+
+class RasterMetaEntriesListView(_SpatialListView):
+    model = RasterMetaEntry
+    filter = RasterMetaEntryFilter
+    context_object_name = 'spatial_entries'
+    template_name = 'geodata/raster_entries.html'
 
 
 class _SpatialDetailView(DetailView):

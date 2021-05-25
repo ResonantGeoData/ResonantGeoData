@@ -5,13 +5,35 @@ from django.core.validators import RegexValidator
 from django.db.models import Q, Sum
 from django_filters import rest_framework as filters
 
-from rgd.geodata.models.common import SpatialEntry
+from rgd.geodata.models.common import ModifiableEntry, SpatialEntry
+from rgd.geodata.models.imagery import RasterMetaEntry
 
 
 class GeometryFilter(filters.Filter):
     field_class = forms.GeometryField
     # Ensures GeoJSON objects are converted to correct SRID
     field_class.widget.map_srid = 4326
+
+
+class ModifiableEntryFilterMixin(filters.FilterSet):
+
+    created = filters.IsoDateTimeFromToRangeFilter(
+        field_name='created',
+        help_text='The ISO 8601 formatted date and time when data was created.',
+        label='Created',
+    )
+    modified = filters.IsoDateTimeFromToRangeFilter(
+        field_name='modified',
+        help_text='The ISO 8601 formatted date and time when data was modified.',
+        label='Modified',
+    )
+
+    class Meta:
+        model = ModifiableEntry
+        fields = [
+            'created',
+            'modified',
+        ]
 
 
 class SpatialEntryFilter(filters.FilterSet):
@@ -62,57 +84,11 @@ class SpatialEntryFilter(filters.FilterSet):
         help_text='The ISO 8601 formatted date and time when data was acquired.',
         label='Acquired',
     )
-    created = filters.IsoDateTimeFromToRangeFilter(
-        field_name='created',
-        help_text='The ISO 8601 formatted date and time when data was created.',
-        label='Created',
-        method='filter_created',
-    )
-    modified = filters.IsoDateTimeFromToRangeFilter(
-        field_name='modified',
-        help_text='The ISO 8601 formatted date and time when data was modified.',
-        label='Modified',
-        method='filter_modified',
-    )
-    datatype = filters.ChoiceFilter(
-        choices=(
-            ('raster', 'raster'),
-            ('fmv', 'fmv'),
-            ('geometry', 'geometry'),
-        ),
-        help_text='The datatype to provide.',
-        method='filter_datatype',
-        label='Datatype',
-    )
     instrumentation = filters.CharFilter(
         field_name='instrumentation',
         help_text='The instrumentation used to acquire at least one of these data.',
         label='Instrumentation',
         lookup_expr='icontains',
-    )
-    num_bands = filters.RangeFilter(
-        fields=(forms.IntegerField(), forms.IntegerField()),
-        help_text='The number of bands in the raster.',
-        method='filter_bands',
-        label='Number of bands',
-    )
-    resolution = filters.RangeFilter(
-        fields=(forms.IntegerField(), forms.IntegerField()),
-        help_text='The resolution of the raster.',
-        label='Resolution',
-        method='filter_resolution',
-    )
-    cloud_cover = filters.RangeFilter(
-        field_name='rastermetaentry__cloud_cover',
-        fields=(forms.FloatField(), forms.FloatField()),
-        help_text='The cloud coverage of the raster.',
-        label='Cloud cover',
-    )
-    frame_rate = filters.RangeFilter(
-        field_name='fmventry__fmv_file',
-        fields=(forms.IntegerField(), forms.IntegerField()),
-        help_text='The frame rate of the video.',
-        label='Frame rate',
     )
 
     def filter_q(self, queryset, name, value):
@@ -154,57 +130,38 @@ class SpatialEntryFilter(filters.FilterSet):
                 queryset = queryset.filter(footprint__distance_lte=(geom, D(m=value.stop)))
             return queryset
 
-    def filter_datatype(self, queryset, name, value):
-        """Filter the `SpatialEntry`s to a specific datatype."""
-        if value == 'geometry':
-            return queryset.filter(geometryentry__isnull=False)
-        if value == 'raster':
-            return queryset.filter(rastermetaentry__isnull=False)
-        if value == 'fmv':
-            return queryset.filter(fmventry__isnull=False)
-        return queryset
+    class Meta:
+        model = SpatialEntry
+        fields = [
+            'q',
+            'predicate',
+            'relates',
+            'distance',
+            'acquired',
+            'instrumentation',
+        ]
 
-    def filter_created(self, queryset, name, value):
-        """Filter by when the data was created."""
-        if value:
-            if value.start is not None:
-                queryset = queryset.filter(
-                    (
-                        Q(geometryentry__created__gte=str(value.start))
-                        | Q(fmventry__created__gte=str(value.start))
-                        | Q(rastermetaentry__parent_raster__created__gte=str(value.start))
-                    )
-                )
-            if value.stop is not None:
-                queryset = queryset.filter(
-                    (
-                        Q(geometryentry__created__lte=str(value.stop))
-                        | Q(fmventry__created__lte=str(value.stop))
-                        | Q(rastermetaentry__parent_raster__created__lte=str(value.stop))
-                    )
-                )
-        return queryset
 
-    def filter_modified(self, queryset, name, value):
-        """Filter by when the data was modified."""
-        if value:
-            if value.start is not None:
-                queryset = queryset.filter(
-                    (
-                        Q(geometryentry__modified__gte=str(value.start))
-                        | Q(fmventry__modified__gte=str(value.start))
-                        | Q(rastermetaentry__parent_raster__modified__gte=str(value.start))
-                    )
-                )
-            if value.stop is not None:
-                queryset = queryset.filter(
-                    (
-                        Q(geometryentry__modified__lte=str(value.stop))
-                        | Q(fmventry__modified__lte=str(value.stop))
-                        | Q(rastermetaentry__parent_raster__modified__lte=str(value.stop))
-                    )
-                )
-        return queryset
+class RasterMetaEntryFilter(SpatialEntryFilter):
+
+    num_bands = filters.RangeFilter(
+        fields=(forms.IntegerField(), forms.IntegerField()),
+        help_text='The number of bands in the raster.',
+        method='filter_bands',
+        label='Number of bands',
+    )
+    resolution = filters.RangeFilter(
+        fields=(forms.IntegerField(), forms.IntegerField()),
+        help_text='The resolution of the raster.',
+        label='Resolution',
+        method='filter_resolution',
+    )
+    cloud_cover = filters.RangeFilter(
+        field_name='cloud_cover',
+        fields=(forms.FloatField(), forms.FloatField()),
+        help_text='The cloud coverage of the raster.',
+        label='Cloud cover',
+    )
 
     def filter_bands(self, queryset, name, value):
         """Filter by the total number of bands in the raster data.
@@ -213,7 +170,7 @@ class SpatialEntryFilter(filters.FilterSet):
         """
         if value is not None:
             queryset = queryset.annotate(
-                num_bands=Sum('rastermetaentry__parent_raster__image_set__images__number_of_bands')
+                num_bands=Sum('parent_raster__image_set__images__number_of_bands')
             )
             if value.start is not None:
                 queryset = queryset.filter(num_bands__gte=value.start)
@@ -226,30 +183,18 @@ class SpatialEntryFilter(filters.FilterSet):
         if value is not None:
             if value.start is not None:
                 queryset = queryset.filter(
-                    Q(rastermetaentry__resolution__0__gte=value.start)
-                    & Q(rastermetaentry__resolution__1__gte=value.start)
+                    Q(resolution__0__gte=value.start) & Q(resolution__1__gte=value.start)
                 )
             if value.stop is not None:
                 queryset = queryset.filter(
-                    Q(rastermetaentry__resolution__0__lte=value.stop)
-                    & Q(rastermetaentry__resolution__1__lte=value.stop)
+                    Q(resolution__0__lte=value.stop) & Q(resolution__1__lte=value.stop)
                 )
         return queryset
 
     class Meta:
-        model = SpatialEntry
+        model = RasterMetaEntry
         fields = [
-            'q',
-            'predicate',
-            'relates',
-            'distance',
-            'acquired',
-            'created',
-            'modified',
-            'datatype',
-            'instrumentation',
             'num_bands',
             'resolution',
-            'frame_rate',
             'cloud_cover',
         ]
