@@ -79,6 +79,7 @@ def multi_file_raster():
 @pytest.mark.django_db(transaction=True)
 def test_unassigned_permissions_simple(user_factory, user, sample_raster_a, sample_raster_b):
     prior = settings.RGD_GLOBAL_READ_ACCESS
+    settings.RGD_GLOBAL_READ_ACCESS = False
     admin = user_factory(is_superuser=True)
     admin_q = filter_read_perm(admin, models.RasterMetaEntry.objects.all())
     basic_q = filter_read_perm(user, models.RasterMetaEntry.objects.all())
@@ -95,6 +96,7 @@ def test_unassigned_permissions_simple(user_factory, user, sample_raster_a, samp
 @pytest.mark.django_db(transaction=True)
 def test_unassigned_permissions_complex(user_factory, user, sample_raster_a, multi_file_raster):
     prior = settings.RGD_GLOBAL_READ_ACCESS
+    settings.RGD_GLOBAL_READ_ACCESS = False
     admin = user_factory(is_superuser=True)
     admin_q = filter_read_perm(admin, models.RasterMetaEntry.objects.all())
     basic_q = filter_read_perm(user, models.RasterMetaEntry.objects.all())
