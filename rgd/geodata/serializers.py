@@ -41,6 +41,17 @@ class SpatialEntrySerializer(serializers.ModelSerializer):
         exclude = ['footprint', 'outline']
 
 
+class SpatialEntryFootprintSerializer(SpatialEntrySerializer):
+    def to_representation(self, value):
+        ret = super().to_representation(value)
+        ret['footprint'] = json.loads(value.footprint.geojson)
+        return ret
+
+    class Meta:
+        model = models.SpatialEntry
+        exclude = ['footprint', 'outline']
+
+
 class GeometryEntrySerializer(SpatialEntrySerializer):
     class Meta:
         model = models.GeometryEntry

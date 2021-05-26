@@ -43,6 +43,11 @@ urlpatterns = [
         name='spatial-entry',
     ),
     path(
+        'api/geodata/common/spatial_entry/<int:spatial_id>/footprint',
+        api.get.GetSpatialEntryFootprint.as_view(),
+        name='spatial-entry-footprint',
+    ),
+    path(
         'api/geodata/common/checksum_file/<int:pk>',
         api.get.GetChecksumFile.as_view(),
         name='checksum-file',
