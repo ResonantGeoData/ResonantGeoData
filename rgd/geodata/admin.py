@@ -234,7 +234,10 @@ class RasterMetaEntryAdmin(OSMGeoAdmin):
         'modified',
         'created',
     )
-    actions = (actions.reprocess_rastermeta,)
+    actions = (
+        actions.reprocess_rastermeta,
+        actions.generate_valid_data_footprint_rastermeta,
+    )
     list_filter = SPATIAL_ENTRY_FILTERS + MODIFIABLE_FILTERS
 
     modifiable = False  # To still show the footprint and outline
