@@ -1,5 +1,6 @@
 import json
 
+from django.contrib.gis.db.models import Collect, Extent
 from django.shortcuts import redirect
 from django.views import generic
 from django.views.generic import DetailView
@@ -7,7 +8,6 @@ from rest_framework.reverse import reverse
 
 from rgd.geodata import permissions
 
-from .api import search
 from .filters import RasterMetaEntryFilter, SpatialEntryFilter
 from .models.common import SpatialEntry
 from .models.fmv.base import FMVEntry
@@ -34,20 +34,35 @@ class _SpatialListView(generic.ListView):
         return permissions.filter_read_perm(self.request.user, queryset)
 
     def _get_extent_summary(self, object_list):
-        return search.extent_summary_spatial(object_list)
+        queryset = self.model.objects.filter(id__in=object_list)
+        summary = queryset.aggregate(
+            Collect('outline'),
+            Extent('outline'),
+        )
+        return {
+            'count': queryset.count(),
+            'collect': json.loads(summary['outline__collect'].geojson),
+            'convex_hull': json.loads(summary['outline__collect'].convex_hull.geojson),
+            'extent': {
+                'xmin': summary['outline__extent'][0],
+                'ymin': summary['outline__extent'][1],
+                'xmax': summary['outline__extent'][2],
+                'ymax': summary['outline__extent'][3],
+            },
+        }
 
     def get_context_data(self, *args, **kwargs):
         # Pagination happens here
         context = super().get_context_data(*args, **kwargs)
         summary = self._get_extent_summary(context['object_list'])
         context['extents'] = json.dumps(summary)
-        context['search_params'] = json.dumps(self.request.GET)
         # Have a smaller dict of meta fields to parse for menu bar
         # This keeps us from parsing long GeoJSON fields twice
         meta = {
-            'count': len(self.object_list),  # This is the amount in the full results
+            'count': self.get_queryset().count(),  # This is the amount in the full results
         }
         context['extents_meta'] = json.dumps(meta)
+        context['search_params'] = json.dumps(self.request.GET)
         context['query_params'] = query_params(self.request.GET)
         return context
 
@@ -95,7 +110,6 @@ class _SpatialDetailView(DetailView):
     def get_context_data(self, *args, **kwargs):
         context = super().get_context_data(*args, **kwargs)
         context['extents'] = json.dumps(self._get_extent())
-        context['search_params'] = json.dumps({})
         return context
 
 
