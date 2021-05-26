@@ -108,7 +108,7 @@ def filter_perm(user, queryset, role):
     # Check setting for unassigned permissions
     if settings.RGD_GLOBAL_READ_ACCESS:
         unassigned = queryset.filter(**{user_path + '__isnull': True}).distinct()
-        return unassigned | filtered
+        return filtered.union(unassigned)
     return filtered
 
 
