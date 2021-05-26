@@ -53,7 +53,6 @@ def test_get_spatial_entry(api_client, sample_raster_a):
     response = api_client.get(f'/api/geodata/common/spatial_entry/{pk}')
     assert response.status_code == 200
     assert response.data
-    assert response.data['footprint']
     assert response.data['outline']
 
 
