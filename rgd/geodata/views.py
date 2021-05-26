@@ -40,17 +40,23 @@ class _SpatialListView(generic.ListView):
             Collect('outline'),
             Extent('outline'),
         )
-        return {
+        extents = {
             'count': queryset.count(),
-            'collect': json.loads(summary['outline__collect'].geojson),
-            'convex_hull': json.loads(summary['outline__collect'].convex_hull.geojson),
-            'extent': {
-                'xmin': summary['outline__extent'][0],
-                'ymin': summary['outline__extent'][1],
-                'xmax': summary['outline__extent'][2],
-                'ymax': summary['outline__extent'][3],
-            },
         }
+        if queryset.count():
+            extents.update(
+                {
+                    'collect': json.loads(summary['outline__collect'].geojson),
+                    'convex_hull': json.loads(summary['outline__collect'].convex_hull.geojson),
+                    'extent': {
+                        'xmin': summary['outline__extent'][0],
+                        'ymin': summary['outline__extent'][1],
+                        'xmax': summary['outline__extent'][2],
+                        'ymax': summary['outline__extent'][3],
+                    },
+                }
+            )
+        return extents
 
     def get_context_data(self, *args, **kwargs):
         # Pagination happens here
