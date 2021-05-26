@@ -34,7 +34,8 @@ class _SpatialListView(generic.ListView):
         return permissions.filter_read_perm(self.request.user, queryset)
 
     def _get_extent_summary(self, object_list):
-        queryset = self.model.objects.filter(id__in=object_list)
+        ids = [o.spatial_id for o in object_list]
+        queryset = self.model.objects.filter(spatial_id__in=ids)
         summary = queryset.aggregate(
             Collect('outline'),
             Extent('outline'),
