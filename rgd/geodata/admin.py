@@ -34,8 +34,6 @@ MODIFIABLE_FILTERS = (
 SPATIAL_ENTRY_FILTERS = (
     'acquisition_date',
     'instrumentation',
-    'modified',
-    'created',
 )
 
 TASK_EVENT_FILTERS = ('status',)
@@ -194,11 +192,12 @@ class ImageEntryAdmin(OSMGeoAdmin):
     inlines = (BandMetaEntryInline,)
 
 
-class RasterMetaEntryInline(admin.StackedInline):
-    model = RasterMetaEntry
-    fk_name = 'parent_raster'
+@admin.register(RasterMetaEntry)
+class RasterMetaEntryAdmin(OSMGeoAdmin):
     list_display = (
         'id',
+        'name',
+        'acquisition_date',
         'modified',
         'created',
     )
@@ -208,10 +207,16 @@ class RasterMetaEntryInline(admin.StackedInline):
         'extent',
         'resolution',
         'transform',
+        'parent_raster',
         'modified',
         'created',
-        'parent_raster',
     )
+    actions = (
+        actions.reprocess_rastermeta,
+        actions.generate_valid_data_footprint_rastermeta,
+    )
+    list_filter = SPATIAL_ENTRY_FILTERS + MODIFIABLE_FILTERS
+
     modifiable = False  # To still show the footprint and outline
 
 
@@ -230,7 +235,6 @@ class RasterEntryAdmin(OSMGeoAdmin):
         'modified',
         'created',
     ) + TASK_EVENT_READONLY
-    inlines = (RasterMetaEntryInline,)
     actions = (
         actions.reprocess,
         actions.generate_valid_data_footprint,

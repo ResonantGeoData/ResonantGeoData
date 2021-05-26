@@ -102,13 +102,11 @@ def filter_perm(user, queryset, role):
     user_path = (path + '__' if path != '' else path) + 'user'
     role_path = (path + '__' if path != '' else path) + 'role'
     queryset = annotate_queryset(queryset)
-    filtered = (
-        queryset.filter(**{user_path: user.pk}).exclude(**{role_path + '__lt': role}).distinct()
-    )
+    filtered = queryset.filter(**{user_path: user.pk}).exclude(**{role_path + '__lt': role})
     # Check setting for unassigned permissions
     if settings.RGD_GLOBAL_READ_ACCESS:
-        unassigned = queryset.filter(**{user_path + '__isnull': True}).distinct()
-        return unassigned | filtered
+        unassigned = queryset.distinct().filter(**{user_path + '__isnull': True})
+        return filtered.union(unassigned)
     return filtered
 
 
