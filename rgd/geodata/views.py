@@ -31,7 +31,7 @@ class _SpatialListView(generic.ListView):
         filterset = self.filter(data=self.request.GET)
         assert filterset.is_valid()
         queryset = filterset.filter_queryset(self.model.objects.all())
-        return permissions.filter_read_perm(self.request.user, queryset)
+        return permissions.filter_read_perm(self.request.user, queryset).order_by('spatial_id')
 
     def _get_extent_summary(self, object_list):
         ids = [o.spatial_id for o in object_list]
