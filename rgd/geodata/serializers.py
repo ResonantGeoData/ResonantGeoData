@@ -198,7 +198,14 @@ class FMVEntrySerializer(SpatialEntrySerializer):
 
     class Meta:
         model = models.FMVEntry
-        exclude = ['ground_frames', 'ground_union', 'flight_path', 'frame_numbers', 'outline', 'footprint']
+        exclude = [
+            'ground_frames',
+            'ground_union',
+            'flight_path',
+            'frame_numbers',
+            'outline',
+            'footprint',
+        ]
 
 
 class FMVEntryDataSerializer(FMVEntrySerializer):
