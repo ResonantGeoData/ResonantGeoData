@@ -4,20 +4,9 @@
 {% endblock title %}
 
 {% block extra_title_content %}
-  <div class="column is-2">
-    <span class="text-has-dark-bg is-block">Created:</span>
-    {{ object.created }}
-  </div>
-  <div class="column is-2">
-    <span class="text-has-dark-bg is-block">Modified:</span>
-    {{ object.modified }}
-  </div>
-  <div class="column is-2">
-    <span class="text-has-dark-bg is-block">Acquired:</span>
-    {{ object.acquisition_date }}
-  </div>
-  <div class="column is-2">
-
+  <div class="column is-1">
+    <span class="text-has-dark-bg is-block">Spatial Entries:</span>
+    <p id="search-count">{{ count }}</p>
   </div>
 {% endblock extra_title_content %}
 
@@ -38,6 +27,10 @@
               <tr>
                 <td>Count</td>
                 <td>{{ count }}</td>
+              </tr>
+              <tr>
+                <td># of Rasters</td>
+                <td>{{ raster_count }}</td>
               </tr>
             </tbody>
           </table>

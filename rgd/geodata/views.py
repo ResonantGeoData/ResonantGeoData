@@ -95,6 +95,7 @@ class StatisticsView(generic.ListView):
         context = super().get_context_data(*args, **kwargs)
         context['count'] = self.get_queryset().count()
         context['coordinates'] = json.dumps([o.footprint.centroid.json for o in self.object_list])
+        context['raster_count'] = RasterMetaEntry.objects.all().count()
         return context
 
 
