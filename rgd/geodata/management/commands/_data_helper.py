@@ -1,15 +1,19 @@
 from datetime import datetime
 from functools import reduce
+import json
 import logging
 import os
 
 import dateutil.parser
 from django.conf import settings
+from django.contrib.gis.geos import GEOSGeometry
 from django.core.exceptions import ValidationError
 from django.core.management.base import BaseCommand
 from django.core.validators import URLValidator
 from django.db.models import Count
 from django.utils.timezone import make_aware
+from shapely.geometry import shape
+from shapely.wkb import dumps
 
 from rgd.geodata import models
 from rgd.geodata.datastore import datastore
@@ -129,24 +133,29 @@ def load_image_files(image_files):
     return ids
 
 
-def load_raster(pks, raster_dict, footprint=False):
-    if not isinstance(pks, (list, tuple)):
-        pks = [
-            pks,
-        ]
+def _get_or_create_image_set(image_ids):
     # Check if an ImageSet already exists containing all of these images
-    q = models.ImageSet.objects.annotate(count=Count('images')).filter(count=len(pks))
-    imsets = reduce(lambda p, id: q.filter(images=id), pks, q).values()
+    q = models.ImageSet.objects.annotate(count=Count('images')).filter(count=len(image_ids))
+    imsets = reduce(lambda p, id: q.filter(images=id), image_ids, q).values()
     if len(imsets) > 0:
         # Grab first, could be N-many
         imset = models.ImageSet.objects.get(id=imsets[0]['id'])
     else:
-        images = models.ImageEntry.objects.filter(pk__in=pks).all()
+        images = models.ImageEntry.objects.filter(pk__in=image_ids).all()
         imset = models.ImageSet()
         imset.save()  # Have to save before adding to ManyToManyField
         for image in images:
             imset.images.add(image)
         imset.save()
+    return imset
+
+
+def load_raster(pks, raster_dict, footprint=False):
+    if not isinstance(pks, (list, tuple)):
+        pks = [
+            pks,
+        ]
+    imset = _get_or_create_image_set(pks)
     # Make raster of that image set
     raster, created = get_or_create_no_commit(models.RasterEntry, image_set=imset)
     _save_signal(raster, created)
@@ -243,3 +252,22 @@ def load_point_cloud_files(pc_files):
         entry = _get_or_create_file_model(models.PointCloudFile, f)
         ids.append(entry.pk)
     return ids
+
+
+def load_spatial_image_sets(image_sets):
+    for i, value in enumerate(image_sets):
+        image_files, loc_file = value
+        path = datastore.fetch(loc_file)
+        # Load JSON image
+        with open(path, 'r') as f:
+            geom = shape(json.loads(f.read())['geometry'])
+        feature = GEOSGeometry(memoryview(dumps(geom)))
+        # Load image entries
+        image_ids = load_image_files(list(zip([None] * len(image_files), image_files)))
+        imset = _get_or_create_image_set(image_ids)
+        # Make an ImageSetSpatial
+        imset_spatial, _ = get_or_create_no_commit(models.ImageSetSpatial, image_set=imset)
+        imset_spatial.name = imset.name
+        imset_spatial.footprint = feature
+        imset_spatial.outline = feature.convex_hull
+        imset_spatial.save()
