@@ -54,6 +54,11 @@
       {% include 'geodata/_includes/empty_viewer.html' %}
 
       <script>
+        var mapviews = document.getElementsByClassName('geojs-map');
+        for (var i = 0; i < mapviews.length; i++) {
+          mapviews[i].style.overflow = 'hidden';
+        }
+
         var coordinates = JSON.parse('{{ coordinates|escapejs }}')
         coordinates.forEach(function(part, index, theArray) {
           theArray[index] = JSON.parse(part);
