@@ -130,14 +130,34 @@ urlpatterns = [
         name='image-tile-metadata',
     ),
     path(
+        'api/geoprocess/imagery/<int:pk>/tiles/internal',
+        api.tiles.TileInternalMetadataView.as_view(),
+        name='image-tile-internal-metadata',
+    ),
+    path(
         'api/geoprocess/imagery/<int:pk>/tiles/<int:z>/<int:x>/<int:y>.png',
         api.tiles.TileView.as_view(),
         name='image-tiles',
     ),
     path(
+        'api/geoprocess/imagery/<int:pk>/tiles/<int:z>/<int:x>/<int:y>/corners',
+        api.tiles.TileCornersView.as_view(),
+        name='image-tile-corners',
+    ),
+    path(
         'api/geoprocess/imagery/<int:pk>/thumbnail',
         api.tiles.TileThumnailView.as_view(),
         name='image-thumbnail',
+    ),
+    path(
+        'api/geoprocess/imagery/<int:pk>/bands',
+        api.tiles.TileBandInfoView.as_view(),
+        name='image-bands',
+    ),
+    path(
+        'api/geoprocess/imagery/<int:pk>/bands/<int:band>',
+        api.tiles.TileSingleBandInfoView.as_view(),
+        name='image-bands-single',
     ),
     path('api/geoprocess/imagery/cog', api.post.CreateConvertedImageFile.as_view()),
     path(

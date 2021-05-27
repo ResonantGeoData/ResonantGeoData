@@ -1,14 +1,11 @@
 """Tasks for subsampling images with GDAL."""
-import os
-import tempfile
-
 from celery.utils.log import get_task_logger
-from django.conf import settings
+import large_image_converter
 from osgeo import gdal
 import rasterio
 from rasterio.mask import mask
 
-from rgd.utility import get_or_create_no_commit
+from rgd.utility import get_or_create_no_commit, input_output_path_helper
 
 from ..common import ChecksumFile
 from .base import ConvertedImageFile, SubsampledImage
@@ -16,36 +13,11 @@ from .base import ConvertedImageFile, SubsampledImage
 logger = get_task_logger(__name__)
 
 
-COG_OPTIONS = [
-    '-co',
-    'COMPRESS=LZW',
-    '-co',
-    'PREDICTOR=YES',
-    '-of',
-    'COG',
-    '-co',
-    'BLOCKSIZE=256',
-]
-
-
-def _gdal_translate(src_path, dest_path, **kwargs):
-    ds = gdal.Open(str(src_path))
-    ds = gdal.Translate(str(dest_path), ds, **kwargs)
-    ds = None
-    return dest_path
-
-
-def _gdal_translate_helper(source, output_field, prefix='', **kwargs):
-    workdir = getattr(settings, 'GEODATA_WORKDIR', None)
-    with tempfile.TemporaryDirectory(dir=workdir) as tmpdir:
-
-        with source.yield_local_path() as file_path:
-            logger.info(f'The image file path: {file_path}')
-            output_path = os.path.join(tmpdir, prefix + os.path.basename(source.name))
-            _gdal_translate(file_path, output_path, **kwargs)
-
-        with open(output_path, 'rb') as f:
-            output_field.save(os.path.basename(output_path), f)
+def _gdal_translate_helper(source, output, prefix='', **kwargs):
+    with input_output_path_helper(source, output, prefix=prefix) as (input_path, output_path):
+        ds = gdal.Open(str(input_path))
+        ds = gdal.Translate(str(output_path), ds, **kwargs)
+        ds = None
 
 
 def convert_to_cog(cog):
@@ -58,8 +30,10 @@ def convert_to_cog(cog):
         cog.converted_file = ChecksumFile()
     src = cog.source_image.image_file.imagefile.file
     output = cog.converted_file.file
-    _gdal_translate_helper(src, output, prefix='cog_', options=COG_OPTIONS)
-    cog.converted_file.save()
+
+    with input_output_path_helper(src, output, prefix='cog_') as (input_path, output_path):
+        large_image_converter.convert(str(input_path), str(output_path))
+
     cog.save(
         update_fields=[
             'converted_file',
@@ -69,18 +43,13 @@ def convert_to_cog(cog):
     return cog.id
 
 
-def _subsample_with_geojson(source, output_field, geojson, prefix=''):
-    workdir = getattr(settings, 'GEODATA_WORKDIR', None)
-    with tempfile.TemporaryDirectory(dir=workdir) as tmpdir:
-
-        with source.yield_local_path() as file_path:
-            # load the raster, mask it by the polygon and crop it
-            with rasterio.open(file_path) as src:
-                out_image, out_transform = mask(src, [geojson], crop=True)
-                out_meta = src.meta.copy()
-                driver = src.driver
-
-            output_path = os.path.join(tmpdir, prefix + os.path.basename(source.name))
+def _subsample_with_geojson(source, output, geojson, prefix=''):
+    with input_output_path_helper(source, output, prefix=prefix) as (input_path, output_path):
+        # load the raster, mask it by the polygon and crop it
+        with rasterio.open(input_path) as src:
+            out_image, out_transform = mask(src, [geojson], crop=True)
+            out_meta = src.meta.copy()
+            driver = src.driver
 
         # save the resulting raster
         out_meta.update(
@@ -94,12 +63,6 @@ def _subsample_with_geojson(source, output_field, geojson, prefix=''):
 
         with rasterio.open(output_path, 'w', **out_meta) as dest:
             dest.write(out_image)
-
-        # Convert subsampled to COG
-        # NOTE: this cannot subsampling produce a COG because it is irregular
-        # _gdal_translate(output_path, output_path, options=COG_OPTIONS)
-        with open(output_path, 'rb') as f:
-            output_field.save(os.path.basename(output_path), f)
 
 
 def populate_subsampled_image(subsampled):
