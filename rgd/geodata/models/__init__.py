@@ -10,3 +10,4 @@ from .common import (  # noqa
 from .fmv import *  # noqa
 from .geometry import *  # noqa
 from .imagery import *  # noqa
+from .threed import *  # noqa

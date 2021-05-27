@@ -9,6 +9,8 @@
     <script src="https://code.jquery.com/jquery-3.4.1.min.js" integrity="sha256-CSXorXvZcTkaix6Yvo6HppcZGetbYMGWSFlBw8HfCJo=" crossorigin="anonymous"></script>
 
     <script>
+      var host = window.location.protocol + "//" + window.location.host;
+
       function setCookie(cookieName, cookieValue, nDays=365) {
         var today = new Date();
         var expire = new Date();

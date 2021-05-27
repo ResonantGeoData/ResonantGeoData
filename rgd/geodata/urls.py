@@ -31,6 +31,11 @@ urlpatterns = [
         views.GeometryEntryDetailView.as_view(),
         name='geometry-entry-detail',
     ),
+    path(
+        'geodata/point_cloud/<int:pk>/',
+        views.PointCloudEntryDetailView.as_view(),
+        name='point-cloud-entry-detail',
+    ),
     #############
     # Search
     path('api/geosearch', api.search.SearchSpatialEntryView.as_view()),
@@ -106,6 +111,16 @@ urlpatterns = [
         'api/geodata/fmv/<int:pk>/data',
         api.get.GetFMVDataEntry.as_view(),
         name='fmv-entry-data',
+    ),
+    path(
+        'api/geodata/point_cloud/<int:pk>',
+        api.get.GetPointCloudEntry.as_view(),
+        name='point-cloud-entry',
+    ),
+    path(
+        'api/geodata/point_cloud/<int:pk>/base64',
+        api.get.GetPointCloudEntryData.as_view(),
+        name='point-cloud-entry-data',
     ),
     #############
     # Geoprocessing
