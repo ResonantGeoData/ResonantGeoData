@@ -116,6 +116,15 @@ class StatisticsView(generic.ListView):
         )
         context['acquisition_date__min'] = dates['acquisition_date__min']
         context['acquisition_date__max'] = dates['acquisition_date__max']
+        extent = q.aggregate(Extent('outline'))
+        context['extents'] = json.dumps(
+            {
+                'xmin': extent['outline__extent'][0],
+                'ymin': extent['outline__extent'][1],
+                'xmax': extent['outline__extent'][2],
+                'ymax': extent['outline__extent'][3],
+            }
+        )
         return context
 
 

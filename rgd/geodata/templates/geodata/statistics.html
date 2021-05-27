@@ -70,7 +70,10 @@
         })
         .updateDelay((coordinates.length >= 5.0e+8) ? 1000 : 25)
         .data(coordinates)
-        .draw()
+        .draw();
+
+        var extents = JSON.parse('{{ extents|escapejs }}')
+        setBounds(extents)
       </script>
     </div>
   </div>
