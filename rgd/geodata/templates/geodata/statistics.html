@@ -25,12 +25,24 @@
             </thead>
             <tbody>
               <tr>
-                <td>Count</td>
+                <td># of Spatial Entries</td>
                 <td>{{ count }}</td>
               </tr>
               <tr>
                 <td># of Rasters</td>
                 <td>{{ raster_count }}</td>
+              </tr>
+              <tr>
+                <td># of Instruments</td>
+                <td>{{ instrumentation_count }}</td>
+              </tr>
+              <tr>
+                <td>Earliest Date</td>
+                <td>{{ acquisition_date__min }}</td>
+              </tr>
+              <tr>
+                <td>Lateset Date</td>
+                <td>{{ acquisition_date__max }}</td>
               </tr>
             </tbody>
           </table>
