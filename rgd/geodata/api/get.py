@@ -38,6 +38,12 @@ class GetSpatialEntry(RetrieveAPIView, _PermissionMixin):
     queryset = models.SpatialEntry.objects.all()
 
 
+class GetSpatialEntryFootprint(RetrieveAPIView, _PermissionMixin):
+    serializer_class = serializers.SpatialEntryFootprintSerializer
+    lookup_field = 'spatial_id'
+    queryset = models.SpatialEntry.objects.all()
+
+
 class GetImageEntry(RetrieveAPIView, _PermissionMixin):
     serializer_class = serializers.ImageEntrySerializer
     lookup_field = 'pk'
