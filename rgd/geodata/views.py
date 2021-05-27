@@ -12,7 +12,15 @@ from .filters import RasterMetaEntryFilter, SpatialEntryFilter
 from .models.common import SpatialEntry
 from .models.fmv.base import FMVEntry
 from .models.geometry import GeometryEntry
-from .models.imagery.base import RasterMetaEntry
+from .models.imagery import RasterMetaEntry
+from .models.threed import PointCloudEntry, PointCloudMetaEntry
+
+
+class PermissionDetailView(DetailView):
+    def get_object(self):
+        obj = super().get_object()
+        permissions.check_read_perm(self.request.user, obj)
+        return obj
 
 
 def query_params(params):
@@ -88,7 +96,7 @@ class RasterMetaEntriesListView(_SpatialListView):
     template_name = 'geodata/raster_entries.html'
 
 
-class _SpatialDetailView(DetailView):
+class _SpatialDetailView(PermissionDetailView):
     def get_object(self):
         obj = super().get_object()
         permissions.check_read_perm(self.request.user, obj)
@@ -160,6 +168,13 @@ def spatial_entry_redirect_view(request, pk):
         name = 'geometry-entry-detail'
     elif isinstance(sub, FMVEntry):
         name = 'fmv-entry-detail'
+    elif isinstance(sub, PointCloudMetaEntry):
+        name = 'point-cloud-entry-detail'
+        sub = sub.parent_point_cloud
     else:
         raise ValueError()
     return redirect(reverse(name, kwargs={'pk': sub.pk}))
+
+
+class PointCloudEntryDetailView(PermissionDetailView):
+    model = PointCloudEntry

@@ -98,6 +98,10 @@ class SpatialEntry(models.Model):
             return self.fmventry
         except ObjectDoesNotExist:
             pass
+        try:
+            return self.pointcloudmetaentry
+        except ObjectDoesNotExist:
+            pass
         raise ObjectDoesNotExist
 
     @property

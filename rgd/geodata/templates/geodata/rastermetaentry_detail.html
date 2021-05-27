@@ -1,6 +1,6 @@
-{% extends "geodata/_base/detail.html" %}
+{% extends "geodata/_base/spatial_detail.html" %}
 
-{% block meta_table_body %}
+{% block extra_meta_table_body %}
 
   <tr>
     <td>Parent Raster ID</td>
@@ -66,7 +66,6 @@
   {% include 'geodata/_includes/empty_viewer.html' %}
 
   <script>
-    var host = window.location.protocol + "//" + window.location.host;
     let extents = JSON.parse('{{ extents|escapejs }}');
 
     // Make sure regions outside the extent of the raster do not load null tiles
