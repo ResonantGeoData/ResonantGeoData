@@ -235,3 +235,11 @@ def load_kwcoco_archives(archives):
         _save_signal(ds, created)
         ids.append(ds.id)
     return ids
+
+
+def load_point_cloud_files(pc_files):
+    ids = []
+    for f in pc_files:
+        entry = _get_or_create_file_model(models.PointCloudFile, f)
+        ids.append(entry.pk)
+    return ids

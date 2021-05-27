@@ -38,6 +38,12 @@ class GetSpatialEntry(RetrieveAPIView, _PermissionMixin):
     queryset = models.SpatialEntry.objects.all()
 
 
+class GetSpatialEntryFootprint(RetrieveAPIView, _PermissionMixin):
+    serializer_class = serializers.SpatialEntryFootprintSerializer
+    lookup_field = 'spatial_id'
+    queryset = models.SpatialEntry.objects.all()
+
+
 class GetImageEntry(RetrieveAPIView, _PermissionMixin):
     serializer_class = serializers.ImageEntrySerializer
     lookup_field = 'pk'
@@ -84,3 +90,15 @@ class GetFMVDataEntry(RetrieveAPIView, _PermissionMixin):
     serializer_class = serializers.FMVEntryDataSerializer
     lookup_field = 'pk'
     queryset = models.FMVEntry.objects.all()
+
+
+class GetPointCloudEntry(RetrieveAPIView, _PermissionMixin):
+    serializer_class = serializers.PointCloudEntrySerializer
+    lookup_field = 'pk'
+    queryset = models.PointCloudEntry.objects.all()
+
+
+class GetPointCloudEntryData(RetrieveAPIView, _PermissionMixin):
+    serializer_class = serializers.PointCloudEntryDataSerializer
+    lookup_field = 'pk'
+    queryset = models.PointCloudEntry.objects.all()

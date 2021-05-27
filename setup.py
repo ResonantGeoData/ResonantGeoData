@@ -83,6 +83,8 @@ setup(
             'kwarray>=0.5.10',
             'kwcoco',
             'kwimage[headless]>=0.6.7',
+            'pyntcloud[LAS]',
+            'pyvista',
         ],
         'fuse': [
             'simple-httpfs',

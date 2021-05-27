@@ -17,6 +17,7 @@ from .models.imagery import (
     RasterEntry,
     SubsampledImage,
 )
+from .models.threed.point_cloud import PointCloudFile
 
 
 def skip_signal():
@@ -110,6 +111,12 @@ def _post_delete_converted_image_file(sender, instance, *args, **kwargs):
 @skip_signal()
 def _post_delete_subsampled_image(sender, instance, *args, **kwargs):
     transaction.on_commit(lambda: instance._post_delete(*args, **kwargs))
+
+
+@receiver(post_save, sender=PointCloudFile)
+@skip_signal()
+def _post_save_point_cloud_file(sender, instance, *args, **kwargs):
+    transaction.on_commit(lambda: instance._post_save_event_task(*args, **kwargs))
 
 
 @receiver(user_signed_up)
