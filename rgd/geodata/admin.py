@@ -25,6 +25,7 @@ from .models.imagery.base import (
     RasterMetaEntry,
     SubsampledImage,
 )
+from .models.threed.point_cloud import PointCloudEntry, PointCloudFile, PointCloudMetaEntry
 
 MODIFIABLE_FILTERS = (
     'modified',
@@ -34,8 +35,6 @@ MODIFIABLE_FILTERS = (
 SPATIAL_ENTRY_FILTERS = (
     'acquisition_date',
     'instrumentation',
-    'modified',
-    'created',
 )
 
 TASK_EVENT_FILTERS = ('status',)
@@ -195,11 +194,12 @@ class ImageEntryAdmin(OSMGeoAdmin):
     inlines = (BandMetaEntryInline,)
 
 
-class RasterMetaEntryInline(admin.StackedInline):
-    model = RasterMetaEntry
-    fk_name = 'parent_raster'
+@admin.register(RasterMetaEntry)
+class RasterMetaEntryAdmin(OSMGeoAdmin):
     list_display = (
         'id',
+        'name',
+        'acquisition_date',
         'modified',
         'created',
     )
@@ -209,10 +209,16 @@ class RasterMetaEntryInline(admin.StackedInline):
         'extent',
         'resolution',
         'transform',
+        'parent_raster',
         'modified',
         'created',
-        'parent_raster',
     )
+    actions = (
+        actions.reprocess_rastermeta,
+        actions.generate_valid_data_footprint_rastermeta,
+    )
+    list_filter = SPATIAL_ENTRY_FILTERS + MODIFIABLE_FILTERS
+
     modifiable = False  # To still show the footprint and outline
 
 
@@ -231,7 +237,6 @@ class RasterEntryAdmin(OSMGeoAdmin):
         'modified',
         'created',
     ) + TASK_EVENT_READONLY
-    inlines = (RasterMetaEntryInline,)
     actions = (
         actions.reprocess,
         actions.generate_valid_data_footprint,
@@ -421,3 +426,54 @@ class CollectionPermissionInline(admin.TabularInline):
 class CollectionAdmin(OSMGeoAdmin):
     fields = ('name',)
     inlines = (CollectionPermissionInline,)
+
+
+@admin.register(PointCloudFile)
+class PointCloudFileAdmin(OSMGeoAdmin, _FileGetNameMixin):
+    list_display = (
+        'id',
+        'get_name',
+        'status',
+        'modified',
+        'created',
+        'data_link',
+    )
+    readonly_fields = (
+        'modified',
+        'created',
+    ) + TASK_EVENT_READONLY
+    actions = (actions.reprocess,)
+    list_filter = MODIFIABLE_FILTERS + TASK_EVENT_FILTERS
+
+
+class PointCloudMetaEntryInline(admin.StackedInline):
+    model = PointCloudMetaEntry
+    fk_name = 'parent_point_cloud'
+    list_display = (
+        'id',
+        'modified',
+        'created',
+        'crs',
+    )
+    readonly_fields = (
+        'modified',
+        'created',
+        'parent_point_cloud',
+    )
+    modifiable = False  # To still show the footprint and outline
+
+
+@admin.register(PointCloudEntry)
+class PointCloudEntryAdmin(OSMGeoAdmin):
+    list_display = (
+        'id',
+        'modified',
+        'created',
+        'data_link',
+    )
+    readonly_fields = (
+        'modified',
+        'created',
+    )
+    inlines = (PointCloudMetaEntryInline,)
+    list_filter = MODIFIABLE_FILTERS

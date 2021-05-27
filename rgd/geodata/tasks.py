@@ -119,3 +119,12 @@ def task_checksum_file_post_save(checksumfile_id):
     obj = ChecksumFile.objects.get(id=checksumfile_id)
 
     _run_with_failure_reason(obj, obj.post_save_job)
+
+
+@shared_task(time_limit=86400)
+def task_read_point_cloud_file(pc_file_id):
+    from .models.threed.etl import read_point_cloud_file
+    from .models.threed.point_cloud import PointCloudFile
+
+    pc_file = PointCloudFile.objects.get(id=pc_file_id)
+    _run_with_failure_reason(pc_file, read_point_cloud_file, pc_file_id)

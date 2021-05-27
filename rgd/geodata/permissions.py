@@ -75,6 +75,13 @@ def get_collection_membership_path(model) -> Optional[str]:
     # FMV
     if issubclass(model, models.FMVEntry):
         return 'fmv_file__file__collection__collection_permissions'
+    # Point Cloud
+    if issubclass(model, models.PointCloudFile):
+        return 'file__collection__collection_permissions'
+    if issubclass(model, models.PointCloudEntry) and model.source:
+        return 'source__file__collection__collection_permissions'
+    elif issubclass(model, models.PointCloudEntry):
+        return 'vtp_data__collection__collection_permissions'
     # SpatialEntry
     if model == models.SpatialEntry:
         return '_collection_permissions'
@@ -105,8 +112,8 @@ def filter_perm(user, queryset, role):
     filtered = queryset.filter(**{user_path: user.pk}).exclude(**{role_path + '__lt': role})
     # Check setting for unassigned permissions
     if settings.RGD_GLOBAL_READ_ACCESS:
-        unassigned = queryset.filter(**{user_path + '__isnull': True})
-        return unassigned | filtered
+        unassigned = queryset.distinct().filter(**{user_path + '__isnull': True})
+        return filtered.union(unassigned)
     return filtered
 
 

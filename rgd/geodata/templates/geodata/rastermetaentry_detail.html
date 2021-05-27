@@ -1,7 +1,11 @@
-{% extends "geodata/_base/detail.html" %}
+{% extends "geodata/_base/spatial_detail.html" %}
 
-{% block meta_table_body %}
+{% block extra_meta_table_body %}
 
+  <tr>
+    <td>Parent Raster ID</td>
+    <td>{{ object.parent_raster.id }}</td>
+  </tr>
   <tr>
     <td>Description</td>
     <td>{{ object.parent_raster.description }}</td>
@@ -62,9 +66,7 @@
   {% include 'geodata/_includes/empty_viewer.html' %}
 
   <script>
-    var host = window.location.protocol + "//" + window.location.host;
     let extents = JSON.parse('{{ extents|escapejs }}');
-    var outline = JSON.parse(extents['outline'])["coordinates"][0]
 
     // Make sure regions outside the extent of the raster do not load null tiles
     //   this relieves strain on the tile server
@@ -105,7 +107,8 @@
       'layer': layer
     });
 
-    reader.read(extents.collect, (features) => {
+    var footprint = '{{ object.footprint.json|escapejs }}'
+    reader.read(footprint, (features) => {
       features[0].style({
         strokeColor: '#FF0000',
         fill: false,

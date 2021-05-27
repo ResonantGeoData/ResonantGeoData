@@ -1,0 +1,35 @@
+{% block modifiable_search_fields %}
+
+  <div class="column is-full field mb-0">
+    <div class="field-label is-normal">
+      <label class="label">Created</label>
+    </div>
+    <div class="field-body">
+      <div class="field">
+        <div class="control">
+          <input type="datetime-local" name="created_before" value="{{ request.GET.created_before }}">
+          <button onclick="javascript:created_before.value=''" type="button">X</button>
+          <input type="datetime-local" name="created_after" value="{{ request.GET.created_after }}">
+          <button onclick="javascript:created_after.value=''" type="button">X</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="column is-full field mb-0">
+    <div class="field-label is-normal">
+      <label class="label">Modified</label>
+    </div>
+    <div class="field-body">
+      <div class="field">
+        <div class="control">
+          <input type="datetime-local" name="modified_before" value="{{ request.GET.modified_before }}">
+          <button onclick="javascript:modified_before.value=''" type="button">X</button>
+          <input type="datetime-local" name="modified_after" value="{{ request.GET.modified_after }}">
+          <button onclick="javascript:modified_after.value=''" type="button">X</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+{% endblock %}

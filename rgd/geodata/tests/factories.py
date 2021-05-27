@@ -108,6 +108,13 @@ class FMVFileFactory(factory.django.DjangoModelFactory):
         instance.refresh_from_db()
 
 
+class PointCloudFileFactory(factory.django.DjangoModelFactory):
+    class Meta:
+        model = models.PointCloudFile
+
+    file = factory.SubFactory(ChecksumFileFactory)
+
+
 # https://factoryboy.readthedocs.io/en/latest/recipes.html#simple-many-to-many-relationship
 # For generating lat-lon coords, this may be helpful:
 # https://faker.readthedocs.io/en/latest/providers/faker.providers.geo.html

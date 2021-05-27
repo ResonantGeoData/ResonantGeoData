@@ -2,61 +2,6 @@ import pytest
 from rest_framework import status
 
 from rgd.geodata import models
-from rgd.geodata.datastore import datastore
-
-from . import factories
-
-
-@pytest.fixture()
-def checksum_file():
-    return factories.ChecksumFileFactory()
-
-
-@pytest.fixture()
-def checksum_file_url():
-    return factories.ChecksumFileFactory(
-        file=None,
-        url=datastore.get_url('stars.png'),
-        type=models.FileSourceType.URL,
-    )
-
-
-@pytest.fixture()
-def landsat_image():
-    name = 'LC08_L1TP_034032_20200429_20200509_01_T1_sr_band1.tif'
-    imagefile = factories.ImageFileFactory(
-        file__file__filename=name,
-        file__file__from_path=datastore.fetch(name),
-    )
-    return imagefile.imageentry
-
-
-@pytest.fixture()
-def astro_image():
-    name = 'astro.png'
-    imagefile = factories.ImageFileFactory(
-        file__file__filename=name,
-        file__file__from_path=datastore.fetch(name),
-    )
-    return imagefile.imageentry
-
-
-@pytest.fixture()
-def landsat_raster():
-    name = 'LC08_L1TP_034032_20200429_20200509_01_T1_sr_band1.tif'
-    imagefile = factories.ImageFileFactory(
-        file__file__filename=name,
-        file__file__from_path=datastore.fetch(name),
-    )
-    image_set = factories.ImageSetFactory(
-        images=[imagefile.imageentry.id],
-    )
-    raster = factories.RasterEntryFactory(
-        name=name,
-        image_set=image_set,
-    )
-    raster.refresh_from_db()
-    return raster
 
 
 @pytest.mark.django_db(transaction=True)
@@ -102,13 +47,12 @@ def test_get_checksum_file(admin_api_client, checksum_file):
 
 
 @pytest.mark.django_db(transaction=True)
-def test_get_spatial_entry(api_client, landsat_raster):
+def test_get_spatial_entry(api_client, sample_raster_a):
     """Test individual GET for SpatialEntry model."""
-    pk = landsat_raster.rastermetaentry.spatial_id
+    pk = sample_raster_a.rastermetaentry.spatial_id
     response = api_client.get(f'/api/geodata/common/spatial_entry/{pk}')
     assert response.status_code == 200
     assert response.data
-    assert response.data['footprint']
     assert response.data['outline']
 
 
@@ -138,16 +82,16 @@ def test_create_get_subsampled_image(admin_api_client, astro_image):
 
 
 @pytest.mark.django_db(transaction=True)
-def test_create_and_download_cog(admin_api_client, landsat_image):
+def test_create_and_download_cog(admin_api_client, geotiff_image_entry):
     """Test POST for ConvertedImageFile model."""
     response = admin_api_client.post(
         '/api/geoprocess/imagery/cog',
-        {'source_image': landsat_image.id},
+        {'source_image': geotiff_image_entry.id},
     )
     assert response.status_code == 201
     assert response.data
     # Check that a COG was generated
-    cog = models.imagery.ConvertedImageFile.objects.get(source_image=landsat_image.id)
+    cog = models.imagery.ConvertedImageFile.objects.get(source_image=geotiff_image_entry.id)
     # NOTE: This doesn't actually verify the file is in COG format. Assumed.
     assert cog.converted_file
     # Also test download endpoint here:

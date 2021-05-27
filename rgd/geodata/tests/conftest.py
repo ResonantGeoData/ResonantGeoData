@@ -6,6 +6,7 @@ from pytest_factoryboy import register
 from rest_framework.test import APIClient
 
 from . import factories
+from .data_fixtures import *  # noqa
 
 
 @pytest.fixture

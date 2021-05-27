@@ -1,10 +1,11 @@
 {% extends "geodata/_base/search_view.html" %}
 {% block title %}
-  Spatial Entries
+  Raster Entries
 {% endblock title %}
 
 {% block search_fields %}
   {% include 'geodata/_includes/search_fields.html' %}
+  {% include 'geodata/_includes/search_fields_raster.html' %}
 {% endblock search_fields %}
 
 {% block list_view %}
@@ -21,7 +22,7 @@
       <tbody>
         {% for entry in spatial_entries %}
           <tr>
-            <td><a href="{% url 'spatial-entry-detail' entry.pk %}">{{ entry.spatial_id }} - {{ entry.subentry_name | truncatechars:12 }}</a></td>
+            <td><a href="{% url 'raster-entry-detail' entry.pk %}">{{ entry.spatial_id }} - {{ entry.subentry_name | truncatechars:12 }}</a></td>
             <td>{{ entry.footprint.area | floatformat:-2 }}</td>
             <td>{{ entry.subentry_type }}</td>
           </tr>

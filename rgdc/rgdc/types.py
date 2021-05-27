@@ -2,7 +2,6 @@ from datetime import datetime
 from typing import Literal, Tuple, Union
 
 DATETIME_OR_STR_TUPLE = Tuple[Union[datetime, str], Union[datetime, str]]
-SEARCH_DATATYPE_CHOICE = Literal['raster', 'fmv', 'geometry']
 SEARCH_PREDICATE_CHOICE = Literal[
     'contains',
     'crosses',

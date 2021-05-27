@@ -85,6 +85,8 @@ setup(
             'kwcoco',
             'kwimage[headless]>=0.6.7',
             'large-image-converter',
+            'pyntcloud[LAS]',
+            'pyvista',
         ],
         'fuse': [
             'simple-httpfs',

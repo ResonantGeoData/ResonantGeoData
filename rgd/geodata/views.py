@@ -1,5 +1,6 @@
 import json
 
+from django.contrib.gis.db.models import Collect, Extent
 from django.shortcuts import redirect
 from django.views import generic
 from django.views.generic import DetailView
@@ -7,12 +8,19 @@ from rest_framework.reverse import reverse
 
 from rgd.geodata import permissions
 
-from .api import search
-from .filters import SpatialEntryFilter
+from .filters import RasterMetaEntryFilter, SpatialEntryFilter
 from .models.common import SpatialEntry
 from .models.fmv.base import FMVEntry
 from .models.geometry import GeometryEntry
-from .models.imagery.base import RasterMetaEntry
+from .models.imagery import RasterMetaEntry
+from .models.threed import PointCloudEntry, PointCloudMetaEntry
+
+
+class PermissionDetailView(DetailView):
+    def get_object(self):
+        obj = super().get_object()
+        permissions.check_read_perm(self.request.user, obj)
+        return obj
 
 
 def query_params(params):
@@ -28,37 +36,67 @@ class _SpatialListView(generic.ListView):
     paginate_by = 15
 
     def get_queryset(self):
-        filterset = SpatialEntryFilter(data=self.request.GET)
+        filterset = self.filter(data=self.request.GET)
         assert filterset.is_valid()
         queryset = filterset.filter_queryset(self.model.objects.all())
-        return permissions.filter_read_perm(self.request.user, queryset)
+        return permissions.filter_read_perm(self.request.user, queryset).order_by('spatial_id')
 
     def _get_extent_summary(self, object_list):
-        return search.extent_summary_spatial(object_list)
+        ids = [o.spatial_id for o in object_list]
+        queryset = self.model.objects.filter(spatial_id__in=ids)
+        summary = queryset.aggregate(
+            Collect('outline'),
+            Extent('outline'),
+        )
+        extents = {
+            'count': queryset.count(),
+        }
+        if queryset.count():
+            extents.update(
+                {
+                    'collect': json.loads(summary['outline__collect'].geojson),
+                    'convex_hull': json.loads(summary['outline__collect'].convex_hull.geojson),
+                    'extent': {
+                        'xmin': summary['outline__extent'][0],
+                        'ymin': summary['outline__extent'][1],
+                        'xmax': summary['outline__extent'][2],
+                        'ymax': summary['outline__extent'][3],
+                    },
+                }
+            )
+        return extents
 
     def get_context_data(self, *args, **kwargs):
         # Pagination happens here
         context = super().get_context_data(*args, **kwargs)
         summary = self._get_extent_summary(context['object_list'])
         context['extents'] = json.dumps(summary)
-        context['search_params'] = json.dumps(self.request.GET)
         # Have a smaller dict of meta fields to parse for menu bar
         # This keeps us from parsing long GeoJSON fields twice
         meta = {
-            'count': len(self.object_list),  # This is the amount in the full results
+            'count': self.get_queryset().count(),  # This is the amount in the full results
         }
         context['extents_meta'] = json.dumps(meta)
+        context['search_params'] = json.dumps(self.request.GET)
         context['query_params'] = query_params(self.request.GET)
         return context
 
 
 class SpatialEntriesListView(_SpatialListView):
     model = SpatialEntry
+    filter = SpatialEntryFilter
     context_object_name = 'spatial_entries'
     template_name = 'geodata/spatial_entries.html'
 
 
-class _SpatialDetailView(DetailView):
+class RasterMetaEntriesListView(_SpatialListView):
+    model = RasterMetaEntry
+    filter = RasterMetaEntryFilter
+    context_object_name = 'spatial_entries'
+    template_name = 'geodata/raster_entries.html'
+
+
+class _SpatialDetailView(PermissionDetailView):
     def get_object(self):
         obj = super().get_object()
         permissions.check_read_perm(self.request.user, obj)
@@ -87,7 +125,6 @@ class _SpatialDetailView(DetailView):
     def get_context_data(self, *args, **kwargs):
         context = super().get_context_data(*args, **kwargs)
         context['extents'] = json.dumps(self._get_extent())
-        context['search_params'] = json.dumps({})
         return context
 
 
@@ -131,6 +168,13 @@ def spatial_entry_redirect_view(request, pk):
         name = 'geometry-entry-detail'
     elif isinstance(sub, FMVEntry):
         name = 'fmv-entry-detail'
+    elif isinstance(sub, PointCloudMetaEntry):
+        name = 'point-cloud-entry-detail'
+        sub = sub.parent_point_cloud
     else:
         raise ValueError()
     return redirect(reverse(name, kwargs={'pk': sub.pk}))
+
+
+class PointCloudEntryDetailView(PermissionDetailView):
+    model = PointCloudEntry

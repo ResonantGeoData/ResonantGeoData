@@ -26,7 +26,132 @@
 
       <div class="column is-sidebar-content">
         <div id="searchTab" class="tabcontent" style="display: block;">
-          {% include 'geodata/_includes/search_form.html' %}
+
+          <div class="columns is-multiline mx-0">
+            <div class="column is-full mb-2 pb-5">
+              <div class="field">
+                <div class="field-label is-normal mb-1">
+                  <label class="label">Map Tool:</label>
+                </div>
+                <div class="field-body">
+                  <div class="field">
+                    <div class="control">
+                      <div class="select is-halfwidth">
+                        <select id="mapTool">
+                          <option value="stJSON">GeoJSON</option>
+                          <option value="stPoint">Point</option>
+                          <option value="stBounding">Bounding Box</option>
+                        </select>
+                      </div>
+                      <div>
+                        <div id="stJSON" class="selection" style="display: none;">
+                          <div class="column is-full field is-grouped">
+                            <div class="control">
+                              <input class="button is-secondary" type="button" value="Draw on Map" name="drawOnMapButton" onclick="enableDrawOnMap()">
+                            </div>
+                          </div>
+                        </div>
+                        <div id="stPoint" class="selection" style="display: none;">
+                          <div class="column is-full field is-grouped">
+                            <div class="control">
+                              <input class="button is-secondary" type="button" value="Use Map" name="button" onclick="populatePoint()">
+                            </div>
+                          </div>
+                        </div>
+                        <div id="stBounding" class="selection" style="display: none;">
+                          <div class="column is-full field is-grouped">
+                            <div class="control">
+                              <input class="button is-secondary" type="button" value="Use Map" name="button" onclick="populateBounds()">
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="column is-full">
+              <form method="GET">
+                <div class="columns is-multiline mx-0">
+                  {% block search_fields %}{% endblock %}
+
+                  <div id="submitButton" class="column is-full" style="left: 0; bottom: 0; width: 100%;">
+                    <div class="field">
+                      <div class="control">
+                        <input class="button is-accent" type="submit" value="Filter">
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </form>
+            </div>
+          </div>
+
+          <script>
+            var geojsonField = document.getElementsByName("q")[0]
+
+            function populateBounds() {
+              var bounds = map.bounds()
+              var boxjson = {
+                "type": "Polygon",
+                "coordinates": [
+                  [
+                    [bounds.left, bounds.bottom],
+                    [bounds.left, bounds.top],
+                    [bounds.right, bounds.top],
+                    [bounds.right, bounds.bottom],
+                    [bounds.left, bounds.bottom]
+                  ]
+                ]
+              };
+              geojsonField.value = JSON.stringify(boxjson);
+            }
+
+            function populatePoint() {
+              var center = map.center()
+              var pointjson = {
+                "type": "Point",
+                "coordinates": [center.x, center.y]
+              }
+              geojsonField.value = JSON.stringify(pointjson)
+            }
+
+
+            function enableDrawOnMap() {
+              // Disable button until completed
+              var button = document.getElementsByName("drawOnMapButton")[0]
+              button.disabled = true
+              // Clear any previous annotations
+              annotationLayer.removeAllAnnotations()
+              // Start new annotation
+              annotationLayer.mode('polygon');
+              annotationLayer.geoOn(geo.event.annotation.state, (e) => {
+                if (e.annotation.state() === "done") {
+                  geojsonField.value = JSON.stringify(e.annotation.geojson().geometry)
+                  // Re-enable button
+                  button.disabled = false
+                }
+              });
+            }
+
+            var mapTool = document.getElementById("mapTool")
+            $(function() {
+              $('#mapTool').change(function() {
+                $('.selection').hide();
+                $('#' + $(this).val()).show();
+                setCookie('mapToolType', $(this)[0].value)
+              });
+              mapTool.value = getCookie('mapToolType', 'stPoint')
+              $('#mapTool').change()
+            });
+          </script>
+
+
+
+
+
         </div>
 
         <div id="resultsTab" class="tabcontent" style="display: none;">
