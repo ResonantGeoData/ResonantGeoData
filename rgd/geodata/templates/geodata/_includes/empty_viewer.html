@@ -82,15 +82,21 @@
     //   should have been set by the search parameters
     function setBounds(extent, setMax=false) {
       if (extent != undefined) {
+        let xc = (extent.xmax - extent.xmin) * 0.2
+        let yc = (extent.ymax - extent.ymin) * 0.2
+        if (xc === 0) {
+          xc = 0.01
+        }
+        if (yc === 0) {
+          yc = 0.01
+        }
         map.bounds({
-          left: extent.xmin,
-          right: extent.xmax,
-          top: extent.ymax,
-          bottom: extent.ymin
+          left: extent.xmin - xc,
+          right: extent.xmax + xc,
+          top: extent.ymax + yc,
+          bottom: extent.ymin - yc
         });
         if (setMax) {
-          let xc = (extent.xmax - extent.xmin) * 0.2
-          let yc = (extent.ymax - extent.ymin) * 0.2
           map.maxBounds({
             left: extent.xmin - xc,
             right: extent.xmax + xc,
