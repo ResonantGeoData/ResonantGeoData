@@ -7,6 +7,11 @@ urlpatterns = [
     path(r'', views.SpatialEntriesListView.as_view(), name='index'),
     path(r'geodata/raster/', views.RasterMetaEntriesListView.as_view(), name='raster-search'),
     path(
+        'geodata/statistics',
+        views.StatisticsView.as_view(),
+        name='statistics',
+    ),
+    path(
         'geodata/spatial_entries/<int:pk>/',
         views.spatial_entry_redirect_view,
         name='spatial-entry-detail',

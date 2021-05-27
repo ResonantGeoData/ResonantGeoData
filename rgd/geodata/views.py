@@ -1,6 +1,7 @@
 import json
 
 from django.contrib.gis.db.models import Collect, Extent
+from django.db.models import Max, Min
 from django.shortcuts import redirect
 from django.views import generic
 from django.views.generic import DetailView
@@ -87,6 +88,44 @@ class SpatialEntriesListView(_SpatialListView):
     filter = SpatialEntryFilter
     context_object_name = 'spatial_entries'
     template_name = 'geodata/spatial_entries.html'
+
+
+class StatisticsView(generic.ListView):
+    paginate_by = None
+    model = SpatialEntry
+    context_object_name = 'spatial_entries'
+    template_name = 'geodata/statistics.html'
+
+    def get_queryset(self):
+        queryset = self.model.objects.all()
+        return permissions.filter_read_perm(self.request.user, queryset).order_by('spatial_id')
+
+    def get_context_data(self, *args, **kwargs):
+        context = super().get_context_data(*args, **kwargs)
+        q = self.get_queryset()
+        context['count'] = q.count()
+        context['coordinates'] = json.dumps([o.footprint.centroid.json for o in self.object_list])
+        context['raster_count'] = q.filter(rastermetaentry__isnull=False).count()
+        instrumentation = (
+            q.filter(instrumentation__isnull=False).values_list('instrumentation').distinct()
+        )
+        context['instrumentation_count'] = instrumentation.count()
+        dates = q.filter(acquisition_date__isnull=False).aggregate(
+            Min('acquisition_date'),
+            Max('acquisition_date'),
+        )
+        context['acquisition_date__min'] = dates['acquisition_date__min']
+        context['acquisition_date__max'] = dates['acquisition_date__max']
+        extent = q.aggregate(Extent('outline'))
+        context['extents'] = json.dumps(
+            {
+                'xmin': extent['outline__extent'][0],
+                'ymin': extent['outline__extent'][1],
+                'xmax': extent['outline__extent'][2],
+                'ymax': extent['outline__extent'][3],
+            }
+        )
+        return context
 
 
 class RasterMetaEntriesListView(_SpatialListView):
