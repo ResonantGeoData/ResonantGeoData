@@ -16,6 +16,9 @@
       <a href="{% url 'raster-search' %}" class="navbar-item">
         Rasters
       </a>
+      <a href="{% url 'statistics' %}" class="navbar-item">
+        Statistics
+      </a>
       <div class="navbar-end user-menu">
         {% if user.is_authenticated %}
           <div class="navbar-item">{{ request.user.email }}</div>
