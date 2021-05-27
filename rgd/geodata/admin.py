@@ -199,6 +199,7 @@ class ImageEntryAdmin(OSMGeoAdmin):
         actions.make_image_set_from_image_entries,
         actions.make_raster_from_image_entries,
         actions.make_raster_for_each_image_entry,
+        actions.convert_images,
     )
     inlines = (BandMetaEntryInline,)
 

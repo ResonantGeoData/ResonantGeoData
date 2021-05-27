@@ -243,6 +243,28 @@ def patch_internal_presign(f: FieldFile):
     yield
 
 
+@contextmanager
+def input_output_path_helper(source, output: FieldFile, prefix: str = '', suffix: str = ''):
+    """Yeild source and output paths between a ChecksumFile and a FileFeild.
+
+    The output path is saved to the output field after yeilding.
+
+    """
+    workdir = getattr(settings, 'GEODATA_WORKDIR', None)
+    with tempfile.TemporaryDirectory(dir=workdir) as tmpdir:
+        with source.yield_local_path() as file_path:
+            output_path = os.path.join(tmpdir, prefix + os.path.basename(source.name) + suffix)
+            try:
+                # Yield the paths for the user to perform a task
+                yield (file_path, output_path)
+            except Exception as e:
+                raise e
+            else:
+                # Save the file contents to the output field only on success
+                with open(output_path, 'rb') as f:
+                    output.save(os.path.basename(output_path), f)
+
+
 def uuid_prefix_filename(instance: Any, filename: str):
     """Use a variable in settings to add a prefix to the path and keep the random uuid."""
     prefix = settings.RGD_FILE_FIELD_PREFIX
