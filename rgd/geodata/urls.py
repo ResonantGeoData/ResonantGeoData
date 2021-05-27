@@ -5,6 +5,7 @@ from . import api, views
 urlpatterns = [
     # Pages
     path(r'', views.SpatialEntriesListView.as_view(), name='index'),
+    path(r'geodata/raster/', views.RasterMetaEntriesListView.as_view(), name='raster-search'),
     path(
         'geodata/statistics',
         views.StatisticsView.as_view(),
@@ -32,27 +33,8 @@ urlpatterns = [
     ),
     #############
     # Search
-    path('api/geosearch/near_point', api.search.search_near_point),
-    path('api/geosearch/raster/near_point', api.search.search_near_point_raster),
-    path('api/geosearch/geometry/near_point', api.search.search_near_point_geometry),
-    path('api/geosearch/near_point/extent', api.search.search_near_point_extent),
-    path('api/geosearch/raster/near_point/extent', api.search.search_near_point_extent_raster),
-    path('api/geosearch/geometry/near_point/extent', api.search.search_near_point_extent_geometry),
-    path('api/geosearch/bounding_box', api.search.search_bounding_box),
-    path('api/geosearch/raster/bounding_box', api.search.search_bounding_box_raster),
-    path('api/geosearch/geometry/bounding_box', api.search.search_bounding_box_geometry),
-    path('api/geosearch/bounding_box/extent', api.search.search_bounding_box_extent),
-    path('api/geosearch/raster/bounding_box/extent', api.search.search_bounding_box_extent_raster),
-    path(
-        'api/geosearch/geometry/bounding_box/extent', api.search.search_bounding_box_extent_geometry
-    ),
-    path('api/geosearch/geojson', api.search.search_geojson),
-    path('api/geosearch/raster/geojson', api.search.search_geojson_raster),
-    path('api/geosearch/geometry/geojson', api.search.search_geojson_geometry),
-    path('api/geosearch/geojson/extent', api.search.search_geojson_extent),
-    path('api/geosearch/raster/geojson/extent', api.search.search_geojson_extent_raster),
-    path('api/geosearch/geometry/geojson/extent', api.search.search_geojson_extent_geometry),
     path('api/geosearch', api.search.SearchSpatialEntryView.as_view()),
+    path('api/geosearch/raster', api.search.SearchRasterMetaEntrySTACView.as_view()),
     #############
     # Other
     path(
@@ -64,6 +46,11 @@ urlpatterns = [
         'api/geodata/common/spatial_entry/<int:spatial_id>',
         api.get.GetSpatialEntry.as_view(),
         name='spatial-entry',
+    ),
+    path(
+        'api/geodata/common/spatial_entry/<int:spatial_id>/footprint',
+        api.get.GetSpatialEntryFootprint.as_view(),
+        name='spatial-entry-footprint',
     ),
     path(
         'api/geodata/common/checksum_file/<int:pk>',
