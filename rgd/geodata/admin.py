@@ -15,6 +15,7 @@ from .models.imagery import (
     ImageEntry,
     ImageFile,
     ImageSet,
+    ImageSetSpatial,
     KWCOCOArchive,
     PolygonSegmentation,
     RasterEntry,
@@ -131,6 +132,17 @@ class ImageSetAdmin(OSMGeoAdmin):
         actions.clean_empty_image_sets,
     )
     list_filter = MODIFIABLE_FILTERS
+
+
+@admin.register(ImageSetSpatial)
+class ImageSetSpatialAdmin(OSMGeoAdmin):
+    list_display = (
+        'id',
+        'name',
+        'modified',
+        'created',
+    )
+    list_filter = MODIFIABLE_FILTERS + SPATIAL_ENTRY_FILTERS
 
 
 class BandMetaEntryInline(admin.StackedInline):
