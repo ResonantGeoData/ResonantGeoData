@@ -42,35 +42,42 @@
 
 {% block detail %}
 
-  <div>
-    <img src="" id="thumbnail"/>
-  </div>
-
   <div id="imageViewer" style="width: 100%; height: calc(100vh - 140px);"></div>
 
   <script>
-    var thumbnail = document.getElementById('thumbnail')
+    var containerRef = document.getElementById('imageViewer')
     var selector = document.getElementById('image-selector')
-    // thumbnail.hidden = true
 
-    let imageViewer = geo.map({
-      node: '#imageViewer',
-      clampBoundsX: true
-    })
+    const params = geo.util.pixelCoordinateParams(containerRef, 200, 200, 200, 200)
+    let imageViewer = geo.map(params.map)
 
     let imageViewerLayer = imageViewer.createLayer('feature', {
-      features: ['polygon', 'marker', 'quad']
+      features: ['quad']
     });
 
-    var frameFootprint = imageViewerLayer.createFeature('quad')
+    imageViewer.zoomRange({
+      // do not set a min limit so that bounds clamping determines min
+      min: -Infinity,
+      // 4x zoom max
+      max: 4,
+    });
+
+    var frameFootprint = imageViewerLayer.createFeature('quad', {
+        cacheQuads: false,
+      })
       .style({
         color: 'red',
-        opacity: 0.5
       })
+      .data([{
+        ul: { x: 0, y: 0 },
+        lr: { x: 200, y: 200 },
+      }])
+      .draw()
 
     function updateBandThumbnail () {
       var image_id = Number(selector.value);
       console.log(image_id)
+      var thumbnail = document.createElement('img');
       thumbnail.onload = function() {
         frameFootprint.data([
           {
@@ -79,24 +86,18 @@
             image: thumbnail,
           },
         ]).draw();
-        var bounds = {
-          left: 0,
-          top: 0,
-          bottom: thumbnail.height,
-          right: thumbnail.width,
-        }
-        console.log(bounds)
         const params = geo.util.pixelCoordinateParams(
-          imageViewer, thumbnail.width, thumbnail.height, thumbnail.width, thumbnail.height,
+          containerRef.value, thumbnail.width, thumbnail.height, thumbnail.width, thumbnail.height,
         );
-        console.log(params)
-        imageViewer.bounds(params)
-        imageViewer.zoomRange({
-          // do not set a min limit so that bounds clamping determines min
-          min: -Infinity,
-          // 4x zoom max
-          max: 4,
+        const { right, bottom } = params.map.maxBounds;
+        const margin = 0
+        imageViewer.maxBounds({
+          left: 0 - (right * margin),
+          top: 0 - (bottom * margin),
+          right: right * (1 + margin),
+          bottom: bottom * (1 + margin),
         });
+
       }
       thumbnail.src = `${host}/api/geoprocess/imagery/${image_id}/thumbnail`
     }
