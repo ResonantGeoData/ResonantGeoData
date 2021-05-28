@@ -1,8 +1,5 @@
 """Base classes for raster dataset entries."""
 from django.contrib.gis.db import models
-from django.contrib.postgres import fields
-from django.core.validators import MaxValueValidator, MinValueValidator
-from django.utils.translation import gettext_lazy as _
 
 from ... import tasks
 from ..common import ChecksumFile, ModifiableEntry, SpatialEntry
@@ -45,6 +42,25 @@ class ImageEntry(ModifiableEntry):
     number_of_bands = models.PositiveIntegerField()
 
 
+class BandMetaEntry(ModifiableEntry):
+    """A basic container to keep track of useful band info."""
+
+    parent_image = models.ForeignKey(ImageEntry, on_delete=models.CASCADE)
+    band_number = models.IntegerField()
+    description = models.TextField(
+        null=True,
+        blank=True,
+        help_text='Automatically retreived from raster but can be overwritten.',
+    )
+    dtype = models.CharField(max_length=10)
+    max = models.FloatField(null=True)
+    min = models.FloatField(null=True)
+    mean = models.FloatField(null=True)
+    std = models.FloatField(null=True)
+    nodata_value = models.FloatField(null=True)
+    interpretation = models.TextField()
+
+
 class ImageSet(ModifiableEntry):
     """Container for many images."""
 
@@ -79,187 +95,10 @@ class ImageSet(ModifiableEntry):
         return annots
 
 
-class RasterEntry(ModifiableEntry, TaskEventMixin):
-    """This class is a container for the metadata of a raster.
-
-    This model inherits from ``ImageSet`` and only adds an extra layer of
-    geospatial context to the ``ImageSet``.
-
-    """
-
-    def __str__(self):
-        return 'ID: {} {} (type: {})'.format(self.id, self.name, type(self))
+class ImageSetSpatial(ModifiableEntry, SpatialEntry):
+    """Arbitrary register an ImageSet to a location."""
 
     name = models.CharField(max_length=1000, blank=True)
     description = models.TextField(null=True, blank=True)
 
     image_set = models.OneToOneField(ImageSet, on_delete=models.CASCADE)
-    ancillary_files = models.ManyToManyField(ChecksumFile, blank=True)
-
-    task_funcs = (
-        tasks.task_populate_raster_entry,
-        # tasks.task_populate_raster_footprint,
-    )
-
-    @property
-    def footprint(self):
-        """Pointer to RasterMetaEntry footprint."""
-        return self.rastermetaentry.footprint
-
-    @property
-    def outline(self):
-        """Pointer to RasterMetaEntry outline."""
-        return self.rastermetaentry.outline
-
-    @property
-    def acquisition_date(self):
-        """Pointer to RasterMetaEntry acquisition_date."""
-        return self.rastermetaentry.acquisition_date
-
-    @property
-    def count(self):
-        """Get number of bands across all images in image set."""
-        n = 0
-        for im in self.image_set.images.all():
-            n += im.number_of_bands
-        return n
-
-
-class RasterMetaEntry(ModifiableEntry, SpatialEntry):
-
-    parent_raster = models.OneToOneField(RasterEntry, on_delete=models.CASCADE)
-
-    # Raster fields
-    crs = models.TextField(help_text='PROJ string')  # PROJ String
-    origin = fields.ArrayField(models.FloatField(), size=2)
-    extent = fields.ArrayField(models.FloatField(), size=4)
-    resolution = fields.ArrayField(models.FloatField(), size=2)  # AKA scale
-    # TODO: skew/transform
-    transform = fields.ArrayField(models.FloatField(), size=6)
-    cloud_cover = models.FloatField(
-        null=True, validators=[MinValueValidator(0), MaxValueValidator(100)], blank=True
-    )
-
-    @property
-    def name(self):
-        return self.parent_raster.name
-
-
-class BandMetaEntry(ModifiableEntry):
-    """A basic container to keep track of useful band info."""
-
-    parent_image = models.ForeignKey(ImageEntry, on_delete=models.CASCADE)
-    band_number = models.IntegerField()
-    description = models.TextField(
-        null=True,
-        blank=True,
-        help_text='Automatically retreived from raster but can be overwritten.',
-    )
-    dtype = models.CharField(max_length=10)
-    max = models.FloatField(null=True)
-    min = models.FloatField(null=True)
-    mean = models.FloatField(null=True)
-    std = models.FloatField(null=True)
-    nodata_value = models.FloatField(null=True)
-    interpretation = models.TextField()
-
-
-class ConvertedImageFile(ModifiableEntry, TaskEventMixin):
-    """A model to store converted versions of a raster entry."""
-
-    task_funcs = (tasks.task_convert_to_cog,)
-    converted_file = models.OneToOneField(ChecksumFile, on_delete=models.SET_NULL, null=True)
-    source_image = models.OneToOneField(ImageEntry, on_delete=models.CASCADE)
-
-    def _post_delete(self, *args, **kwargs):
-        # Cleanup the associated ChecksumFile
-        self.converted_file.delete()
-
-
-class SubsampledImage(ModifiableEntry, TaskEventMixin):
-    """A subsample of an ImageEntry."""
-
-    task_funcs = (tasks.task_populate_subsampled_image,)
-
-    class SampleTypes(models.TextChoices):
-        PIXEL_BOX = 'pixel box', _('Pixel bounding box')
-        GEO_BOX = 'geographic box', _('Geographic bounding box')
-        GEOJSON = 'geojson', _('GeoJSON feature')
-        ANNOTATION = 'annotation', _('Annotation entry')
-
-    source_image = models.ForeignKey(ImageEntry, on_delete=models.CASCADE)
-    sample_type = models.CharField(
-        max_length=20, default=SampleTypes.PIXEL_BOX, choices=SampleTypes.choices
-    )
-    sample_parameters = models.JSONField()
-
-    data = models.OneToOneField(ChecksumFile, on_delete=models.SET_NULL, null=True)
-
-    def to_kwargs(self):
-        """Convert ``sample_parameters`` to kwargs ready for GDAL.
-
-        Note
-        ----
-        A ``KeyError`` could be raised if the sample parameters are illformed.
-
-        """
-        p = self.sample_parameters
-        if self.sample_type == SubsampledImage.SampleTypes.PIXEL_BOX:
-            # -srcwin <xoff> <yoff> <xsize> <ysize>
-            return dict(srcWin=[p['umin'], p['vmin'], p['umax'] - p['umin'], p['vmax'] - p['vmin']])
-        elif self.sample_type == SubsampledImage.SampleTypes.GEO_BOX:
-            # -projwin ulx uly lrx lry
-            return dict(projWin=[p['xmin'], p['ymax'], p['xmax'], p['ymin']])
-        elif self.sample_type == SubsampledImage.SampleTypes.GEOJSON:
-            return p
-        elif self.sample_type == SubsampledImage.SampleTypes.ANNOTATION:
-            from .annotation import Annotation
-
-            ann_id = p['id']
-            outline = p.get('outline', False)
-            ann = Annotation.objects.get(id=ann_id)
-            return ann.segmentation.get_subsample_args(outline=outline)
-        else:
-            raise ValueError('Sample type ({}) unknown.'.format(self.sample_type))
-
-    def _post_delete(self, *args, **kwargs):
-        # Cleanup the associated ChecksumFile
-        self.data.delete()
-
-
-class KWCOCOArchive(ModifiableEntry, TaskEventMixin):
-    """A container for holding imported KWCOCO datasets.
-
-    User must upload a JSON file of the KWCOCO meta info and an optional
-    archive of images - optional because images can come from URLs instead of
-    files.
-
-    """
-
-    task_funcs = (tasks.task_load_kwcoco_dataset,)
-    name = models.CharField(max_length=1000, blank=True)
-    spec_file = models.OneToOneField(
-        ChecksumFile,
-        on_delete=models.CASCADE,
-        related_name='kwcoco_spec_file',
-        help_text='The JSON spec file.',
-    )
-    image_archive = models.OneToOneField(
-        ChecksumFile,
-        null=True,
-        on_delete=models.CASCADE,
-        related_name='kwcoco_image_archive',
-        help_text='An archive (.tar or .zip) of the images referenced by the spec file (optional).',
-    )
-    # Allowed null because model must be saved before task can populate this
-    image_set = models.OneToOneField(ImageSet, on_delete=models.SET_NULL, null=True)
-
-    def _post_delete(self, *args, **kwargs):
-        # Frist delete all the images in the image set
-        #  this will cascade to the annotations
-        images = self.image_set.images.all()
-        for image in images:
-            # This should cascade to the ImageFile and the ImageEntry
-            image.image_file.file.delete()
-        # Now delete the empty image set
-        self.image_set.delete()

@@ -11,9 +11,9 @@ from rgd.geodata import permissions
 
 from .filters import RasterMetaEntryFilter, SpatialEntryFilter
 from .models.common import SpatialEntry
-from .models.fmv.base import FMVEntry
+from .models.fmv import FMVEntry
 from .models.geometry import GeometryEntry
-from .models.imagery import RasterMetaEntry
+from .models.imagery import ImageSetSpatial, RasterMetaEntry
 from .models.threed import PointCloudEntry, PointCloudMetaEntry
 
 
@@ -214,6 +214,8 @@ def spatial_entry_redirect_view(request, pk):
     elif isinstance(sub, PointCloudMetaEntry):
         name = 'point-cloud-entry-detail'
         sub = sub.parent_point_cloud
+    elif isinstance(sub, ImageSetSpatial):
+        name = 'image-set-spatial-detail'
     else:
         raise ValueError()
     return redirect(reverse(name, kwargs={'pk': sub.pk}))
@@ -221,3 +223,7 @@ def spatial_entry_redirect_view(request, pk):
 
 class PointCloudEntryDetailView(PermissionDetailView):
     model = PointCloudEntry
+
+
+class ImageSetSpatialDetailView(_SpatialDetailView):
+    model = ImageSetSpatial

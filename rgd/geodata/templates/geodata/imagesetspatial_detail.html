@@ -1,0 +1,112 @@
+{% extends "geodata/_base/detail.html" %}
+
+{% block meta_table_body %}
+  <tr>
+    <td>Description</td>
+    <td>{{ object.description }}</td>
+  </tr>
+{% endblock %}
+
+{% block extra_meta %}
+  <br/>
+
+  <select id="image-selector" onchange="updateBandThumbnail()">
+    {% for image in object.image_set.images.all %}
+      <option value="{{ image.id }}">{{ image.name | truncatechars:36 }}</option>
+    {% endfor %}
+  </select>
+
+  <br/>
+
+  {% include 'geodata/_includes/empty_viewer.html' %}
+
+  <script>
+    let extents = JSON.parse('{{ extents|escapejs }}');
+
+    let reader = geo.createFileReader('geojsonReader', {
+      'layer': layer
+    });
+    var footprint = '{{ object.footprint.json|escapejs }}'
+    reader.read(footprint, (features) => {
+      features[0].style({
+        strokeColor: '#FF0000',
+        fill: true,
+      })
+      .draw();
+    });
+
+    setBounds(extents.extent)
+
+  </script>
+{% endblock %}
+
+{% block detail %}
+
+  <div id="imageViewer" style="width: 100%; height: calc(100vh - 140px);"></div>
+
+  <script>
+    var containerRef = document.getElementById('imageViewer')
+    var selector = document.getElementById('image-selector')
+
+    const params = geo.util.pixelCoordinateParams(containerRef, 200, 200, 200, 200)
+    let imageViewer = geo.map(params.map)
+
+    let imageViewerLayer = imageViewer.createLayer('feature', {
+      features: ['quad']
+    });
+
+    imageViewer.zoomRange({
+      // do not set a min limit so that bounds clamping determines min
+      min: -Infinity,
+      // 4x zoom max
+      max: 4,
+    });
+
+    var frameFootprint = imageViewerLayer.createFeature('quad', {
+        cacheQuads: false,
+      })
+      .style({
+        color: 'red',
+      })
+      .data([{
+        ul: { x: 0, y: 0 },
+        lr: { x: 200, y: 200 },
+      }])
+      .draw()
+
+    function updateBandThumbnail () {
+      var image_id = Number(selector.value);
+      var image = document.createElement('img');
+      image.crossOrigin = "";   // ask for CORS permission
+      image.onload = function() {
+        frameFootprint.data([
+          {
+            ul: { x: 0, y: 0 },
+            lr: { x: image.width, y: image.height },
+            image: image,
+          },
+        ]).draw();
+        const params = geo.util.pixelCoordinateParams(
+          containerRef.value, image.width, image.height, image.width, image.height,
+        );
+        const { right, bottom } = params.map.maxBounds;
+        const margin = 0.01
+        imageViewer.maxBounds({
+          left: 0 - (right * margin),
+          top: 0 - (bottom * margin),
+          right: right * (1 + margin),
+          bottom: bottom * (1 + margin),
+        });
+        const zoomAndCenter = imageViewer.zoomAndCenterFromBounds(
+          params.map.maxBounds, 0,
+        );
+        imageViewer.zoom(zoomAndCenter.zoom);
+        imageViewer.center(zoomAndCenter.center);
+
+      }
+      image.src = `${host}/api/geodata/imagery/${image_id}/data`
+    }
+    updateBandThumbnail()
+  </script>
+
+{% endblock %}

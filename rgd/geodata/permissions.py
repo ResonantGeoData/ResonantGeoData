@@ -22,11 +22,14 @@ def annotate_queryset(queryset):
                 'fmventry__fmv_file__file__collection__collection_permissions__user',
                 'geometryentry__geometry_archive__file__collection__collection_permissions__user',
                 'rastermetaentry__parent_raster__image_set__images__image_file__file__collection__collection_permissions__user',
+                ''
+                'imagesetspatial__image_set__images__image_file__file__collection__collection_permissions__user',
             ),
             _collection_permissions__role=Coalesce(
                 'fmventry__fmv_file__file__collection__collection_permissions__role',
                 'geometryentry__geometry_archive__file__collection__collection_permissions__role',
                 'rastermetaentry__parent_raster__image_set__images__image_file__file__collection__collection_permissions__role',
+                'imagesetspatial__image_set__images__image_file__file__collection__collection_permissions__role',
             ),
         )
     return queryset
@@ -83,6 +86,9 @@ def get_collection_membership_path(model) -> Optional[str]:
         return 'source__file__collection__collection_permissions'
     elif issubclass(model, models.PointCloudEntry):
         return 'vtp_data__collection__collection_permissions'
+    # ImageSetSpatial
+    if issubclass(model, models.ImageSetSpatial):
+        return 'image_set__images__image_file__file__collection__collection_permissions'
     # SpatialEntry
     if model == models.SpatialEntry:
         return '_collection_permissions'
