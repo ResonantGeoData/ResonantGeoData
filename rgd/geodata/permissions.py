@@ -3,6 +3,7 @@ from typing import Optional
 from django.conf import settings
 from django.contrib.auth.backends import BaseBackend
 from django.core.exceptions import PermissionDenied
+from django.db.models import Q
 from django.db.models.functions import Coalesce
 
 from rgd.geodata import models
@@ -108,12 +109,12 @@ def filter_perm(user, queryset, role):
     # `path` can be an empty string (meaning queryset is `CollectionPermission`)
     user_path = (path + '__' if path != '' else path) + 'user'
     role_path = (path + '__' if path != '' else path) + 'role'
-    queryset = annotate_queryset(queryset)
-    filtered = queryset.filter(**{user_path: user.pk}).exclude(**{role_path + '__lt': role})
+    condition = Q(**{user_path: user.pk}) & Q(**{role_path + '__lt': role})
     # Check setting for unassigned permissions
     if settings.RGD_GLOBAL_READ_ACCESS:
-        unassigned = queryset.distinct().filter(**{user_path + '__isnull': True})
-        return filtered.union(unassigned)
+        condition = condition | Q(**{user_path + '__isnull': True})
+    queryset = annotate_queryset(queryset)
+    filtered = queryset.filter(condition).distinct()
     return filtered
 
 
