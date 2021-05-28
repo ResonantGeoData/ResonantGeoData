@@ -255,7 +255,7 @@ def load_point_cloud_files(pc_files):
 
 
 def load_spatial_image_sets(image_sets):
-    for i, value in enumerate(image_sets):
+    for value in image_sets:
         image_files, loc_file = value
         path = datastore.fetch(loc_file)
         # Load JSON image
