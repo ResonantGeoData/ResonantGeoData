@@ -81,7 +81,7 @@
     // Position the map to show data extents. If none present, the position
     //   should have been set by the search parameters
     function setBounds(extent, setMax=false) {
-      if (extent != undefined) {
+      if (extent != undefined && extent.xmin != undefined) {
         map.bounds({
           left: extent.xmin,
           right: extent.xmax,
