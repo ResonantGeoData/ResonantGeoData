@@ -1,0 +1,106 @@
+{% extends "geodata/_base/detail.html" %}
+
+{% block meta_table_body %}
+  <tr>
+    <td>Description</td>
+    <td>{{ object.description }}</td>
+  </tr>
+{% endblock %}
+
+{% block extra_meta %}
+  <br/>
+
+  <select id="image-selector" onchange="updateBandThumbnail()">
+    {% for image in object.image_set.images.all %}
+      <option value="{{ image.id }}">{{ image.name | truncatechars:36 }}</option>
+    {% endfor %}
+  </select>
+
+  <br/>
+
+  {% include 'geodata/_includes/empty_viewer.html' %}
+
+  <script>
+    let extents = JSON.parse('{{ extents|escapejs }}');
+
+    let reader = geo.createFileReader('geojsonReader', {
+      'layer': layer
+    });
+    var footprint = '{{ object.footprint.json|escapejs }}'
+    reader.read(footprint, (features) => {
+      features[0].style({
+        strokeColor: '#FF0000',
+        fill: true,
+      })
+      .draw();
+    });
+
+    setBounds(extents.extent)
+
+  </script>
+{% endblock %}
+
+{% block detail %}
+
+  <div>
+    <img src="" id="thumbnail"/>
+  </div>
+
+  <div id="imageViewer" style="width: 100%; height: calc(100vh - 140px);"></div>
+
+  <script>
+    var thumbnail = document.getElementById('thumbnail')
+    var selector = document.getElementById('image-selector')
+    // thumbnail.hidden = true
+
+    let imageViewer = geo.map({
+      node: '#imageViewer',
+      clampBoundsX: true
+    })
+
+    let imageViewerLayer = imageViewer.createLayer('feature', {
+      features: ['polygon', 'marker', 'quad']
+    });
+
+    var frameFootprint = imageViewerLayer.createFeature('quad')
+      .style({
+        color: 'red',
+        opacity: 0.5
+      })
+
+    function updateBandThumbnail () {
+      var image_id = Number(selector.value);
+      console.log(image_id)
+      thumbnail.onload = function() {
+        frameFootprint.data([
+          {
+            ul: { x: 0, y: 0 },
+            lr: { x: thumbnail.width, y: thumbnail.height },
+            image: thumbnail,
+          },
+        ]).draw();
+        var bounds = {
+          left: 0,
+          top: 0,
+          bottom: thumbnail.height,
+          right: thumbnail.width,
+        }
+        console.log(bounds)
+        const params = geo.util.pixelCoordinateParams(
+          imageViewer, thumbnail.width, thumbnail.height, thumbnail.width, thumbnail.height,
+        );
+        console.log(params)
+        imageViewer.bounds(params)
+        imageViewer.zoomRange({
+          // do not set a min limit so that bounds clamping determines min
+          min: -Infinity,
+          // 4x zoom max
+          max: 4,
+        });
+      }
+      thumbnail.src = `${host}/api/geoprocess/imagery/${image_id}/thumbnail`
+    }
+    updateBandThumbnail()
+  </script>
+
+{% endblock %}
