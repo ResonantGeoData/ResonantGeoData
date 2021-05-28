@@ -102,6 +102,10 @@ class SpatialEntry(models.Model):
             return self.pointcloudmetaentry
         except ObjectDoesNotExist:
             pass
+        try:
+            return self.imagesetspatial
+        except ObjectDoesNotExist:
+            pass
         raise ObjectDoesNotExist
 
     @property
