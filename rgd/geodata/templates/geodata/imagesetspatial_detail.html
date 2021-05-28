@@ -76,30 +76,35 @@
 
     function updateBandThumbnail () {
       var image_id = Number(selector.value);
-      console.log(image_id)
-      var thumbnail = document.createElement('img');
-      thumbnail.onload = function() {
+      var image = document.createElement('img');
+      image.crossOrigin = "";   // ask for CORS permission
+      image.onload = function() {
         frameFootprint.data([
           {
             ul: { x: 0, y: 0 },
-            lr: { x: thumbnail.width, y: thumbnail.height },
-            image: thumbnail,
+            lr: { x: image.width, y: image.height },
+            image: image,
           },
         ]).draw();
         const params = geo.util.pixelCoordinateParams(
-          containerRef.value, thumbnail.width, thumbnail.height, thumbnail.width, thumbnail.height,
+          containerRef.value, image.width, image.height, image.width, image.height,
         );
         const { right, bottom } = params.map.maxBounds;
-        const margin = 0
+        const margin = 0.01
         imageViewer.maxBounds({
           left: 0 - (right * margin),
           top: 0 - (bottom * margin),
           right: right * (1 + margin),
           bottom: bottom * (1 + margin),
         });
+        const zoomAndCenter = imageViewer.zoomAndCenterFromBounds(
+          params.map.maxBounds, 0,
+        );
+        imageViewer.zoom(zoomAndCenter.zoom);
+        imageViewer.center(zoomAndCenter.center);
 
       }
-      thumbnail.src = `${host}/api/geoprocess/imagery/${image_id}/thumbnail`
+      image.src = `${host}/api/geodata/imagery/${image_id}/data`
     }
     updateBandThumbnail()
   </script>
