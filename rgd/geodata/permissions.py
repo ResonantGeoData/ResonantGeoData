@@ -112,7 +112,7 @@ def filter_perm(user, queryset, role):
     condition = Q(**{user_path: user.pk}) & Q(**{role_path + '__lt': role})
     # Check setting for unassigned permissions
     if settings.RGD_GLOBAL_READ_ACCESS:
-        condition = condition | Q(**{user_path + '__isnull': True})
+        condition = Q(**{user_path + '__isnull': True}) | condition
     queryset = annotate_queryset(queryset)
     filtered = queryset.filter(condition).distinct()
     return filtered
