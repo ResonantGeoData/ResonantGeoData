@@ -118,7 +118,9 @@ class StatisticsView(generic.ListView):
         context['acquisition_date__max'] = dates['acquisition_date__max']
         extent = q.aggregate(Extent('outline'))
         if not extent['outline__extent']:
-            extent['outline__extent'] = [None,] * 4
+            extent['outline__extent'] = [
+                None,
+            ] * 4
         context['extents'] = json.dumps(
             {
                 'xmin': extent['outline__extent'][0],
