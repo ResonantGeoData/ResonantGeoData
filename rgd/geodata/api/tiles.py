@@ -1,6 +1,7 @@
 from django.http import HttpResponse
 from django.shortcuts import get_object_or_404
 from large_image.exceptions import TileSourceException
+from large_image.tilesource import FileTileSource
 from large_image_source_gdal import GDALFileTileSource
 from large_image_source_pil import PILFileTileSource
 from rest_framework.request import Request
@@ -11,7 +12,7 @@ from rgd.geodata.models import ImageEntry
 
 
 class BaseTileView(APIView):
-    def get_tile_source(self, request: Request, pk: int) -> GDALFileTileSource:
+    def get_tile_source(self, request: Request, pk: int) -> FileTileSource:
         """Return the built tile source."""
         image_entry = get_object_or_404(ImageEntry, pk=pk)
         self.check_object_permissions(request, image_entry)
@@ -93,3 +94,26 @@ class TileSingleBandInfoView(BaseTileView):
         tile_source = self.get_tile_source(request, pk)
         metadata = tile_source.getOneBandInformation(band)
         return Response(metadata)
+
+
+class TileRegionView(BaseTileView):
+    """Returns region tile binary from world coordinates in given EPSG."""
+
+    def get(self, request: Request, pk: int, left: float, right: float, bottom: float, top: float) -> HttpResponse:
+        tile_source = self.get_tile_source(request, pk)
+        if not isinstance(tile_source, GDALFileTileSource):
+            raise TypeError('Souce image must have geospatial reference.')
+        projection = request.query_params.get('projection', 'EPSG:3857')
+        region = dict(left=left, right=right, bottom=bottom, top=top, units=projection)
+        path, mime_type = tile_source.getRegion(region=region, encoding='TILED')
+        return HttpResponse(open(path, 'rb'), content_type=mime_type)
+
+
+class TileRegionPixelView(BaseTileView):
+    """Returns region tile binary from pixel coordiantes."""
+
+    def get(self, request: Request, pk: int, left: float, right: float, bottom: float, top: float) -> HttpResponse:
+        tile_source = self.get_tile_source(request, pk)
+        region = dict(left=left, right=right, bottom=bottom, top=top, units='pixel')
+        path, mime_type = tile_source.getRegion(region=region, encoding='TILED')
+        return HttpResponse(open(path, 'rb'), content_type=mime_type)

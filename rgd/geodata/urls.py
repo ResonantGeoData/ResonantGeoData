@@ -1,6 +1,20 @@
-from django.urls import path
+from django.urls import path, register_converter
 
 from . import api, views
+
+
+class FloatUrlParameterConverter:
+    regex = r'-?[0-9]+\.?[0-9]+'
+
+    def to_python(self, value):
+        return float(value)
+
+    def to_url(self, value):
+        return str(value)
+
+
+register_converter(FloatUrlParameterConverter, 'float')
+
 
 urlpatterns = [
     # Pages
@@ -143,6 +157,16 @@ urlpatterns = [
         'api/geoprocess/imagery/<int:pk>/tiles/<int:z>/<int:x>/<int:y>.png',
         api.tiles.TileView.as_view(),
         name='image-tiles',
+    ),
+    path(
+        'api/geoprocess/imagery/<int:pk>/tiles/region/world/<float:left>/<float:right>/<float:bottom>/<float:top>/region.tif',
+        api.tiles.TileRegionView.as_view(),
+        name='image-region',
+    ),
+    path(
+        'api/geoprocess/imagery/<int:pk>/tiles/region/pixel/<int:left>/<int:right>/<int:bottom>/<int:top>/region.tif',
+        api.tiles.TileRegionPixelView.as_view(),
+        name='image-region-pixel',
     ),
     path(
         'api/geoprocess/imagery/<int:pk>/tiles/<int:z>/<int:x>/<int:y>/corners',
