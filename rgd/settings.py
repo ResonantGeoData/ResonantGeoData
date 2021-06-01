@@ -108,7 +108,7 @@ class AWSProductionConfiguration(RgdMixin, ProductionBaseConfiguration):
     AWS_S3_ACCESS_KEY_ID = None
     AWS_S3_SECRET_ACCESS_KEY = None
     AWS_S3_REGION_NAME = None
-    SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'http')
+    SECURE_PROXY_SSL_HEADER = values.TupleValue(('HTTP_X_FORWARDED_PROTO', 'https'), separator=',')
 
     @staticmethod
     def before_binding(configuration: Type[ComposedConfiguration]):
