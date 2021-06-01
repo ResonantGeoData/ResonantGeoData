@@ -110,22 +110,6 @@ class AWSProductionConfiguration(RgdMixin, ProductionBaseConfiguration):
     AWS_S3_REGION_NAME = None
     SECURE_PROXY_SSL_HEADER = values.TupleValue(('HTTP_X_FORWARDED_PROTO', 'https'), separator=',')
 
-    @staticmethod
-    def before_binding(configuration: Type[ComposedConfiguration]):
-        # Create a new file handler
-        configuration.LOGGING['handlers']['file'] = {
-            'level': 'NOTSET',
-            'class': 'logging.FileHandler',
-            'filename': '/web-apps/logs/rgd.log',
-            'formatter': 'rich',
-        }
-        # Override default console logger to send to file
-        configuration.LOGGING['loggers'][''] = {
-            'level': 'INFO',
-            'handlers': ['file'],
-            'propagate': False,
-        }
-
 
 class HerokuProductionConfiguration(RgdMixin, HerokuProductionBaseConfiguration):
     # Use different env var names (with no DJANGO_ prefix) for services that Heroku auto-injects
