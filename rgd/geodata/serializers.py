@@ -312,10 +312,11 @@ class STACRasterSerializer(serializers.BaseSerializer):
             )
         image_set = models.ImageSet.objects.create()
         image_set.images.set([image_entry])
-        raster_entry = models.RasterEntry(
-            name=item.id,
-            image_set=image_set,
-        )
+        raster_entry = models.RasterEntry()
+        raster_entry.name = item.id
+        raster_entry.image_set = image_set
+        raster_entry.skip_signal = True
+        raster_entry.save()
         instance = models.RasterMetaEntry(
             parent_raster=raster_entry,
             footprint=json.dumps(item.geometry),
