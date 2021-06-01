@@ -1,6 +1,7 @@
 import base64
 import json
 
+from django.db import transaction
 from pyproj import CRS
 import pystac
 from rest_framework import serializers
@@ -234,6 +235,13 @@ class FMVEntryDataSerializer(FMVEntrySerializer):
 
 
 class STACRasterSerializer(serializers.BaseSerializer):
+    def to_internal_value(self, data):
+        item = pystac.Item.from_dict(data)
+        errors = item.validate()
+        if errors:
+            raise serializers.ValidationError(errors)
+        return data
+
     def to_representation(self, instance: models.RasterMetaEntry) -> dict:
         item = pystac.Item(
             id=instance.pk,
@@ -260,7 +268,7 @@ class STACRasterSerializer(serializers.BaseSerializer):
             item.ext.eo.set_bands(
                 bands=[
                     pystac.extensions.eo.Band.create(
-                        name=f'band{bandmeta.band_number}',
+                        name=f'B{bandmeta.band_number}',
                         description=bandmeta.description,
                     )
                     for bandmeta in image_entry.bandmetaentry_set.all()
@@ -277,6 +285,45 @@ class STACRasterSerializer(serializers.BaseSerializer):
             item.add_asset(f'ancillary-{ancillary_file.pk}', asset)
 
         return item.to_dict()
+
+    @transaction.atomic
+    def create(self, data):
+        item = pystac.Item.from_dict(data)
+        checksum_file = models.ChecksumFile.objects.create(
+            type=models.FileSourceType.URL,
+            url=item.assets['data'].href,
+        )
+        image_file = models.ImageFile.objects.create(
+            file=checksum_file,
+        )
+        image_entry = models.ImageEntry.objects.create(
+            image_file=image_file,
+            driver='NITF',
+            height=item.properties['nitf:end_column'],  # correct?
+            width=item.properties['nitf:end_row'],  # correct?
+            number_of_bands=len(item.ext.eo.bands),
+        )
+        for (band_number, band_data) in enumerate(item.ext.eo.bands):
+            models.BandMetaEntry.objects.create(
+                parent_image=image_entry,
+                band_number=band_number,
+                dtype='',  # correct?
+                description=f'center_wavelength {band_data.center_wavelength}\n common_name {band_data.common_name}',  # correct?
+            )
+        image_set = models.ImageSet.objects.create()
+        image_set.images.set([image_entry])
+        raster_entry = models.RasterEntry(
+            name=item.id,
+            image_set=image_set,
+        )
+        instance = models.RasterMetaEntry(
+            parent_raster=raster_entry,
+            footprint=json.dumps(item.geometry),
+            crs=f'+init=epsg:{item.ext.projection.epsg}',
+            cloud_cover=item.ext.eo.cloud_cover,
+            transform=item.ext.projection.transform,
+        )
+        return instance
 
 
 class PointCloudFileSerializer(serializers.ModelSerializer):
