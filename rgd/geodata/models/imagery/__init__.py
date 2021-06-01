@@ -10,5 +10,6 @@ from .annotation import Annotation, PolygonSegmentation, RLESegmentation, Segmen
 # flake8: noqa
 from .base import BandMetaEntry, ImageEntry, ImageFile, ImageSet, ImageSetSpatial
 from .kwcoco import KWCOCOArchive
+from .large_image_utilities import *  # noqa
 from .processed import ConvertedImageFile, SubsampledImage
 from .raster import RasterEntry, RasterMetaEntry

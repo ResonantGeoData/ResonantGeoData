@@ -1,14 +1,13 @@
 from django.http import HttpResponse
 from django.shortcuts import get_object_or_404
-from large_image.exceptions import TileSourceException
 from large_image.tilesource import FileTileSource
 from large_image_source_gdal import GDALFileTileSource
-from large_image_source_pil import PILFileTileSource
 from rest_framework.request import Request
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from rgd.geodata.models import ImageEntry
+from rgd.geodata.models.imagery import large_image_utilities
 
 
 class BaseTileView(APIView):
@@ -17,12 +16,7 @@ class BaseTileView(APIView):
         image_entry = get_object_or_404(ImageEntry, pk=pk)
         self.check_object_permissions(request, image_entry)
         projection = request.query_params.get('projection', 'EPSG:3857')
-        try:
-            file_path = image_entry.image_file.file.get_vsi_path(internal=True)
-            return GDALFileTileSource(file_path, projection=projection, encoding='PNG')
-        except TileSourceException:
-            with image_entry.image_file.file.yield_local_path() as file_path:
-                return PILFileTileSource(file_path)
+        return large_image_utilities.get_tilesource_from_image_entry(image_entry, projection)
 
 
 class TileMetadataView(BaseTileView):
@@ -99,21 +93,27 @@ class TileSingleBandInfoView(BaseTileView):
 class TileRegionView(BaseTileView):
     """Returns region tile binary from world coordinates in given EPSG."""
 
-    def get(self, request: Request, pk: int, left: float, right: float, bottom: float, top: float) -> HttpResponse:
+    def get(
+        self, request: Request, pk: int, left: float, right: float, bottom: float, top: float
+    ) -> HttpResponse:
         tile_source = self.get_tile_source(request, pk)
         if not isinstance(tile_source, GDALFileTileSource):
             raise TypeError('Souce image must have geospatial reference.')
         projection = request.query_params.get('projection', 'EPSG:3857')
-        region = dict(left=left, right=right, bottom=bottom, top=top, units=projection)
-        path, mime_type = tile_source.getRegion(region=region, encoding='TILED')
-        return HttpResponse(open(path, 'rb'), content_type=mime_type)
+        tile_binary, mime_type = large_image_utilities.get_region_world(
+            tile_source, left, right, bottom, top, projection
+        )
+        return HttpResponse(tile_binary, content_type=mime_type)
 
 
 class TileRegionPixelView(BaseTileView):
     """Returns region tile binary from pixel coordiantes."""
 
-    def get(self, request: Request, pk: int, left: float, right: float, bottom: float, top: float) -> HttpResponse:
+    def get(
+        self, request: Request, pk: int, left: float, right: float, bottom: float, top: float
+    ) -> HttpResponse:
         tile_source = self.get_tile_source(request, pk)
-        region = dict(left=left, right=right, bottom=bottom, top=top, units='pixel')
-        path, mime_type = tile_source.getRegion(region=region, encoding='TILED')
-        return HttpResponse(open(path, 'rb'), content_type=mime_type)
+        tile_binary, mime_type = large_image_utilities.get_region_world(
+            tile_source, left, right, bottom, top
+        )
+        return HttpResponse(tile_binary, content_type=mime_type)
