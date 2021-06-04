@@ -264,6 +264,7 @@ class STACRasterSerializer(serializers.BaseSerializer):
             asset = pystac.Asset(
                 href=image_entry.image_file.file.get_url(),
                 title=image_entry.image_file.file.name,
+                roles=['data', ],
             )
             item.ext.eo.set_bands(
                 bands=[
@@ -281,6 +282,7 @@ class STACRasterSerializer(serializers.BaseSerializer):
             asset = pystac.Asset(
                 href=ancillary_file.get_url(),
                 title=ancillary_file.name,
+                roles=['metadata', ],
             )
             item.add_asset(f'ancillary-{ancillary_file.pk}', asset)
 
@@ -288,34 +290,35 @@ class STACRasterSerializer(serializers.BaseSerializer):
 
     @transaction.atomic
     def create(self, data):
+        # TODO: fix messy import
+        from rgd.geodata.models.imagery.etl import read_image_file
+
         item = pystac.Item.from_dict(data)
-        checksum_file = models.ChecksumFile.objects.create(
-            type=models.FileSourceType.URL,
-            url=item.assets['data'].href,
-        )
-        image_file = models.ImageFile.objects.create(
-            file=checksum_file,
-        )
-        image_entry = models.ImageEntry.objects.create(
-            image_file=image_file,
-            driver='NITF',
-            height=item.properties['nitf:end_column'],  # correct?
-            width=item.properties['nitf:end_row'],  # correct?
-            number_of_bands=len(item.ext.eo.bands),
-        )
-        for (band_number, band_data) in enumerate(item.ext.eo.bands):
-            models.BandMetaEntry.objects.create(
-                parent_image=image_entry,
-                band_number=band_number,
-                dtype='',  # correct?
-                description=f'center_wavelength {band_data.center_wavelength}\n common_name {band_data.common_name}',  # correct?
+        images, ancillary = [], []
+        for name in item.assets:
+            asset = item.assets[name]
+            checksum_file, _ = models.ChecksumFile.objects.get_or_create(
+                type=models.FileSourceType.URL,
+                url=asset.href,
             )
+            if 'data' in asset.roles:
+                image_file, _ = utility.get_or_create_no_commit(models.ImageFile, file=checksum_file)
+                image_file.skip_signal = True
+                image_file.save()
+                read_image_file(image_file)
+                image_entry = models.ImageEntry.objects.get(image_file=image_file)
+                images.append(image_entry)
+            else:
+                ancillary.append(checksum_file)
+
         image_set = models.ImageSet.objects.create()
-        image_set.images.set([image_entry])
+        image_set.images.set(images)
+
         raster_entry = models.RasterEntry()
+        raster_entry.skip_signal = True
         raster_entry.name = item.id
         raster_entry.image_set = image_set
-        raster_entry.skip_signal = True
+        [raster_entry.ancillary_files.add(af) for af in ancillary]
         raster_entry.save()
         instance = models.RasterMetaEntry(
             parent_raster=raster_entry,
@@ -323,7 +326,13 @@ class STACRasterSerializer(serializers.BaseSerializer):
             crs=f'+init=epsg:{item.ext.projection.epsg}',
             cloud_cover=item.ext.eo.cloud_cover,
             transform=item.ext.projection.transform,
+            extent=item.bbox,
+            # origin=,
+            # resolution=,
+
         )
+        instance.outline = instance.footprint.envelope
+        instance.save()
         return instance
 
 
