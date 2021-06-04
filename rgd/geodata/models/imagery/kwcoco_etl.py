@@ -4,13 +4,7 @@ import zipfile
 
 from celery.utils.log import get_task_logger
 from django.conf import settings
-from django.contrib.gis.geos import (
-    LineString,
-    MultiPoint,
-    MultiPolygon,
-    Point,
-    Polygon,
-)
+from django.contrib.gis.geos import LineString, MultiPoint, MultiPolygon, Point, Polygon
 import kwcoco
 import kwimage
 import numpy as np
@@ -20,7 +14,6 @@ from .annotation import Annotation, PolygonSegmentation, RLESegmentation, Segmen
 from .base import ImageFile, ImageSet
 from .etl import read_image_file
 from .kwcoco import KWCOCOArchive
-
 
 logger = get_task_logger(__name__)
 

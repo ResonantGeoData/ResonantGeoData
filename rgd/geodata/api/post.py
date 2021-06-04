@@ -1,7 +1,6 @@
 from rest_framework.generics import CreateAPIView
 
-from .. import serializers
-from .. import models
+from .. import models, serializers
 
 
 class CreateConvertedImageFile(CreateAPIView):

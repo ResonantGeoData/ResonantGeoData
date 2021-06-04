@@ -5,10 +5,7 @@ import tempfile
 
 from celery.utils.log import get_task_logger
 from django.conf import settings
-from django.contrib.gis.geos import (
-    GEOSGeometry,
-    Polygon,
-)
+from django.contrib.gis.geos import GEOSGeometry, Polygon
 import numpy as np
 from osgeo import gdal
 import rasterio
