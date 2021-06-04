@@ -237,10 +237,10 @@ class FMVEntryDataSerializer(FMVEntrySerializer):
 
 class STACRasterSerializer(serializers.BaseSerializer):
     def to_internal_value(self, data):
-        item = pystac.Item.from_dict(data)
-        errors = item.validate()
-        if errors:
-            raise serializers.ValidationError(errors)
+        # item = pystac.Item.from_dict(data)
+        # errors = item.validate()
+        # if errors:
+        #     raise serializers.ValidationError(errors)
         return data
 
     def to_representation(self, instance: models.RasterMetaEntry) -> dict:
