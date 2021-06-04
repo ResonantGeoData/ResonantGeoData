@@ -52,6 +52,12 @@ RASTER_URLS = []
 POINT_CLOUD_FILES = [
     'topo.vtk',
 ]
+SPATIAL_IMAGE_SETS = [
+    (
+        ['afie_1.jpg', 'afie_2.jpg', 'afie_3.jpg'],
+        'afie.geojson',
+    )
+]
 
 
 class Command(helper.SynchronousTasksCommand):
@@ -78,5 +84,6 @@ class Command(helper.SynchronousTasksCommand):
         helper.load_fmv_files(FMV_FILES)
         helper.load_kwcoco_archives(KWCOCO_ARCHIVES)
         helper.load_point_cloud_files(POINT_CLOUD_FILES)
+        helper.load_spatial_image_sets(SPATIAL_IMAGE_SETS)
         self.stdout.write(self.style.SUCCESS(SUCCESS_MSG))
         self.reset_celery()

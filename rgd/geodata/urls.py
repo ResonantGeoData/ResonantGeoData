@@ -36,6 +36,11 @@ urlpatterns = [
         views.PointCloudEntryDetailView.as_view(),
         name='point-cloud-entry-detail',
     ),
+    path(
+        'geodata/imagery/image_set/<int:pk>/',
+        views.ImageSetSpatialDetailView.as_view(),
+        name='image-set-spatial-detail',
+    ),
     #############
     # Search
     path('api/geosearch', api.search.SearchSpatialEntryView.as_view()),

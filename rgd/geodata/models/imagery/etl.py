@@ -33,16 +33,10 @@ from ..common import ChecksumFile
 from ..constants import DB_SRID
 from ..geometry.transform import transform_geometry
 from .annotation import Annotation, PolygonSegmentation, RLESegmentation, Segmentation
-from .base import (
-    BandMetaEntry,
-    ConvertedImageFile,
-    ImageEntry,
-    ImageFile,
-    ImageSet,
-    KWCOCOArchive,
-    RasterEntry,
-    RasterMetaEntry,
-)
+from .base import BandMetaEntry, ImageEntry, ImageFile, ImageSet
+from .kwcoco import KWCOCOArchive
+from .processed import ConvertedImageFile
+from .raster import RasterEntry, RasterMetaEntry
 
 logger = get_task_logger(__name__)
 
@@ -196,14 +190,8 @@ def _get_valid_data_footprint(src, band_num):
         if val != nodata:
             geoms.append(shape(geom))
     if geoms:
-        if len(geoms) > 1:
-            # If multiple polygons, take the convex hull
-            geom = unary_union(geoms)
-            return GEOSGeometry(geom.to_wkt()).convex_hull
-        else:
-            # if only one, avoid taking convex hull
-            geom = unary_union(geoms)
-            return GEOSGeometry(geoms[0].to_wkt())
+        geom = unary_union(geoms)
+        return GEOSGeometry(geom.to_wkt()).convex_hull
 
     raise ValueError('No valid raster footprint found.')
 

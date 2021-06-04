@@ -67,7 +67,7 @@ class SpatialEntry(models.Model):
 
     # This can be used with GeoDjango's geographic database functions for spatial indexing
     footprint = models.GeometryField(srid=DB_SRID)
-    outline = models.PolygonField(srid=DB_SRID)
+    outline = models.GeometryField(srid=DB_SRID)
 
     instrumentation = models.CharField(
         max_length=100,
@@ -100,6 +100,10 @@ class SpatialEntry(models.Model):
             pass
         try:
             return self.pointcloudmetaentry
+        except ObjectDoesNotExist:
+            pass
+        try:
+            return self.imagesetspatial
         except ObjectDoesNotExist:
             pass
         raise ObjectDoesNotExist

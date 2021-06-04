@@ -8,7 +8,7 @@ from rasterio.mask import mask
 from rgd.utility import get_or_create_no_commit, input_output_path_helper
 
 from ..common import ChecksumFile
-from .base import ConvertedImageFile, SubsampledImage
+from .processed import ConvertedImageFile, SubsampledImage
 
 logger = get_task_logger(__name__)
 
