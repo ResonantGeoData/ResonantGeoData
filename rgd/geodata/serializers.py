@@ -1,6 +1,7 @@
 import base64
 import json
 
+from django.contrib.gis.geos import Polygon
 from django.db import transaction
 from pyproj import CRS
 import pystac
@@ -264,7 +265,9 @@ class STACRasterSerializer(serializers.BaseSerializer):
             asset = pystac.Asset(
                 href=image_entry.image_file.file.get_url(),
                 title=image_entry.image_file.file.name,
-                roles=['data', ],
+                roles=[
+                    'data',
+                ],
             )
             item.ext.eo.set_bands(
                 bands=[
@@ -282,7 +285,9 @@ class STACRasterSerializer(serializers.BaseSerializer):
             asset = pystac.Asset(
                 href=ancillary_file.get_url(),
                 title=ancillary_file.name,
-                roles=['metadata', ],
+                roles=[
+                    'metadata',
+                ],
             )
             item.add_asset(f'ancillary-{ancillary_file.pk}', asset)
 
@@ -302,7 +307,9 @@ class STACRasterSerializer(serializers.BaseSerializer):
                 url=asset.href,
             )
             if 'data' in asset.roles:
-                image_file, _ = utility.get_or_create_no_commit(models.ImageFile, file=checksum_file)
+                image_file, _ = utility.get_or_create_no_commit(
+                    models.ImageFile, file=checksum_file
+                )
                 image_file.skip_signal = True
                 image_file.save()
                 read_image_file(image_file)
@@ -318,8 +325,19 @@ class STACRasterSerializer(serializers.BaseSerializer):
         raster_entry.skip_signal = True
         raster_entry.name = item.id
         raster_entry.image_set = image_set
+        raster_entry.save()
         [raster_entry.ancillary_files.add(af) for af in ancillary]
         raster_entry.save()
+
+        outline = Polygon(
+            (
+                [item.bbox[0], item.bbox[1]],
+                [item.bbox[0], item.bbox[3]],
+                [item.bbox[2], item.bbox[3]],
+                [item.bbox[2], item.bbox[1]],
+                [item.bbox[0], item.bbox[1]],
+            )
+        )
         instance = models.RasterMetaEntry(
             parent_raster=raster_entry,
             footprint=json.dumps(item.geometry),
@@ -327,11 +345,10 @@ class STACRasterSerializer(serializers.BaseSerializer):
             cloud_cover=item.ext.eo.cloud_cover,
             transform=item.ext.projection.transform,
             extent=item.bbox,
-            # origin=,
-            # resolution=,
-
+            origin=(item.bbox[0], item.bbox[1]),
+            resolution=(0, 0),  # TODO: fix
+            outline=outline,
         )
-        instance.outline = instance.footprint.envelope
         instance.save()
         return instance
 
