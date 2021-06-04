@@ -60,7 +60,9 @@ setup(
         'pooch',
         'python-magic',
         'pystac[validation]',
+        'rasterio',
         'rules',
+        'shapely',
         'uritemplate',
         # Production-only
         'django-composed-configuration[prod]>=0.16',
@@ -76,9 +78,7 @@ setup(
             'tox',
         ],
         'worker': [
-            'rasterio',
             'fiona',
-            'shapely',
             'scipy',
             'kwarray>=0.5.10',
             'kwcoco',
