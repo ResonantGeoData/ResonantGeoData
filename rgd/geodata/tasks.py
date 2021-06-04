@@ -79,7 +79,7 @@ def task_populate_raster_outline(raster_id):
 @shared_task(time_limit=86400)
 def task_load_kwcoco_dataset(kwcoco_dataset_id):
     from .models.imagery import KWCOCOArchive
-    from .models.imagery.etl import load_kwcoco_dataset
+    from .models.imagery.kwcoco_etl import load_kwcoco_dataset
 
     ds_entry = KWCOCOArchive.objects.get(id=kwcoco_dataset_id)
     _run_with_failure_reason(ds_entry, load_kwcoco_dataset, kwcoco_dataset_id)
