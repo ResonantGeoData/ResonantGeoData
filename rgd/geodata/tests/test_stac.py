@@ -1,12 +1,17 @@
 import pytest
 
+import pystac
+
 from rgd.geodata.serializers import STACRasterSerializer
 
 
 def _check_conforms_stac(data):
     assert 'stac_version' in data
     assert 'assets' in data
-    # TODO: make this better
+    item = pystac.Item.from_dict(data)
+    errors = item.validate()
+    if errors:
+        raise ValueError('ilformed STAC Item.')
 
 
 @pytest.mark.django_db(transaction=True)
