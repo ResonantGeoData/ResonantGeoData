@@ -300,6 +300,7 @@ class STACRasterSerializer(serializers.BaseSerializer):
 
         item = pystac.Item.from_dict(data)
         images, ancillary = [], []
+        single_asset = False
         if len(item.assets) == 1:
             single_asset = True
         for name in item.assets:
