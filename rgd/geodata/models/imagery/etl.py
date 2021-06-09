@@ -62,6 +62,9 @@ def _read_image_to_entry(image_entry, image_file_path):
         dtypes = src.dtypes
         interps = src.colorinterp
 
+        # No longer editing image_entry
+        image_entry.save()
+
         for i in range(src.count):
             band_meta = BandMetaEntry()
             band_meta.parent_image = image_entry
@@ -86,9 +89,6 @@ def _read_image_to_entry(image_entry, image_file_path):
 
             # Save this band entirely
             band_meta.save()
-
-    # No longer editing image_entry
-    image_entry.save()
 
 
 def read_image_file(ife):
