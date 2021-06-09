@@ -60,9 +60,6 @@
         }
 
         var coordinates = JSON.parse('{{ coordinates|escapejs }}')
-        coordinates.forEach(function(part, index, theArray) {
-          theArray[index] = JSON.parse(part);
-        });
         var heatLayer = map.createLayer('feature', {
           features: ['heatmap'],
           opacity: 0.75

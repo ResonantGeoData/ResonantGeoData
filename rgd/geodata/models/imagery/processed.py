@@ -16,7 +16,8 @@ class ConvertedImageFile(ModifiableEntry, TaskEventMixin):
 
     def _post_delete(self, *args, **kwargs):
         # Cleanup the associated ChecksumFile
-        self.converted_file.delete()
+        if self.converted_file:
+            self.converted_file.delete()
 
 
 class SubsampledImage(ModifiableEntry, TaskEventMixin):
