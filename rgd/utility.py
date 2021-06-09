@@ -244,7 +244,7 @@ def patch_internal_presign(f: FieldFile):
 
 
 @contextmanager
-def input_output_path_helper(source, output: FieldFile, prefix: str = '', suffix: str = ''):
+def input_output_path_helper(source, output: FieldFile, prefix: str = '', suffix: str = '', vsi=False):
     """Yeild source and output paths between a ChecksumFile and a FileFeild.
 
     The output path is saved to the output field after yeilding.
@@ -252,7 +252,7 @@ def input_output_path_helper(source, output: FieldFile, prefix: str = '', suffix
     """
     workdir = getattr(settings, 'GEODATA_WORKDIR', None)
     with tempfile.TemporaryDirectory(dir=workdir) as tmpdir:
-        with source.yield_local_path() as file_path:
+        with source.yield_local_path(vsi=vsi) as file_path:
             output_path = os.path.join(tmpdir, prefix + os.path.basename(source.name) + suffix)
             try:
                 # Yield the paths for the user to perform a task
