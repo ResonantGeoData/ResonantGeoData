@@ -44,10 +44,7 @@ def ingest_s3(
     boto3_params = {
         'aws_access_key_id': access_key_id,
         'aws_secret_access_key': secret_access_key,
-        'config': botocore.client.Config(
-            signature_version='s3v4',
-            region_name=region
-        ),
+        'config': botocore.client.Config(signature_version='s3v4', region_name=region),
     }
 
     print(boto3_params)
