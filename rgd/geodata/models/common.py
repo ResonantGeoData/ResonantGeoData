@@ -320,14 +320,18 @@ class ChecksumFile(ModifiableEntry, TaskEventMixin):
 
         """
         url = self.get_url(internal=internal)
-        gdal_options = {
-            'url': url,
-            'use_head': 'no',
-            'list_dir': 'no',
-        }
-        vsicurl = f'/vsicurl?{urlencode(gdal_options)}'
-        logger.info(f'vsicurl URL: {vsicurl}')
-        return vsicurl
+        if url.startswith('s3://'):
+            s3_path = url.replace('s3://', '')
+            vsi = f'/vsis3/{s3_path}'
+        else:
+            gdal_options = {
+                'url': url,
+                'use_head': 'no',
+                'list_dir': 'no',
+            }
+            vsi = f'/vsicurl?{urlencode(gdal_options)}'
+        logger.info(f'vsi URL: {vsi}')
+        return vsi
 
     @contextlib.contextmanager
     def yield_vsi_path(self, internal=False):
