@@ -300,13 +300,15 @@ class STACRasterSerializer(serializers.BaseSerializer):
 
         item = pystac.Item.from_dict(data)
         images, ancillary = [], []
+        if len(item.assets) == 1:
+            single_asset = True
         for name in item.assets:
             asset = item.assets[name]
             checksum_file, _ = models.ChecksumFile.objects.get_or_create(
                 type=models.FileSourceType.URL,
                 url=asset.href,
             )
-            if 'data' in asset.roles:
+            if single_asset or (asset.roles and 'data' in asset.roles):
                 image_file, _ = utility.get_or_create_no_commit(
                     models.ImageFile, file=checksum_file
                 )
