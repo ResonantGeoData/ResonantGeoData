@@ -36,12 +36,6 @@ def query_params(params):
 class _SpatialListView(generic.ListView):
     paginate_by = 15
 
-    def get_queryset(self):
-        filterset = self.filter(data=self.request.GET)
-        assert filterset.is_valid()
-        queryset = filterset.filter_queryset(self.model.objects.all())
-        return permissions.filter_read_perm(self.request.user, queryset).order_by('spatial_id')
-
     def _get_extent_summary(self, object_list):
         ids = [o.spatial_id for o in object_list]
         queryset = self.model.objects.filter(spatial_id__in=ids)
@@ -88,6 +82,21 @@ class SpatialEntriesListView(_SpatialListView):
     filter = SpatialEntryFilter
     context_object_name = 'spatial_entries'
     template_name = 'geodata/spatial_entries.html'
+
+    def get_queryset(self):
+        filterset = self.filter(data=self.request.GET)
+        assert filterset.is_valid()
+        queryset = filterset.filter_queryset(
+            self.model.objects.select_related(
+                'rastermetaentry',
+                'rastermetaentry__parent_raster',
+                'geometryentry',
+                'fmventry',
+                'pointcloudmetaentry',
+                'imagesetspatial',
+            )
+        )
+        return permissions.filter_read_perm(self.request.user, queryset).order_by('spatial_id')
 
 
 class StatisticsView(generic.ListView):
@@ -137,6 +146,12 @@ class RasterMetaEntriesListView(_SpatialListView):
     filter = RasterMetaEntryFilter
     context_object_name = 'spatial_entries'
     template_name = 'geodata/raster_entries.html'
+
+    def get_queryset(self):
+        filterset = self.filter(data=self.request.GET)
+        assert filterset.is_valid()
+        queryset = filterset.filter_queryset(self.model.objects.select_related('parent_raster'))
+        return permissions.filter_read_perm(self.request.user, queryset).order_by('spatial_id')
 
 
 class _SpatialDetailView(PermissionDetailView):
