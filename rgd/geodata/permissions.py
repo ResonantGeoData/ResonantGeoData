@@ -1,97 +1,75 @@
-from typing import Optional
+from typing import List
 
 from django.conf import settings
 from django.contrib.auth.backends import BaseBackend
 from django.core.exceptions import PermissionDenied
 from django.db.models import Q
-from django.db.models.functions import Coalesce
 
 from rgd.geodata import models
 
 
-def annotate_queryset(queryset):
-    """Annotate the queryset to include a path to a collection.
+def get_collection_permissions_paths(model) -> List[str]:
+    """Get all possible paths to the 'CollectionPermission' model.
 
-    Some models don't have a direct path to `collection`
-    and must be annotated to include it.
-    """
-    model = queryset.model
-    if model == models.SpatialEntry:
-        return queryset.annotate(
-            _collection_permissions__user=Coalesce(
-                'fmventry__fmv_file__file__collection__collection_permissions__user',
-                'geometryentry__geometry_archive__file__collection__collection_permissions__user',
-                'rastermetaentry__parent_raster__image_set__images__image_file__file__collection__collection_permissions__user',
-                ''
-                'imagesetspatial__image_set__images__image_file__file__collection__collection_permissions__user',
-            ),
-            _collection_permissions__role=Coalesce(
-                'fmventry__fmv_file__file__collection__collection_permissions__role',
-                'geometryentry__geometry_archive__file__collection__collection_permissions__role',
-                'rastermetaentry__parent_raster__image_set__images__image_file__file__collection__collection_permissions__role',
-                'imagesetspatial__image_set__images__image_file__file__collection__collection_permissions__role',
-            ),
-        )
-    return queryset
-
-
-def get_collection_membership_path(model) -> Optional[str]:
-    """Get the path to the 'CollectionPermission' model.
-
-    Relationships are represented as 'dunder's ('__'). Returning `None`
-    means the model is explicitly unprotected.
+    Relationships are represented as 'dunder's ('__').
     """
     # Collection
     if issubclass(model, models.CollectionPermission):
-        return ''
+        return ['']
     if issubclass(model, models.Collection):
-        return 'collection_permissions'
+        return ['collection_permissions']
     # Common
     if issubclass(model, models.ChecksumFile):
-        return 'collection__collection_permissions'
+        return ['collection__collection_permissions']
     # Imagery
     if issubclass(model, models.ImageEntry):
-        return 'image_file__file__collection__collection_permissions'
+        return ['image_file__file__collection__collection_permissions']
     if issubclass(model, models.ImageSet):
-        return 'images__image_file__file__collection__collection_permissions'
+        return ['images__image_file__file__collection__collection_permissions']
     if issubclass(model, models.RasterEntry):
-        return 'image_set__images__image_file__file__collection__collection_permissions'
+        return ['image_set__images__image_file__file__collection__collection_permissions']
     if issubclass(model, models.RasterMetaEntry):
-        return (
+        return [
             'parent_raster__image_set__images__image_file__file__collection__collection_permissions'
-        )
+        ]
     if issubclass(model, models.BandMetaEntry):
-        return 'parent_image__image_file__file__collection__collection_permissions'
+        return ['parent_image__image_file__file__collection__collection_permissions']
     if issubclass(model, models.ConvertedImageFile):
-        return 'source_image__image_file__file__collection__collection_permissions'
+        return ['source_image__image_file__file__collection__collection_permissions']
     if issubclass(model, models.SubsampledImage):
-        return 'source_image__image_file__file__collection__collection_permissions'
+        return ['source_image__image_file__file__collection__collection_permissions']
     if issubclass(model, models.KWCOCOArchive):
-        return 'spec_file__collection__collection_permissions'
+        return ['spec_file__collection__collection_permissions']
     # Annotation
     if issubclass(model, models.Annotation):
-        return 'image__image_file__collection__collection_permissions'
+        return ['image__image_file__collection__collection_permissions']
     if issubclass(model, models.Segmentation):
-        return 'annotation__image__image_file__collection__collection_permissions'
+        return ['annotation__image__image_file__collection__collection_permissions']
     # Geometry
     if issubclass(model, models.GeometryEntry):
-        return 'geometry_archive__file__collection__collection_permissions'
+        return ['geometry_archive__file__collection__collection_permissions']
     # FMV
     if issubclass(model, models.FMVEntry):
-        return 'fmv_file__file__collection__collection_permissions'
+        return ['fmv_file__file__collection__collection_permissions']
     # Point Cloud
     if issubclass(model, models.PointCloudFile):
-        return 'file__collection__collection_permissions'
-    if issubclass(model, models.PointCloudEntry) and model.source:
-        return 'source__file__collection__collection_permissions'
-    elif issubclass(model, models.PointCloudEntry):
-        return 'vtp_data__collection__collection_permissions'
+        return ['file__collection__collection_permissions']
+    if issubclass(model, models.PointCloudEntry):
+        return [
+            'source__file__collection__collection_permissions',
+            'vtp_data__collection__collection_permissions',
+        ]
     # ImageSetSpatial
     if issubclass(model, models.ImageSetSpatial):
-        return 'image_set__images__image_file__file__collection__collection_permissions'
+        return ['image_set__images__image_file__file__collection__collection_permissions']
     # SpatialEntry
     if model == models.SpatialEntry:
-        return '_collection_permissions'
+        return [
+            'fmventry__fmv_file__file__collection__collection_permissions',
+            'geometryentry__geometry_archive__file__collection__collection_permissions',
+            'rastermetaentry__parent_raster__image_set__images__image_file__file__collection__collection_permissions',
+            'imagesetspatial__image_set__images__image_file__file__collection__collection_permissions',
+        ]
 
     raise NotImplementedError
 
@@ -107,21 +85,18 @@ def filter_perm(user, queryset, role):
     # Superusers can see all (not staff users)
     if user.is_active and user.is_superuser:
         return queryset
-    # No relationship to collection
-    path = get_collection_membership_path(queryset.model)
-    if path is None:
-        return queryset
     # Check permissions
     # `path` can be an empty string (meaning queryset is `CollectionPermission`)
-    user_path = (path + '__' if path != '' else path) + 'user'
-    role_path = (path + '__' if path != '' else path) + 'role'
-    condition = Q(**{user_path: user.pk}) & Q(**{role_path + '__lt': role})
-    # Check setting for unassigned permissions
-    if settings.RGD_GLOBAL_READ_ACCESS:
-        condition = Q(**{user_path + '__isnull': True}) | condition
-    queryset = annotate_queryset(queryset)
-    filtered = queryset.filter(condition).distinct()
-    return filtered
+    paths = get_collection_permissions_paths(queryset.model)
+    subquery = queryset.none()
+    for path in paths:
+        user_path = (path + '__' if path != '' else path) + 'user'
+        role_path = (path + '__' if path != '' else path) + 'role'
+        condition = Q(**{user_path: user}) & Q(**{role_path + '__lt': role})
+        if settings.RGD_GLOBAL_READ_ACCESS:
+            condition |= Q(**{path + '__isnull': True})
+        subquery = subquery.union(queryset.filter(condition).values('pk'))
+    return queryset.filter(pk__in=subquery)
 
 
 def filter_read_perm(user, queryset):
