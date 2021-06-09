@@ -3,10 +3,10 @@ from large_image.tilesource import FileTileSource
 from large_image_source_gdal import GDALFileTileSource
 from large_image_source_pil import PILFileTileSource
 
-from rgd.geodata.models import ImageEntry
+from .base import ImageEntry
 
 
-def get_tilesource_from_image_entry(image_entry: ImageEntry, projection: str) -> FileTileSource:
+def get_tilesource_from_image_entry(image_entry: ImageEntry, projection: str = 'EPSG:3857') -> FileTileSource:
     try:
         file_path = image_entry.image_file.file.get_vsi_path(internal=True)
         return GDALFileTileSource(file_path, projection=projection, encoding='PNG')

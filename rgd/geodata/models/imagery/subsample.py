@@ -1,26 +1,14 @@
 """Tasks for subsampling images with GDAL."""
 from celery.utils.log import get_task_logger
 import large_image_converter
-from osgeo import gdal
-import rasterio
-from rasterio.mask import mask
 
-from rgd.utility import get_or_create_no_commit, input_output_path_helper
+from rgd.utility import input_output_path_helper, output_path_helper
 
+from . import large_image_utilities
 from ..common import ChecksumFile
 from .processed import ConvertedImageFile, SubsampledImage
 
 logger = get_task_logger(__name__)
-
-
-def _gdal_translate_helper(source, output, prefix='', **kwargs):
-    with input_output_path_helper(source, output, prefix=prefix, vsi=True) as (
-        input_path,
-        output_path,
-    ):
-        ds = gdal.Open(str(input_path))
-        ds = gdal.Translate(str(output_path), ds, **kwargs)
-        ds = None
 
 
 def convert_to_cog(cog):
@@ -49,31 +37,6 @@ def convert_to_cog(cog):
     return cog.id
 
 
-def _subsample_with_geojson(source, output, geojson, prefix=''):
-    with input_output_path_helper(source, output, prefix=prefix, vsi=True) as (
-        input_path,
-        output_path,
-    ):
-        # load the raster, mask it by the polygon and crop it
-        with rasterio.open(input_path) as src:
-            out_image, out_transform = mask(src, [geojson], crop=True)
-            out_meta = src.meta.copy()
-            driver = src.driver
-
-        # save the resulting raster
-        out_meta.update(
-            {
-                'driver': driver,
-                'height': out_image.shape[1],
-                'width': out_image.shape[2],
-                'transform': out_transform,
-            }
-        )
-
-        with rasterio.open(output_path, 'w', **out_meta) as dest:
-            dest.write(out_image)
-
-
 def populate_subsampled_image(subsampled):
     if not isinstance(subsampled, SubsampledImage):
         subsampled = SubsampledImage.objects.get(id=subsampled)
@@ -81,29 +44,30 @@ def populate_subsampled_image(subsampled):
         subsampled.refresh_from_db()
     image_entry = subsampled.source_image
 
-    cog, created = get_or_create_no_commit(ConvertedImageFile, source_image=image_entry)
-    if created:
-        cog.skip_signal = True  # Run conversion synchronously
-        cog.save()
-        convert_to_cog(cog)
-
-    # Create kwargs based on subsample type
     logger.info(f'Subsample parameters: {subsampled.sample_parameters}')
-    kwargs = subsampled.to_kwargs()
+    extent = subsampled.get_extent()
 
-    source = cog.converted_file
     if not subsampled.data:
         subsampled.data = ChecksumFile()
 
-    if subsampled.sample_type == SubsampledImage.SampleTypes.GEOJSON or (
-        subsampled.sample_type == SubsampledImage.SampleTypes.ANNOTATION
-        and kwargs.get('type', None)
-    ):
-        logger.info('Subsampling with GeoJSON feature.')
-        _subsample_with_geojson(source, subsampled.data.file, kwargs, prefix='subsampled_')
+    if subsampled.sample_type in (SubsampledImage.SampleTypes.GEOJSON, SubsampledImage.SampleTypes.GEO_BOX):
+        method = large_image_utilities.get_region_world
+        projection = 'EPSG:3857'
     else:
-        logger.info('Subsampling with bounding box feature.')
-        _gdal_translate_helper(source, subsampled.data.file, prefix='subsampled_', **kwargs)
+        method = large_image_utilities.get_region_pixel
+        projection = None
+
+    output = subsampled.data.file
+
+    tile_source = large_image_utilities.get_tilesource_from_image_entry(image_entry, projection=projection)
+
+    filename = f'subsampled-{image_entry.image_file.file.name}'
+
+    with output_path_helper(filename, output) as output_path:
+        logger.info(f'The extent: {extent}')
+        binary_content, mime_type = method(tile_source, *extent)
+        with open(output_path, 'wb') as o:
+            o.write(binary_content.read())
 
     subsampled.data.save()
     subsampled.save(

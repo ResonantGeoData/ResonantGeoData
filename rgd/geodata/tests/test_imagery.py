@@ -212,7 +212,7 @@ def test_subsampling():
     img = ImageEntry.objects.get(image_file=image_file)
 
     # Test with bbox
-    sub = create_subsampled(img, 'pixel box', {'umax': 100, 'umin': 0, 'vmax': 200, 'vmin': 0})
+    sub = create_subsampled(img, 'pixel box', {'right': 100, 'left': 0, 'top': 200, 'bottom': 0})
     assert sub.data
     # Test with GeoJSON
     geojson = {
@@ -239,6 +239,4 @@ def test_subsampling():
     img = ImageEntry.objects.get(name='000000242287.jpg')  # bicycle
     a = Annotation.objects.get(image=img.id)  # Should be only one
     sub = create_subsampled(img, 'annotation', {'id': a.id})
-    assert sub.data
-    sub = create_subsampled(img, 'annotation', {'id': a.id, 'outline': True})
     assert sub.data
