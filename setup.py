@@ -59,8 +59,10 @@ setup(
         'numpy',
         'pooch',
         'python-magic',
-        'pystac',
+        'pystac[validation]',
+        'rasterio',
         'rules',
+        'shapely',
         'uritemplate',
         # Production-only
         'django-composed-configuration[prod]>=0.16',
@@ -72,14 +74,11 @@ setup(
         'dev': [
             'django-composed-configuration[dev]>=0.16',
             'django-debug-toolbar',
-            'django-s3-file-field[minio]',
             'ipython',
             'tox',
         ],
         'worker': [
-            'rasterio',
             'fiona',
-            'shapely',
             'scipy',
             'kwarray>=0.5.10',
             'kwcoco',
