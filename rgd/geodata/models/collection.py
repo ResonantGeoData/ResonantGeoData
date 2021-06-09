@@ -24,6 +24,7 @@ class CollectionPermission(models.Model):
     role = models.SmallIntegerField(
         choices=ROLE_CHOICES,
         default=READER,
+        db_index=True,
         help_text=(
             'A "reader" can view assets in this collection. '
             'An "owner" can additionally add/remove other users, set their permissions, delete the collection, and add/remove other files.'
