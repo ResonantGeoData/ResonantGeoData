@@ -252,7 +252,7 @@ class ChecksumFile(ModifiableEntry, TaskEventMixin):
         """
         if self.type == FileSourceType.URL and precheck_fuse(self.get_url()):
             return url_file_to_fuse_path(self.get_url(internal=True))
-        elif vsi:
+        elif vsi and self.type != FileSourceType.FILE_FIELD:
             logger.info('`yield_local_path` falling back to Virtual File System URL.')
             return self.yield_vsi_path(internal=True)
         # Fallback to loading entire file locally
