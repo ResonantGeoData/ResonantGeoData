@@ -260,7 +260,9 @@ def output_path_helper(filename: str, output: FieldFile):
 
 
 @contextmanager
-def input_output_path_helper(source, output: FieldFile, prefix: str = '', suffix: str = '', vsi: bool = False):
+def input_output_path_helper(
+    source, output: FieldFile, prefix: str = '', suffix: str = '', vsi: bool = False
+):
     """Yeild source and output paths between a ChecksumFile and a FileFeild.
 
     The output path is saved to the output field after yeilding.

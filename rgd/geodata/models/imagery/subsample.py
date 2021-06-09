@@ -50,7 +50,10 @@ def populate_subsampled_image(subsampled):
     if not subsampled.data:
         subsampled.data = ChecksumFile()
 
-    if subsampled.sample_type in (SubsampledImage.SampleTypes.GEOJSON, SubsampledImage.SampleTypes.GEO_BOX):
+    if subsampled.sample_type in (
+        SubsampledImage.SampleTypes.GEOJSON,
+        SubsampledImage.SampleTypes.GEO_BOX,
+    ):
         method = large_image_utilities.get_region_world
         projection = 'EPSG:3857'
     else:
@@ -59,7 +62,9 @@ def populate_subsampled_image(subsampled):
 
     output = subsampled.data.file
 
-    tile_source = large_image_utilities.get_tilesource_from_image_entry(image_entry, projection=projection)
+    tile_source = large_image_utilities.get_tilesource_from_image_entry(
+        image_entry, projection=projection
+    )
 
     filename = f'subsampled-{image_entry.image_file.file.name}'
 
