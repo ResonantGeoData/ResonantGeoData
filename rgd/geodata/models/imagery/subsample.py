@@ -14,7 +14,10 @@ logger = get_task_logger(__name__)
 
 
 def _gdal_translate_helper(source, output, prefix='', **kwargs):
-    with input_output_path_helper(source, output, prefix=prefix) as (input_path, output_path):
+    with input_output_path_helper(source, output, prefix=prefix, vsi=True) as (
+        input_path,
+        output_path,
+    ):
         ds = gdal.Open(str(input_path))
         ds = gdal.Translate(str(output_path), ds, **kwargs)
         ds = None
@@ -31,7 +34,10 @@ def convert_to_cog(cog):
     src = cog.source_image.image_file.imagefile.file
     output = cog.converted_file.file
 
-    with input_output_path_helper(src, output, prefix='cog_') as (input_path, output_path):
+    with input_output_path_helper(src, output, prefix='cog_', vsi=True) as (
+        input_path,
+        output_path,
+    ):
         large_image_converter.convert(str(input_path), str(output_path))
 
     cog.save(
@@ -44,7 +50,10 @@ def convert_to_cog(cog):
 
 
 def _subsample_with_geojson(source, output, geojson, prefix=''):
-    with input_output_path_helper(source, output, prefix=prefix) as (input_path, output_path):
+    with input_output_path_helper(source, output, prefix=prefix, vsi=True) as (
+        input_path,
+        output_path,
+    ):
         # load the raster, mask it by the polygon and crop it
         with rasterio.open(input_path) as src:
             out_image, out_transform = mask(src, [geojson], crop=True)
