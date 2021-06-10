@@ -70,9 +70,9 @@ def populate_subsampled_image(subsampled):
 
     with output_path_helper(filename, output) as output_path:
         logger.info(f'The extent: {extent}')
-        binary_content, mime_type = method(tile_source, *extent)
-        with open(output_path, 'wb') as o:
-            o.write(binary_content.read())
+        path, mime_type = method(tile_source, *extent)
+        with open(path, 'rb') as f, open(output_path, 'wb') as o:
+            o.write(f.read())
 
     subsampled.data.save()
     subsampled.save(

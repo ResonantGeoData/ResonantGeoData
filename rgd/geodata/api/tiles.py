@@ -100,9 +100,10 @@ class TileRegionView(BaseTileView):
         if not isinstance(tile_source, GDALFileTileSource):
             raise TypeError('Souce image must have geospatial reference.')
         projection = request.query_params.get('projection', 'EPSG:3857')
-        tile_binary, mime_type = large_image_utilities.get_region_world(
+        path, mime_type = large_image_utilities.get_region_world(
             tile_source, left, right, bottom, top, projection
         )
+        tile_binary = open(path, 'rb')
         return HttpResponse(tile_binary, content_type=mime_type)
 
 
@@ -113,7 +114,8 @@ class TileRegionPixelView(BaseTileView):
         self, request: Request, pk: int, left: float, right: float, bottom: float, top: float
     ) -> HttpResponse:
         tile_source = self.get_tile_source(request, pk)
-        tile_binary, mime_type = large_image_utilities.get_region_world(
+        path, mime_type = large_image_utilities.get_region_world(
             tile_source, left, right, bottom, top
         )
+        tile_binary = open(path, 'rb')
         return HttpResponse(tile_binary, content_type=mime_type)

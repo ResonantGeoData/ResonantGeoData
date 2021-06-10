@@ -27,10 +27,10 @@ def get_region_world(
 ):
     region = dict(left=left, right=right, bottom=bottom, top=top, units=projection)
     path, mime_type = tile_source.getRegion(region=region, encoding='TILED')
-    return open(path, 'rb'), mime_type
+    return path, mime_type
 
 
 def get_region_pixel(tile_source: FileTileSource, left: int, right: int, bottom: int, top: int):
     region = dict(left=left, right=right, bottom=bottom, top=top, units='pixel')
     path, mime_type = tile_source.getRegion(region=region, encoding='TILED')
-    return open(path, 'rb'), mime_type
+    return path, mime_type
