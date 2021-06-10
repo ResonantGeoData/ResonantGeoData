@@ -40,10 +40,9 @@ def download_object(s3_client, bucket, obj):
 
 
 class STACLoader:
-    def __init__(self, client, bucket: str, region: str):
+    def __init__(self, client, bucket: str):
         self.client = client
         self.bucket = bucket
-        self.region = region
 
     def load_object(self, obj: dict) -> None:
         with download_object(self.client, self.bucket, obj) as data:
@@ -79,7 +78,7 @@ def ingest_s3(
     settings.CELERY_TASK_ALWAYS_EAGER = True
     settings.CELERY_TASK_EAGER_PROPAGATES = True
 
-    loader = STACLoader(s3_client, bucket, region)
+    loader = STACLoader(s3_client, bucket)
     pool = multiprocessing.Pool(multiprocessing.cpu_count())
     pool.map(
         loader.load_object,
