@@ -1,6 +1,7 @@
 import base64
 import json
 
+import dateutil.parser
 from django.contrib.gis.geos import Polygon
 from django.db import transaction
 from pyproj import CRS
@@ -249,7 +250,10 @@ class STACRasterSerializer(serializers.BaseSerializer):
             geometry=json.loads(instance.footprint.json),
             bbox=instance.extent,
             datetime=(instance.acquisition_date or instance.modified or instance.created),
-            properties={},
+            properties=dict(
+                datetime=str(instance.acquisition_date),
+                platform=instance.instrumentation,
+            ),
         )
         # 'proj' extension
         item.ext.enable('projection')
@@ -341,6 +345,7 @@ class STACRasterSerializer(serializers.BaseSerializer):
                 [item.bbox[0], item.bbox[1]],
             )
         )
+
         instance = models.RasterMetaEntry(
             parent_raster=raster_entry,
             footprint=json.dumps(item.geometry),
@@ -351,6 +356,8 @@ class STACRasterSerializer(serializers.BaseSerializer):
             origin=(item.bbox[0], item.bbox[1]),
             resolution=(0, 0),  # TODO: fix
             outline=outline,
+            acquisition_date=dateutil.parser.isoparser().isoparse(item.properties['datetime']),
+            instrumentation=item.properties['platform'],
         )
         instance.save()
         return instance
