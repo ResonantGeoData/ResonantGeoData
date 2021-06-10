@@ -52,11 +52,9 @@ def populate_subsampled_image(subsampled):
 
     tile_source = large_image_utilities.get_tilesource_from_image_entry(image_entry)
 
-    output = subsampled.data.file
-
     filename = f'subsampled-{image_entry.image_file.file.name}'
 
-    with output_path_helper(filename, output) as output_path:
+    with output_path_helper(filename, subsampled.data.file) as output_path:
         logger.info(f'The extent: {l, r, b, t}')
         if subsampled.sample_type in (
             SubsampledImage.SampleTypes.GEOJSON,

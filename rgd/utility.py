@@ -270,19 +270,18 @@ def input_output_path_helper(
     """
     filename = prefix + os.path.basename(source.name) + suffix
     workdir = getattr(settings, 'GEODATA_WORKDIR', None)
-    with tempfile.TemporaryDirectory(dir=workdir) as tmpdir:
-        with source.yield_local_path(vsi=vsi) as file_path:
-            filename = prefix + os.path.basename(source.name) + suffix
-            with output_path_helper(filename, output) as output_path:
-                try:
-                    # Yield the paths for the user to perform a task
-                    yield (file_path, output_path)
-                except Exception as e:
-                    raise e
-                else:
-                    # Save the file contents to the output field only on success
-                    with open(output_path, 'rb') as f:
-                        output.save(os.path.basename(output_path), f)
+    with source.yield_local_path(vsi=vsi) as file_path:
+        filename = prefix + os.path.basename(source.name) + suffix
+        with output_path_helper(filename, output) as output_path:
+            try:
+                # Yield the paths for the user to perform a task
+                yield (file_path, output_path)
+            except Exception as e:
+                raise e
+            else:
+                # Save the file contents to the output field only on success
+                with open(output_path, 'rb') as f:
+                    output.save(os.path.basename(output_path), f)
 
 
 def uuid_prefix_filename(instance: Any, filename: str):
