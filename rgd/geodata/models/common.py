@@ -10,6 +10,7 @@ from django.utils import timezone
 from girder_utils.files import field_file_to_local_path
 from model_utils.managers import InheritanceManager
 from s3_file_field import S3FileField
+from urllib.error import URLError
 
 from rgd.utility import (
     _link_url,
@@ -227,7 +228,7 @@ class ChecksumFile(ModifiableEntry, TaskEventMixin):
                 try:
                     with safe_urlopen(self.url) as r:
                         self.name = r.info().get_filename()
-                except (AttributeError, ValueError):
+                except (AttributeError, ValueError, URLError):
                     pass
                 if not self.name:
                     # Fallback
