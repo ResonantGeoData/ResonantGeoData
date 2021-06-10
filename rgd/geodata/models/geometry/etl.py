@@ -88,12 +88,12 @@ def read_geometry_archive(archive_id):
 
     geometry_entry.data = GeometryCollection(*collection)
     geometry_entry.footprint = geometry_entry.data.convex_hull
-    bounds = geometry_entry.footprint.extent
+    bounds = geometry_entry.footprint.extent  # (xmin, ymin, xmax, ymax)
     coords = [
-        (bounds[0], bounds[3]),
-        (bounds[2], bounds[3]),
-        (bounds[2], bounds[1]),
-        (bounds[0], bounds[1]),
+        (bounds[0], bounds[3]),  # (xmin, ymax)
+        (bounds[2], bounds[3]),  # (xmax, ymax)
+        (bounds[2], bounds[1]),  # (xmax, ymin)
+        (bounds[0], bounds[1]),  # (xmin, ymin)
         (bounds[0], bounds[3]),  # Close the loop
     ]
     geometry_entry.outline = Polygon(coords)
