@@ -31,6 +31,8 @@ def get_region_world(
 
 
 def get_region_pixel(tile_source: FileTileSource, left: int, right: int, bottom: int, top: int):
+    left, right = min(left, right), max(left, right)
+    top, bottom = min(top, bottom), max(top, bottom)
     region = dict(left=left, right=right, bottom=bottom, top=top, units='pixel')
     path, mime_type = tile_source.getRegion(region=region, encoding='TILED')
     return path, mime_type

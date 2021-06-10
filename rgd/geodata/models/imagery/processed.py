@@ -55,22 +55,21 @@ class SubsampledImage(ModifiableEntry, TaskEventMixin):
 
         """
         p = self.sample_parameters
-        if self.sample_type == SubsampledImage.SampleTypes.GEO_BOX:
+        if self.sample_type in (SubsampledImage.SampleTypes.GEO_BOX, SubsampledImage.SampleTypes.PIXEL_BOX):
             return p['left'], p['right'], p['bottom'], p['top']
-        elif self.sample_type == SubsampledImage.SampleTypes.PIXEL_BOX:
-            return p['left'], p['right'], p['top'], p['bottom']
         elif self.sample_type == SubsampledImage.SampleTypes.GEOJSON:
             # Convert GeoJSON to extents
             geom = shape(p)
             feature = GEOSGeometry(memoryview(dumps(geom)))
-            return feature.extent
+            l, b, r, t = feature.extent  # (xmin, ymin, xmax, ymax)
+            return l, r, b, t
         elif self.sample_type == SubsampledImage.SampleTypes.ANNOTATION:
             from .annotation import Annotation
 
             ann_id = p['id']
             ann = Annotation.objects.get(id=ann_id)
-            l, r, b, t = ann.segmentation.outline.extent
-            return l, r, t, b
+            l, b, r, t = ann.segmentation.outline.extent  # (xmin, ymin, xmax, ymax)
+            return l, r, b, t
         else:
             raise ValueError('Sample type ({}) unknown.'.format(self.sample_type))
 
