@@ -71,7 +71,7 @@ def ingest_s3(
     }
 
     session = boto3.Session(**boto3_params)
-    s3_client = session.client("s3")
+    s3_client = session.client('s3')
 
     _eager = getattr(settings, 'CELERY_TASK_ALWAYS_EAGER', False)
     _prop = getattr(settings, 'CELERY_TASK_EAGER_PROPAGATES', False)

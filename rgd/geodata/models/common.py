@@ -1,6 +1,7 @@
 import contextlib
 import logging
 import os
+from urllib.error import URLError
 from urllib.parse import urlencode, urlparse
 
 # from django.contrib.auth import get_user_model
@@ -10,7 +11,6 @@ from django.utils import timezone
 from girder_utils.files import field_file_to_local_path
 from model_utils.managers import InheritanceManager
 from s3_file_field import S3FileField
-from urllib.error import URLError
 
 from rgd.utility import (
     _link_url,
