@@ -269,7 +269,6 @@ def input_output_path_helper(
 
     """
     filename = prefix + os.path.basename(source.name) + suffix
-    workdir = getattr(settings, 'GEODATA_WORKDIR', None)
     with source.yield_local_path(vsi=vsi) as file_path:
         filename = prefix + os.path.basename(source.name) + suffix
         with output_path_helper(filename, output) as output_path:
