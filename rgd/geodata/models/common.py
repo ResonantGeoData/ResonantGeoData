@@ -1,6 +1,7 @@
 import contextlib
 import logging
 import os
+from urllib.error import URLError
 from urllib.parse import urlencode, urlparse
 
 # from django.contrib.auth import get_user_model
@@ -227,7 +228,7 @@ class ChecksumFile(ModifiableEntry, TaskEventMixin):
                 try:
                     with safe_urlopen(self.url) as r:
                         self.name = r.info().get_filename()
-                except (AttributeError, ValueError):
+                except (AttributeError, ValueError, URLError):
                     pass
                 if not self.name:
                     # Fallback
