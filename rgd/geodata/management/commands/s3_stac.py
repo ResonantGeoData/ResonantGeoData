@@ -80,17 +80,11 @@ def ingest_s3(
     settings.CELERY_TASK_EAGER_PROPAGATES = True
 
     loader = STACLoader(s3_client, bucket, region)
-    # pool = multiprocessing.Pool(multiprocessing.cpu_count())
-    # pool.map(
-    #     loader.load_object,
-    #     _iter_matching_objects(s3_client, bucket, prefix, include_regex),
-    # )
-
-    for obj in _iter_matching_objects(
-        s3_client, bucket, prefix, include_regex
-    ):
-        loader.load_object(obj)
-        break
+    pool = multiprocessing.Pool(multiprocessing.cpu_count())
+    pool.map(
+        loader.load_object,
+        _iter_matching_objects(s3_client, bucket, prefix, include_regex),
+    )
 
     # Reset celery to previous settings
     settings.CELERY_TASK_ALWAYS_EAGER = _eager
