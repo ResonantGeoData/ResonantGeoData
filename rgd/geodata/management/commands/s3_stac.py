@@ -40,9 +40,14 @@ def download_object(s3_client, bucket, obj):
 
 
 class STACLoader:
-    def __init__(self, client, bucket: str):
-        self.client = client
+    def __init__(self, boto3_params, bucket: str):
+        self.boto3_params = boto3_params
         self.bucket = bucket
+
+    @property
+    def client(self):
+        session = boto3.Session(**self.boto3_params)
+        return session.client('s3')
 
     def load_object(self, obj: dict) -> None:
         with download_object(self.client, self.bucket, obj) as data:
@@ -78,7 +83,7 @@ def ingest_s3(
     settings.CELERY_TASK_ALWAYS_EAGER = True
     settings.CELERY_TASK_EAGER_PROPAGATES = True
 
-    loader = STACLoader(s3_client, bucket)
+    loader = STACLoader(boto3_params, bucket)
     pool = multiprocessing.Pool(multiprocessing.cpu_count())
     pool.map(
         loader.load_object,
