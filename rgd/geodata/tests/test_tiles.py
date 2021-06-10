@@ -3,7 +3,9 @@ import pytest
 
 @pytest.mark.django_db(transaction=True)
 def test_metadata(api_client, geotiff_image_entry):
-    response = api_client.get(f'/api/geoprocess/imagery/{geotiff_image_entry.pk}/tiles?projection=EPSG:3857')
+    response = api_client.get(
+        f'/api/geoprocess/imagery/{geotiff_image_entry.pk}/tiles?projection=EPSG:3857'
+    )
     metadata = response.data
     assert metadata['levels'] == 15
     assert metadata['sizeX'] == metadata['sizeY']
