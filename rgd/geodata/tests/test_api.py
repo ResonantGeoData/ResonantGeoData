@@ -62,7 +62,7 @@ def test_create_get_subsampled_image(admin_api_client, astro_image):
     payload = {
         'source_image': astro_image.pk,
         'sample_type': 'pixel box',
-        'sample_parameters': {'umax': 100, 'umin': 0, 'vmax': 200, 'vmin': 0},
+        'sample_parameters': {'right': 100, 'left': 0, 'top': 200, 'bottom': 0},
     }
     response = admin_api_client.post('/api/geoprocess/imagery/subsample', payload)
     assert response.status_code == 201

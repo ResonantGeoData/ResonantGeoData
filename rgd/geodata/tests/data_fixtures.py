@@ -162,3 +162,13 @@ def fmv_video_file():
         klv_file=None,
         web_video_file=None,
     )
+
+
+@pytest.fixture
+def elevation():
+    name = 'Elevation.tif'
+    image_file = factories.ImageFileFactory(
+        file__file__filename=name,
+        file__file__from_path=datastore.fetch(name),
+    )
+    return models.ImageEntry.objects.get(image_file=image_file)

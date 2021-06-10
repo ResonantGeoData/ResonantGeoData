@@ -2,10 +2,9 @@ import pytest
 
 from rgd.geodata.datastore import datastore
 from rgd.geodata.models.common import FileSourceType
-from rgd.geodata.models.imagery import ConvertedImageFile, ImageEntry, ImageFile, SubsampledImage
-from rgd.geodata.models.imagery.annotation import Annotation, RLESegmentation
+from rgd.geodata.models.imagery import ImageFile
+from rgd.geodata.models.imagery.annotation import RLESegmentation
 from rgd.geodata.models.imagery.etl import populate_raster_footprint, read_image_file
-from rgd.geodata.models.imagery.subsample import populate_subsampled_image
 
 from . import factories
 
@@ -173,72 +172,3 @@ def test_kwcoco_rle_demo():
 
     mask = seg.to_mask()
     assert mask.shape == (seg.height, seg.width)
-
-
-@pytest.mark.django_db(transaction=True)
-def test_cog_image_conversion():
-    image_file = factories.ImageFileFactory(
-        file__file__filename=SampleFiles[0]['name'],
-        file__file__from_path=datastore.fetch(SampleFiles[0]['name']),
-    )
-    img = ImageEntry.objects.get(image_file=image_file)
-    c = ConvertedImageFile()
-    c.source_image = img
-    c.save()
-    # Task should complete synchronously
-    c.refresh_from_db()
-    assert c.converted_file
-
-
-@pytest.mark.django_db(transaction=True)
-def test_subsampling():
-    name = 'Elevation.tif'
-    image_file = factories.ImageFileFactory(
-        file__file__filename=name,
-        file__file__from_path=datastore.fetch(name),
-    )
-
-    def create_subsampled(img, sample_type, params):
-        sub = SubsampledImage()
-        sub.source_image = img
-        sub.sample_type = sample_type
-        sub.sample_parameters = params
-        sub.skip_signal = True
-        sub.save()
-        populate_subsampled_image(sub)
-        sub.refresh_from_db()
-        return sub
-
-    img = ImageEntry.objects.get(image_file=image_file)
-
-    # Test with bbox
-    sub = create_subsampled(img, 'pixel box', {'umax': 100, 'umin': 0, 'vmax': 200, 'vmin': 0})
-    assert sub.data
-    # Test with GeoJSON
-    geojson = {
-        'type': 'Polygon',
-        'coordinates': [
-            [
-                [-107.08212524738178, 39.01040379702808],
-                [-106.96182164246767, 39.03110215679572],
-                [-106.90895466037738, 38.98387516880551],
-                [-106.9805540376965, 38.91038429753703],
-                [-107.07130208569401, 38.952157178475225],
-                [-107.08212524738178, 39.01040379702808],
-            ]
-        ],
-    }
-    sub = create_subsampled(img, 'geojson', geojson)
-    assert sub.data
-    # Test with annotations
-    demo = {
-        'archive': 'demo_rle.zip',
-        'spec': 'demo_rle.kwcoco.json',
-    }
-    _ = _run_kwcoco_import(demo)
-    img = ImageEntry.objects.get(name='000000242287.jpg')  # bicycle
-    a = Annotation.objects.get(image=img.id)  # Should be only one
-    sub = create_subsampled(img, 'annotation', {'id': a.id})
-    assert sub.data
-    sub = create_subsampled(img, 'annotation', {'id': a.id, 'outline': True})
-    assert sub.data

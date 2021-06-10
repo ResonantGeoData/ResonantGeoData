@@ -1,5 +1,8 @@
 from django.contrib.gis.db import models
+from django.contrib.gis.geos import GEOSGeometry
 from django.utils.translation import gettext_lazy as _
+from shapely.geometry import shape
+from shapely.wkb import dumps
 
 from ... import tasks
 from ..common import ChecksumFile, ModifiableEntry
@@ -39,30 +42,45 @@ class SubsampledImage(ModifiableEntry, TaskEventMixin):
 
     data = models.OneToOneField(ChecksumFile, on_delete=models.SET_NULL, null=True)
 
-    def to_kwargs(self):
-        """Convert ``sample_parameters`` to kwargs ready for GDAL.
+    def get_extent(self):
+        """Convert ``sample_parameters`` to length 4 tuple of XY extents.
 
         Note
         ----
         A ``KeyError`` could be raised if the sample parameters are illformed.
 
+        Return
+        ------
+        extents, projection: <left, right, bottom, top>, <projection>
+
         """
         p = self.sample_parameters
-        if self.sample_type == SubsampledImage.SampleTypes.PIXEL_BOX:
-            # -srcwin <xoff> <yoff> <xsize> <ysize>
-            return dict(srcWin=[p['umin'], p['vmin'], p['umax'] - p['umin'], p['vmax'] - p['vmin']])
-        elif self.sample_type == SubsampledImage.SampleTypes.GEO_BOX:
-            # -projwin ulx uly lrx lry
-            return dict(projWin=[p['xmin'], p['ymax'], p['xmax'], p['ymin']])
+
+        projection = p.pop('projection', None)
+        if self.sample_type in (
+            SubsampledImage.SampleTypes.PIXEL_BOX,
+            SubsampledImage.SampleTypes.ANNOTATION,
+        ):
+            projection = 'pixels'
+
+        if self.sample_type in (
+            SubsampledImage.SampleTypes.GEO_BOX,
+            SubsampledImage.SampleTypes.PIXEL_BOX,
+        ):
+            return p['left'], p['right'], p['bottom'], p['top'], projection
         elif self.sample_type == SubsampledImage.SampleTypes.GEOJSON:
-            return p
+            # Convert GeoJSON to extents
+            geom = shape(p)
+            feature = GEOSGeometry(memoryview(dumps(geom)))
+            l, b, r, t = feature.extent  # (xmin, ymin, xmax, ymax)
+            return l, r, b, t, projection
         elif self.sample_type == SubsampledImage.SampleTypes.ANNOTATION:
             from .annotation import Annotation
 
             ann_id = p['id']
-            outline = p.get('outline', False)
             ann = Annotation.objects.get(id=ann_id)
-            return ann.segmentation.get_subsample_args(outline=outline)
+            l, b, r, t = ann.segmentation.outline.extent  # (xmin, ymin, xmax, ymax)
+            return l, r, b, t, projection
         else:
             raise ValueError('Sample type ({}) unknown.'.format(self.sample_type))
 
