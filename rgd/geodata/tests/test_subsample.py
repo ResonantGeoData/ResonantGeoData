@@ -1,6 +1,5 @@
-import pytest
-
 from large_image_source_gdal import GDALFileTileSource
+import pytest
 
 from rgd.geodata.datastore import datastore
 from rgd.geodata.models.imagery import ConvertedImageFile, ImageEntry, SubsampledImage
@@ -38,10 +37,10 @@ def _create_subsampled(img, sample_type, params):
 
 
 def _assert_bounds(new, bounds):
-    assert new['xmin'] >= bounds['xmin']
-    assert new['xmax'] <= bounds['xmax']
-    assert new['ymin'] >= bounds['ymin']
-    assert new['ymax'] <= bounds['ymax']
+    assert new['xmin'] >= bounds['xmin'], (new['srs'], bounds['srs'])
+    assert new['xmax'] <= bounds['xmax'], (new['srs'], bounds['srs'])
+    assert new['ymin'] >= bounds['ymin'], (new['srs'], bounds['srs'])
+    assert new['ymax'] <= bounds['ymax'], (new['srs'], bounds['srs'])
 
 
 @pytest.mark.django_db(transaction=True)
@@ -50,7 +49,9 @@ def test_subsample_pixel_box(elevation):
         tile_source = GDALFileTileSource(str(file_path), projection='EPSG:3857', encoding='PNG')
         bounds = tile_source.getBounds()
     # Test with bbox
-    sub = _create_subsampled(elevation, 'pixel box', {'right': 100, 'left': 0, 'top': 200, 'bottom': 0})
+    sub = _create_subsampled(
+        elevation, 'pixel box', {'left': 0, 'right': 100, 'bottom': 0, 'top': 200}
+    )
     assert sub.data
     with sub.data.yield_local_path() as file_path:
         tile_source = GDALFileTileSource(str(file_path), projection='EPSG:3857', encoding='PNG')
@@ -66,12 +67,16 @@ def test_subsample_geo_box(elevation):
     # Test with bbox
     # -107.16011512365533, -107.05522782296597
     # 38.87471016725091, 38.92317443621267
-    sub = _create_subsampled(elevation, 'geographic box', {
-        'left': -107.16011512365533,
-        'right': -107.05522782296597,
-        'bottom': 38.87471016725091,
-        'top': 38.92317443621267,
-        }
+    sub = _create_subsampled(
+        elevation,
+        'geographic box',
+        {
+            'left': -107.16011512365533,
+            'right': -107.05522782296597,
+            'bottom': 38.87471016725091,
+            'top': 38.92317443621267,
+            'projection': 'EPSG:4326',
+        },
     )
     assert sub.data
     with sub.data.yield_local_path() as file_path:
@@ -98,6 +103,7 @@ def test_subsample_geojson(elevation):
                 [-107.08212524738178, 39.01040379702808],
             ]
         ],
+        'projection': 'EPSG:4326',
     }
     sub = _create_subsampled(elevation, 'geojson', geojson)
     assert sub.data

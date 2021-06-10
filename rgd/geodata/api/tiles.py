@@ -15,7 +15,7 @@ class BaseTileView(APIView):
         """Return the built tile source."""
         image_entry = get_object_or_404(ImageEntry, pk=pk)
         self.check_object_permissions(request, image_entry)
-        projection = request.query_params.get('projection', 'EPSG:3857')
+        projection = request.query_params.get('projection', None)
         return large_image_utilities.get_tilesource_from_image_entry(image_entry, projection)
 
 

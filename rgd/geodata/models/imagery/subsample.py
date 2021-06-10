@@ -45,32 +45,28 @@ def populate_subsampled_image(subsampled):
     image_entry = subsampled.source_image
 
     logger.info(f'Subsample parameters: {subsampled.sample_parameters}')
-    extent = subsampled.get_extent()
+    l, r, b, t, projection = subsampled.get_extent()
 
     if not subsampled.data:
         subsampled.data = ChecksumFile()
 
-    if subsampled.sample_type in (
-        SubsampledImage.SampleTypes.GEOJSON,
-        SubsampledImage.SampleTypes.GEO_BOX,
-    ):
-        method = large_image_utilities.get_region_world
-        projection = 'EPSG:3857'
-    else:
-        method = large_image_utilities.get_region_pixel
-        projection = None
+    tile_source = large_image_utilities.get_tilesource_from_image_entry(image_entry)
 
     output = subsampled.data.file
-
-    tile_source = large_image_utilities.get_tilesource_from_image_entry(
-        image_entry, projection=projection
-    )
 
     filename = f'subsampled-{image_entry.image_file.file.name}'
 
     with output_path_helper(filename, output) as output_path:
-        logger.info(f'The extent: {extent}')
-        path, mime_type = method(tile_source, *extent)
+        logger.info(f'The extent: {l, r, b, t}')
+        if subsampled.sample_type in (
+            SubsampledImage.SampleTypes.GEOJSON,
+            SubsampledImage.SampleTypes.GEO_BOX,
+        ):
+            path, mime_type = large_image_utilities.get_region_world(
+                tile_source, l, r, b, t, projection=projection
+            )
+        else:
+            path, mime_type = large_image_utilities.get_region_pixel(tile_source, l, r, b, t)
         with open(path, 'rb') as f, open(output_path, 'wb') as o:
             o.write(f.read())
 

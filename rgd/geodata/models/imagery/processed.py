@@ -51,25 +51,36 @@ class SubsampledImage(ModifiableEntry, TaskEventMixin):
 
         Return
         ------
-        extents: <left, right, bottom, top>
+        extents, projection: <left, right, bottom, top>, <projection>
 
         """
         p = self.sample_parameters
-        if self.sample_type in (SubsampledImage.SampleTypes.GEO_BOX, SubsampledImage.SampleTypes.PIXEL_BOX):
-            return p['left'], p['right'], p['bottom'], p['top']
+
+        projection = p.pop('projection', None)
+        if self.sample_type in (
+            SubsampledImage.SampleTypes.PIXEL_BOX,
+            SubsampledImage.SampleTypes.ANNOTATION,
+        ):
+            projection = 'pixels'
+
+        if self.sample_type in (
+            SubsampledImage.SampleTypes.GEO_BOX,
+            SubsampledImage.SampleTypes.PIXEL_BOX,
+        ):
+            return p['left'], p['right'], p['bottom'], p['top'], projection
         elif self.sample_type == SubsampledImage.SampleTypes.GEOJSON:
             # Convert GeoJSON to extents
             geom = shape(p)
             feature = GEOSGeometry(memoryview(dumps(geom)))
             l, b, r, t = feature.extent  # (xmin, ymin, xmax, ymax)
-            return l, r, b, t
+            return l, r, b, t, projection
         elif self.sample_type == SubsampledImage.SampleTypes.ANNOTATION:
             from .annotation import Annotation
 
             ann_id = p['id']
             ann = Annotation.objects.get(id=ann_id)
             l, b, r, t = ann.segmentation.outline.extent  # (xmin, ymin, xmax, ymax)
-            return l, r, b, t
+            return l, r, b, t, projection
         else:
             raise ValueError('Sample type ({}) unknown.'.format(self.sample_type))
 
