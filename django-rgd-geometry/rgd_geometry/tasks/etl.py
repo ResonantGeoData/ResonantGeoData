@@ -10,12 +10,12 @@ from django.contrib.gis.gdal import SpatialReference
 from django.contrib.gis.geos import GeometryCollection, GEOSGeometry, Polygon
 from django.core.exceptions import ValidationError
 import fiona
+from rgd.models.transform import transform_geometry
 from rgd.utility import get_or_create_no_commit
 from shapely.geometry import shape
 from shapely.wkb import dumps
 
 from .base import GeometryArchive, GeometryEntry
-from .transform import transform_geometry
 
 logger = get_task_logger(__name__)
 
