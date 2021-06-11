@@ -178,17 +178,19 @@ class _SpatialDetailView(PermissionDetailView):
 def spatial_entry_redirect_view(request, pk):
     spat = models.SpatialEntry.objects.get(pk=pk)
     sub = spat.subentry
-    if isinstance(sub, RasterMetaEntry):
-        name = 'raster-entry-detail'
-    elif isinstance(sub, GeometryEntry):
-        name = 'geometry-entry-detail'
-    elif isinstance(sub, FMVEntry):
-        name = 'fmv-entry-detail'
-    elif isinstance(sub, PointCloudMetaEntry):
-        name = 'point-cloud-entry-detail'
-        sub = sub.parent_point_cloud
-    elif isinstance(sub, ImageSetSpatial):
-        name = 'image-set-spatial-detail'
-    else:
-        raise ValueError()
+    # if isinstance(sub, RasterMetaEntry):
+    #     name = 'raster-entry-detail'
+    # elif isinstance(sub, GeometryEntry):
+    #     name = 'geometry-entry-detail'
+    # elif isinstance(sub, FMVEntry):
+    #     name = 'fmv-entry-detail'
+    # elif isinstance(sub, PointCloudMetaEntry):
+    #     name = 'point-cloud-entry-detail'
+    #     sub = sub.parent_point_cloud
+    # elif isinstance(sub, ImageSetSpatial):
+    #     name = 'image-set-spatial-detail'
+    # else:
+    #     raise ValueError()
+    name = ''
+    raise ValueError()
     return redirect(reverse(name, kwargs={'pk': sub.pk}))
