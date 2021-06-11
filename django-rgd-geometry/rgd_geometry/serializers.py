@@ -1,7 +1,8 @@
 import json
 
-from rgd import utility
 from rgd.serializers import SpatialEntrySerializer
+
+from rgd import utility
 
 from . import models
 

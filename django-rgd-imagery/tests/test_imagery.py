@@ -1,5 +1,4 @@
 import pytest
-
 from rgd.geodata.datastore import datastore
 from rgd.geodata.models.common import FileSourceType
 from rgd.geodata.models.imagery import ImageFile

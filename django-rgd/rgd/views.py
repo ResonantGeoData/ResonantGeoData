@@ -10,6 +10,7 @@ from django.views.generic import DetailView
 from rest_framework.reverse import reverse
 
 from rgd import permissions
+
 from . import filters, models
 
 

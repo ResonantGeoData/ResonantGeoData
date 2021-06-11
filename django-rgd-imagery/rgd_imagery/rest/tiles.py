@@ -5,7 +5,6 @@ from large_image_source_gdal import GDALFileTileSource
 from rest_framework.request import Request
 from rest_framework.response import Response
 from rest_framework.views import APIView
-
 from rgd_imagery.models import ImageEntry, large_image_utilities
 
 

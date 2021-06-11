@@ -7,10 +7,10 @@ from pyproj import CRS
 import pystac
 from rest_framework import serializers
 from rest_framework.reverse import reverse
-
-from rgd import utility
 from rgd.permissions import check_write_perm
 from rgd.serializers import ChecksumFileSerializer, SpatialEntrySerializer
+
+from rgd import utility
 
 from . import models
 

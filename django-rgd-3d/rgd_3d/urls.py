@@ -2,7 +2,6 @@ from django.urls import path
 
 from . import rest, views
 
-
 urlpatterns = [
     # Pages
     path(
@@ -22,5 +21,4 @@ urlpatterns = [
         rest.get.GetPointCloudEntryData.as_view(),
         name='point-cloud-entry-data',
     ),
-
 ]

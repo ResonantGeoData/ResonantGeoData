@@ -1,10 +1,8 @@
 from django.http import HttpResponseRedirect
 from drf_yasg.utils import swagger_auto_schema
 from rest_framework.decorators import api_view
-
 from rgd.permissions import check_read_perm
 from rgd.rest.download import _get_status_response
-
 from rgd_imagery import models
 
 

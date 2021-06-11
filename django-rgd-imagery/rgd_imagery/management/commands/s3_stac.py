@@ -9,7 +9,6 @@ from typing import Generator, Optional
 import boto3
 from django.conf import settings
 import djclick as click
-
 from rgd.geodata.serializers import STACRasterSerializer
 
 

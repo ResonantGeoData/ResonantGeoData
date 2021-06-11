@@ -1,5 +1,4 @@
 import pytest
-
 from rgd.datastore import datastore
 
 from . import factories

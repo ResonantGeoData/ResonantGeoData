@@ -2,9 +2,8 @@ import base64
 import pickle
 
 from django.contrib.gis.db import models
-from s3_file_field import S3FileField
-
 from rgd.utility import _link_url, uuid_prefix_filename
+from s3_file_field import S3FileField
 
 from ... import tasks
 from ..common import ChecksumFile, ModifiableEntry, SpatialEntry

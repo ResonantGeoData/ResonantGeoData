@@ -1,6 +1,6 @@
 from celery import shared_task
-
 from rgd.tasks import helpers
+
 
 @shared_task(time_limit=86400)
 def task_read_image_file(file_id):

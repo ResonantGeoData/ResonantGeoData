@@ -1,9 +1,9 @@
 import json
 
 from rest_framework import serializers
+from rgd.serializers import ChecksumFileSerializer, SpatialEntrySerializer
 
 from rgd import utility
-from rgd.serializers import SpatialEntrySerializer, ChecksumFileSerializer
 
 from . import models
 

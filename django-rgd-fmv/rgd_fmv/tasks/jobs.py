@@ -1,11 +1,11 @@
 from celery import shared_task
-
 from rgd.tasks import helpers
 
 
 @shared_task(time_limit=86400)
 def task_read_fmv_file(file_id):
     from rgd_fmv.models import FMVFile
+
     from .etl import read_fmv_file
 
     fmv_file = FMVFile.objects.get(id=file_id)

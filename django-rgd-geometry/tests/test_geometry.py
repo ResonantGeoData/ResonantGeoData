@@ -1,8 +1,8 @@
 import pytest
-
-from rgd.geodata import models
 from rgd.geodata.datastore import datastore
 from rgd.geodata.models.geometry.etl import read_geometry_archive
+
+from rgd.geodata import models
 
 from . import factories
 

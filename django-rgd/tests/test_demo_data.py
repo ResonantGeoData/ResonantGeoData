@@ -1,5 +1,3 @@
-import pytest
-
 from rgd.datastore import registry
 from rgd.management.commands import demo_data
 

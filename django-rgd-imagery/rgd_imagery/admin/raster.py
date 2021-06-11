@@ -1,10 +1,15 @@
 from django.contrib import admin
 from django.contrib.gis.admin import OSMGeoAdmin
+from rgd.admin.mixins import (
+    MODIFIABLE_FILTERS,
+    SPATIAL_ENTRY_FILTERS,
+    TASK_EVENT_FILTERS,
+    TASK_EVENT_READONLY,
+    reprocess,
+)
 
-from rgd.admin.mixins import MODIFIABLE_FILTERS, TASK_EVENT_FILTERS, TASK_EVENT_READONLY, reprocess, SPATIAL_ENTRY_FILTERS
-
-from .models.imagery import RasterEntry, RasterMetaEntry
 from . import tasks
+from .models.imagery import RasterEntry, RasterMetaEntry
 
 
 def reprocess_rastermeta(modeladmin, request, queryset):

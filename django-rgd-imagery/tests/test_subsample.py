@@ -1,6 +1,5 @@
 from large_image_source_gdal import GDALFileTileSource
 import pytest
-
 from rgd.geodata.datastore import datastore
 from rgd.geodata.models.imagery import ConvertedImageFile, ImageEntry, SubsampledImage
 from rgd.geodata.models.imagery.annotation import Annotation

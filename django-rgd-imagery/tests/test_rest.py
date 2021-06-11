@@ -1,6 +1,5 @@
 import pytest
 from rest_framework import status
-
 from rgd_imagery import models
 
 

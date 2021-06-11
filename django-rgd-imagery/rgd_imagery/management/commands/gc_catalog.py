@@ -6,9 +6,9 @@ import tempfile
 import xml.etree.ElementTree as ElementTree
 
 import pandas as pd
+from rgd.utility import safe_urlopen
 
 from rgd.geodata import datastore
-from rgd.utility import safe_urlopen
 
 from . import _data_helper as helper
 

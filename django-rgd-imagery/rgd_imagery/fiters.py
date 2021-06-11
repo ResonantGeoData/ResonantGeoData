@@ -1,9 +1,7 @@
 from django.contrib.gis import forms
 from django.db.models import Q, Sum
 from django_filters import rest_framework as filters
-
 from rgd.filters import SpatialEntryFilter
-
 from rgd_imagery.models import RasterMetaEntry
 
 

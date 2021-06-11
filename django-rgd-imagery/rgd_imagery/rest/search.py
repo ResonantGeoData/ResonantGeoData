@@ -1,8 +1,6 @@
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework.generics import ListAPIView
-
 from rgd.permissions import filter_read_perm
-
 from rgd_imagery import serializers
 from rgd_imagery.filters import RasterMetaEntryFilter
 from rgd_imagery.models import RasterMetaEntry

@@ -2,7 +2,6 @@ from django.urls import path
 
 from . import rest, views
 
-
 urlpatterns = [
     # Pages
     path(

@@ -1,8 +1,6 @@
 from django.contrib import admin
 from django.contrib.gis.admin import OSMGeoAdmin
-
 from rgd.admin.mixins import MODIFIABLE_FILTERS, TASK_EVENT_FILTERS, TASK_EVENT_READONLY, reprocess
-
 from rgd_imagery.models import ConvertedImageFile, SubsampledImage
 
 

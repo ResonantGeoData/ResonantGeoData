@@ -1,8 +1,13 @@
 from django.contrib import admin
 from django.contrib.gis.admin import OSMGeoAdmin
-
-from rgd.admin.mixins import MODIFIABLE_FILTERS, TASK_EVENT_FILTERS, TASK_EVENT_READONLY, reprocess, _FileGetNameMixin, SPATIAL_ENTRY_FILTERS
-
+from rgd.admin.mixins import (
+    MODIFIABLE_FILTERS,
+    SPATIAL_ENTRY_FILTERS,
+    TASK_EVENT_FILTERS,
+    TASK_EVENT_READONLY,
+    _FileGetNameMixin,
+    reprocess,
+)
 from rgd_fmv.models import GeometryArchive, GeometryEntry
 
 

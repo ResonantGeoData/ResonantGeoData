@@ -8,7 +8,6 @@ from celery.utils.log import get_task_logger
 from django.contrib.gis.geos import MultiPoint, MultiPolygon, Point, Polygon
 from girder_utils.files import field_file_to_local_path
 import numpy as np
-
 from rgd.utility import get_or_create_no_commit
 
 from .base import FMVEntry, FMVFile

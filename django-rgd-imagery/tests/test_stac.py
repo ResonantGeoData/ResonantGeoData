@@ -1,6 +1,5 @@
 import pystac
 import pytest
-
 from rgd.geodata.serializers import STACRasterSerializer
 
 

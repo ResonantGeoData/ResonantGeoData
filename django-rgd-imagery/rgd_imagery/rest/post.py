@@ -1,5 +1,4 @@
 from rest_framework.generics import CreateAPIView
-
 from rgd_imagery import models, serializers
 
 

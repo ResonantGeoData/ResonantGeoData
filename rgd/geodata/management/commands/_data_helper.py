@@ -12,13 +12,13 @@ from django.core.management.base import BaseCommand
 from django.core.validators import URLValidator
 from django.db.models import Count
 from django.utils.timezone import make_aware
+from rgd.geodata.datastore import datastore
+from rgd.geodata.models.imagery import etl
+from rgd.utility import get_or_create_no_commit
 from shapely.geometry import shape
 from shapely.wkb import dumps
 
 from rgd.geodata import models
-from rgd.geodata.datastore import datastore
-from rgd.geodata.models.imagery import etl
-from rgd.utility import get_or_create_no_commit
 
 logger = logging.getLogger(__name__)
 

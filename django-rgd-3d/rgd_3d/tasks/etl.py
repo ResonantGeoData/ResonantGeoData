@@ -3,7 +3,6 @@ import tempfile
 
 from celery.utils.log import get_task_logger
 from django.conf import settings
-
 from rgd.geodata.models import ChecksumFile
 from rgd.utility import get_or_create_no_commit
 

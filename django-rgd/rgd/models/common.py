@@ -10,8 +10,6 @@ from django.core.exceptions import ObjectDoesNotExist
 from django.utils import timezone
 from girder_utils.files import field_file_to_local_path
 from model_utils.managers import InheritanceManager
-from s3_file_field import S3FileField
-
 from rgd.utility import (
     _link_url,
     compute_checksum_file,
@@ -23,6 +21,7 @@ from rgd.utility import (
     url_file_to_local_path,
     uuid_prefix_filename,
 )
+from s3_file_field import S3FileField
 
 # from .. import tasks
 from .collection import Collection

@@ -1,7 +1,5 @@
 import pytest
-
 from rgd.datastore import datastore
-
 from rgd_imagery import models
 
 from . import factories

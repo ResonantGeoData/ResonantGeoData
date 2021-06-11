@@ -1,8 +1,12 @@
 from django.contrib import admin
 from django.contrib.gis.admin import OSMGeoAdmin
-
-from rgd.admin.mixins import MODIFIABLE_FILTERS, TASK_EVENT_FILTERS, TASK_EVENT_READONLY, reprocess, _FileGetNameMixin
-
+from rgd.admin.mixins import (
+    MODIFIABLE_FILTERS,
+    TASK_EVENT_FILTERS,
+    TASK_EVENT_READONLY,
+    _FileGetNameMixin,
+    reprocess,
+)
 from rgd_fmv.models import FMVEntry, FMVFile
 
 

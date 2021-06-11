@@ -1,7 +1,6 @@
 import os
 
 import pytest
-
 from rgd.geodata.models.fmv import FMVEntry
 from rgd.geodata.models.mixins import Status
 

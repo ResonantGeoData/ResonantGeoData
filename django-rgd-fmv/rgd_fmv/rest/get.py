@@ -1,7 +1,5 @@
 from rest_framework.generics import RetrieveAPIView
-
 from rgd.rest.get import _PermissionMixin
-
 from rgd_fmv import models, serializers
 
 
