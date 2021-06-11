@@ -18,8 +18,8 @@ jobs:
           python -m pip install --upgrade pip
           pip install setuptools wheel
       - name: Install rgdc
-        working-directory: ./rgdc
+        working-directory: ./rgd-client
         run: pip install -e .
       - name: Test (not implemented)
-        working-directory: ./rgdc
+        working-directory: ./rgd-client
         run: python -c "from rgdc import Rgdc; print('Import went okay!')"
