@@ -2,7 +2,7 @@ import logging
 from typing import List
 
 import djclick as click
-from rgd.geodata.models import WhitelistedEmail
+from rgd.models import WhitelistedEmail
 
 logger = logging.getLogger(__name__)
 

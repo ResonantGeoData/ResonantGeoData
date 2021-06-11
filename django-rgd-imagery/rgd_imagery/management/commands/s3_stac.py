@@ -9,7 +9,7 @@ from typing import Generator, Optional
 import boto3
 from django.conf import settings
 import djclick as click
-from rgd.geodata.serializers import STACRasterSerializer
+from rgd_imagery.serializers import STACRasterSerializer
 
 
 def _iter_matching_objects(

@@ -7,8 +7,7 @@ import dateutil.parser
 from django.contrib.gis.geos import GEOSGeometry
 from django.db.models import Count
 from django.utils.timezone import make_aware
-from rgd.geodata.datastore import datastore
-from rgd.geodata.models.imagery import etl
+from rgd.datastore import datastore
 from rgd.management.commands._data_helper import (
     _get_or_create_checksum_file,
     _get_or_create_checksum_file_url,
@@ -17,6 +16,7 @@ from rgd.management.commands._data_helper import (
 )
 from rgd.utility import get_or_create_no_commit
 from rgd_imagery import models
+from rgd_imagery.tasks import etl
 from shapely.geometry import shape
 from shapely.wkb import dumps
 

@@ -2,8 +2,8 @@ import os
 
 from django.db import IntegrityError
 import pytest
-from rgd.geodata.datastore import datastore, registry
-from rgd.geodata.models import common
+from rgd.datastore import datastore, registry
+from rgd.models import common
 
 FILENAME = 'stars.png'
 

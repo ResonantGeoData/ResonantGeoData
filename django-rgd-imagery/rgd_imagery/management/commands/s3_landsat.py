@@ -1,6 +1,6 @@
 import json
 
-from rgd.geodata import datastore
+from rgd import datastore
 
 from . import _data_helper as helper
 

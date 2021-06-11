@@ -1,8 +1,8 @@
 import os
 
 import pytest
-from rgd.geodata.models.fmv import FMVEntry
-from rgd.geodata.models.mixins import Status
+from rgd.models.mixins import Status
+from rgd_fmv.models.fmv import FMVEntry
 
 NO_KWIVER = os.environ.get('NO_KWIVER', False)
 

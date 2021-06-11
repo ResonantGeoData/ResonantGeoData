@@ -1,4 +1,4 @@
-from rgd.geodata import datastore
+from rgd import datastore
 
 
 def test_datastore_format():

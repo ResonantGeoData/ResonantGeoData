@@ -193,7 +193,7 @@ class STACRasterSerializer(serializers.BaseSerializer):
     @transaction.atomic
     def create(self, data):
         # TODO: fix messy import
-        from rgd.geodata.models.imagery.etl import read_image_file
+        from rgd_imagery.tasks.etl import read_image_file
 
         item = pystac.Item.from_dict(data)
         images, ancillary = [], []

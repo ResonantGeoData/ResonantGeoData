@@ -1,6 +1,6 @@
 import pystac
 import pytest
-from rgd.geodata.serializers import STACRasterSerializer
+from rgd_imagery.serializers import STACRasterSerializer
 
 
 def _check_conforms_stac(data):

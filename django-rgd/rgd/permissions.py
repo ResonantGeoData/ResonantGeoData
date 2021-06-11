@@ -4,7 +4,7 @@ from django.conf import settings
 from django.contrib.auth.backends import BaseBackend
 from django.core.exceptions import PermissionDenied
 from django.db.models import Q
-from rgd.geodata import models
+from rgd import models
 
 
 def get_collection_permissions_paths(model) -> List[str]:

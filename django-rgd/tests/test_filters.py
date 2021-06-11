@@ -1,6 +1,6 @@
 import pytest
-from rgd.geodata import models
-from rgd.geodata.filters import RasterMetaEntryFilter, SpatialEntryFilter
+from rgd import models
+from rgd.filters import RasterMetaEntryFilter, SpatialEntryFilter
 
 
 @pytest.mark.django_db(transaction=True)

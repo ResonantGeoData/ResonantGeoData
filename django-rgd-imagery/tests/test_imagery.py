@@ -1,9 +1,9 @@
 import pytest
-from rgd.geodata.datastore import datastore
-from rgd.geodata.models.common import FileSourceType
-from rgd.geodata.models.imagery import ImageFile
-from rgd.geodata.models.imagery.annotation import RLESegmentation
-from rgd.geodata.models.imagery.etl import populate_raster_footprint, read_image_file
+from rgd.datastore import datastore
+from rgd.models.common import FileSourceType
+from rgd_imagery.models.imagery import ImageFile
+from rgd_imagery.models.imagery.annotation import RLESegmentation
+from rgd_imagery.models.imagery.etl import populate_raster_footprint, read_image_file
 
 from . import factories
 
