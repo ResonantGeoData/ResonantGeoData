@@ -12,7 +12,7 @@ class RasterMetaEntriesListView(_SpatialListView):
     model = models.RasterMetaEntry
     filter = filters.RasterMetaEntryFilter
     context_object_name = 'spatial_entries'
-    template_name = 'geodata/raster_entries.html'
+    template_name = 'rgd_imagery/raster_entries.html'
 
     def get_queryset(self):
         filterset = self.filter(data=self.request.GET)

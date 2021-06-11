@@ -1,6 +1,5 @@
 from rgd.views import PermissionDetailView
-
-from . import models
+from rgd_3d import models
 
 
 class PointCloudEntryDetailView(PermissionDetailView):

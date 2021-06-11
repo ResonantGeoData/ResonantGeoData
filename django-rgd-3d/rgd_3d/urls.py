@@ -1,6 +1,5 @@
 from django.urls import path
-
-from . import rest, views
+from rgd_3d import rest, views
 
 urlpatterns = [
     # Pages

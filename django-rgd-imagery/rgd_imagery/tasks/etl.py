@@ -14,12 +14,12 @@ import rasterio.features
 import rasterio.shutil
 import rasterio.warp
 from rasterio.warp import Resampling, calculate_default_transform, reproject
+from rgd.models.constants import DB_SRID
 from rgd.models.transform import transform_geometry
 from rgd.utility import get_or_create_no_commit
 from shapely.geometry import shape
 from shapely.ops import unary_union
 
-from ..constants import DB_SRID
 from .base import BandMetaEntry, ImageEntry, ImageFile
 from .processed import ConvertedImageFile
 from .raster import RasterEntry, RasterMetaEntry

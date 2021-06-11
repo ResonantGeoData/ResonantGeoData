@@ -5,8 +5,7 @@ from celery.utils.log import get_task_logger
 from django.conf import settings
 from rgd.models import ChecksumFile
 from rgd.utility import get_or_create_no_commit
-
-from .point_cloud import PointCloudEntry, PointCloudFile
+from rgd_3d.models import PointCloudEntry, PointCloudFile
 
 logger = get_task_logger(__name__)
 

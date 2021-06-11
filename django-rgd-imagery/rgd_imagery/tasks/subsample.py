@@ -1,11 +1,10 @@
 """Tasks for subsampling images with GDAL."""
 from celery.utils.log import get_task_logger
 import large_image_converter
+from rgd.models import ChecksumFile
 from rgd.utility import input_output_path_helper, output_path_helper
-
-from . import large_image_utilities
-from ..common import ChecksumFile
-from .processed import ConvertedImageFile, SubsampledImage
+from rgd_imagery import large_image_utilities
+from rgd_imagery.models import ConvertedImageFile, SubsampledImage
 
 logger = get_task_logger(__name__)
 

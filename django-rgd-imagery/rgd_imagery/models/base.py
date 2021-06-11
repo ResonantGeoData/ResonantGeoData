@@ -1,9 +1,8 @@
 """Base classes for raster dataset entries."""
 from django.contrib.gis.db import models
-
-from ... import tasks
-from ..common import ChecksumFile, ModifiableEntry, SpatialEntry
-from ..mixins import TaskEventMixin
+from rgd.models import ChecksumFile, ModifiableEntry, SpatialEntry
+from rgd.models.mixins import TaskEventMixin
+from rgd_imagery.tasks import jobs
 
 
 class ImageFile(ModifiableEntry, TaskEventMixin):
@@ -17,7 +16,7 @@ class ImageFile(ModifiableEntry, TaskEventMixin):
 
     """
 
-    task_funcs = (tasks.task_read_image_file,)
+    task_funcs = (jobs.task_read_image_file,)
     file = models.ForeignKey(ChecksumFile, on_delete=models.CASCADE)
 
     def image_data_link(self):

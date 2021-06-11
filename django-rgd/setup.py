@@ -53,12 +53,15 @@ setup(
         'drf-yasg',
         'GDAL',
         'pooch',
+        'psycopg2',
         'python-magic',
+        'flower',
         # Production-only
         'django-s3-file-field[minio]',
     ],
     extras_require={
         'fuse': [
+            'numpy',  # requirement of `simple-httpfs`
             'simple-httpfs',
         ],
     },

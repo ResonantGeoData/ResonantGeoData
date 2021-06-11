@@ -4,8 +4,8 @@ import pickle
 from django.contrib.gis.db import models
 from django.core.exceptions import ObjectDoesNotExist
 import numpy as np
+from rgd.models import ModifiableEntry
 
-from ..common import ModifiableEntry
 from .base import ImageEntry
 
 

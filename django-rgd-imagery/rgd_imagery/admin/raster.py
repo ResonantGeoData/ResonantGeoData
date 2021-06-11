@@ -7,9 +7,8 @@ from rgd.admin.mixins import (
     TASK_EVENT_READONLY,
     reprocess,
 )
-
-from . import tasks
-from .models.imagery import RasterEntry, RasterMetaEntry
+from rgd_imagery.models import RasterEntry, RasterMetaEntry
+from rgd_imagery.tasks import jobs
 
 
 def reprocess_rastermeta(modeladmin, request, queryset):
@@ -21,19 +20,19 @@ def reprocess_rastermeta(modeladmin, request, queryset):
 def generate_valid_data_footprint(modeladmin, request, queryset):
     """Generate a valid data footprint for each raster."""
     for rast in queryset.all():
-        tasks.task_populate_raster_footprint.delay(rast.id)
+        jobs.task_populate_raster_footprint.delay(rast.id)
 
 
 def generate_valid_data_footprint_rastermeta(modeladmin, request, queryset):
     """Generate a valid data footprint for each raster."""
     for entry in queryset.all():
-        tasks.task_populate_raster_footprint.delay(entry.parent_raster.id)
+        jobs.task_populate_raster_footprint.delay(entry.parent_raster.id)
 
 
 def generate_outline(modeladmin, request, queryset):
     """Generate a the outline for each raster."""
     for rast in queryset.all():
-        tasks.task_populate_raster_outline.delay(rast.id)
+        jobs.task_populate_raster_outline.delay(rast.id)
 
 
 def clean_empty_rasters(modeladmin, request, queryset):

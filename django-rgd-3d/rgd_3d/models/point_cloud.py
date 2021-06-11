@@ -1,15 +1,14 @@
 from django.contrib.gis.db import models
 from django.contrib.postgres import fields
-
-from ... import tasks
-from ..common import ChecksumFile, ModifiableEntry, SpatialEntry
-from ..mixins import TaskEventMixin
+from rgd.models.common import ChecksumFile, ModifiableEntry, SpatialEntry
+from rgd.models.mixins import TaskEventMixin
+from rgd_3d.tasks import jobs
 
 
 class PointCloudFile(ModifiableEntry, TaskEventMixin):
     """Container for point cloud file."""
 
-    task_funcs = (tasks.task_read_point_cloud_file,)
+    task_funcs = (jobs.task_read_point_cloud_file,)
     file = models.ForeignKey(ChecksumFile, on_delete=models.CASCADE)
 
     def data_link(self):

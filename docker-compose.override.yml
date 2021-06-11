@@ -1,0 +1,57 @@
+version: '3'
+services:
+  django:
+    build:
+      context: .
+      dockerfile: ./dev/django.Dockerfile
+    command: ["./example_project/manage.py", "runserver", "0.0.0.0:8000"]
+    # Log printing via Rich is enhanced by a TTY
+    tty: true
+    env_file: ./dev/.env.docker-compose
+    volumes:
+      - .:/opt/django-project
+    ports:
+      - 8000:8000
+    depends_on:
+      - postgres
+      - rabbitmq
+      - minio
+
+  celery:
+    build:
+      context: .
+      dockerfile: ./dev/celery.Dockerfile
+    command: [
+      "celery",
+      "--app", "rgd.celery",
+      "worker",
+      "--loglevel", "INFO",
+      "--without-heartbeat"
+    ]
+    # Docker Compose does not set the TTY width, which causes Celery errors
+    tty: false
+    privileged: true
+    env_file: ./dev/.env.docker-compose
+    environment:
+      - TMPDIR=/tmp/rgd_worker
+    volumes:
+      - .:/opt/django-project
+      - /tmp/rgd_worker:/tmp/rgd_worker
+    depends_on:
+      - postgres
+      - rabbitmq
+      - minio
+
+  flower:
+    image: mher/flower
+    command: ["--broker=amqp://rabbitmq:5672/", "--url_prefix=flower"]
+    ports:
+      - 5555:5555
+
+  sass:
+    build:
+      context: ./dev
+      dockerfile: ./sass.Dockerfile
+    volumes:
+      # Must point to top level, image will compile things in `sass/ su`
+      - ./django-rgd/rgd/static/rgd/css/:/src

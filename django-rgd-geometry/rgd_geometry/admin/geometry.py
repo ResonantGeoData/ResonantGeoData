@@ -8,7 +8,7 @@ from rgd.admin.mixins import (
     _FileGetNameMixin,
     reprocess,
 )
-from rgd_fmv.models import GeometryArchive, GeometryEntry
+from rgd_geometry.models import GeometryArchive, GeometryEntry
 
 
 class GeometryEntryInline(admin.StackedInline):

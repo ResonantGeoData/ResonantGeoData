@@ -3,8 +3,7 @@ import base64
 from rest_framework import serializers
 from rgd import utility
 from rgd.serializers import ChecksumFileSerializer
-
-from . import models
+from rgd_3d import models
 
 
 class PointCloudFileSerializer(serializers.ModelSerializer):

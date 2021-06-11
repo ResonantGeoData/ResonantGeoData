@@ -1,4 +1,4 @@
-{% extends "geodata/_base/spatial_detail.html" %}
+{% extends "rgd/_base/spatial_detail.html" %}
 
 {% block extra_meta_table_body %}
 
@@ -13,7 +13,7 @@
 {% block detail %}
 
 
-  {% include 'geodata/_includes/empty_viewer.html' %}
+  {% include 'rgd/_include/empty_viewer.html' %}
 
   <script>
     let extents = JSON.parse('{{ extents|escapejs }}');

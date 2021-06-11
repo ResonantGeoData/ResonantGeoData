@@ -77,7 +77,7 @@ class SpatialEntriesListView(_SpatialListView):
     model = models.SpatialEntry
     filter = filters.SpatialEntryFilter
     context_object_name = 'spatial_entries'
-    template_name = 'geodata/spatial_entries.html'
+    template_name = 'rgd/spatial_entries.html'
 
     def get_queryset(self):
         filterset = self.filter(data=self.request.GET)
@@ -99,7 +99,7 @@ class StatisticsView(generic.ListView):
     paginate_by = None
     model = models.SpatialEntry
     context_object_name = 'spatial_entries'
-    template_name = 'geodata/statistics.html'
+    template_name = 'rgd/statistics.html'
 
     def get_queryset(self):
         queryset = self.model.objects.all()

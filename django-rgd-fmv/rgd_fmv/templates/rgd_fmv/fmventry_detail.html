@@ -1,4 +1,4 @@
-{% extends "geodata/_base/spatial_detail.html" %}
+{% extends "rgd/_base/spatial_detail.html" %}
 
 {% block extra_meta_table_body %}
   <tr>
@@ -28,7 +28,7 @@
 
 {% block detail %}
 
-    {% include 'geodata/_includes/viewer.html' %}
+    {% include 'rgd/_include/viewer.html' %}
 
     <script>
       let frameRate = JSON.parse('{{ frame_rate|escapejs }}');

@@ -1,19 +1,19 @@
 from django.contrib.gis.db import models
 from django.contrib.gis.geos import GEOSGeometry
 from django.utils.translation import gettext_lazy as _
+from rgd.models import ChecksumFile, ModifiableEntry
+from rgd.models.mixins import TaskEventMixin
+from rgd_imagery.tasks import jobs
 from shapely.geometry import shape
 from shapely.wkb import dumps
 
-from ... import tasks
-from ..common import ChecksumFile, ModifiableEntry
-from ..mixins import TaskEventMixin
 from .base import ImageEntry
 
 
 class ConvertedImageFile(ModifiableEntry, TaskEventMixin):
     """A model to store converted versions of a raster entry."""
 
-    task_funcs = (tasks.task_convert_to_cog,)
+    task_funcs = (jobs.task_convert_to_cog,)
     converted_file = models.OneToOneField(ChecksumFile, on_delete=models.SET_NULL, null=True)
     source_image = models.OneToOneField(ImageEntry, on_delete=models.CASCADE)
 
@@ -26,7 +26,7 @@ class ConvertedImageFile(ModifiableEntry, TaskEventMixin):
 class SubsampledImage(ModifiableEntry, TaskEventMixin):
     """A subsample of an ImageEntry."""
 
-    task_funcs = (tasks.task_populate_subsampled_image,)
+    task_funcs = (jobs.task_populate_subsampled_image,)
 
     class SampleTypes(models.TextChoices):
         PIXEL_BOX = 'pixel box', _('Pixel bounding box')

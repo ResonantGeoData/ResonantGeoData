@@ -1,11 +1,10 @@
 from django.contrib.gis.db import models
 from django.core.exceptions import ValidationError
 import magic
-
-from ... import tasks
-from ..common import ChecksumFile, ModifiableEntry, SpatialEntry
-from ..constants import DB_SRID
-from ..mixins import TaskEventMixin
+from rgd.models import ChecksumFile, ModifiableEntry, SpatialEntry
+from rgd.models.constants import DB_SRID
+from rgd.models.mixins import TaskEventMixin
+from rgd_geometry.tasks import jobs
 
 
 def validate_archive(field_file):
@@ -25,7 +24,7 @@ class GeometryArchive(ModifiableEntry, TaskEventMixin):
     a single ``GeometryEntry`` that is then associated with this entry.
     """
 
-    task_funcs = (tasks.task_read_geometry_archive,)
+    task_funcs = (jobs.task_read_geometry_archive,)
     file = models.ForeignKey(ChecksumFile, on_delete=models.CASCADE)
 
     def save(self, *args, **kwargs):

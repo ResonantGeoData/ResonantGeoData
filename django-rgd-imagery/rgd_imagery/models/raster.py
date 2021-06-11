@@ -1,10 +1,10 @@
 from django.contrib.gis.db import models
 from django.contrib.postgres import fields
 from django.core.validators import MaxValueValidator, MinValueValidator
+from rgd.models import ChecksumFile, ModifiableEntry, SpatialEntry
+from rgd.models.mixins import TaskEventMixin
+from rgd_imagery.tasks import jobs
 
-from ... import tasks
-from ..common import ChecksumFile, ModifiableEntry, SpatialEntry
-from ..mixins import TaskEventMixin
 from .base import ImageSet
 
 
@@ -26,8 +26,8 @@ class RasterEntry(ModifiableEntry, TaskEventMixin):
     ancillary_files = models.ManyToManyField(ChecksumFile, blank=True)
 
     task_funcs = (
-        tasks.task_populate_raster_entry,
-        # tasks.task_populate_raster_footprint,
+        jobs.task_populate_raster_entry,
+        # jobs.task_populate_raster_footprint,
     )
 
     @property

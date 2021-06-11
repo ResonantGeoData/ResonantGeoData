@@ -1,8 +1,8 @@
 from django.contrib.gis.db import models
+from rgd.models import ChecksumFile, ModifiableEntry
+from rgd.models.mixins import TaskEventMixin
+from rgd_imagery.tasks import jobs
 
-from ... import tasks
-from ..common import ChecksumFile, ModifiableEntry
-from ..mixins import TaskEventMixin
 from .base import ImageSet
 
 
@@ -15,7 +15,7 @@ class KWCOCOArchive(ModifiableEntry, TaskEventMixin):
 
     """
 
-    task_funcs = (tasks.task_load_kwcoco_dataset,)
+    task_funcs = (jobs.task_load_kwcoco_dataset,)
     name = models.CharField(max_length=1000, blank=True)
     spec_file = models.OneToOneField(
         ChecksumFile,

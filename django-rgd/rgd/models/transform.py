@@ -1,6 +1,5 @@
 from django.contrib.gis.gdal import CoordTransform, SpatialReference
-
-from ..constants import DB_SRID
+from rgd.models.constants import DB_SRID
 
 
 def transform_geometry(geometry, source_wkt):

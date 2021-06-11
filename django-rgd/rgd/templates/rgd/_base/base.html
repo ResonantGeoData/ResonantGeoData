@@ -35,7 +35,7 @@
       }
     </script>
 
-    <link rel="stylesheet" href="{% static 'geodata/css/style.css' %}" />
+    <link rel="stylesheet" href="{% static 'rgd/css/style.css' %}" />
 
     {% if title %}
       <title>ResonantGeoData - {{ title }}</title>
@@ -46,7 +46,7 @@
   </head>
   <body>
     <header class="main-header">
-      {% include 'geodata/_includes/navbar.html' %}
+      {% include 'rgd/_include/navbar.html' %}
     </header>
 
     {% if user.is_authenticated %}
@@ -84,7 +84,7 @@
         {% if user.is_authenticated %}
           {% block content %}{% endblock %}
         {% else %}
-          {% include 'geodata/_includes/not_logged_in.html' %}
+          {% include 'rgd/_include/not_logged_in.html' %}
         {% endif %}
       </main>
 
