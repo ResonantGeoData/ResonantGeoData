@@ -1,5 +1,6 @@
 import contextlib
 from contextlib import contextmanager
+from functools import wraps
 import hashlib
 import inspect
 import logging
@@ -289,3 +290,18 @@ def uuid_prefix_filename(instance: Any, filename: str):
     if prefix:
         return f'{prefix}/{uuid4()}/{filename}'
     return f'{uuid4()}/{filename}'
+
+
+def skip_signal():
+    """Skip the signal on an instance-basis."""
+
+    def _skip_signal(signal_func):
+        @wraps(signal_func)
+        def _decorator(sender, instance, *args, **kwargs):
+            if hasattr(instance, 'skip_signal'):
+                return None
+            return signal_func(sender, instance, *args, **kwargs)
+
+        return _decorator
+
+    return _skip_signal
