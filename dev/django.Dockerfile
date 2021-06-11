@@ -36,6 +36,7 @@ RUN pip install \
     -e ./django-rgd-fmv \
     -e ./django-rgd-geometry \
     -e ./django-rgd-imagery \
-    ipython
+    ipython \
+    tox
 
 WORKDIR /opt/django-project/

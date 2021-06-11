@@ -9,8 +9,6 @@ class ImageFileFactory(factory.django.DjangoModelFactory):
         model = models.ImageFile
 
     file = factory.SubFactory(ChecksumFileFactory)
-    # creator = factory.SubFactory(UserFactory)
-    # modifier = factory.SubFactory(UserFactory)
 
 
 class ImageSetFactory(factory.django.DjangoModelFactory):

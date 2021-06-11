@@ -84,39 +84,6 @@ class SpatialEntry(models.Model):
         except AttributeError:
             return super().__str__()
 
-    @property
-    def subentry(self):
-        try:
-            return self.rastermetaentry
-        except ObjectDoesNotExist:
-            pass
-        try:
-            return self.geometryentry
-        except ObjectDoesNotExist:
-            pass
-        try:
-            return self.fmventry
-        except ObjectDoesNotExist:
-            pass
-        try:
-            return self.pointcloudmetaentry
-        except ObjectDoesNotExist:
-            pass
-        try:
-            return self.imagesetspatial
-        except ObjectDoesNotExist:
-            pass
-        raise ObjectDoesNotExist
-
-    @property
-    def subentry_name(self):
-        """Return the name from the subentry model."""
-        return self.subentry.name
-
-    @property
-    def subentry_type(self):
-        return type(self.subentry).__name__
-
 
 class FileSourceType(models.IntegerChoices):
     FILE_FIELD = 1, 'FileField'
@@ -343,7 +310,7 @@ class WhitelistedEmail(models.Model):
     email = models.EmailField()
 
 
-class SpatialAsset(SpatialEntry):
+class SpatialAsset(SpatialEntry, ModifiableEntry):
     """Any spatially referenced asset set.
 
     This can be any collection of files that have a spatial reference and are

@@ -42,7 +42,8 @@ RUN pip install \
     -e ./django-rgd-fmv[worker] \
     -e ./django-rgd-geometry[worker] \
     -e ./django-rgd-imagery[worker] \
-    ipython
+    ipython \
+    tox
 
 WORKDIR /opt/django-project/
 ENTRYPOINT ["/opt/django-project-services/fuse.sh"]

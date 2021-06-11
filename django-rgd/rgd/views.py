@@ -176,8 +176,8 @@ class _SpatialDetailView(PermissionDetailView):
 
 
 def spatial_entry_redirect_view(request, pk):
-    spat = models.SpatialEntry.objects.get(pk=pk)
-    sub = spat.subentry
+    spat = models.SpatialEntry.objects.get(pk=pk)  # noqa
+    # sub = spat.subentry
     # if isinstance(sub, RasterMetaEntry):
     #     name = 'raster-entry-detail'
     # elif isinstance(sub, GeometryEntry):

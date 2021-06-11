@@ -2,7 +2,7 @@ from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin
 from django.contrib.auth.models import User
 from django.contrib.gis.admin import OSMGeoAdmin
-from rgd.models import ChecksumFile, WhitelistedEmail
+from rgd.models import ChecksumFile, SpatialAsset, WhitelistedEmail
 
 from .mixins import MODIFIABLE_FILTERS, TASK_EVENT_FILTERS, TASK_EVENT_READONLY, reprocess
 
@@ -74,3 +74,14 @@ class ChecksumFileAdmin(OSMGeoAdmin):
             'collection',
         )
     )
+
+
+@admin.register(SpatialAsset)
+class SpatialAssetAdmin(OSMGeoAdmin):
+    list_display = (
+        'id',
+        'name',
+        'modified',
+        'created',
+    )
+    list_filter = MODIFIABLE_FILTERS

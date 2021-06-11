@@ -3,6 +3,7 @@ from .common import (  # noqa
     ChecksumFile,
     FileSourceType,
     ModifiableEntry,
+    SpatialAsset,
     SpatialEntry,
     WhitelistedEmail,
 )
