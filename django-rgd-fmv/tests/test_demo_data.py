@@ -1,7 +1,6 @@
 import pytest
+from rgd.testing_utils.helpers import _call_command
 from rgd_fmv.management.commands import demo_data
-
-from rgd_testing_utils.helpers import _call_command
 
 
 @pytest.mark.skip

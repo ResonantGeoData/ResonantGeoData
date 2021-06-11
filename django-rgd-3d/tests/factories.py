@@ -1,8 +1,7 @@
 import factory
 import factory.django
+from rgd.testing_utils.factories import ChecksumFileFactory
 from rgd_3d import models
-
-from rgd_testing_utils.factories import ChecksumFileFactory
 
 
 class PointCloudFileFactory(factory.django.DjangoModelFactory):
