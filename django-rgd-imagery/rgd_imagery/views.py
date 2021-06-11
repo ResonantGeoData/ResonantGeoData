@@ -1,6 +1,5 @@
-from rgd.views import _SpatialDetailView, _SpatialListView
-
 from rgd import permissions
+from rgd.views import _SpatialDetailView, _SpatialListView
 
 from . import filters, models
 

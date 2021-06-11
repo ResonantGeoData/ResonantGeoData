@@ -2,39 +2,25 @@ from datetime import datetime
 from functools import reduce
 import json
 import logging
-import os
 
 import dateutil.parser
-from django.conf import settings
 from django.contrib.gis.geos import GEOSGeometry
-from django.core.exceptions import ValidationError
-from django.core.management.base import BaseCommand
-from django.core.validators import URLValidator
 from django.db.models import Count
 from django.utils.timezone import make_aware
 from rgd.geodata.datastore import datastore
 from rgd.geodata.models.imagery import etl
+from rgd.management.commands._data_helper import (
+    _get_or_create_checksum_file,
+    _get_or_create_checksum_file_url,
+    _get_or_create_file_model,
+    _save_signal,
+)
 from rgd.utility import get_or_create_no_commit
+from rgd_imagery import models
 from shapely.geometry import shape
 from shapely.wkb import dumps
 
-from rgd.geodata import models
-
 logger = logging.getLogger(__name__)
-
-
-class SynchronousTasksCommand(BaseCommand):
-    def set_synchronous(self):
-        # Set celery to run all tasks synchronously
-        self._eager = getattr(settings, 'CELERY_TASK_ALWAYS_EAGER', False)
-        self._prop = getattr(settings, 'CELERY_TASK_EAGER_PROPAGATES', False)
-        settings.CELERY_TASK_ALWAYS_EAGER = True
-        settings.CELERY_TASK_EAGER_PROPAGATES = True
-
-    def reset_celery(self):
-        # Reset celery to previous settings
-        settings.CELERY_TASK_ALWAYS_EAGER = self._eager
-        settings.CELERY_TASK_EAGER_PROPAGATES = self._prop
 
 
 def make_raster_dict(
@@ -57,70 +43,6 @@ def make_raster_dict(
         'ancillary_files': ancillary_files,
         'instrumentation': instrumentation,
     }
-
-
-def _save_signal(entry, created):
-    if not created and entry.status == models.mixins.Status.SUCCEEDED:
-        entry.skip_signal = True
-    entry.save()
-
-
-def _get_or_create_checksum_file_url(url, name=None):
-    URLValidator()(url)  # raises `ValidationError` if not a valid URL
-    try:
-        file_entry = models.ChecksumFile.objects.get(url=url)
-        _save_signal(file_entry, False)
-        if name:
-            file_entry.name = name
-            file_entry.save(update_fields=['name'])
-    except models.ChecksumFile.DoesNotExist:
-        file_entry = models.ChecksumFile()
-        file_entry.url = url
-        file_entry.type = models.FileSourceType.URL
-        if not name:
-            # this is to prevent calling `urlopen` in the save to get the file name.
-            # this is not a great way to set the default name, but its fast
-            name = os.path.basename(url)
-        file_entry.name = name
-        _save_signal(file_entry, True)
-    return file_entry
-
-
-def _get_or_create_checksum_file_datastore(file, name=None):
-    try:
-        file_entry = models.ChecksumFile.objects.get(name=file)
-        _save_signal(file_entry, False)
-    except models.ChecksumFile.DoesNotExist:
-        path = datastore.fetch(file)
-        file_entry = models.ChecksumFile()
-        if name:
-            file_entry.name = name
-        else:
-            file_entry.name = file
-        with open(path, 'rb') as f:
-            file_entry.file.save(os.path.basename(path), f)
-        file_entry.type = models.FileSourceType.FILE_FIELD
-        _save_signal(file_entry, True)
-    return file_entry
-
-
-def _get_or_create_checksum_file(file, name=None):
-    # Check if there is already an image file with this URL or name
-    #  to avoid duplicating data
-    try:
-        file_entry = _get_or_create_checksum_file_url(file, name=name)
-    except ValidationError:
-        file_entry = _get_or_create_checksum_file_datastore(file, name=name)
-    return file_entry
-
-
-def _get_or_create_file_model(model, file, name=None):
-    # For models that point to a `ChecksumFile`
-    file_entry = _get_or_create_checksum_file(file, name=name)
-    # No commit in case we need to skip the signal
-    entry, created = get_or_create_no_commit(model, file=file_entry)
-    _save_signal(entry, created)
-    return entry
 
 
 def load_image_files(image_files):
@@ -221,18 +143,6 @@ def load_raster_files(raster_dicts, footprint=False):
     return ids
 
 
-def load_shape_files(shape_files):
-    ids = []
-    for shpfile in shape_files:
-        entry = _get_or_create_file_model(models.GeometryArchive, shpfile)
-        ids.append(entry.geometryentry.pk)
-    return ids
-
-
-def load_fmv_files(fmv_files):
-    return [_get_or_create_file_model(models.FMVFile, fmv).id for fmv in fmv_files]
-
-
 def load_kwcoco_archives(archives):
     ids = []
     for fspec, farch in archives:
@@ -243,14 +153,6 @@ def load_kwcoco_archives(archives):
         )
         _save_signal(ds, created)
         ids.append(ds.id)
-    return ids
-
-
-def load_point_cloud_files(pc_files):
-    ids = []
-    for f in pc_files:
-        entry = _get_or_create_file_model(models.PointCloudFile, f)
-        ids.append(entry.pk)
     return ids
 
 

@@ -4,7 +4,6 @@ from django.conf import settings
 from django.contrib.auth.backends import BaseBackend
 from django.core.exceptions import PermissionDenied
 from django.db.models import Q
-
 from rgd.geodata import models
 
 

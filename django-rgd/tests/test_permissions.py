@@ -1,8 +1,7 @@
 from django.conf import settings
 import pytest
-from rgd.geodata.permissions import filter_read_perm
-
 from rgd.geodata import models
+from rgd.geodata.permissions import filter_read_perm
 
 
 @pytest.mark.django_db(transaction=True)

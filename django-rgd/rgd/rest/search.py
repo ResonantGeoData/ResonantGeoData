@@ -1,10 +1,9 @@
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework.generics import ListAPIView
+from rgd import serializers
 from rgd.filters import SpatialEntryFilter
 from rgd.models import SpatialEntry
 from rgd.permissions import filter_read_perm
-
-from rgd import serializers
 
 
 class SearchSpatialEntryView(ListAPIView):

@@ -8,7 +8,6 @@ from django.shortcuts import redirect
 from django.views import generic
 from django.views.generic import DetailView
 from rest_framework.reverse import reverse
-
 from rgd import permissions
 
 from . import filters, models

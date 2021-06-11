@@ -1,8 +1,7 @@
 import pytest
+from rgd.geodata import models
 from rgd.geodata.datastore import datastore
 from rgd.geodata.models.threed.etl import read_point_cloud_file
-
-from rgd.geodata import models
 
 from . import factories
 

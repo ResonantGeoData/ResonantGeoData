@@ -1,7 +1,6 @@
 from rest_framework.generics import RetrieveAPIView
-from rgd.permissions import check_read_perm
-
 from rgd import models, serializers
+from rgd.permissions import check_read_perm
 
 
 class _PermissionMixin:

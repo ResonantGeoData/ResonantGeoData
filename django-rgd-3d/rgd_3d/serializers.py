@@ -1,9 +1,8 @@
 import base64
 
 from rest_framework import serializers
-from rgd.serializers import ChecksumFileSerializer
-
 from rgd import utility
+from rgd.serializers import ChecksumFileSerializer
 
 from . import models
 

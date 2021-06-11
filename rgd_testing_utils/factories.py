@@ -1,6 +1,5 @@
 import factory
 import factory.django
-
 from rgd import models
 
 
