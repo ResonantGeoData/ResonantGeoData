@@ -2,7 +2,7 @@ from pathlib import Path
 
 from setuptools import find_packages, setup
 
-readme_file = Path(__file__).parent / 'README.md'
+readme_file = Path(__file__).parent.parent / 'README.md'
 if readme_file.exists():
     with readme_file.open() as f:
         long_description = f.read()
@@ -11,7 +11,7 @@ else:
     long_description = ''
 
 setup(
-    name='resonantgeodata',
+    name='django-rgd',
     version='0.1.1',
     description='',
     long_description=long_description,
@@ -36,16 +36,15 @@ setup(
     python_requires='>=3.8',
     packages=find_packages(),
     include_package_data=True,
+    dependency_links=[
+        'https://girder.github.io/large_image_wheels',
+    ],
     install_requires=[
         'boto3',
         'celery',
         'django>=3.2',  # See PR #264: due to this bug: https://code.djangoproject.com/ticket/31910
         'django-allauth',
-        'django-cleanup',
         'django-click',
-        'django-configurations[database,email]',
-        'django-crispy-forms',
-        'django-extensions',
         'django-filter',
         'django-girder-utils',
         'django-model-utils',
@@ -53,45 +52,14 @@ setup(
         'djangorestframework',
         'drf-yasg',
         'GDAL',
-        'large-image>=1.6.0',
-        'large-image-source-gdal>=1.6.0',
-        'large-image-source-pil>=1.6.0',
-        'numpy',
         'pooch',
         'python-magic',
-        'pystac[validation]',
-        'rasterio',
-        'rules',
-        'shapely',
-        'uritemplate',
         # Production-only
-        'django-composed-configuration[prod]>=0.16',
         'django-s3-file-field[minio]',
-        'flower',
-        'gunicorn',
     ],
     extras_require={
-        'dev': [
-            'django-composed-configuration[dev]>=0.16',
-            'django-debug-toolbar',
-            'ipython',
-            'tox',
-        ],
-        'worker': [
-            'fiona',
-            'scipy',
-            'kwarray>=0.5.10',
-            'kwcoco',
-            'kwimage[headless]>=0.6.7',
-            'large-image-converter',
-            'pyntcloud[LAS]',
-            'pyvista',
-        ],
         'fuse': [
             'simple-httpfs',
-        ],
-        'fmv': [
-            'kwiver',
         ],
     },
 )
