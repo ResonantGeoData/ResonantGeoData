@@ -286,7 +286,7 @@ def input_output_path_helper(
 
 def uuid_prefix_filename(instance: Any, filename: str):
     """Use a variable in settings to add a prefix to the path and keep the random uuid."""
-    prefix = settings.RGD_FILE_FIELD_PREFIX
+    prefix = getattr(settings, 'RGD_FILE_FIELD_PREFIX', None)
     if prefix:
         return f'{prefix}/{uuid4()}/{filename}'
     return f'{uuid4()}/{filename}'

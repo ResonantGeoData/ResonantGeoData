@@ -85,6 +85,8 @@ SITE_ID = 1
 
 STATIC_URL = '/static/'
 
+CELERY_BROKER_URL = 'amqp://rabbitmq:5672/'
+
 ROOT_URLCONF = 'rgd_example.urls'
 WSGI_APPLICATION = 'rgd_example.wsgi.application'
 

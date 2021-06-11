@@ -23,7 +23,7 @@ services:
       dockerfile: ./dev/celery.Dockerfile
     command: [
       "celery",
-      "--app", "rgd.celery",
+      "--app", "rgd_example.celery",
       "worker",
       "--loglevel", "INFO",
       "--without-heartbeat"
