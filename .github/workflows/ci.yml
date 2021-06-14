@@ -57,11 +57,6 @@ jobs:
       - name: Run check migrations
         run: |
           tox -e check-migrations
-        env:
-          DJANGO_DATABASE_URL: postgres://postgres:postgres@localhost:5432/django
-          DJANGO_MINIO_STORAGE_ENDPOINT: localhost:9000
-          DJANGO_MINIO_STORAGE_ACCESS_KEY: minioAccessKey
-          DJANGO_MINIO_STORAGE_SECRET_KEY: minioSecretKey
   test:
     runs-on: ubuntu-latest
     services:
@@ -100,11 +95,6 @@ jobs:
       - name: Run rgd core tests
         run: |
           tox -e test-rgd
-        env:
-          DJANGO_DATABASE_URL: postgres://postgres:postgres@localhost:5432/django
-          DJANGO_MINIO_STORAGE_ENDPOINT: localhost:9000
-          DJANGO_MINIO_STORAGE_ACCESS_KEY: minioAccessKey
-          DJANGO_MINIO_STORAGE_SECRET_KEY: minioSecretKey
       # - name: Upload Coverage
       #   run: |
       #     codecov
