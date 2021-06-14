@@ -97,7 +97,7 @@ jobs:
         run: |
           pip install --upgrade pip
           pip install tox codecov
-      - name: Run rgd core tests
+      - name: Run RGD module tests
         run: |
           tox -e test-${{ matrix.rgd-module }}
         env:
