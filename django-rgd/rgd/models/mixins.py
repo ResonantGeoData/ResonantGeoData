@@ -1,12 +1,10 @@
 """Mixin helper classes."""
-import logging
 from typing import Iterable
 
 from celery import Task
+from django.conf import settings
 from django.contrib.gis.db import models
 from django.utils.translation import gettext_lazy as _
-
-logger = logging.getLogger(__name__)
 
 
 class Status(models.TextChoices):
@@ -41,7 +39,6 @@ class TaskEventMixin(models.Model):
     task_funcs: Iterable[Task] = []
 
     def _run_tasks(self) -> None:
-        logger.info(f'in task callback for {self}')
         if not self.task_funcs:
             return
 
@@ -52,7 +49,11 @@ class TaskEventMixin(models.Model):
             ]
         )
         for func in self.task_funcs:
-            func.delay(self.id)
+            if settings.CELERY_TASK_ALWAYS_EAGER:
+                # HACK: for some reason this is necessary
+                func(self.id)
+            else:
+                func.delay(self.id)
 
     def _post_save_event_task(self, created: bool, *args, **kwargs) -> None:
         if not created and kwargs.get('update_fields'):

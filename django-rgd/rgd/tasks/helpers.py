@@ -17,7 +17,7 @@ def _safe_execution(func, *args, **kwargs):
 
 def _run_with_failure_reason(model, func, *args, **kwargs):
     """Run a function that will update the model's `failure_reason`."""
-    from .models.mixins import Status
+    from rgd.models.mixins import Status
 
     model.status = Status.RUNNING
     model.save(update_fields=['status'])
