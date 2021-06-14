@@ -1,7 +1,7 @@
 import factory
 import factory.django
-from rgd.testing_utils.factories import ChecksumFileFactory
 from rgd_fmv import models
+from rgd_testing_utils.factories import ChecksumFileFactory
 
 
 class FMVFileFactory(factory.django.DjangoModelFactory):

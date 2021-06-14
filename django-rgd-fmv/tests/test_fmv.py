@@ -2,7 +2,7 @@ import os
 
 import pytest
 from rgd.models.mixins import Status
-from rgd_fmv.models.fmv import FMVEntry
+from rgd_fmv.models import FMVEntry
 
 NO_KWIVER = os.environ.get('NO_KWIVER', False)
 

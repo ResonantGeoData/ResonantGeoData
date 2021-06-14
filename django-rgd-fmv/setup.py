@@ -43,6 +43,7 @@ setup(
         'worker': [
             'numpy',
             'kwiver',
+            'opencv-python-headless',
         ],
     },
 )

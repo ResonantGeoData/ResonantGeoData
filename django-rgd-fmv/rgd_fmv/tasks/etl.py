@@ -5,6 +5,7 @@ import subprocess
 import tempfile
 
 from celery.utils.log import get_task_logger
+import cv2
 from django.contrib.gis.geos import MultiPoint, MultiPolygon, Point, Polygon
 from girder_utils.files import field_file_to_local_path
 import numpy as np
@@ -134,8 +135,6 @@ def _get_path_and_footprints(content):
 
 
 def _get_frame_rate_of_video(file_path):
-    import cv2  # NOTE: in project depends from kwcoco
-
     cap = cv2.VideoCapture(os.path.abspath(file_path))
     return cap.get(cv2.CAP_PROP_FPS)
 
