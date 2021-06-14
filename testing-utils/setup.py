@@ -1,7 +1,7 @@
 from setuptools import find_packages, setup
 
 setup(
-    name='rgd_testing_utils',
+    name='testing-utils',
     version='0.0.0',
     description='',
     long_description_content_type='text/markdown',
