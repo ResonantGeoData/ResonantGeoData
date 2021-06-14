@@ -49,6 +49,7 @@ setup(
         'django-girder-utils',
         'django-model-utils',
         'django-oauth-toolkit',
+        'django-oauth-toolkit',
         'djangorestframework',
         'drf-yasg',
         'GDAL',
