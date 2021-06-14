@@ -1,4 +1,4 @@
-name: RGDC PyPI Workflow
+name: RGD Client PyPI Workflow
 on:
   push:
     tags: "v*"

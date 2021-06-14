@@ -1,4 +1,4 @@
-name: RGDC Tests
+name: RGD Client Tests
 on:
   push:
     branches: "*"

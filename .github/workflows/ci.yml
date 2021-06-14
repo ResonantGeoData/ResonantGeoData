@@ -1,4 +1,4 @@
-name: ci
+name: RGD Module Tests
 on:
   pull_request:
   push:
