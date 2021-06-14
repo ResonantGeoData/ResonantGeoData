@@ -57,6 +57,8 @@ jobs:
       - name: Run check migrations
         run: |
           tox -e check-migrations
+        env:
+          MINIO_STORAGE_ENDPOINT: localhost:9000
   test:
     runs-on: ubuntu-latest
     services:
@@ -95,6 +97,8 @@ jobs:
       - name: Run rgd core tests
         run: |
           tox -e test-rgd
+        env:
+          MINIO_STORAGE_ENDPOINT: localhost:9000
       # - name: Upload Coverage
       #   run: |
       #     codecov
