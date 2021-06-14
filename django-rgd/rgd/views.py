@@ -4,10 +4,8 @@ from django.contrib.gis.db.models import Collect, Extent
 from django.contrib.gis.db.models.functions import AsGeoJSON, Centroid
 from django.contrib.postgres.aggregates import ArrayAgg
 from django.db.models import Count, Max, Min, Q
-from django.shortcuts import redirect
 from django.views import generic
 from django.views.generic import DetailView
-from rest_framework.reverse import reverse
 from rgd import permissions
 
 from . import filters, models
@@ -191,6 +189,5 @@ def spatial_entry_redirect_view(request, pk):
     #     name = 'image-set-spatial-detail'
     # else:
     #     raise ValueError()
-    name = ''
+    # return redirect(reverse(name, kwargs={'pk': sub.pk}))
     raise ValueError()
-    return redirect(reverse(name, kwargs={'pk': sub.pk}))

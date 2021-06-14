@@ -6,7 +6,6 @@ from urllib.parse import urlencode, urlparse
 
 # from django.contrib.auth import get_user_model
 from django.contrib.gis.db import models
-from django.core.exceptions import ObjectDoesNotExist
 from django.utils import timezone
 from girder_utils.files import field_file_to_local_path
 from model_utils.managers import InheritanceManager
