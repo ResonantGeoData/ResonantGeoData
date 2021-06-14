@@ -1,3 +1,10 @@
-# This should only be used by the Heroku buildpack, as it does not support PIP_FIND_LINKS
 --find-links https://girder.github.io/large_image_wheels
--e .
+factory-boy
+pytest
+pytest-django
+pytest-factoryboy
+pytest-mock
+pytest-cov
+pytest-memprof
+-e ./django-rgd
+-e ./testing-utils
