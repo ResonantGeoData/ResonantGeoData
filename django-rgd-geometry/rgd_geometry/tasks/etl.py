@@ -15,7 +15,7 @@ from rgd.utility import get_or_create_no_commit
 from shapely.geometry import shape
 from shapely.wkb import dumps
 
-from .base import GeometryArchive, GeometryEntry
+from rgd_geometry.models import GeometryArchive, GeometryEntry
 
 logger = get_task_logger(__name__)
 

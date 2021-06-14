@@ -1,6 +1,6 @@
 import factory
 import factory.django
-from rgd.testing_utils.factories import ChecksumFileFactory
+from rgd_testing_utils.factories import ChecksumFileFactory
 from rgd_geometry import models
 
 

@@ -1,6 +1,19 @@
+from io import StringIO
 import pytest
-from rgd.testing_utils.helpers import _call_command
-from rgd_fmv.management.commands import demo_data
+from rgd_imagery.management.commands import demo_data
+from django.core.management import call_command
+
+
+def _call_command(name, *args, **kwargs):
+    out = StringIO()
+    call_command(
+        name,
+        *args,
+        stdout=out,
+        stderr=StringIO(),
+        **kwargs,
+    )
+    return out.getvalue()
 
 
 @pytest.mark.skip
