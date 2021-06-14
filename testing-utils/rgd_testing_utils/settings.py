@@ -56,7 +56,7 @@ DATABASES = {
         'NAME': 'django',
         'USER': 'postgres',
         'PASSWORD': 'postgres',
-        'HOST': 'postgres',
+        'HOST': os.environ('DATABASE_HOST', 'postgres'),
         'PORT': '5432',
     }
 }

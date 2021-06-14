@@ -102,7 +102,10 @@ jobs:
           tox -e test-${{ matrix.rgd-module }}
         env:
           MINIO_STORAGE_ENDPOINT: localhost:9000
+          MINIO_STORAGE_ACCESS_KEY: minioAccessKey
+          MINIO_STORAGE_SECRET_KEY: minioSecretKey
           CELERY_BROKER_URL: amqp://localhost:5672/
+          DATABASE_HOST: localhost
       # - name: Upload Coverage
       #   run: |
       #     codecov
