@@ -81,6 +81,9 @@ jobs:
           MINIO_SECRET_KEY: minioSecretKey
         ports:
           - 9000:9000
+    strategy:
+      matrix:
+        rgd-module: ['rgd', 'rgd-3d', 'rgd-fmv', 'rgd-geometry', 'rgd-imagery']
     steps:
       - uses: actions/checkout@v2
       - name: Set up Python
@@ -96,9 +99,10 @@ jobs:
           pip install tox codecov
       - name: Run rgd core tests
         run: |
-          tox -e test-rgd
+          tox -e test-${{ matrix.rgd-module }}
         env:
           MINIO_STORAGE_ENDPOINT: localhost:9000
+          CELERY_BROKER_URL: amqp://localhost:5672/
       # - name: Upload Coverage
       #   run: |
       #     codecov
