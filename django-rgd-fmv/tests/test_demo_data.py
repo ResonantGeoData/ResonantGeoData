@@ -1,7 +1,8 @@
 from io import StringIO
+
+from django.core.management import call_command
 import pytest
 from rgd_fmv.management.commands import demo_data
-from django.core.management import call_command
 
 
 def _call_command(name, *args, **kwargs):

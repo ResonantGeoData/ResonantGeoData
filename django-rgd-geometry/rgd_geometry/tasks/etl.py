@@ -12,10 +12,9 @@ from django.core.exceptions import ValidationError
 import fiona
 from rgd.models.transform import transform_geometry
 from rgd.utility import get_or_create_no_commit
+from rgd_geometry.models import GeometryArchive, GeometryEntry
 from shapely.geometry import shape
 from shapely.wkb import dumps
-
-from rgd_geometry.models import GeometryArchive, GeometryEntry
 
 logger = get_task_logger(__name__)
 

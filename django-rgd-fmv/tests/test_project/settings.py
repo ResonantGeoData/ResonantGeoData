@@ -1,6 +1,5 @@
 from rgd_testing_utils.settings import *  # noqa
 
-
 INSTALLED_APPS += [  # noqa
     'rgd_fmv',
 ]

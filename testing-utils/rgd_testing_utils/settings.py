@@ -81,7 +81,9 @@ SITE_ID = 1
 STATIC_URL = '/static/'
 
 CELERY_BROKER_URL = os.environ.get('CELERY_BROKER_URL', 'amqp://rabbitmq:5672/')
-os.environ.setdefault('CELERY_BROKER_URL', 'amqp://rabbitmq:5672/')  # Have to set environ variable for it to be register by celery's backing services
+os.environ.setdefault(
+    'CELERY_BROKER_URL', 'amqp://rabbitmq:5672/'
+)  # Have to set environ variable for it to be register by celery's backing services
 CELERY_RESULT_BACKEND = None
 CELERY_BROKER_POOL_LIMIT = 1
 CELERY_BROKER_HEARTBEAT = None
@@ -93,7 +95,9 @@ CELERY_WORKER_SEND_TASK_EVENTS = True
 
 DEFAULT_FILE_STORAGE = 'minio_storage.storage.MinioMediaStorage'
 MINIO_STORAGE_ENDPOINT = os.environ.get('MINIO_STORAGE_ENDPOINT', 'minio:9000')
-MINIO_STORAGE_MEDIA_URL = os.environ.get('MINIO_STORAGE_MEDIA_URL', 'http://localhost:9000/django-storage')
+MINIO_STORAGE_MEDIA_URL = os.environ.get(
+    'MINIO_STORAGE_MEDIA_URL', 'http://localhost:9000/django-storage'
+)
 MINIO_STORAGE_USE_HTTPS = False
 MINIO_STORAGE_ACCESS_KEY = os.environ.get('MINIO_STORAGE_ACCESS_KEY', 'minioAccessKey')
 MINIO_STORAGE_SECRET_KEY = os.environ.get('MINIO_STORAGE_SECRET_KEY', 'minioSecretKey')
@@ -107,16 +111,12 @@ LOGGING = {
     'disable_existing_loggers': False,
     'formatters': {
         'simple': {
-            'format': "[%(asctime)s] %(levelname)s [%(name)s:%(lineno)s] %(message)s",
-            'datefmt': "%d/%b/%Y %H:%M:%S"
+            'format': '[%(asctime)s] %(levelname)s [%(name)s:%(lineno)s] %(message)s',
+            'datefmt': '%d/%b/%Y %H:%M:%S',
         },
     },
     'handlers': {
-        'console': {
-            'level': 'INFO',
-            'class': 'logging.StreamHandler',
-            'formatter': 'simple'
-        },
+        'console': {'level': 'INFO', 'class': 'logging.StreamHandler', 'formatter': 'simple'},
     },
     'loggers': {
         '': {
