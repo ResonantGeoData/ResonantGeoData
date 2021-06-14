@@ -82,6 +82,7 @@ jobs:
         ports:
           - 9000:9000
     strategy:
+      fail-fast: false
       matrix:
         rgd-module: ['rgd', 'rgd-3d', 'rgd-fmv', 'rgd-geometry', 'rgd-imagery']
     steps:
