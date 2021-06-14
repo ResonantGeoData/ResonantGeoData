@@ -30,11 +30,13 @@ COPY ./django-rgd-fmv/setup.py /opt/django-project/django-rgd-fmv/
 COPY ./django-rgd-geometry/setup.py /opt/django-project/django-rgd-geometry/
 COPY ./django-rgd-imagery/setup.py /opt/django-project/django-rgd-imagery/
 COPY ./example_project/setup.py /opt/django-project/example_project/
+COPY ./testing-utils/setup.py /opt/django-project/testing-utils/
 # Use a directory name which will never be an import name, as isort considers this as first-party.
 WORKDIR /opt/django-project
 RUN pip install \
     --find-links https://girder.github.io/large_image_wheels \
     -e ./django-rgd[fuse] \
+    -e ./testing-utils \
     -e ./example_project
 RUN pip install \
     --find-links https://girder.github.io/large_image_wheels \
