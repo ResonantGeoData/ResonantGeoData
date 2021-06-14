@@ -88,7 +88,7 @@ WSGI_APPLICATION = 'test_project.wsgi.application'
 
 
 DEFAULT_FILE_STORAGE = 'minio_storage.storage.MinioMediaStorage'
-MINIO_STORAGE_ENDPOINT = 'minio:9000'
+MINIO_STORAGE_ENDPOINT = os.environ.get('MINIO_STORAGE_ENDPOINT', 'minio:9000')
 MINIO_STORAGE_USE_HTTPS = False
 MINIO_STORAGE_ACCESS_KEY = 'minioAccessKey'
 MINIO_STORAGE_SECRET_KEY = 'minioSecretKey'
