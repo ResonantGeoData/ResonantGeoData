@@ -8,6 +8,7 @@ import pystac
 from rest_framework import serializers
 from rest_framework.reverse import reverse
 from rgd import utility
+from rgd.models import ChecksumFile, FileSourceType
 from rgd.permissions import check_write_perm
 from rgd.serializers import ChecksumFileSerializer, SpatialEntrySerializer
 
@@ -202,8 +203,8 @@ class STACRasterSerializer(serializers.BaseSerializer):
             single_asset = True
         for name in item.assets:
             asset = item.assets[name]
-            checksum_file, _ = models.ChecksumFile.objects.get_or_create(
-                type=models.FileSourceType.URL,
+            checksum_file, _ = ChecksumFile.objects.get_or_create(
+                type=FileSourceType.URL,
                 url=asset.href,
             )
             if single_asset or (asset.roles and 'data' in asset.roles):

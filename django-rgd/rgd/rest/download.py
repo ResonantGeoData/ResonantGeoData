@@ -13,7 +13,7 @@ from rgd.permissions import check_read_perm
 )
 @api_view(['GET'])
 def download_checksum_file(request, pk):
-    instance = models.common.ChecksumFile.objects.get(pk=pk)
+    instance = models.ChecksumFile.objects.get(pk=pk)
     check_read_perm(request.user, instance)
     return HttpResponseRedirect(instance.get_url())
 

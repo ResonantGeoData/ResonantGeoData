@@ -3,7 +3,7 @@ from django.contrib.gis.db.models.functions import GeometryDistance
 from django.contrib.gis.measure import D
 from django.core.validators import RegexValidator
 from django_filters import rest_framework as filters
-from rgd.models.common import ModifiableEntry, SpatialEntry
+from rgd.models import ModifiableEntry, SpatialEntry
 
 
 class GeometryFilter(filters.Filter):

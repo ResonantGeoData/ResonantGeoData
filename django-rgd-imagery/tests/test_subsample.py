@@ -1,8 +1,7 @@
 from large_image_source_gdal import GDALFileTileSource
 import pytest
 from rgd.datastore import datastore
-from rgd_imagery.models.imagery import ConvertedImageFile, ImageEntry, SubsampledImage
-from rgd_imagery.models.imagery.annotation import Annotation
+from rgd_imagery.models import Annotation, ConvertedImageFile, ImageEntry, SubsampledImage
 from rgd_imagery.tasks.subsample import populate_subsampled_image
 
 from . import factories

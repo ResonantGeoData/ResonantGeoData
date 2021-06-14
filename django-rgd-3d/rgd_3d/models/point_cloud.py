@@ -1,6 +1,6 @@
 from django.contrib.gis.db import models
 from django.contrib.postgres import fields
-from rgd.models.common import ChecksumFile, ModifiableEntry, SpatialEntry
+from rgd.models import ChecksumFile, ModifiableEntry, SpatialEntry
 from rgd.models.mixins import TaskEventMixin
 from rgd_3d.tasks import jobs
 

@@ -2,8 +2,7 @@ from large_image.exceptions import TileSourceException
 from large_image.tilesource import FileTileSource
 from large_image_source_gdal import GDALFileTileSource
 from large_image_source_pil import PILFileTileSource
-
-from .base import ImageEntry
+from rgd_imagery.models import ImageEntry
 
 
 def get_tilesource_from_image_entry(

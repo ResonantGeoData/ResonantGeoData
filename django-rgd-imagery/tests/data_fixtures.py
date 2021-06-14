@@ -1,5 +1,6 @@
 import pytest
 from rgd.datastore import datastore
+from rgd.models import FileSourceType
 from rgd_imagery import models
 
 from . import factories
@@ -107,7 +108,7 @@ def sample_raster_url():
     ]
     images = [
         factories.ImageFileFactory(
-            file__type=models.FileSourceType.URL,
+            file__type=FileSourceType.URL,
             file__file=None,
             file__url=datastore.get_url(f),
         ).imageentry
@@ -119,7 +120,7 @@ def sample_raster_url():
     anc = factories.ChecksumFileFactory(
         file=None,
         url=datastore.get_url('stars.png'),
-        type=models.FileSourceType.URL,
+        type=FileSourceType.URL,
     )
     # Create a RasterEntry from the three band image entries
     raster = factories.RasterEntryFactory(
