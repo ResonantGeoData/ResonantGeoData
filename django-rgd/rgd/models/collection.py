@@ -1,8 +1,12 @@
 from django.conf import settings
 from django.db import models
 
+from .mixins import PermissionPathMixin
 
-class Collection(models.Model):
+
+class Collection(models.Model, PermissionPathMixin):
+    permissions_paths = ['collection_permissions']
+
     name = models.CharField(max_length=127)
 
     def __str__(self):
@@ -19,6 +23,8 @@ class CollectionPermission(models.Model):
         (READER, 'Reader'),
         (OWNER, 'Owner'),
     ]
+    permissions_paths = ['']
+
     collection = models.ForeignKey(Collection, on_delete=models.CASCADE)
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
     role = models.SmallIntegerField(

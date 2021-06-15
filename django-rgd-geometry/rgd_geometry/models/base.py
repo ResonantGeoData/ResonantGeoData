@@ -4,7 +4,7 @@ from django_extensions.db.models import TimeStampedModel
 import magic
 from rgd.models import ChecksumFile, SpatialEntry
 from rgd.models.constants import DB_SRID
-from rgd.models.mixins import TaskEventMixin
+from rgd.models.mixins import PermissionPathMixin, TaskEventMixin
 from rgd_geometry.tasks import jobs
 
 
@@ -18,7 +18,7 @@ def validate_archive(field_file):
         raise ValidationError('Unsupported file archive.')
 
 
-class GeometryArchive(TimeStampedModel, TaskEventMixin):
+class GeometryArchive(TimeStampedModel, TaskEventMixin, PermissionPathMixin):
     """Container for ``zip`` archives of a shapefile.
 
     When this model is created, it loads data from an archive into
@@ -36,8 +36,10 @@ class GeometryArchive(TimeStampedModel, TaskEventMixin):
 
     archive_data_link.allow_tags = True
 
+    permissions_paths = ['file__collection__collection_permissions']
 
-class GeometryEntry(TimeStampedModel, SpatialEntry):
+
+class GeometryEntry(TimeStampedModel, SpatialEntry, PermissionPathMixin):
     """A holder for geometry vector data."""
 
     name = models.CharField(max_length=1000, blank=True)
@@ -48,3 +50,5 @@ class GeometryEntry(TimeStampedModel, SpatialEntry):
 
     # Can be null if not generated from uploaded ZIP file but something else
     geometry_archive = models.OneToOneField(GeometryArchive, null=True, on_delete=models.CASCADE)
+
+    permissions_paths = ['geometry_archive__file__collection__collection_permissions']

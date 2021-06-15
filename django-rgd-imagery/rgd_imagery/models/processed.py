@@ -3,7 +3,7 @@ from django.contrib.gis.geos import GEOSGeometry
 from django.utils.translation import gettext_lazy as _
 from django_extensions.db.models import TimeStampedModel
 from rgd.models import ChecksumFile
-from rgd.models.mixins import TaskEventMixin
+from rgd.models.mixins import PermissionPathMixin, TaskEventMixin
 from rgd_imagery.tasks import jobs
 from shapely.geometry import shape
 from shapely.wkb import dumps
@@ -11,7 +11,7 @@ from shapely.wkb import dumps
 from .base import ImageEntry
 
 
-class ConvertedImageFile(TimeStampedModel, TaskEventMixin):
+class ConvertedImageFile(TimeStampedModel, TaskEventMixin, PermissionPathMixin):
     """A model to store converted versions of a raster entry."""
 
     task_funcs = (jobs.task_convert_to_cog,)
@@ -23,8 +23,10 @@ class ConvertedImageFile(TimeStampedModel, TaskEventMixin):
         if self.converted_file:
             self.converted_file.delete()
 
+    permissions_paths = ['source_image__image_file__file__collection__collection_permissions']
 
-class SubsampledImage(TimeStampedModel, TaskEventMixin):
+
+class SubsampledImage(TimeStampedModel, TaskEventMixin, PermissionPathMixin):
     """A subsample of an ImageEntry."""
 
     task_funcs = (jobs.task_populate_subsampled_image,)
@@ -88,3 +90,5 @@ class SubsampledImage(TimeStampedModel, TaskEventMixin):
     def _post_delete(self, *args, **kwargs):
         # Cleanup the associated ChecksumFile
         self.data.delete()
+
+    permissions_paths = ['source_image__image_file__file__collection__collection_permissions']

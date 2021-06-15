@@ -1,5 +1,5 @@
 """Mixin helper classes."""
-from typing import Iterable
+from typing import Iterable, List
 
 from celery import Task
 from django.conf import settings
@@ -64,3 +64,14 @@ class TaskEventMixin(models.Model):
         if kwargs.get('update_fields'):
             return
         self._run_tasks()
+
+
+class PermissionPathMixin:
+    """Interface for permission querying.
+
+    Get all possible paths to the 'CollectionPermission' model under the ``permissions_paths`` field.
+
+    Relationships are represented as 'dunder's ('__').
+    """
+
+    permissions_paths: List[str] = []

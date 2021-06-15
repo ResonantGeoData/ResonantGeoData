@@ -1,5 +1,6 @@
 from typing import List
 
+from django.apps import apps
 from django.conf import settings
 from django.contrib.auth.backends import BaseBackend
 from django.core.exceptions import PermissionDenied
@@ -7,74 +8,37 @@ from django.db.models import Q
 from rgd import models
 
 
-def get_collection_permissions_paths(model) -> List[str]:
+def get_subclasses(model):
+    """Retrieve all model subclasses for the provided class excluding the model class itself."""
+    return set([m for m in apps.get_models() if issubclass(m, model) and m != model])
+
+
+def get_collection_permissions_paths(model, prefix='') -> List[str]:
     """Get all possible paths to the 'CollectionPermission' model.
 
     Relationships are represented as 'dunder's ('__').
     """
-    # Collection
-    if issubclass(model, models.CollectionPermission):
-        return ['']
-    if issubclass(model, models.Collection):
-        return ['collection_permissions']
-    # Common
-    if issubclass(model, models.ChecksumFile):
-        return ['collection__collection_permissions']
-    # Imagery
-    if issubclass(model, models.ImageEntry):
-        return ['image_file__file__collection__collection_permissions']
-    if issubclass(model, models.ImageSet):
-        return ['images__image_file__file__collection__collection_permissions']
-    if issubclass(model, models.RasterEntry):
-        return ['image_set__images__image_file__file__collection__collection_permissions']
-    if issubclass(model, models.RasterMetaEntry):
-        return [
-            'parent_raster__image_set__images__image_file__file__collection__collection_permissions'
-        ]
-    if issubclass(model, models.BandMetaEntry):
-        return ['parent_image__image_file__file__collection__collection_permissions']
-    if issubclass(model, models.ConvertedImageFile):
-        return ['source_image__image_file__file__collection__collection_permissions']
-    if issubclass(model, models.SubsampledImage):
-        return ['source_image__image_file__file__collection__collection_permissions']
-    if issubclass(model, models.KWCOCOArchive):
-        return ['spec_file__collection__collection_permissions']
-    # Annotation
-    if issubclass(model, models.Annotation):
-        return ['image__image_file__collection__collection_permissions']
-    if issubclass(model, models.Segmentation):
-        return ['annotation__image__image_file__collection__collection_permissions']
-    # Geometry
-    if issubclass(model, models.GeometryEntry):
-        return ['geometry_archive__file__collection__collection_permissions']
-    # FMV
-    if issubclass(model, models.FMVEntry):
-        return ['fmv_file__file__collection__collection_permissions']
-    # Point Cloud
-    if issubclass(model, models.PointCloudFile):
-        return ['file__collection__collection_permissions']
-    if issubclass(model, models.PointCloudEntry):
-        return [
-            'source__file__collection__collection_permissions',
-            'vtp_data__collection__collection_permissions',
-        ]
-    # ImageSetSpatial
-    if issubclass(model, models.ImageSetSpatial):
-        return ['image_set__images__image_file__file__collection__collection_permissions']
-    # SpatialEntry
     if model == models.SpatialEntry:
-        return [
-            'fmventry__fmv_file__file__collection__collection_permissions',
-            'geometryentry__geometry_archive__file__collection__collection_permissions',
-            'rastermetaentry__parent_raster__image_set__images__image_file__file__collection__collection_permissions',
-            'imagesetspatial__image_set__images__image_file__file__collection__collection_permissions',
-        ]
+        submodels = get_subclasses(model)
+        paths = []
+        for sub in submodels:
+            # TODO: there should be a cleaner way to do this.
+            model_name = sub.__name__.lower()
+            [paths.append(s) for s in get_collection_permissions_paths(sub, prefix=model_name)]
+        return paths
 
-    raise NotImplementedError
+    if not hasattr(model, 'permissions_paths'):
+        # NOTE: checking subclass here does not work - must use hasattr :(
+        raise TypeError(f'{type(model)} does not have the `PermissionPathMixin` interface.')
+
+    return [(f'{prefix}__' if prefix else '') + s for s in model.permissions_paths]
 
 
 def filter_perm(user, queryset, role):
     """Filter a queryset."""
+    if queryset.model == models.SpatialEntry:
+        # Return subclasses of SpatialEntry
+        queryset = queryset.select_subclasses()
     # Called outside of view
     if user is None:
         return queryset

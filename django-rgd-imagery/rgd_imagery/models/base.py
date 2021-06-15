@@ -2,11 +2,11 @@
 from django.contrib.gis.db import models
 from django_extensions.db.models import TimeStampedModel
 from rgd.models import ChecksumFile, SpatialEntry
-from rgd.models.mixins import TaskEventMixin
+from rgd.models.mixins import PermissionPathMixin, TaskEventMixin
 from rgd_imagery.tasks import jobs
 
 
-class ImageFile(TimeStampedModel, TaskEventMixin):
+class ImageFile(TimeStampedModel, TaskEventMixin, PermissionPathMixin):
     """This is a standalone DB entry for image files.
 
     This points to a single image file in an S3 file field.
@@ -17,6 +17,7 @@ class ImageFile(TimeStampedModel, TaskEventMixin):
 
     """
 
+    permissions_paths = ['file__collection__collection_permissions']
     task_funcs = (jobs.task_read_image_file,)
     file = models.ForeignKey(ChecksumFile, on_delete=models.CASCADE)
 
@@ -26,8 +27,10 @@ class ImageFile(TimeStampedModel, TaskEventMixin):
     image_data_link.allow_tags = True
 
 
-class ImageEntry(TimeStampedModel):
+class ImageEntry(TimeStampedModel, PermissionPathMixin):
     """Single image entry, tracks the original file."""
+
+    permissions_paths = ['image_file__file__collection__collection_permissions']
 
     def __str__(self):
         return f'{self.name} ({self.id})'
@@ -42,9 +45,10 @@ class ImageEntry(TimeStampedModel):
     number_of_bands = models.PositiveIntegerField()
 
 
-class BandMetaEntry(TimeStampedModel):
+class BandMetaEntry(TimeStampedModel, PermissionPathMixin):
     """A basic container to keep track of useful band info."""
 
+    permissions_paths = ['parent_image__image_file__file__collection__collection_permissions']
     parent_image = models.ForeignKey(ImageEntry, on_delete=models.CASCADE)
     band_number = models.IntegerField()
     description = models.TextField(
@@ -61,8 +65,10 @@ class BandMetaEntry(TimeStampedModel):
     interpretation = models.TextField()
 
 
-class ImageSet(TimeStampedModel):
+class ImageSet(TimeStampedModel, PermissionPathMixin):
     """Container for many images."""
+
+    permissions_paths = ['images__image_file__file__collection__collection_permissions']
 
     def __str__(self):
         return f'{self.name} ({self.id} - {type(self)}'
@@ -95,9 +101,10 @@ class ImageSet(TimeStampedModel):
         return annots
 
 
-class ImageSetSpatial(TimeStampedModel, SpatialEntry):
+class ImageSetSpatial(TimeStampedModel, SpatialEntry, PermissionPathMixin):
     """Arbitrary register an ImageSet to a location."""
 
+    permissions_paths = ['image_set__images__image_file__file__collection__collection_permissions']
     name = models.CharField(max_length=1000, blank=True)
     description = models.TextField(null=True, blank=True)
 

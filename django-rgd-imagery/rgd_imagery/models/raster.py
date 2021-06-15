@@ -3,19 +3,21 @@ from django.contrib.postgres import fields
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django_extensions.db.models import TimeStampedModel
 from rgd.models import ChecksumFile, SpatialEntry
-from rgd.models.mixins import TaskEventMixin
+from rgd.models.mixins import PermissionPathMixin, TaskEventMixin
 from rgd_imagery.tasks import jobs
 
 from .base import ImageSet
 
 
-class RasterEntry(TimeStampedModel, TaskEventMixin):
+class RasterEntry(TimeStampedModel, TaskEventMixin, PermissionPathMixin):
     """This class is a container for the metadata of a raster.
 
     This model inherits from ``ImageSet`` and only adds an extra layer of
     geospatial context to the ``ImageSet``.
 
     """
+
+    permissions_paths = ['image_set__images__image_file__file__collection__collection_permissions']
 
     def __str__(self):
         return 'ID: {} {} (type: {})'.format(self.id, self.name, type(self))
@@ -55,7 +57,10 @@ class RasterEntry(TimeStampedModel, TaskEventMixin):
         return n
 
 
-class RasterMetaEntry(TimeStampedModel, SpatialEntry):
+class RasterMetaEntry(TimeStampedModel, SpatialEntry, PermissionPathMixin):
+    permissions_paths = [
+        'parent_raster__image_set__images__image_file__file__collection__collection_permissions'
+    ]
 
     parent_raster = models.OneToOneField(RasterEntry, on_delete=models.CASCADE)
 

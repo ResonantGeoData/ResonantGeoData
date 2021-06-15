@@ -4,7 +4,6 @@ import os
 from urllib.error import URLError
 from urllib.parse import urlencode, urlparse
 
-# from django.contrib.auth import get_user_model
 from django.contrib.gis.db import models
 from django_extensions.db.models import TimeStampedModel
 from girder_utils.files import field_file_to_local_path
@@ -25,7 +24,7 @@ from s3_file_field import S3FileField
 # from .. import tasks
 from .collection import Collection
 from .constants import DB_SRID
-from .mixins import TaskEventMixin
+from .mixins import PermissionPathMixin, TaskEventMixin
 
 logger = logging.getLogger(__name__)
 
@@ -36,6 +35,9 @@ class SpatialEntry(models.Model):
     This is intended to be used in a mixin manner.
 
     """
+
+    # `InheritanceManager` allows us to select inhereted tables via `objects.select_subclasses()`
+    objects = InheritanceManager()
 
     spatial_id = models.AutoField(primary_key=True)
 
@@ -53,8 +55,6 @@ class SpatialEntry(models.Model):
         help_text='The instrumentation used to acquire these data.',
     )
 
-    objects = InheritanceManager()
-
     def __str__(self):
         try:
             return 'Spatial ID: {} (ID: {}, type: {})'.format(self.spatial_id, self.id, type(self))
@@ -67,11 +67,13 @@ class FileSourceType(models.IntegerChoices):
     URL = 2, 'URL'
 
 
-class ChecksumFile(TimeStampedModel, TaskEventMixin):
+class ChecksumFile(TimeStampedModel, TaskEventMixin, PermissionPathMixin):
     """The main class for user-uploaded files.
 
     This has support for manually uploading files or specifing a URL to a file
-    (for example in an existing S3 bucket).
+    (for example in an existing S3 bucket). This broadly supports ``http<s>://``
+    URLs to file resources as well as ``s3://`` as long as the node the app is
+    running on is provisioned to access that S3 bucket.
 
     """
 
@@ -97,6 +99,7 @@ class ChecksumFile(TimeStampedModel, TaskEventMixin):
     task_funcs = (
         # tasks.task_checksum_file_post_save,
     )
+    permissions_paths = ['collection__collection_permissions']
 
     class Meta:
         constraints = [
@@ -284,11 +287,13 @@ class ChecksumFile(TimeStampedModel, TaskEventMixin):
 
 
 class WhitelistedEmail(models.Model):
+    """Pre-approve users for sign up by their email."""
+
     email = models.EmailField()
 
 
-class SpatialAsset(SpatialEntry, TimeStampedModel):
-    """Any spatially referenced asset set.
+class SpatialAsset(SpatialEntry, TimeStampedModel, PermissionPathMixin):
+    """Any spatially referenced file set.
 
     This can be any collection of files that have a spatial reference and are
     not explictly handled by the other SpatialEntry subtypes. For example, this
@@ -296,6 +301,8 @@ class SpatialAsset(SpatialEntry, TimeStampedModel):
     have a georeference.
 
     """
+
+    permissions_paths = ['files__collection__collection_permissions']
 
     name = models.CharField(max_length=1000, blank=True)
     description = models.TextField(null=True, blank=True)

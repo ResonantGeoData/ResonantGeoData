@@ -2,11 +2,11 @@ from django.contrib.gis.db import models
 from django.contrib.postgres import fields
 from django_extensions.db.models import TimeStampedModel
 from rgd.models import ChecksumFile, SpatialEntry
-from rgd.models.mixins import TaskEventMixin
+from rgd.models.mixins import PermissionPathMixin, TaskEventMixin
 from rgd_3d.tasks import jobs
 
 
-class PointCloudFile(TimeStampedModel, TaskEventMixin):
+class PointCloudFile(TimeStampedModel, TaskEventMixin, PermissionPathMixin):
     """Container for point cloud file."""
 
     task_funcs = (jobs.task_read_point_cloud_file,)
@@ -17,8 +17,10 @@ class PointCloudFile(TimeStampedModel, TaskEventMixin):
 
     data_link.allow_tags = True
 
+    permissions_paths = ['file__collection__collection_permissions']
 
-class PointCloudEntry(TimeStampedModel):
+
+class PointCloudEntry(TimeStampedModel, PermissionPathMixin):
     """Container for converted point cloud data.
 
     The data here must be stored in VTP format. This can be manually uploaded
@@ -39,8 +41,13 @@ class PointCloudEntry(TimeStampedModel):
 
     data_link.allow_tags = True
 
+    permissions_paths = [
+        'source__file__collection__collection_permissions',
+        'vtp_data__collection__collection_permissions',
+    ]
 
-class PointCloudMetaEntry(TimeStampedModel, SpatialEntry):
+
+class PointCloudMetaEntry(TimeStampedModel, SpatialEntry, PermissionPathMixin):
     """Optionally register a PointCloudEntry as a SpatialEntry."""
 
     parent_point_cloud = models.OneToOneField(PointCloudEntry, on_delete=models.CASCADE)
@@ -52,3 +59,8 @@ class PointCloudMetaEntry(TimeStampedModel, SpatialEntry):
     @property
     def name(self):
         return self.parent_point_cloud.name
+
+    permissions_paths = [
+        'parent_point_cloud__source__file__collection__collection_permissions',
+        'parent_point_cloud__vtp_data__collection__collection_permissions',
+    ]
