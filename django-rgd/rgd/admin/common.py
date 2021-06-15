@@ -44,7 +44,7 @@ class CustomUserAdmin(UserAdmin):
 @admin.register(WhitelistedEmail)
 class WhitelistedEmailAdmin(OSMGeoAdmin):
     list_display = (
-        'id',
+        'pk',
         'email',
     )
 
@@ -52,7 +52,7 @@ class WhitelistedEmailAdmin(OSMGeoAdmin):
 @admin.register(ChecksumFile)
 class ChecksumFileAdmin(OSMGeoAdmin):
     list_display = (
-        'id',
+        'pk',
         'name',
         'status',
         'modified',
@@ -79,7 +79,7 @@ class ChecksumFileAdmin(OSMGeoAdmin):
 @admin.register(SpatialAsset)
 class SpatialAssetAdmin(OSMGeoAdmin):
     list_display = (
-        'id',
+        'pk',
         'name',
         'modified',
         'created',

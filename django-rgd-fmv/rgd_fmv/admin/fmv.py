@@ -14,7 +14,7 @@ class FMVEntryInline(admin.StackedInline):
     model = FMVEntry
     fk_name = 'fmv_file'
     list_display = (
-        'id',
+        'pk',
         'name',
         'fmv_file',
         'modified',
@@ -29,7 +29,7 @@ class FMVEntryInline(admin.StackedInline):
 @admin.register(FMVFile)
 class FMVFileAdmin(OSMGeoAdmin, _FileGetNameMixin):
     list_display = (
-        'id',
+        'pk',
         'get_name',
         'status',
         'modified',

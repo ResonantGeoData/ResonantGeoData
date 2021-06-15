@@ -1,12 +1,13 @@
 from django.contrib.gis.db import models
-from rgd.models import ChecksumFile, ModifiableEntry
+from django_extensions.db.models import TimeStampedModel
+from rgd.models import ChecksumFile
 from rgd.models.mixins import TaskEventMixin
 from rgd_imagery.tasks import jobs
 
 from .base import ImageSet
 
 
-class KWCOCOArchive(ModifiableEntry, TaskEventMixin):
+class KWCOCOArchive(TimeStampedModel, TaskEventMixin):
     """A container for holding imported KWCOCO datasets.
 
     User must upload a JSON file of the KWCOCO meta info and an optional

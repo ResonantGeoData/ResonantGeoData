@@ -2,7 +2,6 @@ from .collection import Collection, CollectionPermission  # noqa
 from .common import (  # noqa
     ChecksumFile,
     FileSourceType,
-    ModifiableEntry,
     SpatialAsset,
     SpatialEntry,
     WhitelistedEmail,

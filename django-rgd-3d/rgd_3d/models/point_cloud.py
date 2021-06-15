@@ -1,11 +1,12 @@
 from django.contrib.gis.db import models
 from django.contrib.postgres import fields
-from rgd.models import ChecksumFile, ModifiableEntry, SpatialEntry
+from django_extensions.db.models import TimeStampedModel
+from rgd.models import ChecksumFile, SpatialEntry
 from rgd.models.mixins import TaskEventMixin
 from rgd_3d.tasks import jobs
 
 
-class PointCloudFile(ModifiableEntry, TaskEventMixin):
+class PointCloudFile(TimeStampedModel, TaskEventMixin):
     """Container for point cloud file."""
 
     task_funcs = (jobs.task_read_point_cloud_file,)
@@ -17,7 +18,7 @@ class PointCloudFile(ModifiableEntry, TaskEventMixin):
     data_link.allow_tags = True
 
 
-class PointCloudEntry(ModifiableEntry):
+class PointCloudEntry(TimeStampedModel):
     """Container for converted point cloud data.
 
     The data here must be stored in VTP format. This can be manually uploaded
@@ -39,7 +40,7 @@ class PointCloudEntry(ModifiableEntry):
     data_link.allow_tags = True
 
 
-class PointCloudMetaEntry(ModifiableEntry, SpatialEntry):
+class PointCloudMetaEntry(TimeStampedModel, SpatialEntry):
     """Optionally register a PointCloudEntry as a SpatialEntry."""
 
     parent_point_cloud = models.OneToOneField(PointCloudEntry, on_delete=models.CASCADE)

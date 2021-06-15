@@ -1,7 +1,8 @@
 from django.contrib.gis.db import models
 from django.contrib.gis.geos import GEOSGeometry
 from django.utils.translation import gettext_lazy as _
-from rgd.models import ChecksumFile, ModifiableEntry
+from django_extensions.db.models import TimeStampedModel
+from rgd.models import ChecksumFile
 from rgd.models.mixins import TaskEventMixin
 from rgd_imagery.tasks import jobs
 from shapely.geometry import shape
@@ -10,7 +11,7 @@ from shapely.wkb import dumps
 from .base import ImageEntry
 
 
-class ConvertedImageFile(ModifiableEntry, TaskEventMixin):
+class ConvertedImageFile(TimeStampedModel, TaskEventMixin):
     """A model to store converted versions of a raster entry."""
 
     task_funcs = (jobs.task_convert_to_cog,)
@@ -23,7 +24,7 @@ class ConvertedImageFile(ModifiableEntry, TaskEventMixin):
             self.converted_file.delete()
 
 
-class SubsampledImage(ModifiableEntry, TaskEventMixin):
+class SubsampledImage(TimeStampedModel, TaskEventMixin):
     """A subsample of an ImageEntry."""
 
     task_funcs = (jobs.task_populate_subsampled_image,)

@@ -7,7 +7,7 @@ from rgd_imagery.models import KWCOCOArchive
 @admin.register(KWCOCOArchive)
 class KWCOCOArchiveAdmin(OSMGeoAdmin):
     list_display = (
-        'id',
+        'pk',
         'name',
         'status',
         'modified',

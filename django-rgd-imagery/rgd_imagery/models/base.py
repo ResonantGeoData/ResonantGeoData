@@ -1,11 +1,12 @@
 """Base classes for raster dataset entries."""
 from django.contrib.gis.db import models
-from rgd.models import ChecksumFile, ModifiableEntry, SpatialEntry
+from django_extensions.db.models import TimeStampedModel
+from rgd.models import ChecksumFile, SpatialEntry
 from rgd.models.mixins import TaskEventMixin
 from rgd_imagery.tasks import jobs
 
 
-class ImageFile(ModifiableEntry, TaskEventMixin):
+class ImageFile(TimeStampedModel, TaskEventMixin):
     """This is a standalone DB entry for image files.
 
     This points to a single image file in an S3 file field.
@@ -25,7 +26,7 @@ class ImageFile(ModifiableEntry, TaskEventMixin):
     image_data_link.allow_tags = True
 
 
-class ImageEntry(ModifiableEntry):
+class ImageEntry(TimeStampedModel):
     """Single image entry, tracks the original file."""
 
     def __str__(self):
@@ -41,7 +42,7 @@ class ImageEntry(ModifiableEntry):
     number_of_bands = models.PositiveIntegerField()
 
 
-class BandMetaEntry(ModifiableEntry):
+class BandMetaEntry(TimeStampedModel):
     """A basic container to keep track of useful band info."""
 
     parent_image = models.ForeignKey(ImageEntry, on_delete=models.CASCADE)
@@ -60,7 +61,7 @@ class BandMetaEntry(ModifiableEntry):
     interpretation = models.TextField()
 
 
-class ImageSet(ModifiableEntry):
+class ImageSet(TimeStampedModel):
     """Container for many images."""
 
     def __str__(self):
@@ -94,7 +95,7 @@ class ImageSet(ModifiableEntry):
         return annots
 
 
-class ImageSetSpatial(ModifiableEntry, SpatialEntry):
+class ImageSetSpatial(TimeStampedModel, SpatialEntry):
     """Arbitrary register an ImageSet to a location."""
 
     name = models.CharField(max_length=1000, blank=True)

@@ -310,9 +310,9 @@ def _validate_image_set_is_raster(image_set_entry):
         raise ValueError('ImageSet returned no images.')
 
     base_image = images.pop()
-    first_meta = _extract_raster_meta(base_image.image_file.imagefile)
+    first_meta = _extract_raster_meta(base_image.image_file)
     for image in images:
-        _extract_raster_meta(image.image_file.imagefile)
+        _extract_raster_meta(image.image_file)
 
     return first_meta
 
@@ -360,7 +360,7 @@ def populate_raster_footprint(raster_id):
     try:
         raster_meta = RasterMetaEntry.objects.get(parent_raster=raster_entry)
         base_image = raster_entry.image_set.images.first()
-        footprint = _extract_raster_footprint(base_image.image_file.imagefile)
+        footprint = _extract_raster_footprint(base_image.image_file)
         if footprint:
             raster_meta.footprint = footprint
             raster_meta.save(update_fields=['footprint'])

@@ -13,7 +13,7 @@ from rgd_3d.models import PointCloudEntry, PointCloudFile, PointCloudMetaEntry
 @admin.register(PointCloudFile)
 class PointCloudFileAdmin(OSMGeoAdmin, _FileGetNameMixin):
     list_display = (
-        'id',
+        'pk',
         'get_name',
         'status',
         'modified',
@@ -32,7 +32,7 @@ class PointCloudMetaEntryInline(admin.StackedInline):
     model = PointCloudMetaEntry
     fk_name = 'parent_point_cloud'
     list_display = (
-        'id',
+        'pk',
         'modified',
         'created',
         'crs',
@@ -48,7 +48,7 @@ class PointCloudMetaEntryInline(admin.StackedInline):
 @admin.register(PointCloudEntry)
 class PointCloudEntryAdmin(OSMGeoAdmin):
     list_display = (
-        'id',
+        'pk',
         'modified',
         'created',
         'data_link',

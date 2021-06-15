@@ -105,7 +105,7 @@ def convert_images(modeladmin, request, queryset):
 @admin.register(ImageSet)
 class ImageSetAdmin(OSMGeoAdmin):
     list_display = (
-        'id',
+        'pk',
         'name',
         'count',
         'modified',
@@ -121,7 +121,7 @@ class ImageSetAdmin(OSMGeoAdmin):
 @admin.register(ImageSetSpatial)
 class ImageSetSpatialAdmin(OSMGeoAdmin):
     list_display = (
-        'id',
+        'pk',
         'name',
         'modified',
         'created',
@@ -134,7 +134,7 @@ class BandMetaEntryInline(admin.StackedInline):
     fk_name = 'parent_image'
 
     list_display = (
-        'id',
+        'pk',
         'parent_image',
         'modified',
         'created',
@@ -160,7 +160,7 @@ class BandMetaEntryInline(admin.StackedInline):
 @admin.register(ImageEntry)
 class ImageEntryAdmin(OSMGeoAdmin):
     list_display = (
-        'id',
+        'pk',
         'name',
         'image_file',
         'modified',
@@ -191,7 +191,7 @@ class ImageEntryAdmin(OSMGeoAdmin):
 @admin.register(ImageFile)
 class ImageFileAdmin(OSMGeoAdmin, _FileGetNameMixin):
     list_display = (
-        'id',
+        'pk',
         'get_name',
         'status',
         'modified',

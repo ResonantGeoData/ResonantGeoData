@@ -3,34 +3,13 @@ from django.contrib.gis.db.models.functions import GeometryDistance
 from django.contrib.gis.measure import D
 from django.core.validators import RegexValidator
 from django_filters import rest_framework as filters
-from rgd.models import ModifiableEntry, SpatialEntry
+from rgd.models import SpatialEntry
 
 
 class GeometryFilter(filters.Filter):
     field_class = forms.GeometryField
     # Ensures GeoJSON objects are converted to correct SRID
     field_class.widget.map_srid = 4326
-
-
-class ModifiableEntryFilterMixin(filters.FilterSet):
-
-    created = filters.IsoDateTimeFromToRangeFilter(
-        field_name='created',
-        help_text='The ISO 8601 formatted date and time when data was created.',
-        label='Created',
-    )
-    modified = filters.IsoDateTimeFromToRangeFilter(
-        field_name='modified',
-        help_text='The ISO 8601 formatted date and time when data was modified.',
-        label='Modified',
-    )
-
-    class Meta:
-        model = ModifiableEntry
-        fields = [
-            'created',
-            'modified',
-        ]
 
 
 class SpatialEntryFilter(filters.FilterSet):

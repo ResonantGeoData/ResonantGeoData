@@ -1,14 +1,15 @@
 from django.contrib.gis.db import models
 from django.contrib.postgres import fields
 from django.core.validators import MaxValueValidator, MinValueValidator
-from rgd.models import ChecksumFile, ModifiableEntry, SpatialEntry
+from django_extensions.db.models import TimeStampedModel
+from rgd.models import ChecksumFile, SpatialEntry
 from rgd.models.mixins import TaskEventMixin
 from rgd_imagery.tasks import jobs
 
 from .base import ImageSet
 
 
-class RasterEntry(ModifiableEntry, TaskEventMixin):
+class RasterEntry(TimeStampedModel, TaskEventMixin):
     """This class is a container for the metadata of a raster.
 
     This model inherits from ``ImageSet`` and only adds an extra layer of
@@ -54,7 +55,7 @@ class RasterEntry(ModifiableEntry, TaskEventMixin):
         return n
 
 
-class RasterMetaEntry(ModifiableEntry, SpatialEntry):
+class RasterMetaEntry(TimeStampedModel, SpatialEntry):
 
     parent_raster = models.OneToOneField(RasterEntry, on_delete=models.CASCADE)
 

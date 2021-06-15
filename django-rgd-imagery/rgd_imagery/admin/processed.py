@@ -7,7 +7,7 @@ from rgd_imagery.models import ConvertedImageFile, SubsampledImage
 @admin.register(ConvertedImageFile)
 class ConvertedImageFileAdmin(OSMGeoAdmin):
     list_display = (
-        'id',
+        'pk',
         'source_image',
         'status',
         'modified',
@@ -21,7 +21,7 @@ class ConvertedImageFileAdmin(OSMGeoAdmin):
 @admin.register(SubsampledImage)
 class SubsampledImageAdmin(OSMGeoAdmin):
     list_display = (
-        'id',
+        'pk',
         'source_image',
         'sample_type',
         'status',

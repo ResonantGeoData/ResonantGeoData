@@ -7,14 +7,14 @@ from rgd_imagery.models import Annotation, PolygonSegmentation, RLESegmentation,
 class SegmentationInline(admin.StackedInline):
     model = Segmentation
     fk_name = 'annotation'
-    list_display = ('id',)
+    list_display = ('pk',)
     readonly_fields = ('outline',)
 
 
 class PolygonSegmentationInline(admin.StackedInline):
     model = PolygonSegmentation
     fk_name = 'annotation'
-    list_display = ('id',)
+    list_display = ('pk',)
     readonly_fields = (
         'outline',
         'feature',
@@ -24,14 +24,14 @@ class PolygonSegmentationInline(admin.StackedInline):
 class RLESegmentationInline(admin.StackedInline):
     model = RLESegmentation
     fk_name = 'annotation'
-    list_display = ('id',)
+    list_display = ('pk',)
     readonly_fields = ('outline', 'width', 'height', 'blob')
 
 
 @admin.register(Annotation)
 class AnnotationAdmin(OSMGeoAdmin):
     list_display = (
-        'id',
+        'pk',
         'caption',
         'label',
         'annotator',

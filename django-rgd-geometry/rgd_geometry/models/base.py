@@ -1,7 +1,8 @@
 from django.contrib.gis.db import models
 from django.core.exceptions import ValidationError
+from django_extensions.db.models import TimeStampedModel
 import magic
-from rgd.models import ChecksumFile, ModifiableEntry, SpatialEntry
+from rgd.models import ChecksumFile, SpatialEntry
 from rgd.models.constants import DB_SRID
 from rgd.models.mixins import TaskEventMixin
 from rgd_geometry.tasks import jobs
@@ -17,7 +18,7 @@ def validate_archive(field_file):
         raise ValidationError('Unsupported file archive.')
 
 
-class GeometryArchive(ModifiableEntry, TaskEventMixin):
+class GeometryArchive(TimeStampedModel, TaskEventMixin):
     """Container for ``zip`` archives of a shapefile.
 
     When this model is created, it loads data from an archive into
@@ -36,7 +37,7 @@ class GeometryArchive(ModifiableEntry, TaskEventMixin):
     archive_data_link.allow_tags = True
 
 
-class GeometryEntry(ModifiableEntry, SpatialEntry):
+class GeometryEntry(TimeStampedModel, SpatialEntry):
     """A holder for geometry vector data."""
 
     name = models.CharField(max_length=1000, blank=True)

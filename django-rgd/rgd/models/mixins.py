@@ -49,7 +49,7 @@ class TaskEventMixin(models.Model):
             ]
         )
         for func in self.task_funcs:
-            if settings.CELERY_TASK_ALWAYS_EAGER:
+            if getattr(settings, 'CELERY_TASK_ALWAYS_EAGER', None):
                 # HACK: for some reason this is necessary
                 func(self.id)
             else:

@@ -45,7 +45,7 @@ def clean_empty_rasters(modeladmin, request, queryset):
 @admin.register(RasterMetaEntry)
 class RasterMetaEntryAdmin(OSMGeoAdmin):
     list_display = (
-        'id',
+        'pk',
         'name',
         'acquisition_date',
         'modified',
@@ -73,7 +73,7 @@ class RasterMetaEntryAdmin(OSMGeoAdmin):
 @admin.register(RasterEntry)
 class RasterEntryAdmin(OSMGeoAdmin):
     list_display = (
-        'id',
+        'pk',
         'name',
         'status',
         'count',

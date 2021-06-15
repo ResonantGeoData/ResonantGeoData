@@ -15,7 +15,7 @@ class GeometryEntryInline(admin.StackedInline):
     model = GeometryEntry
     fk_name = 'geometry_archive'
     list_display = (
-        'id',
+        'pk',
         'name',
         'geometry_archive',
         'modified',
@@ -33,7 +33,7 @@ class GeometryEntryInline(admin.StackedInline):
 @admin.register(GeometryArchive)
 class GeometryArchiveAdmin(OSMGeoAdmin, _FileGetNameMixin):
     list_display = (
-        'id',
+        'pk',
         'get_name',
         'status',
         'modified',
