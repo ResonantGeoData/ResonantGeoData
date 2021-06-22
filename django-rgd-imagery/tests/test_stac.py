@@ -15,7 +15,7 @@ def _check_conforms_stac(data):
 
 @pytest.mark.django_db(transaction=True)
 def test_raster_stac_serializer_simple(admin_api_client, sample_raster_a):
-    id = sample_raster_a.id
+    id = sample_raster_a.pk
     response = admin_api_client.get(f'/rgd_imagery_test/api/rgd_imagery/raster/{id}/stac')
     assert response.status_code == 200
     data = response.data
@@ -27,7 +27,7 @@ def test_raster_stac_serializer_simple(admin_api_client, sample_raster_a):
 
 @pytest.mark.django_db(transaction=True)
 def test_raster_stac_serializer_multi_file_bands(admin_api_client, sample_raster_multi):
-    id = sample_raster_multi.id
+    id = sample_raster_multi.pk
     response = admin_api_client.get(f'/rgd_imagery_test/api/rgd_imagery/raster/{id}/stac')
     assert response.status_code == 200
     data = response.data
