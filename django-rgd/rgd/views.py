@@ -5,9 +5,9 @@ from django.contrib.gis.db.models.functions import AsGeoJSON, Centroid
 from django.contrib.postgres.aggregates import ArrayAgg
 from django.db.models import Count, Max, Min, Q
 from django.shortcuts import redirect
-from django.urls import reverse
 from django.views import generic
 from django.views.generic import DetailView
+from rest_framework.reverse import reverse
 from rgd import permissions
 
 from . import filters, models
