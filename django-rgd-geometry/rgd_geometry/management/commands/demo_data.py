@@ -30,7 +30,7 @@ def load_shape_files(shape_files):
     ids = []
     for shpfile in shape_files:
         entry = _get_or_create_file_model(models.GeometryArchive, shpfile)
-        ids.append(entry.geometryentry.pk)
+        ids.append(entry.geometrymeta.pk)
     return ids
 
 

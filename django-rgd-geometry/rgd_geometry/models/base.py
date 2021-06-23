@@ -22,7 +22,7 @@ class GeometryArchive(TimeStampedModel, TaskEventMixin, PermissionPathMixin):
     """Container for ``zip`` archives of a shapefile.
 
     When this model is created, it loads data from an archive into
-    a single ``GeometryEntry`` that is then associated with this entry.
+    a single ``Geometry`` that is then associated with this entry.
     """
 
     task_funcs = (jobs.task_read_geometry_archive,)
@@ -39,7 +39,7 @@ class GeometryArchive(TimeStampedModel, TaskEventMixin, PermissionPathMixin):
     permissions_paths = ['file__collection__collection_permissions']
 
 
-class GeometryEntry(TimeStampedModel, SpatialEntry, PermissionPathMixin, DetailViewMixin):
+class Geometry(TimeStampedModel, SpatialEntry, PermissionPathMixin, DetailViewMixin):
     """A holder for geometry vector data."""
 
     name = models.CharField(max_length=1000, blank=True)

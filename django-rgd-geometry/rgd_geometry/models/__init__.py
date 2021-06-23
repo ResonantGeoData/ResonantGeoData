@@ -1,1 +1,1 @@
-from .base import GeometryArchive, GeometryEntry, validate_archive  # noqa
+from .base import Geometry, GeometryArchive, validate_archive  # noqa

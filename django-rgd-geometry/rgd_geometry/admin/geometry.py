@@ -8,11 +8,11 @@ from rgd.admin.mixins import (
     _FileGetNameMixin,
     reprocess,
 )
-from rgd_geometry.models import GeometryArchive, GeometryEntry
+from rgd_geometry.models import Geometry, GeometryArchive
 
 
-class GeometryEntryInline(admin.StackedInline):
-    model = GeometryEntry
+class GeometryInline(admin.StackedInline):
+    model = Geometry
     fk_name = 'geometry_archive'
     list_display = (
         'pk',
@@ -44,6 +44,6 @@ class GeometryArchiveAdmin(OSMGeoAdmin, _FileGetNameMixin):
         'modified',
         'created',
     ) + TASK_EVENT_READONLY
-    inlines = (GeometryEntryInline,)
+    inlines = (GeometryInline,)
     actions = (reprocess,)
     list_filter = MODIFIABLE_FILTERS + TASK_EVENT_FILTERS

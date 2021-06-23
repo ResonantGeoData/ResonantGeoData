@@ -39,14 +39,14 @@ After this, the raster is registered with the data catalog, and it will appear o
 
 ![raster_search](./images/raster_search.png)
 
-## Geometry: `GeometryEntry`
+## Geometry: `Geometry`
 
 
-Creating a new `GeometryEntry` is very similar to the previous process of creating a new `ImageEntry`. To do so, first, upload a `.zip` archive of the shapefile and its auxiliary files to a new `ChecksumFile` entry. Then link that `ChecksumFile` to a new `GeometryArchie` entry:
+Creating a new `Geometry` is very similar to the previous process of creating a new `ImageEntry`. To do so, first, upload a `.zip` archive of the shapefile and its auxiliary files to a new `ChecksumFile` entry. Then link that `ChecksumFile` to a new `GeometryArchie` entry:
 
 ![geometry_archive](./images/geometry_archive.png)
 
-This will then auto populate the linked `GeometryEntry`, and the dataset will immediately be available in the catalog.
+This will then auto populate the linked `Geometry`, and the dataset will immediately be available in the catalog.
 
 ## Full Motion Video: `FMVMeta`
 

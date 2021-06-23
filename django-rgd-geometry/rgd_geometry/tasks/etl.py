@@ -12,7 +12,7 @@ from django.core.exceptions import ValidationError
 import fiona
 from rgd.models.transform import transform_geometry
 from rgd.utility import get_or_create_no_commit
-from rgd_geometry.models import GeometryArchive, GeometryEntry
+from rgd_geometry.models import Geometry, GeometryArchive
 from shapely.geometry import shape
 from shapely.wkb import dumps
 
@@ -61,7 +61,7 @@ def read_geometry_archive(archive_id):
         # load each shapefile using fiona
         with fiona.open(shape_file) as shapes:
             geometry_entry, created = get_or_create_no_commit(
-                GeometryEntry, defaults=dict(name=archive.file.name), geometry_archive=archive
+                Geometry, defaults=dict(name=archive.file.name), geometry_archive=archive
             )
 
             shapes.meta  # TODO: dump this JSON into the model entry

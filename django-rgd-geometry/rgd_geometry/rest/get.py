@@ -3,13 +3,13 @@ from rgd.rest.get import _PermissionMixin
 from rgd_geometry import models, serializers
 
 
-class GetGeometryEntry(RetrieveAPIView, _PermissionMixin):
-    serializer_class = serializers.GeometryEntrySerializer
+class GetGeometry(RetrieveAPIView, _PermissionMixin):
+    serializer_class = serializers.GeometrySerializer
     lookup_field = 'pk'
-    queryset = models.GeometryEntry.objects.all()
+    queryset = models.Geometry.objects.all()
 
 
-class GetGeometryEntryData(RetrieveAPIView, _PermissionMixin):
-    serializer_class = serializers.GeometryEntryDataSerializer
+class GetGeometryData(RetrieveAPIView, _PermissionMixin):
+    serializer_class = serializers.GeometryDataSerializer
     lookup_field = 'pk'
-    queryset = models.GeometryEntry.objects.all()
+    queryset = models.Geometry.objects.all()
