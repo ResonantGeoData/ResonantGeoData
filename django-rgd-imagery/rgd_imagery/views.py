@@ -1,4 +1,4 @@
-from rgd.views import _SpatialDetailView, SpatialEntriesListView
+from rgd.views import SpatialEntriesListView, _SpatialDetailView
 
 from . import filters, models
 

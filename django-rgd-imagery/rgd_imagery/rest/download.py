@@ -1,4 +1,5 @@
 from django.http import HttpResponseRedirect
+from django.shortcuts import get_object_or_404
 from drf_yasg.utils import swagger_auto_schema
 from rest_framework.decorators import api_view
 from rgd.models import ChecksumFile
@@ -13,7 +14,7 @@ from rgd_imagery import models
 )
 @api_view(['GET'])
 def download_image_file(request, pk):
-    instance = models.Image.objects.get(pk=pk)
+    instance = get_object_or_404(models.Image, pk=pk)
     check_read_perm(request.user, instance)
     url = instance.file.get_url()
     return HttpResponseRedirect(url)
@@ -25,10 +26,10 @@ def download_image_file(request, pk):
 )
 @api_view(['GET'])
 def download_cog_file(request, pk):
-    instance = models.ConvertedImage.objects.get(pk=pk)
+    instance = get_object_or_404(models.ConvertedImage, pk=pk)
     check_read_perm(request.user, instance)
     af_id = instance.converted_file.id
-    instance = ChecksumFile.objects.get(pk=af_id)
+    instance = get_object_or_404(ChecksumFile, pk=af_id)
     return HttpResponseRedirect(instance.get_url())
 
 
