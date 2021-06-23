@@ -92,7 +92,8 @@ def _get_path_and_footprints(content):
     frames = [content[idxs[i] : idxs[i + 1]] for i in range(len(idxs) - 1)]
     nf = [int(c[0]) for c in re.findall(frame_regex, content)]
 
-    assert len(nf[:-1]) == len(frames)
+    if len(nf[:-1]) != len(frames):
+        raise AssertionError('number of frames mismatch.')
 
     path = []
     polys = []

@@ -1,5 +1,7 @@
 import json
+import logging
 
+from django.contrib import messages
 from django.contrib.gis.db.models import Collect, Extent
 from django.contrib.gis.db.models.functions import AsGeoJSON, Centroid
 from django.contrib.postgres.aggregates import ArrayAgg
@@ -11,6 +13,8 @@ from rest_framework.reverse import reverse
 from rgd import permissions
 
 from . import filters, models
+
+logger = logging.getLogger(__name__)
 
 
 class PermissionDetailView(DetailView):
@@ -81,9 +85,19 @@ class SpatialEntriesListView(_SpatialListView):
 
     def get_queryset(self):
         filterset = self.filter(data=self.request.GET)
-        assert filterset.is_valid()
-        queryset = filterset.filter_queryset(self.model.objects.select_subclasses())
-        return permissions.filter_read_perm(self.request.user, queryset).order_by('spatial_id')
+        queryset = self.model.objects.select_subclasses().order_by('spatial_id')
+        if not filterset.is_valid():
+            message = 'Filter parameters illformed. Full results returned.'
+            all_error_messages_content = [
+                msg.message
+                for msg in list(messages.get_messages(self.request))
+                if msg.level_tag == 'error'
+            ]
+            if message not in all_error_messages_content:
+                messages.add_message(self.request, messages.ERROR, message)
+            return queryset
+        queryset = filterset.filter_queryset(queryset)
+        return permissions.filter_read_perm(self.request.user, queryset)
 
 
 class StatisticsView(generic.ListView):
@@ -93,6 +107,7 @@ class StatisticsView(generic.ListView):
     template_name = 'rgd/statistics.html'
 
     def get_queryset(self):
+        logger.info('in get_queryset ----------------------')
         queryset = self.model.objects.all()
         return permissions.filter_read_perm(self.request.user, queryset)
 

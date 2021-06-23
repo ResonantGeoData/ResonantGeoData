@@ -84,7 +84,9 @@ class SpatialEntryFilter(filters.FilterSet):
         https://postgis.net/docs/geometry_distance_knn.html
         """
         if value:
-            queryset = queryset.annotate(distance=GeometryDistance('footprint', value)).order_by('distance')
+            queryset = queryset.annotate(distance=GeometryDistance('footprint', value)).order_by(
+                'distance'
+            )
         return queryset
 
     def filter_predicate(self, queryset, name, value):
