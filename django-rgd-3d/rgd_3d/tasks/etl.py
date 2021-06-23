@@ -5,7 +5,7 @@ from celery.utils.log import get_task_logger
 from django.conf import settings
 from rgd.models import ChecksumFile
 from rgd.utility import get_or_create_no_commit
-from rgd_3d.models import PointCloudEntry, PointCloudFile
+from rgd_3d.models import PointCloud, PointCloudMeta
 
 logger = get_task_logger(__name__)
 
@@ -56,10 +56,10 @@ def _get_readers():
 
 
 def read_point_cloud_file(pc_file):
-    """Read a PointCloudFile object and create a new PointCloudEntry."""
-    if not isinstance(pc_file, PointCloudFile):
-        pc_file = PointCloudFile.objects.get(id=pc_file)
-    pc_entry, _ = get_or_create_no_commit(PointCloudEntry, source=pc_file)
+    """Read a PointCloud object and create a new PointCloudMeta."""
+    if not isinstance(pc_file, PointCloud):
+        pc_file = PointCloud.objects.get(id=pc_file)
+    pc_entry, _ = get_or_create_no_commit(PointCloudMeta, source=pc_file)
     pc_entry.name = pc_file.file.name
     # Parse the point cloud file format and convert
     ext = pc_file.file.name.split('.')[-1].strip().lower()

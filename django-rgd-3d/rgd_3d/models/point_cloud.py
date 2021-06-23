@@ -6,7 +6,7 @@ from rgd.models.mixins import DetailViewMixin, PermissionPathMixin, TaskEventMix
 from rgd_3d.tasks import jobs
 
 
-class PointCloudFile(TimeStampedModel, TaskEventMixin, PermissionPathMixin):
+class PointCloud(TimeStampedModel, TaskEventMixin, PermissionPathMixin):
     """Container for point cloud file."""
 
     task_funcs = (jobs.task_read_point_cloud_file,)
@@ -20,18 +20,18 @@ class PointCloudFile(TimeStampedModel, TaskEventMixin, PermissionPathMixin):
     permissions_paths = ['file__collection__collection_permissions']
 
 
-class PointCloudEntry(TimeStampedModel, PermissionPathMixin, DetailViewMixin):
+class PointCloudMeta(TimeStampedModel, PermissionPathMixin, DetailViewMixin):
     """Container for converted point cloud data.
 
     The data here must be stored in VTP format. This can be manually uploaded
-    or created automatically via a PointCloudFile upload.
+    or created automatically via a PointCloud upload.
     """
 
     name = models.CharField(max_length=1000, blank=True)
     description = models.TextField(null=True, blank=True)
 
     # Can be null if not generated from uploaded file
-    source = models.OneToOneField(PointCloudFile, null=True, blank=True, on_delete=models.CASCADE)
+    source = models.OneToOneField(PointCloud, null=True, blank=True, on_delete=models.CASCADE)
 
     # A place to store converted file - must be in VTP format
     vtp_data = models.ForeignKey(ChecksumFile, on_delete=models.DO_NOTHING)
@@ -48,10 +48,10 @@ class PointCloudEntry(TimeStampedModel, PermissionPathMixin, DetailViewMixin):
     detail_view_name = 'point-cloud-entry-detail'
 
 
-class PointCloudMetaEntry(TimeStampedModel, SpatialEntry, PermissionPathMixin):
-    """Optionally register a PointCloudEntry as a SpatialEntry."""
+class PointCloudSpatial(TimeStampedModel, SpatialEntry, PermissionPathMixin):
+    """Optionally register a PointCloudMeta as a SpatialEntry."""
 
-    parent_point_cloud = models.OneToOneField(PointCloudEntry, on_delete=models.CASCADE)
+    source = models.OneToOneField(PointCloud, on_delete=models.CASCADE)
 
     crs = models.TextField(help_text='PROJ string', blank=True, null=True)  # PROJ String
     # Origin point to map the 0,0,0 point of the point cloud
@@ -59,9 +59,8 @@ class PointCloudMetaEntry(TimeStampedModel, SpatialEntry, PermissionPathMixin):
 
     @property
     def name(self):
-        return self.parent_point_cloud.name
+        return self.source.file.name
 
     permissions_paths = [
-        'parent_point_cloud__source__file__collection__collection_permissions',
-        'parent_point_cloud__vtp_data__collection__collection_permissions',
+        'source__file__collection__collection_permissions',
     ]

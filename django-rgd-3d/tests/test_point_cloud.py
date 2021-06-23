@@ -14,11 +14,11 @@ from . import factories
 )
 @pytest.mark.django_db(transaction=True)
 def test_point_cloud_etl(sample_file):
-    pc_file = factories.PointCloudFileFactory(
+    pc_file = factories.PointCloudFactory(
         file__file__filename=sample_file,
         file__file__from_path=datastore.fetch(sample_file),
     )
-    entry = models.PointCloudEntry.objects.filter(source=pc_file).first()
+    entry = models.PointCloudMeta.objects.filter(source=pc_file).first()
     assert entry.vtp_data is not None
     # Testing that we can repopulate a point cloud entry
     read_point_cloud_file(pc_file.id)

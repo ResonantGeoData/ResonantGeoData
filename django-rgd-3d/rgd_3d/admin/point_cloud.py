@@ -7,11 +7,11 @@ from rgd.admin.mixins import (
     _FileGetNameMixin,
     reprocess,
 )
-from rgd_3d.models import PointCloudEntry, PointCloudFile, PointCloudMetaEntry
+from rgd_3d.models import PointCloud, PointCloudMeta, PointCloudSpatial
 
 
-@admin.register(PointCloudFile)
-class PointCloudFileAdmin(OSMGeoAdmin, _FileGetNameMixin):
+@admin.register(PointCloud)
+class PointCloudAdmin(OSMGeoAdmin, _FileGetNameMixin):
     list_display = (
         'pk',
         'get_name',
@@ -28,9 +28,8 @@ class PointCloudFileAdmin(OSMGeoAdmin, _FileGetNameMixin):
     list_filter = MODIFIABLE_FILTERS + TASK_EVENT_FILTERS
 
 
-class PointCloudMetaEntryInline(admin.StackedInline):
-    model = PointCloudMetaEntry
-    fk_name = 'parent_point_cloud'
+@admin.register(PointCloudSpatial)
+class PointCloudSpatialAdmin(OSMGeoAdmin):
     list_display = (
         'pk',
         'modified',
@@ -40,13 +39,13 @@ class PointCloudMetaEntryInline(admin.StackedInline):
     readonly_fields = (
         'modified',
         'created',
-        'parent_point_cloud',
+        'source',
     )
     modifiable = False  # To still show the footprint and outline
 
 
-@admin.register(PointCloudEntry)
-class PointCloudEntryAdmin(OSMGeoAdmin):
+@admin.register(PointCloudMeta)
+class PointCloudMetaAdmin(OSMGeoAdmin):
     list_display = (
         'pk',
         'modified',
@@ -54,8 +53,8 @@ class PointCloudEntryAdmin(OSMGeoAdmin):
         'data_link',
     )
     readonly_fields = (
+        'source',
         'modified',
         'created',
     )
-    inlines = (PointCloudMetaEntryInline,)
     list_filter = MODIFIABLE_FILTERS

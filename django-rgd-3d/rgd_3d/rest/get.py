@@ -3,13 +3,13 @@ from rgd.rest.get import _PermissionMixin
 from rgd_3d import models, serializers
 
 
-class GetPointCloudEntry(RetrieveAPIView, _PermissionMixin):
-    serializer_class = serializers.PointCloudEntrySerializer
+class GetPointCloudMeta(RetrieveAPIView, _PermissionMixin):
+    serializer_class = serializers.PointCloudMetaSerializer
     lookup_field = 'pk'
-    queryset = models.PointCloudEntry.objects.all()
+    queryset = models.PointCloudMeta.objects.all()
 
 
-class GetPointCloudEntryData(RetrieveAPIView, _PermissionMixin):
-    serializer_class = serializers.PointCloudEntryDataSerializer
+class GetPointCloudMetaData(RetrieveAPIView, _PermissionMixin):
+    serializer_class = serializers.PointCloudMetaDataSerializer
     lookup_field = 'pk'
-    queryset = models.PointCloudEntry.objects.all()
+    queryset = models.PointCloudMeta.objects.all()

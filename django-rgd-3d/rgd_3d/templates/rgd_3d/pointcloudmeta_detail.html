@@ -14,18 +14,18 @@
     <td>{{ object.source.data_link }}</td>
   </tr>
 
-  {% if object.pointcloudmetaentry %}
+  {% if object.pointcloudspatial %}
     <tr>
       <td>Acquisition Date</td>
-      <td>{{ object.pointcloudmetaentry.acquisition_date }}</td>
+      <td>{{ object.pointcloudspatial.acquisition_date }}</td>
     </tr>
     <tr>
       <td>Area</td>
-      <td>{{ object.pointcloudmetaentry.footprint.area | floatformat:-2 }}</td>
+      <td>{{ object.pointcloudspatial.footprint.area | floatformat:-2 }}</td>
     </tr>
     <tr>
       <td>Instrumentation</td>
-      <td>{{ object.pointcloudmetaentry.instrumentation }}</td>
+      <td>{{ object.pointcloudspatial.instrumentation }}</td>
     </tr>
   {% endif %}
 
@@ -37,7 +37,7 @@
 
 {% block detail %}
 
-    {% include 'rgd/_include/vtkjs_viewer.html' %}
+    {% include 'rgd_3d/_include/vtkjs_viewer.html' %}
 
     <style>
     .progress {
@@ -70,7 +70,7 @@
       const progressContainer = document.getElementById('progressContainer');
       progressContainer.innerHTML = 'Loading...';
 
-      fetch(`${host}/api/geodata/point_cloud/{{ object.id }}/base64`)
+      fetch(`{% url 'point-cloud-entry-data' object.id %}`)
         .then((resp) => resp.json())
         .then(function(data) {
           const contentToLoad = data.vtp_data;

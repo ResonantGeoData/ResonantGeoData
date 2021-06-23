@@ -17,7 +17,7 @@ POINT_CLOUD_FILES = [
 def load_point_cloud_files(pc_files):
     ids = []
     for f in pc_files:
-        entry = _get_or_create_file_model(models.PointCloudFile, f)
+        entry = _get_or_create_file_model(models.PointCloud, f)
         ids.append(entry.pk)
     return ids
 
