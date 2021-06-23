@@ -94,7 +94,8 @@ jobs:
       - name: Install ffmpeg
         if: ${{ matrix.rgd-module=='rgd-fmv' }}
         run: |
-          sudo apt-get install --no-install-recommends --yes --fix-missing ffmpeg
+          sudo apt update
+          sudo apt-get install --no-install-recommends --yes ffmpeg
       - name: Install tox and codecov
         run: |
           pip install --upgrade pip
