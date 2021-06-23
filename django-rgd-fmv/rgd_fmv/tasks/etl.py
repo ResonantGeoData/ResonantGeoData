@@ -202,7 +202,7 @@ def _populate_fmv_entry(entry):
 
 def read_fmv_file(fmv_file_id):
     fmv_file = FMVFile.objects.get(id=fmv_file_id)
-    fmv_file.skip_task = True
+    fmv_file.skip_signal = True
 
     validation = True  # TODO: use `fmv_file.file.validate()`
     # Only extraxt the KLV data if it does not exist or the checksum of the video has changed
