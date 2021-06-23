@@ -83,14 +83,7 @@ class SpatialEntriesListView(_SpatialListView):
         filterset = self.filter(data=self.request.GET)
         assert filterset.is_valid()
         queryset = filterset.filter_queryset(
-            self.model.objects.select_related(
-                'rastermetaentry',
-                'rastermetaentry__parent_raster',
-                'geometryentry',
-                'fmventry',
-                'pointcloudmetaentry',
-                'imagesetspatial',
-            )
+            self.model.objects.select_subclasses()
         )
         return permissions.filter_read_perm(self.request.user, queryset).order_by('spatial_id')
 
