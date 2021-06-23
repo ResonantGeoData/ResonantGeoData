@@ -36,12 +36,12 @@ urlpatterns = [
     # Other
     path(
         'api/rgd_imagery/<int:pk>',
-        rest.get.GetImageEntry.as_view(),
+        rest.get.GetImageMeta.as_view(),
         name='image-entry',
     ),
     path(
         'api/rgd_imagery/<int:pk>/data',
-        rest.download.download_image_entry_file,
+        rest.download.download_image_file,
         name='image-entry-data',
     ),
     path(
@@ -111,7 +111,7 @@ urlpatterns = [
         rest.tiles.TileSingleBandInfoView.as_view(),
         name='image-bands-single',
     ),
-    path('api/geoprocess/imagery/cog', rest.post.CreateConvertedImageFile.as_view()),
+    path('api/geoprocess/imagery/cog', rest.post.CreateConvertedImage.as_view()),
     path(
         'api/geoprocess/imagery/cog/<int:pk>',
         rest.get.GetConvertedImageStatus.as_view(),

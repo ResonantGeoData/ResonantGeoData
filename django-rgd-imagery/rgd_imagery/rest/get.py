@@ -4,11 +4,11 @@ from rgd_imagery import models, serializers
 
 
 class GetConvertedImageStatus(RetrieveAPIView, _PermissionMixin):
-    """Get the status of a ConvertedImageFile by PK."""
+    """Get the status of a ConvertedImage by PK."""
 
-    serializer_class = serializers.ConvertedImageFileSerializer
+    serializer_class = serializers.ConvertedImageSerializer
     lookup_field = 'pk'
-    queryset = models.ConvertedImageFile.objects.all()
+    queryset = models.ConvertedImage.objects.all()
 
 
 class GetSubsampledImage(RetrieveAPIView, _PermissionMixin):
@@ -17,10 +17,10 @@ class GetSubsampledImage(RetrieveAPIView, _PermissionMixin):
     queryset = models.SubsampledImage.objects.all()
 
 
-class GetImageEntry(RetrieveAPIView, _PermissionMixin):
-    serializer_class = serializers.ImageEntrySerializer
+class GetImageMeta(RetrieveAPIView, _PermissionMixin):
+    serializer_class = serializers.ImageMetaSerializer
     lookup_field = 'pk'
-    queryset = models.ImageEntry.objects.all()
+    queryset = models.ImageMeta.objects.all()
 
 
 class GetImageSet(RetrieveAPIView, _PermissionMixin):

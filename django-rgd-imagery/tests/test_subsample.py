@@ -1,7 +1,8 @@
 from large_image_source_gdal import GDALFileTileSource
 import pytest
 from rgd.datastore import datastore
-from rgd_imagery.models import Annotation, ConvertedImageFile, ImageEntry, SubsampledImage
+from rgd.models import ChecksumFile
+from rgd_imagery.models import Annotation, ConvertedImage, Image, SubsampledImage
 from rgd_imagery.tasks.subsample import populate_subsampled_image
 
 from . import factories
@@ -9,22 +10,21 @@ from . import factories
 
 @pytest.mark.django_db(transaction=True)
 def test_cog_image_conversion():
-    image_file = factories.ImageFileFactory(
+    image = factories.ImageFactory(
         file__file__filename='20091021202517-01000100-VIS_0001.ntf',
         file__file__from_path=datastore.fetch('20091021202517-01000100-VIS_0001.ntf'),
     )
-    img = ImageEntry.objects.get(image_file=image_file)
-    c = ConvertedImageFile()
-    c.source_image = img
+    c = ConvertedImage()
+    c.source_image = image
     c.save()
     # Task should complete synchronously
     c.refresh_from_db()
     assert c.converted_file
 
 
-def _create_subsampled(img, sample_type, params):
+def _create_subsampled(image, sample_type, params):
     sub = SubsampledImage()
-    sub.source_image = img
+    sub.source_image = image
     sub.sample_type = sample_type
     sub.sample_parameters = params
     sub.skip_signal = True
@@ -43,7 +43,7 @@ def _assert_bounds(new, bounds):
 
 @pytest.mark.django_db(transaction=True)
 def test_subsample_pixel_box(elevation):
-    with elevation.image_file.file.yield_local_path() as file_path:
+    with elevation.file.yield_local_path() as file_path:
         tile_source = GDALFileTileSource(str(file_path), projection='EPSG:3857', encoding='PNG')
         bounds = tile_source.getBounds()
     # Test with bbox
@@ -59,7 +59,7 @@ def test_subsample_pixel_box(elevation):
 
 @pytest.mark.django_db(transaction=True)
 def test_subsample_geo_box(elevation):
-    with elevation.image_file.file.yield_local_path() as file_path:
+    with elevation.file.yield_local_path() as file_path:
         tile_source = GDALFileTileSource(str(file_path), projection='EPSG:3857', encoding='PNG')
         bounds = tile_source.getBounds()
     # Test with bbox
@@ -85,7 +85,7 @@ def test_subsample_geo_box(elevation):
 
 @pytest.mark.django_db(transaction=True)
 def test_subsample_geojson(elevation):
-    with elevation.image_file.file.yield_local_path() as file_path:
+    with elevation.file.yield_local_path() as file_path:
         tile_source = GDALFileTileSource(str(file_path), projection='EPSG:3857', encoding='PNG')
         bounds = tile_source.getBounds()
     # Test with GeoJSON
@@ -121,7 +121,8 @@ def test_subsample_annotaion():
         spec_file__file__from_path=datastore.fetch('demo_rle.kwcoco.json'),
     )
 
-    img = ImageEntry.objects.get(name='000000242287.jpg')  # bicycle
-    a = Annotation.objects.get(image=img.id)  # Should be only one
-    sub = _create_subsampled(img, 'annotation', {'id': a.id})
+    file = ChecksumFile.objects.get(name='000000242287.jpg')  # bicycle
+    image = Image.objects.get(file=file)
+    a = Annotation.objects.get(image=image.pk)  # Should be only one
+    sub = _create_subsampled(image, 'annotation', {'id': a.pk})
     assert sub.data

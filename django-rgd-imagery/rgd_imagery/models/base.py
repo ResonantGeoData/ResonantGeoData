@@ -6,19 +6,19 @@ from rgd.models.mixins import DetailViewMixin, PermissionPathMixin, TaskEventMix
 from rgd_imagery.tasks import jobs
 
 
-class ImageFile(TimeStampedModel, TaskEventMixin, PermissionPathMixin):
+class Image(TimeStampedModel, TaskEventMixin, PermissionPathMixin):
     """This is a standalone DB entry for image files.
 
     This points to a single image file in an S3 file field.
 
-    This will automatically generate an ``ImageEntry`` on the ``post_save``
+    This will automatically generate an ``ImageMeta`` on the ``post_save``
     event. This points to data in its original location and the generated
-    ``ImageEntry`` points to this.
+    ``ImageMeta`` points to this.
 
     """
 
     permissions_paths = ['file__collection__collection_permissions']
-    task_funcs = (jobs.task_read_image_file,)
+    task_funcs = (jobs.task_load_image,)
     file = models.ForeignKey(ChecksumFile, on_delete=models.CASCADE)
 
     def image_data_link(self):
@@ -27,29 +27,23 @@ class ImageFile(TimeStampedModel, TaskEventMixin, PermissionPathMixin):
     image_data_link.allow_tags = True
 
 
-class ImageEntry(TimeStampedModel, PermissionPathMixin):
+class ImageMeta(TimeStampedModel, PermissionPathMixin):
     """Single image entry, tracks the original file."""
 
-    permissions_paths = ['image_file__file__collection__collection_permissions']
+    permissions_paths = ['parent_image__file__collection__collection_permissions']
 
-    def __str__(self):
-        return f'{self.name} ({self.id})'
-
-    name = models.CharField(max_length=1000, blank=True)
-    description = models.TextField(null=True, blank=True)
-
-    image_file = models.OneToOneField(ImageFile, on_delete=models.CASCADE)
+    parent_image = models.OneToOneField(Image, on_delete=models.CASCADE)
     driver = models.CharField(max_length=100)
     height = models.PositiveIntegerField()
     width = models.PositiveIntegerField()
     number_of_bands = models.PositiveIntegerField()
 
 
-class BandMetaEntry(TimeStampedModel, PermissionPathMixin):
+class BandMeta(TimeStampedModel, PermissionPathMixin):
     """A basic container to keep track of useful band info."""
 
-    permissions_paths = ['parent_image__image_file__file__collection__collection_permissions']
-    parent_image = models.ForeignKey(ImageEntry, on_delete=models.CASCADE)
+    permissions_paths = ['parent_image__file__collection__collection_permissions']
+    parent_image = models.ForeignKey(Image, on_delete=models.CASCADE)
     band_number = models.IntegerField()
     description = models.TextField(
         null=True,
@@ -68,15 +62,12 @@ class BandMetaEntry(TimeStampedModel, PermissionPathMixin):
 class ImageSet(TimeStampedModel, PermissionPathMixin):
     """Container for many images."""
 
-    permissions_paths = ['images__image_file__file__collection__collection_permissions']
-
-    def __str__(self):
-        return f'{self.name} ({self.id} - {type(self)}'
+    permissions_paths = ['images__file__collection__collection_permissions']
 
     name = models.CharField(max_length=1000, blank=True)
     description = models.TextField(null=True, blank=True)
 
-    images = models.ManyToManyField(ImageEntry)
+    images = models.ManyToManyField(Image)
 
     @property
     def image_bands(self):
@@ -104,10 +95,11 @@ class ImageSet(TimeStampedModel, PermissionPathMixin):
 class ImageSetSpatial(TimeStampedModel, SpatialEntry, PermissionPathMixin, DetailViewMixin):
     """Arbitrary register an ImageSet to a location."""
 
-    permissions_paths = ['image_set__images__image_file__file__collection__collection_permissions']
+    permissions_paths = ['image_set__images__file__collection__collection_permissions']
     detail_view_name = 'image-set-spatial-detail'
 
-    name = models.CharField(max_length=1000, blank=True)
-    description = models.TextField(null=True, blank=True)
-
     image_set = models.OneToOneField(ImageSet, on_delete=models.CASCADE)
+
+    @property
+    def name(self):
+        return self.image_set.name

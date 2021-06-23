@@ -1,4 +1,6 @@
 from django.contrib import admin
+
+# from django.contrib.admin import SimpleListFilter
 from django.contrib.gis.admin import OSMGeoAdmin
 from rgd.admin.mixins import (
     MODIFIABLE_FILTERS,
@@ -10,10 +12,10 @@ from rgd.admin.mixins import (
 )
 from rgd.utility import get_or_create_no_commit
 from rgd_imagery.models import (
-    BandMetaEntry,
-    ConvertedImageFile,
-    ImageEntry,
-    ImageFile,
+    BandMeta,
+    ConvertedImage,
+    Image,
+    ImageMeta,
     ImageSet,
     ImageSetSpatial,
     RasterEntry,
@@ -30,16 +32,10 @@ def _make_image_set_from_images(images):
     return imset
 
 
-def make_image_files(modeladmin, request, queryset):
-    """Make ImageFile from ChecksumFile."""
-    for file in queryset.all():
-        ImageFile.objects.get_or_create(file=file)
+def make_image_set_from_images(modeladmin, request, queryset):
+    """Make an `ImageSet` of the selected `ImageMeta`s.
 
-
-def make_image_set_from_image_entries(modeladmin, request, queryset):
-    """Make an `ImageSet` of the selected `ImageEntry`s.
-
-    This is an action on `ImageEntry`.
+    This is an action on `ImageMeta`.
     """
     return _make_image_set_from_images(queryset.all())
 
@@ -51,12 +47,12 @@ def _make_raster_from_image_set(imset):
     return raster
 
 
-def make_raster_from_image_entries(modeladmin, request, queryset):
-    """Make a raster of the selected `ImageEntry`s.
+def make_raster_from_images(modeladmin, request, queryset):
+    """Make a raster of the selected `ImageMeta`s.
 
-    This is an action on `ImageEntry`
+    This is an action on `ImageMeta`
     """
-    imset = make_image_set_from_image_entries(modeladmin, request, queryset)
+    imset = make_image_set_from_images(modeladmin, request, queryset)
     return _make_raster_from_image_set(imset)
 
 
@@ -71,10 +67,10 @@ def make_raster_from_image_set(modeladmin, request, queryset):
     return rasters
 
 
-def make_raster_for_each_image_entry(modeladmin, request, queryset):
-    """Make a raster for each of the selected `ImageEntry`s.
+def make_raster_for_each_image(modeladmin, request, queryset):
+    """Make a raster for each of the selected `ImageMeta`s.
 
-    This is an action on `ImageEntry`.
+    This is an action on `ImageMeta`.
 
     This creates one raster for each image entry.
     """
@@ -98,8 +94,33 @@ def clean_empty_image_sets(modeladmin, request, queryset):
 
 def convert_images(modeladmin, request, queryset):
     for image in queryset.all():
-        entry, created = get_or_create_no_commit(ConvertedImageFile, source_image=image)
+        entry, created = get_or_create_no_commit(ConvertedImage, source_image=image)
         entry.save()
+
+
+# class ImageSetSpatialFilter(SimpleListFilter):
+#     title = 'Spatial'
+#     parameter_name = 'imagesetspatial'
+#
+#     def lookups(self, request, model_admin):
+#         return [True, False]
+#
+#     def queryset(self, request, queryset):
+#         if not self.value():
+#             return queryset.filter(imagesetspatial__isnull=True)
+#         if self.value():
+#             return queryset.filter(imagesetspatial__isnull=False)
+
+
+class ImageSetSpatialInline(admin.StackedInline):
+    model = ImageSetSpatial
+    fk_name = 'image_set'
+    list_display = (
+        'pk',
+        'modified',
+        'created',
+    )
+    list_filter = MODIFIABLE_FILTERS + SPATIAL_ENTRY_FILTERS
 
 
 @admin.register(ImageSet)
@@ -115,22 +136,12 @@ class ImageSetAdmin(OSMGeoAdmin):
         make_raster_from_image_set,
         clean_empty_image_sets,
     )
-    list_filter = MODIFIABLE_FILTERS
+    list_filter = MODIFIABLE_FILTERS  # (ImageSetSpatialFilter, )
+    inlines = (ImageSetSpatialInline,)
 
 
-@admin.register(ImageSetSpatial)
-class ImageSetSpatialAdmin(OSMGeoAdmin):
-    list_display = (
-        'pk',
-        'name',
-        'modified',
-        'created',
-    )
-    list_filter = MODIFIABLE_FILTERS + SPATIAL_ENTRY_FILTERS
-
-
-class BandMetaEntryInline(admin.StackedInline):
-    model = BandMetaEntry
+class BandMetaInline(admin.StackedInline):
+    model = BandMeta
     fk_name = 'parent_image'
 
     list_display = (
@@ -157,18 +168,17 @@ class BandMetaEntryInline(admin.StackedInline):
         return False
 
 
-@admin.register(ImageEntry)
-class ImageEntryAdmin(OSMGeoAdmin):
+class ImageMetaInline(admin.StackedInline):
+    model = ImageMeta
+    fk_name = 'parent_image'
     list_display = (
         'pk',
-        'name',
-        'image_file',
         'modified',
         'created',
     )
     readonly_fields = (
         'number_of_bands',
-        'image_file',
+        'parent_image',
         'height',
         'width',
         'driver',
@@ -179,17 +189,10 @@ class ImageEntryAdmin(OSMGeoAdmin):
         'number_of_bands',
         'driver',
     )
-    actions = (
-        make_image_set_from_image_entries,
-        make_raster_from_image_entries,
-        make_raster_for_each_image_entry,
-        convert_images,
-    )
-    inlines = (BandMetaEntryInline,)
 
 
-@admin.register(ImageFile)
-class ImageFileAdmin(OSMGeoAdmin, _FileGetNameMixin):
+@admin.register(Image)
+class ImageAdmin(OSMGeoAdmin, _FileGetNameMixin):
     list_display = (
         'pk',
         'get_name',
@@ -202,5 +205,15 @@ class ImageFileAdmin(OSMGeoAdmin, _FileGetNameMixin):
         'modified',
         'created',
     ) + TASK_EVENT_READONLY
-    actions = (reprocess,)
+    actions = (
+        reprocess,
+        make_image_set_from_images,
+        make_raster_from_images,
+        make_raster_for_each_image,
+        convert_images,
+    )
     list_filter = MODIFIABLE_FILTERS + TASK_EVENT_FILTERS
+    inlines = (
+        ImageMetaInline,
+        BandMetaInline,
+    )

@@ -18,10 +18,10 @@ from rgd.models.constants import DB_SRID
 from rgd.models.transform import transform_geometry
 from rgd.utility import get_or_create_no_commit
 from rgd_imagery.models import (
-    BandMetaEntry,
-    ConvertedImageFile,
-    ImageEntry,
-    ImageFile,
+    BandMeta,
+    ConvertedImage,
+    Image,
+    ImageMeta,
     RasterEntry,
     RasterMetaEntry,
 )
@@ -37,27 +37,27 @@ os.environ['GDAL_DATA'] = GDAL_DATA
 MAX_LOAD_SHAPE = (4000, 4000)
 
 
-def _read_image_to_entry(image_entry, image_file_path):
+def _populate_image_meta_models(image_meta, image_file_path):
 
     with rasterio.open(image_file_path) as src:
-        image_entry.number_of_bands = src.count
-        image_entry.driver = src.driver
-        image_entry.height = src.shape[0]
-        image_entry.width = src.shape[1]
+        image_meta.number_of_bands = src.count
+        image_meta.driver = src.driver
+        image_meta.height = src.shape[0]
+        image_meta.width = src.shape[1]
 
         # A catch-all metadata feild:
-        # TODO: image_entry.metadata =
+        # TODO: image_meta.metadata =
 
         # These are things I couldn't figure out how to get with gdal directly
         dtypes = src.dtypes
         interps = src.colorinterp
 
         # No longer editing image_entry
-        image_entry.save()
+        image_meta.save()
 
         for i in range(src.count):
-            band_meta = BandMetaEntry()
-            band_meta.parent_image = image_entry
+            band_meta = BandMeta()
+            band_meta.parent_image = image_meta.parent_image
             band_meta.band_number = i + 1  # off by 1 indexing
             band_meta.description = src.descriptions[i]
             band_meta.nodata_value = src.nodatavals[i]
@@ -81,29 +81,27 @@ def _read_image_to_entry(image_entry, image_file_path):
             band_meta.save()
 
 
-def read_image_file(ife):
+def load_image(image):
     """Image ingestion routine.
 
-    This helper will open an image file from ``ImageFile`` and create a
-    ``ImageEntry`` and collection of ``BandMetaEntry`` entries.
+    This helper will open an image file from ``Image`` and create a
+    ``ImageMeta`` and collection of ``BandMeta`` entries.
 
     """
     # Fetch the image file this Layer corresponds to
-    if not isinstance(ife, ImageFile):
-        ife = ImageFile.objects.get(id=ife)
+    if not isinstance(image, Image):
+        image = Image.objects.get(id=image)
 
-    with ife.file.yield_local_path(vsi=True) as file_path:
-        image_entry, created = get_or_create_no_commit(
-            ImageEntry, defaults=dict(name=ife.file.name), image_file=ife
-        )
+    with image.file.yield_local_path(vsi=True) as file_path:
+        image_meta, created = get_or_create_no_commit(ImageMeta, parent_image=image)
         if not created:
             # Clear out associated entries because they could be invalid
-            BandMetaEntry.objects.filter(parent_image=image_entry).delete()
-            ConvertedImageFile.objects.filter(source_image=image_entry).delete()
+            BandMeta.objects.filter(parent_image=image).delete()
+            ConvertedImage.objects.filter(source_image=image).delete()
 
-        _read_image_to_entry(image_entry, file_path)
+        _populate_image_meta_models(image_meta, file_path)
 
-    return image_entry
+    return image_meta
 
 
 def _extract_raster_outline(src):
@@ -119,15 +117,15 @@ def _extract_raster_outline(src):
     return transform_geometry(Polygon(coords, srid=src.crs.to_epsg()), src.crs.to_wkt())
 
 
-def _extract_raster_meta(image_file_entry):
-    """Extract all of the raster meta info in our models from an image file.
+def _extract_raster_meta(image):
+    """Extract all of the raster meta info in our models from an Image.
 
     The keys of the returned dict should match the fields of the
     ``RasterEntry``.
 
     """
     raster_meta = dict()
-    with image_file_entry.file.yield_local_path(vsi=True) as path:
+    with image.file.yield_local_path(vsi=True) as path:
         with rasterio.open(path) as src:
             raster_meta['crs'] = src.crs.to_proj4()
             raster_meta['origin'] = [src.bounds.left, src.bounds.bottom]
@@ -265,13 +263,13 @@ def _reproject_raster(file_path, epsg):
                 yield rsrc
 
 
-def _extract_raster_footprint(image_file_entry):
-    """Extract the footprint of raster's image file entry.
+def _extract_raster_footprint(image):
+    """Extract the footprint of raster's Image.
 
-    This operates on the assumption that the image file is a valid raster.
+    This operates on the assumption that the Image is a valid raster.
 
     """
-    with image_file_entry.file.yield_local_path(vsi=True) as file_path:
+    with image.file.yield_local_path(vsi=True) as file_path:
         # Reproject the raster to the DB SRID using rasterio directly rather
         #  than transforming the extracted geometry which had issues.
         with _reproject_raster(file_path, DB_SRID) as src:
@@ -295,7 +293,7 @@ def _compare_raster_meta(a, b):
     return True
 
 
-def _validate_image_set_is_raster(image_set_entry):
+def _validate_image_set_is_raster(image_set):
     """Validate if all of the images in a single ``ImageSet`` are a raster.
 
     Will check if all have a spatial reference/geo meta info but not
@@ -304,15 +302,15 @@ def _validate_image_set_is_raster(image_set_entry):
     Returns the first image's meta info if it checks out.
 
     """
-    images = list(image_set_entry.images.all())
+    images = list(image_set.images.all())
 
     if not images:
         raise ValueError('ImageSet returned no images.')
 
     base_image = images.pop()
-    first_meta = _extract_raster_meta(base_image.image_file)
+    first_meta = _extract_raster_meta(base_image)
     for image in images:
-        _extract_raster_meta(image.image_file)
+        _extract_raster_meta(image)
 
     return first_meta
 
@@ -343,7 +341,7 @@ def populate_raster_entry(raster_entry):
 def populate_raster_outline(raster_id):
     raster_entry = RasterEntry.objects.get(id=raster_id)
     base_image = raster_entry.image_set.images.first()
-    with base_image.image_file.file.yield_local_path(vsi=True) as path:
+    with base_image.file.yield_local_path(vsi=True) as path:
         with rasterio.open(path) as src:
             raster_entry.rastermetaentry.outline = _extract_raster_outline(src)
     raster_entry.rastermetaentry.save(
@@ -360,7 +358,7 @@ def populate_raster_footprint(raster_id):
     try:
         raster_meta = RasterMetaEntry.objects.get(parent_raster=raster_entry)
         base_image = raster_entry.image_set.images.first()
-        footprint = _extract_raster_footprint(base_image.image_file)
+        footprint = _extract_raster_footprint(base_image)
         if footprint:
             raster_meta.footprint = footprint
             raster_meta.save(update_fields=['footprint'])

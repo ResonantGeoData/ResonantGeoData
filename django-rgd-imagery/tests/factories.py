@@ -4,9 +4,9 @@ from rgd_imagery import models
 from rgd_testing_utils.factories import ChecksumFileFactory
 
 
-class ImageFileFactory(factory.django.DjangoModelFactory):
+class ImageFactory(factory.django.DjangoModelFactory):
     class Meta:
-        model = models.ImageFile
+        model = models.Image
 
     file = factory.SubFactory(ChecksumFileFactory)
 

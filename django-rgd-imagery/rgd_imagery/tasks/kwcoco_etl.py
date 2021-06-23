@@ -11,15 +11,13 @@ import numpy as np
 from rgd.models import ChecksumFile
 from rgd_imagery.models import (
     Annotation,
-    ImageFile,
+    Image,
     ImageSet,
     KWCOCOArchive,
     PolygonSegmentation,
     RLESegmentation,
     Segmentation,
 )
-
-from .etl import read_image_file
 
 logger = get_task_logger(__name__)
 
@@ -95,8 +93,8 @@ def load_kwcoco_dataset(kwcoco_dataset_id):
         if ds_entry.image_set:
             # Delete all previously existing data
             # This should cascade to all the annotations
-            for imageentry in ds_entry.image_set.images.all():
-                imageentry.image_file.file.delete()
+            for image in ds_entry.image_set.images.all():
+                image.file.delete()
         else:
             ds_entry.image_set = ImageSet()
         ds_entry.image_set.name = ds_entry.name
@@ -127,29 +125,24 @@ def load_kwcoco_dataset(kwcoco_dataset_id):
             # Set the root dir to where the images were extracted / the temp dir
             # If images are coming from URL, they will download to here
             ds.img_root = tmpdir
-            # Iterate over images and create an ImageEntry from them.
+            # Iterate over images and create an ImageMeta from them.
             # Any images in the archive that aren't listed in the JSON will be deleted
             for imgid in ds.imgs.keys():
                 ak = ds.index.gid_to_aids[imgid]
                 img = ds.imgs[imgid]
                 anns = [ds.anns[k] for k in ak]
-                # Create the ImageFile entry to track each image's location
+                # Create the Image entry to track each image's location
                 image_file_abs_path = os.path.join(ds.img_root, img['file_name'])
                 name = os.path.basename(image_file_abs_path)
-                image_file = ImageFile()
-                image_file.collection = ds_entry.spec_file.collection
-                image_file.skip_signal = True
-                image_file.file = ChecksumFile()
-                image_file.file.file.save(name, open(image_file_abs_path, 'rb'))
-                image_file.save()
-                # Create a new ImageEntry
-                image_entry = read_image_file(image_file)
-                # Add ImageEntry to ImageSet
-                ds_entry.image_set.images.add(image_entry)
-                # Create annotations that link to that ImageEntry
+                file = ChecksumFile()
+                file.file.save(name, open(image_file_abs_path, 'rb'))
+                image, _ = Image.objects.get_or_create(file=file)
+                # Add ImageMeta to ImageSet
+                ds_entry.image_set.images.add(image)
+                # Create annotations that link to that ImageMeta
                 for ann in anns:
                     annotation_entry = Annotation()
-                    annotation_entry.image = image_entry
+                    annotation_entry.image = image
                     try:
                         annotation_entry.label = ds.cats[ann['category_id']]['name']
                     except KeyError:

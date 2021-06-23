@@ -1,6 +1,7 @@
 import json
 
 from rgd import datastore
+from rgd.management.commands._data_helper import SynchronousTasksCommand
 
 from . import _data_helper as helper
 
@@ -32,7 +33,7 @@ def _get_landsat_urls(count):
     return rasters
 
 
-class Command(helper.SynchronousTasksCommand):
+class Command(SynchronousTasksCommand):
     help = 'Populate database with demo landsat data from S3.'
 
     def add_arguments(self, parser):

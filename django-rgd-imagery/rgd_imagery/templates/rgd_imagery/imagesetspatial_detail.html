@@ -12,7 +12,7 @@
 
   <select id="image-selector" onchange="updateBandThumbnail()">
     {% for image in object.image_set.images.all %}
-      <option value="{{ image.id }}">{{ image.name | truncatechars:36 }}</option>
+      <option value="{% url 'image-entry-data' image.pk %}">{{ image.file.name | truncatechars:36 }}</option>
     {% endfor %}
   </select>
 
@@ -75,7 +75,6 @@
       .draw()
 
     function updateBandThumbnail () {
-      var image_id = Number(selector.value);
       var image = document.createElement('img');
       image.crossOrigin = "";   // ask for CORS permission
       image.onload = function() {
@@ -104,7 +103,7 @@
         imageViewer.center(zoomAndCenter.center);
 
       }
-      image.src = `${host}/api/geodata/imagery/${image_id}/data`
+      image.src = selector.value
     }
     updateBandThumbnail()
   </script>

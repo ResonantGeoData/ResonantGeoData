@@ -4,7 +4,13 @@ from django.contrib.auth.models import User
 from django.contrib.gis.admin import OSMGeoAdmin
 from rgd.models import ChecksumFile, SpatialAsset, WhitelistedEmail
 
-from .mixins import MODIFIABLE_FILTERS, TASK_EVENT_FILTERS, TASK_EVENT_READONLY, reprocess
+from .mixins import (
+    MODIFIABLE_FILTERS,
+    TASK_EVENT_FILTERS,
+    TASK_EVENT_READONLY,
+    _FileGetNameMixin,
+    reprocess,
+)
 
 
 def make_users_active(modeladmin, request, queryset):
@@ -77,10 +83,10 @@ class ChecksumFileAdmin(OSMGeoAdmin):
 
 
 @admin.register(SpatialAsset)
-class SpatialAssetAdmin(OSMGeoAdmin):
+class SpatialAssetAdmin(OSMGeoAdmin, _FileGetNameMixin):
     list_display = (
         'pk',
-        'name',
+        'get_name',
         'modified',
         'created',
     )

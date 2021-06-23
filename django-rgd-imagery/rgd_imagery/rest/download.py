@@ -9,23 +9,23 @@ from rgd_imagery import models
 
 @swagger_auto_schema(
     method='GET',
-    operation_summary='Download the associated ImageFile data for this ImageEntry directly from S3.',
+    operation_summary='Download the associated Image data for this Image directly from S3.',
 )
 @api_view(['GET'])
-def download_image_entry_file(request, pk):
-    instance = models.ImageEntry.objects.get(pk=pk)
+def download_image_file(request, pk):
+    instance = models.Image.objects.get(pk=pk)
     check_read_perm(request.user, instance)
-    url = instance.image_file.file.get_url()
+    url = instance.file.get_url()
     return HttpResponseRedirect(url)
 
 
 @swagger_auto_schema(
     method='GET',
-    operation_summary='Download the associated ChecksumFile data for this ConvertedImageFile directly from S3.',
+    operation_summary='Download the associated ChecksumFile data for this ConvertedImage directly from S3.',
 )
 @api_view(['GET'])
 def download_cog_file(request, pk):
-    instance = models.ConvertedImageFile.objects.get(pk=pk)
+    instance = models.ConvertedImage.objects.get(pk=pk)
     check_read_perm(request.user, instance)
     af_id = instance.converted_file.id
     instance = ChecksumFile.objects.get(pk=af_id)

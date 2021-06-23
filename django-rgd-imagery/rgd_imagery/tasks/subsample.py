@@ -4,20 +4,20 @@ import large_image_converter
 from rgd.models import ChecksumFile
 from rgd.utility import input_output_path_helper, output_path_helper
 from rgd_imagery import large_image_utilities
-from rgd_imagery.models import ConvertedImageFile, SubsampledImage
+from rgd_imagery.models import ConvertedImage, SubsampledImage
 
 logger = get_task_logger(__name__)
 
 
 def convert_to_cog(cog):
-    """Populate ConvertedImageFile with COG file."""
-    if not isinstance(cog, ConvertedImageFile):
-        cog = ConvertedImageFile.objects.get(id=cog)
+    """Populate ConvertedImage with COG file."""
+    if not isinstance(cog, ConvertedImage):
+        cog = ConvertedImage.objects.get(id=cog)
     else:
         cog.refresh_from_db()
     if not cog.converted_file:
         cog.converted_file = ChecksumFile()
-    src = cog.source_image.image_file.file
+    src = cog.source_image.file
     output = cog.converted_file.file
 
     with input_output_path_helper(src, output, prefix='cog_', vsi=True) as (
@@ -40,7 +40,7 @@ def populate_subsampled_image(subsampled):
         subsampled = SubsampledImage.objects.get(id=subsampled)
     else:
         subsampled.refresh_from_db()
-    image_entry = subsampled.source_image
+    image = subsampled.source_image
 
     logger.info(f'Subsample parameters: {subsampled.sample_parameters}')
     l, r, b, t, projection = subsampled.get_extent()
@@ -48,9 +48,9 @@ def populate_subsampled_image(subsampled):
     if not subsampled.data:
         subsampled.data = ChecksumFile()
 
-    tile_source = large_image_utilities.get_tilesource_from_image_entry(image_entry)
+    tile_source = large_image_utilities.get_tilesource_from_image(image)
 
-    filename = f'subsampled-{image_entry.image_file.file.name}'
+    filename = f'subsampled-{image.file.name}'
 
     with output_path_helper(filename, subsampled.data.file) as output_path:
         logger.info(f'The extent: {l, r, b, t}')

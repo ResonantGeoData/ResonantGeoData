@@ -45,13 +45,12 @@ def make_raster_dict(
     }
 
 
-def load_image_files(image_files):
+def load_images(images):
     ids = []
-    for name, imfile in image_files:
-        # Run `read_image_file` sequentially to ensure `ImageEntry` is generated
-        entry = _get_or_create_file_model(models.ImageFile, imfile, name=name)
-        result = entry.imageentry.pk
-        ids.append(result)
+    for name, imfile in images:
+        # Run `load_image` sequentially to ensure `Image` is generated
+        entry = _get_or_create_file_model(models.Image, imfile, name=name)
+        ids.append(entry.pk)
     return ids
 
 
@@ -63,7 +62,7 @@ def _get_or_create_image_set(image_ids):
         # Grab first, could be N-many
         imset = models.ImageSet.objects.get(id=imsets[0]['id'])
     else:
-        images = models.ImageEntry.objects.filter(pk__in=image_ids).all()
+        images = models.Image.objects.filter(pk__in=image_ids).all()
         imset = models.ImageSet()
         imset.save()  # Have to save before adding to ManyToManyField
         for image in images:
@@ -136,7 +135,7 @@ def load_raster_files(raster_dicts, footprint=False):
     for i, rf in enumerate(raster_dicts):
         logger.info(f'Processesing raster {i+1} of {count}')
         start_time = datetime.now()
-        imentries = load_image_files(rf.get('images'))
+        imentries = load_images(rf.get('images'))
         raster = load_raster(imentries, rf, footprint=footprint)
         ids.append(raster.pk)
         logger.info('\t Loaded raster in: {}'.format(datetime.now() - start_time))
@@ -165,11 +164,10 @@ def load_spatial_image_sets(image_sets):
             geom = shape(json.loads(f.read())['geometry'])
         feature = GEOSGeometry(memoryview(dumps(geom)))
         # Load image entries
-        image_ids = load_image_files(list(zip([None] * len(image_files), image_files)))
+        image_ids = load_images(list(zip([None] * len(image_files), image_files)))
         imset = _get_or_create_image_set(image_ids)
         # Make an ImageSetSpatial
         imset_spatial, _ = get_or_create_no_commit(models.ImageSetSpatial, image_set=imset)
-        imset_spatial.name = imset.name
         imset_spatial.footprint = feature
         imset_spatial.outline = feature.convex_hull
         imset_spatial.save()

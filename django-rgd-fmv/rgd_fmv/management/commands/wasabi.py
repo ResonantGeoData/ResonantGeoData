@@ -1,3 +1,5 @@
+from rgd.management.commands._data_helper import SynchronousTasksCommand
+
 from . import _data_helper as helper
 
 SUCCESS_MSG = 'Finished loading all demo data.'
@@ -8,7 +10,7 @@ FMV_FILES = [
 ]
 
 
-class Command(helper.SynchronousTasksCommand):
+class Command(SynchronousTasksCommand):
     help = 'Populate database with WASABI FMV demo data.'
 
     def handle(self, *args, **options):

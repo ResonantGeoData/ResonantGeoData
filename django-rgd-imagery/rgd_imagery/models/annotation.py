@@ -7,13 +7,13 @@ from django_extensions.db.models import TimeStampedModel
 import numpy as np
 from rgd.models.mixins import PermissionPathMixin
 
-from .base import ImageEntry
+from .base import Image
 
 
 class Annotation(TimeStampedModel, PermissionPathMixin):
-    """Image annotation/label for ``ImageEntry``."""
+    """Image annotation/label for ``Image``."""
 
-    image = models.ForeignKey(ImageEntry, on_delete=models.CASCADE)
+    image = models.ForeignKey(Image, on_delete=models.CASCADE)
 
     caption = models.CharField(max_length=100, blank=True, null=True)
     label = models.CharField(max_length=100, blank=True, null=True)
@@ -27,7 +27,7 @@ class Annotation(TimeStampedModel, PermissionPathMixin):
         """Get type of segmentation."""
         return self.segmentation.get_type()
 
-    permissions_paths = ['image__image_file__collection__collection_permissions']
+    permissions_paths = ['image__collection__collection_permissions']
 
 
 class Segmentation(models.Model):
@@ -67,7 +67,7 @@ class Segmentation(models.Model):
             pass
         return 'Oultine/BBox'
 
-    permissions_paths = ['annotation__image__image_file__collection__collection_permissions']
+    permissions_paths = ['annotation__image__collection__collection_permissions']
 
 
 class PolygonSegmentation(Segmentation):

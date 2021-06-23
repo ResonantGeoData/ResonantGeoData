@@ -2,9 +2,9 @@ from rest_framework.generics import CreateAPIView
 from rgd_imagery import models, serializers
 
 
-class CreateConvertedImageFile(CreateAPIView):
-    queryset = models.ConvertedImageFile.objects.all()
-    serializer_class = serializers.ConvertedImageFileSerializer
+class CreateConvertedImage(CreateAPIView):
+    queryset = models.ConvertedImage.objects.all()
+    serializer_class = serializers.ConvertedImageSerializer
 
 
 class CreateSubsampledImage(CreateAPIView):

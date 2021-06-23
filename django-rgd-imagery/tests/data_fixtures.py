@@ -1,38 +1,37 @@
 import pytest
 from rgd.datastore import datastore
 from rgd.models import FileSourceType
-from rgd_imagery import models
 
 from . import factories
 
 
 @pytest.fixture
 def geotiff_image_entry():
-    imagefile = factories.ImageFileFactory(
+    image = factories.ImageFactory(
         file__file__filename='paris_france_10.tiff',
         file__file__from_path=datastore.fetch('paris_france_10.tiff'),
     )
-    return imagefile.imageentry
+    return image
 
 
 @pytest.fixture
 def astro_image():
     name = 'astro.png'
-    imagefile = factories.ImageFileFactory(
+    image = factories.ImageFactory(
         file__file__filename=name,
         file__file__from_path=datastore.fetch(name),
     )
-    return imagefile.imageentry
+    return image
 
 
 @pytest.fixture
 def sample_raster_a():
-    imagefile = factories.ImageFileFactory(
+    image = factories.ImageFactory(
         file__file__filename='20091021202517-01000100-VIS_0001.ntf',
         file__file__from_path=datastore.fetch('20091021202517-01000100-VIS_0001.ntf'),
     )
     image_set = factories.ImageSetFactory(
-        images=[imagefile.imageentry.id],
+        images=[image.id],
     )
     raster = factories.RasterEntryFactory(
         name='20091021202517-01000100-VIS_0001.ntf',
@@ -43,12 +42,12 @@ def sample_raster_a():
 
 @pytest.fixture
 def sample_raster_b():
-    imagefile = factories.ImageFileFactory(
+    image = factories.ImageFactory(
         file__file__filename='cclc_schu_100.tif',
         file__file__from_path=datastore.fetch('cclc_schu_100.tif'),
     )
     image_set = factories.ImageSetFactory(
-        images=[imagefile.imageentry.id],
+        images=[image.id],
     )
     raster = factories.RasterEntryFactory(
         name='cclc_schu_100.tif',
@@ -59,12 +58,12 @@ def sample_raster_b():
 
 @pytest.fixture
 def sample_raster_c():
-    imagefile = factories.ImageFileFactory(
+    image = factories.ImageFactory(
         file__file__filename='RomanColosseum_WV2mulitband_10.tif',
         file__file__from_path=datastore.fetch('RomanColosseum_WV2mulitband_10.tif'),
     )
     image_set = factories.ImageSetFactory(
-        images=[imagefile.imageentry.id],
+        images=[image.id],
     )
     raster = factories.RasterEntryFactory(
         name='RomanColosseum_WV2mulitband_10.tif',
@@ -82,10 +81,10 @@ def sample_raster_multi():
         'LC08_L1TP_034032_20200429_20200509_01_T1_sr_band3.tif',
     ]
     images = [
-        factories.ImageFileFactory(
+        factories.ImageFactory(
             file__file__filename=landsat_files[0],
             file__file__from_path=datastore.fetch(f),
-        ).imageentry
+        )
         for f in landsat_files
     ]
     image_set = factories.ImageSetFactory(
@@ -107,11 +106,11 @@ def sample_raster_url():
         'LC08_L1TP_034032_20200429_20200509_01_T1_sr_band3.tif',
     ]
     images = [
-        factories.ImageFileFactory(
+        factories.ImageFactory(
             file__type=FileSourceType.URL,
             file__file=None,
             file__url=datastore.get_url(f),
-        ).imageentry
+        )
         for f in landsat_files
     ]
     image_set = factories.ImageSetFactory(
@@ -135,8 +134,8 @@ def sample_raster_url():
 @pytest.fixture
 def elevation():
     name = 'Elevation.tif'
-    image_file = factories.ImageFileFactory(
+    image = factories.ImageFactory(
         file__file__filename=name,
         file__file__from_path=datastore.fetch(name),
     )
-    return models.ImageEntry.objects.get(image_file=image_file)
+    return image

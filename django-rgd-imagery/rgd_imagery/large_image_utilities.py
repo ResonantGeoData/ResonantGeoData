@@ -2,18 +2,16 @@ from large_image.exceptions import TileSourceException
 from large_image.tilesource import FileTileSource
 from large_image_source_gdal import GDALFileTileSource
 from large_image_source_pil import PILFileTileSource
-from rgd_imagery.models import ImageEntry
+from rgd_imagery.models import Image
 
 
-def get_tilesource_from_image_entry(
-    image_entry: ImageEntry, projection: str = None
-) -> FileTileSource:
+def get_tilesource_from_image(image: Image, projection: str = None) -> FileTileSource:
     # Make sure projection is None by default to use source projection
     try:
-        file_path = image_entry.image_file.file.get_vsi_path(internal=True)
+        file_path = image.file.get_vsi_path(internal=True)
         return GDALFileTileSource(file_path, projection=projection, encoding='PNG')
     except TileSourceException:
-        with image_entry.image_file.file.yield_local_path() as file_path:
+        with image.file.yield_local_path() as file_path:
             return PILFileTileSource(file_path)
 
 

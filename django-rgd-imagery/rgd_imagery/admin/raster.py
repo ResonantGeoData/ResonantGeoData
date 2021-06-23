@@ -77,7 +77,6 @@ class RasterEntryAdmin(OSMGeoAdmin):
         'name',
         'status',
         'count',
-        'acquisition_date',
         'modified',
         'created',
     )

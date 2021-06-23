@@ -15,14 +15,14 @@ from rgd.serializers import ChecksumFileSerializer, SpatialEntrySerializer
 from . import models
 
 
-class ConvertedImageFileSerializer(serializers.ModelSerializer):
+class ConvertedImageSerializer(serializers.ModelSerializer):
     def validate_source_image(self, value):
         if 'request' in self.context:
             check_write_perm(self.context['request'].user, value)
         return value
 
     class Meta:
-        model = models.ConvertedImageFile
+        model = models.ConvertedImage
         fields = '__all__'
         read_only_fields = ['id', 'status', 'failure_reason', 'converted_file']
 
@@ -65,16 +65,16 @@ class SubsampledImageSerializer(serializers.ModelSerializer):
         return obj
 
 
-class ImageFileSerializer(serializers.ModelSerializer):
+class ImageSerializer(serializers.ModelSerializer):
     file = ChecksumFileSerializer()
 
     class Meta:
-        model = models.ImageFile
+        model = models.Image
         fields = '__all__'
 
 
-class ImageEntrySerializer(serializers.ModelSerializer):
-    image_file = ImageFileSerializer()
+class ImageMetaSerializer(serializers.ModelSerializer):
+    parent_image = ImageSerializer()
 
     def to_representation(self, value):
         ret = super().to_representation(value)
@@ -87,7 +87,7 @@ class ImageEntrySerializer(serializers.ModelSerializer):
         return ret
 
     class Meta:
-        model = models.ImageEntry
+        model = models.ImageMeta
         fields = '__all__'
         read_only_fields = [
             'id',
@@ -101,7 +101,7 @@ class ImageEntrySerializer(serializers.ModelSerializer):
 
 
 class ImageSetSerializer(serializers.ModelSerializer):
-    images = ImageEntrySerializer(many=True)
+    images = ImageSerializer(many=True)
 
     class Meta:
         model = models.ImageSet
@@ -159,10 +159,10 @@ class STACRasterSerializer(serializers.BaseSerializer):
         item.ext.enable('eo')
         item.ext.eo.apply(cloud_cover=instance.cloud_cover, bands=[])
         # Add assets
-        for image_entry in instance.parent_raster.image_set.images.all():
+        for image in instance.parent_raster.image_set.images.all():
             asset = pystac.Asset(
-                href=image_entry.image_file.file.get_url(),
-                title=image_entry.image_file.file.name,
+                href=image.file.get_url(),
+                title=image.file.name,
                 roles=[
                     'data',
                 ],
@@ -173,11 +173,11 @@ class STACRasterSerializer(serializers.BaseSerializer):
                         name=f'B{bandmeta.band_number}',
                         description=bandmeta.description,
                     )
-                    for bandmeta in image_entry.bandmetaentry_set.all()
+                    for bandmeta in image.bandmeta_set.all()
                 ],
                 asset=asset,
             )
-            item.add_asset(f'image-{image_entry.pk}', asset)
+            item.add_asset(f'image-{image.pk}', asset)
 
         for ancillary_file in instance.parent_raster.ancillary_files.all():
             asset = pystac.Asset(
@@ -193,9 +193,6 @@ class STACRasterSerializer(serializers.BaseSerializer):
 
     @transaction.atomic
     def create(self, data):
-        # TODO: fix messy import
-        from rgd_imagery.tasks.etl import read_image_file
-
         item = pystac.Item.from_dict(data)
         images, ancillary = [], []
         single_asset = False
@@ -208,25 +205,17 @@ class STACRasterSerializer(serializers.BaseSerializer):
                 url=asset.href,
             )
             if single_asset or (asset.roles and 'data' in asset.roles):
-                image_file, _ = utility.get_or_create_no_commit(
-                    models.ImageFile, file=checksum_file
-                )
-                image_file.skip_signal = True
-                image_file.save()
-                read_image_file(image_file)
-                image_entry = models.ImageEntry.objects.get(image_file=image_file)
-                images.append(image_entry)
+                image, _ = models.Image.objects.get_or_create(file=checksum_file)
+                images.append(image)
             else:
                 ancillary.append(checksum_file)
 
         image_set = models.ImageSet.objects.create()
         image_set.images.set(images)
 
-        raster_entry = models.RasterEntry()
-        raster_entry.skip_signal = True
-        raster_entry.name = item.id
-        raster_entry.image_set = image_set
-        raster_entry.save()
+        raster_entry, _ = models.RasterEntry.objects.get_or_create(
+            image_set=image_set, defaults=dict(name=item.id)
+        )
         [raster_entry.ancillary_files.add(af) for af in ancillary]
         raster_entry.save()
 

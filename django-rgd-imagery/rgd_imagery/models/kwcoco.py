@@ -18,6 +18,7 @@ class KWCOCOArchive(TimeStampedModel, TaskEventMixin, PermissionPathMixin):
 
     task_funcs = (jobs.task_load_kwcoco_dataset,)
     name = models.CharField(max_length=1000, blank=True)
+    description = models.TextField(null=True, blank=True)
     spec_file = models.OneToOneField(
         ChecksumFile,
         on_delete=models.CASCADE,
@@ -39,9 +40,12 @@ class KWCOCOArchive(TimeStampedModel, TaskEventMixin, PermissionPathMixin):
         #  this will cascade to the annotations
         images = self.image_set.images.all()
         for image in images:
-            # This should cascade to the ImageFile and the ImageEntry
-            image.image_file.file.delete()
+            # This should cascade to the Image and the ImageMeta
+            image.file.delete()
         # Now delete the empty image set
         self.image_set.delete()
 
-    permissions_paths = ['spec_file__collection__collection_permissions']
+    permissions_paths = [
+        'spec_file__collection__collection_permissions',
+        'image_archive__collection__collection_permissions',
+    ]

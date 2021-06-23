@@ -42,7 +42,7 @@ def test_raster_stac_export_import(admin_api_client, sample_raster_url):
     sample = sample_raster_url
     data = STACRasterSerializer(sample).data
     instance = STACRasterSerializer().create(data)
-    # Check ImageFile/ImageEntry
+    # Check Image/ImageMeta
     assert (
         instance.parent_raster.image_set.images.count()
         == sample.parent_raster.image_set.images.count()

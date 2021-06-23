@@ -78,6 +78,7 @@ class ChecksumFile(TimeStampedModel, TaskEventMixin, PermissionPathMixin):
     """
 
     name = models.CharField(max_length=1000, blank=True)
+    description = models.TextField(null=True, blank=True)
     checksum = models.CharField(max_length=128)  # sha512
     validate_checksum = models.BooleanField(
         default=False
@@ -303,8 +304,5 @@ class SpatialAsset(SpatialEntry, TimeStampedModel, PermissionPathMixin):
     """
 
     permissions_paths = ['files__collection__collection_permissions']
-
-    name = models.CharField(max_length=1000, blank=True)
-    description = models.TextField(null=True, blank=True)
 
     files = models.ManyToManyField(ChecksumFile)

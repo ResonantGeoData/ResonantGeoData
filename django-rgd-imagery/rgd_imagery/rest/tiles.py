@@ -6,16 +6,16 @@ from rest_framework.request import Request
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rgd_imagery import large_image_utilities
-from rgd_imagery.models import ImageEntry
+from rgd_imagery.models import Image
 
 
 class BaseTileView(APIView):
     def get_tile_source(self, request: Request, pk: int) -> FileTileSource:
         """Return the built tile source."""
-        image_entry = get_object_or_404(ImageEntry, pk=pk)
+        image_entry = get_object_or_404(Image, pk=pk)
         self.check_object_permissions(request, image_entry)
         projection = request.query_params.get('projection', None)
-        return large_image_utilities.get_tilesource_from_image_entry(image_entry, projection)
+        return large_image_utilities.get_tilesource_from_image(image_entry, projection)
 
 
 class TileMetadataView(BaseTileView):

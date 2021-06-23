@@ -33,7 +33,7 @@ class RasterMetaEntryFilter(SpatialEntryFilter):
         """
         if value is not None:
             queryset = queryset.annotate(
-                num_bands=Sum('parent_raster__image_set__images__number_of_bands')
+                num_bands=Sum('parent_raster__image_set__images__imagemeta__number_of_bands')
             )
             if value.start is not None:
                 queryset = queryset.filter(num_bands__gte=value.start)

@@ -3,12 +3,12 @@ from rgd.tasks import helpers
 
 
 @shared_task(time_limit=86400)
-def task_read_image_file(file_id):
-    from rgd_imagery.models import ImageFile
-    from rgd_imagery.tasks.etl import read_image_file
+def task_load_image(file_id):
+    from rgd_imagery.models import Image
+    from rgd_imagery.tasks.etl import load_image
 
-    image_file = ImageFile.objects.get(id=file_id)
-    helpers._run_with_failure_reason(image_file, read_image_file, file_id)
+    image_file = Image.objects.get(id=file_id)
+    helpers._run_with_failure_reason(image_file, load_image, file_id)
 
 
 @shared_task(time_limit=86400)
@@ -49,10 +49,10 @@ def task_load_kwcoco_dataset(kwcoco_dataset_id):
 
 @shared_task(time_limit=86400)
 def task_convert_to_cog(conv_id):
-    from rgd_imagery.models import ConvertedImageFile
+    from rgd_imagery.models import ConvertedImage
     from rgd_imagery.tasks.subsample import convert_to_cog
 
-    cog = ConvertedImageFile.objects.get(id=conv_id)
+    cog = ConvertedImage.objects.get(id=conv_id)
     helpers._run_with_failure_reason(cog, convert_to_cog, conv_id)
 
 

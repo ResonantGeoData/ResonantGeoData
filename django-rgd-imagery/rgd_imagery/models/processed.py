@@ -8,26 +8,26 @@ from rgd_imagery.tasks import jobs
 from shapely.geometry import shape
 from shapely.wkb import dumps
 
-from .base import ImageEntry
+from .base import Image
 
 
-class ConvertedImageFile(TimeStampedModel, TaskEventMixin, PermissionPathMixin):
+class ConvertedImage(TimeStampedModel, TaskEventMixin, PermissionPathMixin):
     """A model to store converted versions of a raster entry."""
 
     task_funcs = (jobs.task_convert_to_cog,)
     converted_file = models.OneToOneField(ChecksumFile, on_delete=models.SET_NULL, null=True)
-    source_image = models.OneToOneField(ImageEntry, on_delete=models.CASCADE)
+    source_image = models.OneToOneField(Image, on_delete=models.CASCADE)
 
     def _post_delete(self, *args, **kwargs):
         # Cleanup the associated ChecksumFile
         if self.converted_file:
             self.converted_file.delete()
 
-    permissions_paths = ['source_image__image_file__file__collection__collection_permissions']
+    permissions_paths = ['source_image__file__collection__collection_permissions']
 
 
 class SubsampledImage(TimeStampedModel, TaskEventMixin, PermissionPathMixin):
-    """A subsample of an ImageEntry."""
+    """A subsample of an ImageMeta."""
 
     task_funcs = (jobs.task_populate_subsampled_image,)
 
@@ -37,7 +37,7 @@ class SubsampledImage(TimeStampedModel, TaskEventMixin, PermissionPathMixin):
         GEOJSON = 'geojson', _('GeoJSON feature')
         ANNOTATION = 'annotation', _('Annotation entry')
 
-    source_image = models.ForeignKey(ImageEntry, on_delete=models.CASCADE)
+    source_image = models.ForeignKey(Image, on_delete=models.CASCADE)
     sample_type = models.CharField(
         max_length=20, default=SampleTypes.PIXEL_BOX, choices=SampleTypes.choices
     )
@@ -91,4 +91,4 @@ class SubsampledImage(TimeStampedModel, TaskEventMixin, PermissionPathMixin):
         # Cleanup the associated ChecksumFile
         self.data.delete()
 
-    permissions_paths = ['source_image__image_file__file__collection__collection_permissions']
+    permissions_paths = ['source_image__file__collection__collection_permissions']

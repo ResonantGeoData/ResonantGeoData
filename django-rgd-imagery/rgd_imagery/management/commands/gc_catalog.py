@@ -7,6 +7,7 @@ import xml.etree.ElementTree as ElementTree
 
 import pandas as pd
 from rgd import datastore
+from rgd.management.commands._data_helper import SynchronousTasksCommand
 from rgd.utility import safe_urlopen
 
 from . import _data_helper as helper
@@ -169,7 +170,7 @@ class GCLoader:
                 rd = _load_sentinel(row)
         except ValueError:
             return None
-        imentries = helper.load_image_files(rd.get('images'))
+        imentries = helper.load_images(rd.get('images'))
         helper.load_raster(imentries, rd, footprint=self.footprint)
 
     def load_rasters(self, count=None):
@@ -180,7 +181,7 @@ class GCLoader:
         pool.map(self._load_raster, range(count))
 
 
-class Command(helper.SynchronousTasksCommand):
+class Command(SynchronousTasksCommand):
     help = 'Populate database with demo landsat data from S3.'
 
     def add_arguments(self, parser):
