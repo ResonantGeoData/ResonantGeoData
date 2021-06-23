@@ -67,6 +67,14 @@ class SpatialEntryFilter(filters.FilterSet):
         lookup_expr='icontains',
     )
 
+    @property
+    def _geometry(self):
+        return self.form.cleaned_data['q']
+
+    @property
+    def _has_geom(self):
+        return self._geometry is not None
+
     def filter_q(self, queryset, name, value):
         """Sort the queryset by distance to queried geometry.
 
@@ -75,20 +83,20 @@ class SpatialEntryFilter(filters.FilterSet):
         This uses the efficient KNN operation:
         https://postgis.net/docs/geometry_distance_knn.html
         """
-        return queryset.annotate(distance=GeometryDistance('footprint', value)).order_by('distance')
+        if value:
+            queryset = queryset.annotate(distance=GeometryDistance('footprint', value)).order_by('distance')
+        return queryset
 
     def filter_predicate(self, queryset, name, value):
         """Filter the spatial entries by the chosen predicate."""
-        if value:
-            geom = self.form.cleaned_data['q']
-            return queryset.filter(**{f'footprint__{value}': geom})
+        if value and self._has_geom:
+            queryset = queryset.filter(**{f'footprint__{value}': self._geometry})
         return queryset
 
     def filter_relates(self, queryset, name, value):
         """Filter the spatial entries by the chosen DE-9IM."""
-        if value:
-            geom = self.form.cleaned_data['q']
-            return queryset.filter(footprint__relates=(geom, value))
+        if value and self._has_geom:
+            queryset = queryset.filter(footprint__relates=(self._geometry, value))
         return queryset
 
     def filter_distance(self, queryset, name, value):
@@ -98,13 +106,13 @@ class SpatialEntryFilter(filters.FilterSet):
         very taxing on the DBMS right now. The distance in degrees
         can be provided by the initial geometry query.
         """
-        if value:
-            geom = self.form.cleaned_data['q']
+        if value and self._has_geom:
+            geom = self._geometry
             if value.start is not None:
                 queryset = queryset.filter(footprint__distance_gte=(geom, D(m=value.start)))
             if value.stop is not None:
                 queryset = queryset.filter(footprint__distance_lte=(geom, D(m=value.stop)))
-            return queryset
+        return queryset
 
     class Meta:
         model = SpatialEntry
