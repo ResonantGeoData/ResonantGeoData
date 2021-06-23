@@ -48,11 +48,11 @@ Creating a new `GeometryEntry` is very similar to the previous process of creati
 
 This will then auto populate the linked `GeometryEntry`, and the dataset will immediately be available in the catalog.
 
-## Full Motion Video: `FMVEntry`
+## Full Motion Video: `FMVMeta`
 
 
-Creating a new `FMVEntry` is very similar to the previous processes. To do so, first, upload the FMV file to a new `ChecksumFile` entry. Then link that `ChecksumFile` to a new `FMVFile` entry:
+Creating a new `FMVMeta` is very similar to the previous processes. To do so, first, upload the FMV file to a new `ChecksumFile` entry. Then link that `ChecksumFile` to a new `FMV` entry:
 
 ![fmv_file](./images/fmv_file.png)
 
-This will then auto populate the various disabled fields in the `FMVFile` model with temp files for extracting the spatial data and a web-friendly version of the video. This will also automatically fill out the linked `FMVEntry`, and the dataset will soon be available in the catalog. The processing routine for these files can take a while to run to completion.
+This will then auto populate the various disabled fields in the `FMV` model with temp files for extracting the spatial data and a web-friendly version of the video. This will also automatically fill out the linked `FMVMeta`, and the dataset will soon be available in the catalog. The processing routine for these files can take a while to run to completion.

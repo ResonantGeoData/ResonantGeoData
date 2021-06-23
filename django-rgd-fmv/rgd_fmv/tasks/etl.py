@@ -10,7 +10,7 @@ from django.contrib.gis.geos import MultiPoint, MultiPolygon, Point, Polygon
 from girder_utils.files import field_file_to_local_path
 import numpy as np
 from rgd.utility import get_or_create_no_commit
-from rgd_fmv.models import FMVEntry, FMVFile
+from rgd_fmv.models import FMV, FMVMeta
 
 logger = get_task_logger(__name__)
 
@@ -201,7 +201,7 @@ def _populate_fmv_entry(entry):
 
 
 def read_fmv_file(fmv_file_id):
-    fmv_file = FMVFile.objects.get(id=fmv_file_id)
+    fmv_file = FMV.objects.get(id=fmv_file_id)
     fmv_file.skip_signal = True
 
     validation = True  # TODO: use `fmv_file.file.validate()`
@@ -212,8 +212,6 @@ def read_fmv_file(fmv_file_id):
         _convert_video_to_mp4(fmv_file)
 
     # create a model entry for that shapefile
-    entry, created = get_or_create_no_commit(
-        FMVEntry, defaults=dict(name=fmv_file.file.name), fmv_file=fmv_file
-    )
+    entry, created = get_or_create_no_commit(FMVMeta, fmv_file=fmv_file)
 
     _populate_fmv_entry(entry)

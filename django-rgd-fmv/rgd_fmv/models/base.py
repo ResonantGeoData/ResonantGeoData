@@ -11,7 +11,7 @@ from rgd_fmv.tasks import jobs
 from s3_file_field import S3FileField
 
 
-class FMVFile(TimeStampedModel, TaskEventMixin, PermissionPathMixin):
+class FMV(TimeStampedModel, TaskEventMixin, PermissionPathMixin):
     """For uploading single FMV files (mp4)."""
 
     task_funcs = (jobs.task_read_fmv_file,)
@@ -35,16 +35,10 @@ class FMVFile(TimeStampedModel, TaskEventMixin, PermissionPathMixin):
     permissions_paths = ['file__collection__collection_permissions']
 
 
-class FMVEntry(TimeStampedModel, SpatialEntry, PermissionPathMixin, DetailViewMixin):
+class FMVMeta(TimeStampedModel, SpatialEntry, PermissionPathMixin, DetailViewMixin):
     """Single FMV entry, tracks the original file."""
 
-    def __str__(self):
-        return f'{self.name} ({self.id})'
-
-    name = models.CharField(max_length=1000)
-    description = models.TextField(null=True, blank=True)
-
-    fmv_file = models.OneToOneField(FMVFile, on_delete=models.CASCADE)
+    fmv_file = models.OneToOneField(FMV, on_delete=models.CASCADE)
 
     ground_frames = models.MultiPolygonField(srid=DB_SRID)
     ground_union = models.MultiPolygonField(srid=DB_SRID)
@@ -61,3 +55,7 @@ class FMVEntry(TimeStampedModel, SpatialEntry, PermissionPathMixin, DetailViewMi
 
     permissions_paths = ['fmv_file__file__collection__collection_permissions']
     detail_view_name = 'fmv-entry-detail'
+
+    @property
+    def name(self):
+        return self.fmv_file.file.name

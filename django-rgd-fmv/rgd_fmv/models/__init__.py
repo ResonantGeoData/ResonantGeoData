@@ -1,1 +1,1 @@
-from .base import FMVEntry, FMVFile  # noqa
+from .base import FMV, FMVMeta  # noqa

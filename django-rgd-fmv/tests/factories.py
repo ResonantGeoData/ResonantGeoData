@@ -4,9 +4,9 @@ from rgd_fmv import models
 from rgd_testing_utils.factories import ChecksumFileFactory
 
 
-class FMVFileFactory(factory.django.DjangoModelFactory):
+class FMVFactory(factory.django.DjangoModelFactory):
     class Meta:
-        model = models.FMVFile
+        model = models.FMV
 
     file = factory.SubFactory(ChecksumFileFactory)
     klv_file = factory.django.FileField(filename='sample.klv')

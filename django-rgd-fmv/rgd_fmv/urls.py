@@ -6,14 +6,14 @@ urlpatterns = [
     # Pages
     path(
         'rgd_fmv/<int:pk>/',
-        views.FMVEntryDetailView.as_view(),
-        name=models.FMVEntry.detail_view_name,
+        views.FMVMetaDetailView.as_view(),
+        name=models.FMVMeta.detail_view_name,
     ),
     #############
     # Other
     path(
         'api/rgd_fmv/<int:pk>',
-        rest.get.GetFMVEntry.as_view(),
+        rest.get.GetFMVMeta.as_view(),
         name='fmv-entry',
     ),
     path(

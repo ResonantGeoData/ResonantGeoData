@@ -7,15 +7,14 @@ from rgd.admin.mixins import (
     _FileGetNameMixin,
     reprocess,
 )
-from rgd_fmv.models import FMVEntry, FMVFile
+from rgd_fmv.models import FMV, FMVMeta
 
 
-class FMVEntryInline(admin.StackedInline):
-    model = FMVEntry
+class FMVMetaInline(admin.StackedInline):
+    model = FMVMeta
     fk_name = 'fmv_file'
     list_display = (
         'pk',
-        'name',
         'fmv_file',
         'modified',
         'created',
@@ -23,11 +22,12 @@ class FMVEntryInline(admin.StackedInline):
     readonly_fields = (
         'modified',
         'created',
+        'fmv_file',
     )
 
 
-@admin.register(FMVFile)
-class FMVFileAdmin(OSMGeoAdmin, _FileGetNameMixin):
+@admin.register(FMV)
+class FMVAdmin(OSMGeoAdmin, _FileGetNameMixin):
     list_display = (
         'pk',
         'get_name',
@@ -44,6 +44,6 @@ class FMVFileAdmin(OSMGeoAdmin, _FileGetNameMixin):
         'web_video_file',
         'frame_rate',
     ) + TASK_EVENT_READONLY
-    inlines = (FMVEntryInline,)
+    inlines = (FMVMetaInline,)
     actions = (reprocess,)
     list_filter = MODIFIABLE_FILTERS + TASK_EVENT_FILTERS

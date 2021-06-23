@@ -82,9 +82,7 @@ class SpatialEntriesListView(_SpatialListView):
     def get_queryset(self):
         filterset = self.filter(data=self.request.GET)
         assert filterset.is_valid()
-        queryset = filterset.filter_queryset(
-            self.model.objects.select_subclasses()
-        )
+        queryset = filterset.filter_queryset(self.model.objects.select_subclasses())
         return permissions.filter_read_perm(self.request.user, queryset).order_by('spatial_id')
 
 

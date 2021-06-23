@@ -5,8 +5,8 @@ from rgd.views import _SpatialDetailView
 from . import models
 
 
-class FMVEntryDetailView(_SpatialDetailView):
-    model = models.FMVEntry
+class FMVMetaDetailView(_SpatialDetailView):
+    model = models.FMVMeta
 
     def _get_extent(self):
         extent = super()._get_extent()

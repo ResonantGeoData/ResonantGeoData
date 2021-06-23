@@ -3,13 +3,13 @@ from rgd.rest.get import _PermissionMixin
 from rgd_fmv import models, serializers
 
 
-class GetFMVEntry(RetrieveAPIView, _PermissionMixin):
-    serializer_class = serializers.FMVEntrySerializer
+class GetFMVMeta(RetrieveAPIView, _PermissionMixin):
+    serializer_class = serializers.FMVMetaSerializer
     lookup_field = 'pk'
-    queryset = models.FMVEntry.objects.all()
+    queryset = models.FMVMeta.objects.all()
 
 
 class GetFMVDataEntry(RetrieveAPIView, _PermissionMixin):
-    serializer_class = serializers.FMVEntryDataSerializer
+    serializer_class = serializers.FMVMetaDataSerializer
     lookup_field = 'pk'
-    queryset = models.FMVEntry.objects.all()
+    queryset = models.FMVMeta.objects.all()

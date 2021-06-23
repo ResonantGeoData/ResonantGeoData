@@ -10,7 +10,7 @@ class Collection(models.Model, PermissionPathMixin):
     name = models.CharField(max_length=127)
 
     def __str__(self):
-        return self.name
+        return f'{self.name} ({self.pk})'
 
     class Meta:
         default_related_name = 'collections'

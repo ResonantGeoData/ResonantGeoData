@@ -7,19 +7,19 @@ from rgd.serializers import ChecksumFileSerializer, SpatialEntrySerializer
 from . import models
 
 
-class FMVFileSerializer(serializers.ModelSerializer):
+class FMVSerializer(serializers.ModelSerializer):
     file = ChecksumFileSerializer()
 
     class Meta:
-        model = models.FMVFile
+        model = models.FMV
         fields = '__all__'
 
 
-class FMVEntrySerializer(SpatialEntrySerializer):
-    fmv_file = FMVFileSerializer()
+class FMVMetaSerializer(SpatialEntrySerializer):
+    fmv_file = FMVSerializer()
 
     class Meta:
-        model = models.FMVEntry
+        model = models.FMVMeta
         exclude = [
             'ground_frames',
             'ground_union',
@@ -30,7 +30,7 @@ class FMVEntrySerializer(SpatialEntrySerializer):
         ]
 
 
-class FMVEntryDataSerializer(FMVEntrySerializer):
+class FMVMetaDataSerializer(FMVMetaSerializer):
     def to_representation(self, value):
         ret = super().to_representation(value)
         ret['ground_frames'] = json.loads(value.ground_frames.geojson)
@@ -39,7 +39,7 @@ class FMVEntryDataSerializer(FMVEntrySerializer):
         return ret
 
     class Meta:
-        model = models.FMVEntry
+        model = models.FMVMeta
         fields = '__all__'
 
 

@@ -20,9 +20,6 @@ class RasterEntry(TimeStampedModel, TaskEventMixin, PermissionPathMixin):
 
     permissions_paths = ['image_set__images__file__collection__collection_permissions']
 
-    def __str__(self):
-        return 'ID: {} {} (type: {})'.format(self.id, self.name, type(self))
-
     name = models.CharField(max_length=1000, blank=True)
     description = models.TextField(null=True, blank=True)
 
