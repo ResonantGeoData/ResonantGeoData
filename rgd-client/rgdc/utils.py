@@ -126,7 +126,7 @@ def download_checksum_file_to_path(file: Dict, path: Path, keep_existing: bool):
 
 def spatial_subentry_id(search_result):
     """Get the id of a returned SpatialEntry."""
-    return search_result['subentry_pk']
+    return search_result['pk']
 
 
 def spatial_search_params(

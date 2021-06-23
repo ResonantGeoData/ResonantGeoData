@@ -1,13 +1,13 @@
 from django.urls import path
 
-from . import rest, views
+from . import models, rest, views
 
 urlpatterns = [
     # Pages
     path(
         'rgd_fmv/<int:pk>/',
         views.FMVEntryDetailView.as_view(),
-        name='fmv-entry-detail',
+        name=models.FMVEntry.detail_view_name,
     ),
     #############
     # Other

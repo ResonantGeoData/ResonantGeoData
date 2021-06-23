@@ -2,7 +2,7 @@
 from django.contrib.gis.db import models
 from django_extensions.db.models import TimeStampedModel
 from rgd.models import ChecksumFile, SpatialEntry
-from rgd.models.mixins import PermissionPathMixin, TaskEventMixin
+from rgd.models.mixins import DetailViewMixin, PermissionPathMixin, TaskEventMixin
 from rgd_imagery.tasks import jobs
 
 
@@ -101,10 +101,12 @@ class ImageSet(TimeStampedModel, PermissionPathMixin):
         return annots
 
 
-class ImageSetSpatial(TimeStampedModel, SpatialEntry, PermissionPathMixin):
+class ImageSetSpatial(TimeStampedModel, SpatialEntry, PermissionPathMixin, DetailViewMixin):
     """Arbitrary register an ImageSet to a location."""
 
     permissions_paths = ['image_set__images__image_file__file__collection__collection_permissions']
+    detail_view_name = 'image-set-spatial-detail'
+
     name = models.CharField(max_length=1000, blank=True)
     description = models.TextField(null=True, blank=True)
 

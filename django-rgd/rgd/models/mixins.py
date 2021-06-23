@@ -75,3 +75,9 @@ class PermissionPathMixin:
     """
 
     permissions_paths: List[str] = []
+
+
+class DetailViewMixin:
+    """Interface for spatial entry detail view redirect."""
+
+    detail_view_name: str = None

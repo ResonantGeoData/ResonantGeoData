@@ -1,12 +1,12 @@
 from django.urls import path
-from rgd_3d import rest, views
+from rgd_3d import models, rest, views
 
 urlpatterns = [
     # Pages
     path(
         'rgd_3d/point_cloud/<int:pk>/',
         views.PointCloudEntryDetailView.as_view(),
-        name='point-cloud-entry-detail',
+        name=models.PointCloudEntry.detail_view_name,
     ),
     #############
     # Other

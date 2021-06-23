@@ -1,6 +1,6 @@
 from django.urls import path, register_converter
 
-from . import rest, views
+from . import models, rest, views
 
 
 class FloatUrlParameterConverter:
@@ -22,12 +22,12 @@ urlpatterns = [
     path(
         'rgd_imagery/raster/<int:pk>/',
         views.RasterEntryDetailView.as_view(),
-        name='raster-entry-detail',
+        name=models.RasterMetaEntry.detail_view_name,
     ),
     path(
         'rgd_imagery/image_set/<int:pk>/',
         views.ImageSetSpatialDetailView.as_view(),
-        name='image-set-spatial-detail',
+        name=models.ImageSetSpatial.detail_view_name,
     ),
     #############
     # Search

@@ -4,6 +4,8 @@ from django.contrib.gis.db.models import Collect, Extent
 from django.contrib.gis.db.models.functions import AsGeoJSON, Centroid
 from django.contrib.postgres.aggregates import ArrayAgg
 from django.db.models import Count, Max, Min, Q
+from django.shortcuts import redirect
+from django.urls import reverse
 from django.views import generic
 from django.views.generic import DetailView
 from rgd import permissions
@@ -174,20 +176,6 @@ class _SpatialDetailView(PermissionDetailView):
 
 
 def spatial_entry_redirect_view(request, pk):
-    spat = models.SpatialEntry.objects.get(pk=pk)  # noqa
-    # sub = spat.subentry
-    # if isinstance(sub, RasterMetaEntry):
-    #     name = 'raster-entry-detail'
-    # elif isinstance(sub, GeometryEntry):
-    #     name = 'geometry-entry-detail'
-    # elif isinstance(sub, FMVEntry):
-    #     name = 'fmv-entry-detail'
-    # elif isinstance(sub, PointCloudMetaEntry):
-    #     name = 'point-cloud-entry-detail'
-    #     sub = sub.parent_point_cloud
-    # elif isinstance(sub, ImageSetSpatial):
-    #     name = 'image-set-spatial-detail'
-    # else:
-    #     raise ValueError()
-    # return redirect(reverse(name, kwargs={'pk': sub.pk}))
-    raise ValueError()
+    # NOTE HACK: this is dirty but it works
+    spat = models.SpatialEntry.objects.filter(pk=pk).select_subclasses().first()
+    return redirect(reverse(spat.detail_view_name, kwargs={'pk': spat.pk}))

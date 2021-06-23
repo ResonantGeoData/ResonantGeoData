@@ -23,24 +23,15 @@ class SpatialEntrySerializer(serializers.ModelSerializer):
         ret = super().to_representation(value)
         # NOTE: including footprint can cause the search results to blow up in size
         ret['outline'] = json.loads(value.outline.geojson)
+        # NOTE HACK: this is dirty but it works
+        subentry = models.SpatialEntry.objects.filter(pk=value.pk).select_subclasses().first()
         # Add hyperlink to get view for subtype if SpatialEntry
-        if type(value).__name__ != value.subentry_type:
-            subtype = value.subentry_type
-            ret['subentry_type'] = subtype
-            ret['subentry_pk'] = value.subentry.pk
-            ret['subentry_name'] = value.subentry_name
-            if subtype == 'RasterMetaEntry':
-                ret['subentry_pk'] = value.subentry.pk
-                subtype_uri = reverse('raster-meta-entry', args=[value.subentry.pk])
-            elif subtype == 'GeometryEntry':
-                subtype_uri = reverse('geometry-entry', args=[value.subentry.pk])
-            elif subtype == 'FMVEntry':
-                subtype_uri = reverse('fmv-entry', args=[value.subentry.pk])
-            if 'request' in self.context:
-                request = self.context['request']
-                ret['detail'] = request.build_absolute_uri(subtype_uri)
-            else:
-                ret['detail'] = subtype_uri
+        ret['subentry_type'] = type(subentry).__name__
+        try:
+            # TODO: enforce all sub models have name
+            ret['subentry_name'] = subentry.name
+        except AttributeError:
+            pass
         return ret
 
     class Meta:

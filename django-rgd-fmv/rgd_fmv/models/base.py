@@ -5,7 +5,7 @@ from django.contrib.gis.db import models
 from django_extensions.db.models import TimeStampedModel
 from rgd.models import ChecksumFile, SpatialEntry
 from rgd.models.constants import DB_SRID
-from rgd.models.mixins import PermissionPathMixin, TaskEventMixin
+from rgd.models.mixins import DetailViewMixin, PermissionPathMixin, TaskEventMixin
 from rgd.utility import _link_url, uuid_prefix_filename
 from rgd_fmv.tasks import jobs
 from s3_file_field import S3FileField
@@ -35,7 +35,7 @@ class FMVFile(TimeStampedModel, TaskEventMixin, PermissionPathMixin):
     permissions_paths = ['file__collection__collection_permissions']
 
 
-class FMVEntry(TimeStampedModel, SpatialEntry, PermissionPathMixin):
+class FMVEntry(TimeStampedModel, SpatialEntry, PermissionPathMixin, DetailViewMixin):
     """Single FMV entry, tracks the original file."""
 
     def __str__(self):
@@ -60,3 +60,4 @@ class FMVEntry(TimeStampedModel, SpatialEntry, PermissionPathMixin):
         return pickle.loads(base64.b64decode(blob))
 
     permissions_paths = ['fmv_file__file__collection__collection_permissions']
+    detail_view_name = 'fmv-entry-detail'

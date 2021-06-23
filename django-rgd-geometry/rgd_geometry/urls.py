@@ -1,13 +1,13 @@
 from django.urls import path
 
-from . import rest, views
+from . import models, rest, views
 
 urlpatterns = [
     # Pages
     path(
         'rgd_geometry/<int:pk>/',
         views.GeometryEntryDetailView.as_view(),
-        name='geometry-entry-detail',
+        name=models.GeometryEntry.detail_view_name,
     ),
     #############
     # Other

@@ -4,7 +4,7 @@ from django_extensions.db.models import TimeStampedModel
 import magic
 from rgd.models import ChecksumFile, SpatialEntry
 from rgd.models.constants import DB_SRID
-from rgd.models.mixins import PermissionPathMixin, TaskEventMixin
+from rgd.models.mixins import DetailViewMixin, PermissionPathMixin, TaskEventMixin
 from rgd_geometry.tasks import jobs
 
 
@@ -39,7 +39,7 @@ class GeometryArchive(TimeStampedModel, TaskEventMixin, PermissionPathMixin):
     permissions_paths = ['file__collection__collection_permissions']
 
 
-class GeometryEntry(TimeStampedModel, SpatialEntry, PermissionPathMixin):
+class GeometryEntry(TimeStampedModel, SpatialEntry, PermissionPathMixin, DetailViewMixin):
     """A holder for geometry vector data."""
 
     name = models.CharField(max_length=1000, blank=True)
@@ -52,3 +52,4 @@ class GeometryEntry(TimeStampedModel, SpatialEntry, PermissionPathMixin):
     geometry_archive = models.OneToOneField(GeometryArchive, null=True, on_delete=models.CASCADE)
 
     permissions_paths = ['geometry_archive__file__collection__collection_permissions']
+    detail_view_name = 'geometry-entry-detail'

@@ -3,7 +3,7 @@ from django.contrib.postgres import fields
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django_extensions.db.models import TimeStampedModel
 from rgd.models import ChecksumFile, SpatialEntry
-from rgd.models.mixins import PermissionPathMixin, TaskEventMixin
+from rgd.models.mixins import DetailViewMixin, PermissionPathMixin, TaskEventMixin
 from rgd_imagery.tasks import jobs
 
 from .base import ImageSet
@@ -57,10 +57,11 @@ class RasterEntry(TimeStampedModel, TaskEventMixin, PermissionPathMixin):
         return n
 
 
-class RasterMetaEntry(TimeStampedModel, SpatialEntry, PermissionPathMixin):
+class RasterMetaEntry(TimeStampedModel, SpatialEntry, PermissionPathMixin, DetailViewMixin):
     permissions_paths = [
         'parent_raster__image_set__images__image_file__file__collection__collection_permissions'
     ]
+    detail_view_name = 'raster-entry-detail'
 
     parent_raster = models.OneToOneField(RasterEntry, on_delete=models.CASCADE)
 

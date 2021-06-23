@@ -2,7 +2,7 @@ from django.contrib.gis.db import models
 from django.contrib.postgres import fields
 from django_extensions.db.models import TimeStampedModel
 from rgd.models import ChecksumFile, SpatialEntry
-from rgd.models.mixins import PermissionPathMixin, TaskEventMixin
+from rgd.models.mixins import DetailViewMixin, PermissionPathMixin, TaskEventMixin
 from rgd_3d.tasks import jobs
 
 
@@ -20,7 +20,7 @@ class PointCloudFile(TimeStampedModel, TaskEventMixin, PermissionPathMixin):
     permissions_paths = ['file__collection__collection_permissions']
 
 
-class PointCloudEntry(TimeStampedModel, PermissionPathMixin):
+class PointCloudEntry(TimeStampedModel, PermissionPathMixin, DetailViewMixin):
     """Container for converted point cloud data.
 
     The data here must be stored in VTP format. This can be manually uploaded
@@ -45,6 +45,7 @@ class PointCloudEntry(TimeStampedModel, PermissionPathMixin):
         'source__file__collection__collection_permissions',
         'vtp_data__collection__collection_permissions',
     ]
+    detail_view_name = 'point-cloud-entry-detail'
 
 
 class PointCloudMetaEntry(TimeStampedModel, SpatialEntry, PermissionPathMixin):
