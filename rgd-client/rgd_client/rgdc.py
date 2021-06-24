@@ -57,7 +57,7 @@ class Rgdc:
 
     def list_image_tiles(self, image_id: Union[str, int]) -> Dict:
         """List geodata imagery tiles."""
-        r = self.session.get(f'geoprocess/imagery/{image_id}/tiles')
+        r = self.session.get(f'image_process/imagery/{image_id}/tiles')
         return r.json()
 
     def download_image_file(
@@ -89,7 +89,7 @@ class Rgdc:
         Returns:
             Thumbnail bytes.
         """
-        r = self.session.get(f'geoprocess/imagery/{image_id}/thumbnail')
+        r = self.session.get(f'image_process/imagery/{image_id}/thumbnail')
         return r.content
 
     def download_raster_thumbnail(
@@ -311,4 +311,4 @@ class Rgdc:
             params['cloud_cover_min'] = ccmin
             params['cloud_cover_max'] = ccmax
 
-        return list(limit_offset_pager(self.session, 'geosearch/raster', params=params))
+        return list(limit_offset_pager(self.session, 'rgd_imagery/raster/search', params=params))

@@ -5,7 +5,8 @@ INSTALLED_APPS += [  # noqa
     'rgd_fmv',
     'rgd_geometry',
     'rgd_imagery',
-    'rest_framework_swagger',
+    # Swagger
+    'drf_yasg',
 ]
 
 ROOT_URLCONF = 'rgd_example.urls'

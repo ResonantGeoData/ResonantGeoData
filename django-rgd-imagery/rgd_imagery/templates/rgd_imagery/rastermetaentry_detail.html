@@ -86,8 +86,8 @@
       console.log(image_id)
       if (image_id >= 0) {
         tileLayer.visible(true)
-        tileLayer.url(`${host}/api/geoprocess/imagery/${image_id}/tiles/{z}/{x}/{y}.png?projection=EPSG:3857`)
-        thumbnail.src = `${host}/api/geoprocess/imagery/${image_id}/thumbnail`
+        tileLayer.url(`${host}/api/image_process/imagery/${image_id}/tiles/{z}/{x}/{y}.png?projection=EPSG:3857`)
+        thumbnail.src = `${host}/api/image_process/imagery/${image_id}/thumbnail`
         thumbnail.hidden = false
       } else {
         tileLayer.visible(false)

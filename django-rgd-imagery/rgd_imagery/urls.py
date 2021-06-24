@@ -31,7 +31,7 @@ urlpatterns = [
     ),
     #############
     # Search
-    path('api/geosearch/raster', rest.search.SearchRasterMetaEntrySTACView.as_view()),
+    path('api/rgd_imagery/raster/search', rest.search.SearchRasterMetaEntrySTACView.as_view()),
     #############
     # Other
     path(
@@ -67,72 +67,72 @@ urlpatterns = [
     #############
     # Geoprocessing
     path(
-        'api/geoprocess/imagery/<int:pk>/tiles',
+        'api/image_process/imagery/<int:pk>/tiles',
         rest.tiles.TileMetadataView.as_view(),
         name='image-tile-metadata',
     ),
     path(
-        'api/geoprocess/imagery/<int:pk>/tiles/internal',
+        'api/image_process/imagery/<int:pk>/tiles/internal',
         rest.tiles.TileInternalMetadataView.as_view(),
         name='image-tile-internal-metadata',
     ),
     path(
-        'api/geoprocess/imagery/<int:pk>/tiles/<int:z>/<int:x>/<int:y>.png',
+        'api/image_process/imagery/<int:pk>/tiles/<int:z>/<int:x>/<int:y>.png',
         rest.tiles.TileView.as_view(),
         name='image-tiles',
     ),
     path(
-        'api/geoprocess/imagery/<int:pk>/tiles/region/world/<float:left>/<float:right>/<float:bottom>/<float:top>/region.tif',
+        'api/image_process/imagery/<int:pk>/tiles/region/world/<float:left>/<float:right>/<float:bottom>/<float:top>/region.tif',
         rest.tiles.TileRegionView.as_view(),
         name='image-region',
     ),
     path(
-        'api/geoprocess/imagery/<int:pk>/tiles/region/pixel/<int:left>/<int:right>/<int:bottom>/<int:top>/region.tif',
+        'api/image_process/imagery/<int:pk>/tiles/region/pixel/<int:left>/<int:right>/<int:bottom>/<int:top>/region.tif',
         rest.tiles.TileRegionPixelView.as_view(),
         name='image-region-pixel',
     ),
     path(
-        'api/geoprocess/imagery/<int:pk>/tiles/<int:z>/<int:x>/<int:y>/corners',
+        'api/image_process/imagery/<int:pk>/tiles/<int:z>/<int:x>/<int:y>/corners',
         rest.tiles.TileCornersView.as_view(),
         name='image-tile-corners',
     ),
     path(
-        'api/geoprocess/imagery/<int:pk>/thumbnail',
+        'api/image_process/imagery/<int:pk>/thumbnail',
         rest.tiles.TileThumnailView.as_view(),
         name='image-thumbnail',
     ),
     path(
-        'api/geoprocess/imagery/<int:pk>/bands',
+        'api/image_process/imagery/<int:pk>/bands',
         rest.tiles.TileBandInfoView.as_view(),
         name='image-bands',
     ),
     path(
-        'api/geoprocess/imagery/<int:pk>/bands/<int:band>',
+        'api/image_process/imagery/<int:pk>/bands/<int:band>',
         rest.tiles.TileSingleBandInfoView.as_view(),
         name='image-bands-single',
     ),
-    path('api/geoprocess/imagery/cog', rest.post.CreateConvertedImage.as_view()),
+    path('api/image_process/imagery/cog', rest.post.CreateConvertedImage.as_view()),
     path(
-        'api/geoprocess/imagery/cog/<int:pk>',
+        'api/image_process/imagery/cog/<int:pk>',
         rest.get.GetConvertedImageStatus.as_view(),
         name='cog',
     ),
     path(
-        'api/geoprocess/imagery/cog/<int:pk>/data',
+        'api/image_process/imagery/cog/<int:pk>/data',
         rest.download.download_cog_file,
         name='cog-data',
     ),
     path(
-        'api/geoprocess/imagery/subsample',
+        'api/image_process/imagery/subsample',
         rest.post.CreateSubsampledImage.as_view(),
     ),
     path(
-        'api/geoprocess/imagery/subsample/<int:pk>',
+        'api/image_process/imagery/subsample/<int:pk>',
         rest.get.GetSubsampledImage.as_view(),
         name='subsampled',
     ),
     path(
-        'api/geoprocess/imagery/subsample/<int:pk>/status',
+        'api/image_process/imagery/subsample/<int:pk>/status',
         rest.download.get_status_subsampled_image,
         name='subsampled-status',
     ),

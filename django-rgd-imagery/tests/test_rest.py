@@ -19,7 +19,7 @@ def test_create_get_subsampled_image(admin_api_client, astro_image):
         'sample_parameters': {'right': 100, 'left': 0, 'top': 200, 'bottom': 0},
     }
     response = admin_api_client.post(
-        '/rgd_imagery_test/api/geoprocess/imagery/subsample', payload, format='json'
+        '/rgd_imagery_test/api/image_process/imagery/subsample', payload, format='json'
     )
     assert response.status_code == 201
     assert response.data
@@ -27,12 +27,12 @@ def test_create_get_subsampled_image(admin_api_client, astro_image):
     sub = models.SubsampledImage.objects.get(id=id)
     assert sub.data
     # Test the GET
-    response = admin_api_client.get(f'/rgd_imagery_test/api/geoprocess/imagery/subsample/{id}')
+    response = admin_api_client.get(f'/rgd_imagery_test/api/image_process/imagery/subsample/{id}')
     assert response.status_code == 200
     assert response.data
     # Now test to make sure the serializer prevents duplicates
     response = admin_api_client.post(
-        '/rgd_imagery_test/api/geoprocess/imagery/subsample', payload, format='json'
+        '/rgd_imagery_test/api/image_process/imagery/subsample', payload, format='json'
     )
     assert response.status_code == 201
     assert response.data
@@ -43,7 +43,7 @@ def test_create_get_subsampled_image(admin_api_client, astro_image):
 def test_create_and_download_cog(admin_api_client, geotiff_image_entry):
     """Test POST for ConvertedImage model."""
     response = admin_api_client.post(
-        '/rgd_imagery_test/api/geoprocess/imagery/cog',
+        '/rgd_imagery_test/api/image_process/imagery/cog',
         {'source_image': geotiff_image_entry.id},
     )
     assert response.status_code == 201
@@ -54,5 +54,5 @@ def test_create_and_download_cog(admin_api_client, geotiff_image_entry):
     assert cog.converted_file
     # Also test download endpoint here:
     pk = cog.pk
-    response = admin_api_client.get(f'/rgd_imagery_test/api/geoprocess/imagery/cog/{pk}/data')
+    response = admin_api_client.get(f'/rgd_imagery_test/api/image_process/imagery/cog/{pk}/data')
     assert status.is_redirect(response.status_code)
