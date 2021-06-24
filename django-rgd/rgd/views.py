@@ -81,7 +81,7 @@ class SpatialEntriesListView(_SpatialListView):
     model = models.SpatialEntry
     filter = filters.SpatialEntryFilter
     context_object_name = 'spatial_entries'
-    template_name = 'rgd/spatial_entries.html'
+    template_name = 'rgd/spatialentry_list.html'
 
     def get_queryset(self):
         filterset = self.filter(data=self.request.GET)
