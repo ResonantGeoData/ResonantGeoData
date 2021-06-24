@@ -24,6 +24,6 @@ jobs:
         working-directory: ./rgd-client
         run: |
           python -c "from rgdc import Rgdc; print('Import went okay!')"
-      - name: Test
-        working-directory: ./rgd-client
-        run: pytest . -v
+      # - name: Test
+      #   working-directory: ./rgd-client
+      #   run: pytest . -v
