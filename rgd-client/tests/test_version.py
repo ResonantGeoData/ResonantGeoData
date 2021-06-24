@@ -1,5 +1,5 @@
-import rgdc
+import rgd_client
 
 
 def test_rgd_version():
-    assert rgdc.__version__  # Make sure not None
+    assert rgd_client.__version__  # Make sure not None

@@ -1,11 +1,11 @@
-# rgdc - ResonantGeoDataClient
+# rgd_client - ResonantGeoDataClient
 
-The **rgdc** Python package allows users to make web requests to a ResonantGeoData instance within a Python script.
+The **rgd_client** Python package allows users to make web requests to a ResonantGeoData instance within a Python script.
 
 
 # Installation
 ```
-pip install rgdc
+pip install rgd-client
 ```
 
 # Usage
@@ -15,7 +15,7 @@ import json
 import matplotlib.pyplot as plt
 import numpy as np
 
-from rgdc import Rgdc
+from rgd_client import Rgdc
 
 def plot_geojson(gjs, *args, **kwargs):
     points = np.array(gjs['coordinates'][0])

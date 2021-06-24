@@ -23,7 +23,7 @@ jobs:
       - name: Test import
         working-directory: ./rgd-client
         run: |
-          python -c "from rgdc import Rgdc; print('Import went okay!')"
+          python -c "from rgd_client import Rgdc; print('Import went okay!')"
       # - name: Test
       #   working-directory: ./rgd-client
       #   run: pytest . -v

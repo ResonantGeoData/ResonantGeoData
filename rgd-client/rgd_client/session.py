@@ -27,7 +27,7 @@ class RgdcSession(BaseUrlSession):
         super().__init__(base_url=base_url)
         self.headers.update(
             {
-                'User-agent': f'rgdc/{__version__}',
+                'User-agent': f'rgd_client/{__version__}',
                 'Accept': 'application/json',
             }
         )
