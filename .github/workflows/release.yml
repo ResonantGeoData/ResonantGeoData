@@ -1,4 +1,4 @@
-name: RGD Client PyPI Workflow
+name: RGD Package Release
 on:
   push:
     tags: "v*"
@@ -7,6 +7,10 @@ on:
 jobs:
   publish:
     runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        rgd-module: ['django-rgd', 'django-rgd-3d', 'django-rgd-fmv', 'django-rgd-geometry', 'django-rgd-imagery', 'rgd-client']
     steps:
       - uses: actions/checkout@v2
       - name: Set up Python
@@ -20,7 +24,7 @@ jobs:
           pip install setuptools wheel twine
 
       - name: Build and Publish to PyPI
-        working-directory: ./rgdc
+        working-directory: ${{ matrix.rgd-module }}
         env:
           TWINE_USERNAME: __token__
           TWINE_PASSWORD: ${{ secrets.PYPI_API_TOKEN }}

@@ -16,7 +16,7 @@ with open(base_dir / 'rgdc' / 'version.py') as version_file:
     version = version_file.read().replace('__version__ = ', '').replace("'", '').strip()
 
 setup(
-    name='rgdc',
+    name='rgd-client',
     version=version,
     description='Make web requests to a ResonantGeoData instance.',
     long_description=long_description,
