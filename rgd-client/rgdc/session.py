@@ -5,7 +5,7 @@ from requests.adapters import HTTPAdapter
 from requests.packages.urllib3.util.retry import Retry
 from requests_toolbelt.sessions import BaseUrlSession
 
-from .version import __version__
+from ._version import __version__
 
 
 class RgdcSession(BaseUrlSession):
