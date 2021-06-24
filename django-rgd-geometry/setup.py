@@ -26,7 +26,7 @@ setup(
     long_description_content_type='text/markdown',
     license='Apache 2.0',
     author='Kitware, Inc.',
-    author_email='kitware@kitware.com',
+    author_email='rgd@kitware.com',
     url='https://github.com/ResonantGeoData/ResonantGeoData',
     keywords='',
     classifiers=[

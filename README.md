@@ -3,9 +3,9 @@
 [![codecov](https://codecov.io/gh/ResonantGeoData/ResonantGeoData/branch/master/graph/badge.svg)](https://codecov.io/gh/ResonantGeoData/ResonantGeoData)
 [![ci](https://github.com/ResonantGeoData/ResonantGeoData/actions/workflows/ci.yml/badge.svg?branch=master)](https://github.com/ResonantGeoData/ResonantGeoData/actions/workflows/ci.yml)
 
-2D/3D/4D Geospatial Data API and Machine Learning System for Evaluation
+2D/3D/4D Geospatial Data API in Django
 
-A publically deployed instance of this application is available at https://www.resonantgeodata.com
+A publically deployed instance of this application is available at https://www.resonantgeodata.com - find the project code for this at [ResonantGeoData/RD-OpenGeo](https://github.com/ResonantGeoData/RD-OpenGeo)
 
 ResonantGeoData is a Django application well suited for catalogging and searching annotated geospatial imagery, shapefiles, and full motion video datasets.
 
@@ -14,7 +14,7 @@ ResonantGeoData is a Django application well suited for catalogging and searchin
 ## Highlights
 
 - Faceted searching of geospatial/temporal data
-- Support for the spatial context of full motion video datasets
+- Support for the spatial context of Full Motion Video (FMV) datasets
 - Support for annotated imagery: polygons, bounding boxes, keypoints, and run-length-encoded masks
 
 
@@ -24,7 +24,7 @@ Documentation is currently a work in progress. We have created some initial usag
 
 Specifically, we have included [instructions on how to ingest data](https://github.com/ResonantGeoData/ResonantGeoData/blob/master/docs/ingest-data.md) into a deployed ResonantGeoData instance.
 
-For general questions about the project, its applications, or about software usage, please create an issue directly in this repository. You are also welcome to send us an email at kitware@kitware.com with the subject line including ResonantGeoData.
+For general questions about the project, its applications, or about software usage, please create an issue directly in this repository. You are also welcome to send us an email at [rgd@kitware.com](mailto:rgd@kitware.com) with the subject line including ResonantGeoData.
 
 ## Connections
 
