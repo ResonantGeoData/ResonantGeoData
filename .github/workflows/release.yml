@@ -11,19 +11,20 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
+        rgd-module: ['django-rgd', 'django-rgd-3d', 'django-rgd-fmv', 'django-rgd-geometry', 'django-rgd-imagery', 'rgd-client']
         include:
           - rgd-module: django-rgd
-            TWINE_PASSWORD: ${{ secrets.PYPI_API_TOKEN_RGD }}
+            TWINE_PASSWORD_VAR: PYPI_API_TOKEN_RGD
           - rgd-module: django-rgd-3d
-            TWINE_PASSWORD: ${{ secrets.PYPI_API_TOKEN_RGD_3D }}
+            TWINE_PASSWORD_VAR: PYPI_API_TOKEN_RGD_3D
           - rgd-module: django-rgd-fmv
-            TWINE_PASSWORD: ${{ secrets.PYPI_API_TOKEN_RGD_FMV }}
+            TWINE_PASSWORD_VAR: PYPI_API_TOKEN_RGD_FMV
           - rgd-module: django-rgd-geometry
-            TWINE_PASSWORD: ${{ secrets.PYPI_API_TOKEN_RGD_GEOMETRY }}
+            TWINE_PASSWORD_VAR: PYPI_API_TOKEN_RGD_GEOMETRY
           - rgd-module: django-rgd-imagery
-            TWINE_PASSWORD: ${{ secrets.PYPI_API_TOKEN_RGD_IMAGERY }}
+            TWINE_PASSWORD_VAR: PYPI_API_TOKEN_RGD_IMAGERY
           - rgd-module: rgd-client
-            TWINE_PASSWORD: ${{ secrets.PYPI_API_TOKEN_RGD_CLIENT }}
+            TWINE_PASSWORD_VAR: PYPI_API_TOKEN_RGD_CLIENT
     steps:
       - uses: actions/checkout@v2
       - name: Set up Python
@@ -40,7 +41,7 @@ jobs:
         working-directory: ${{ matrix.rgd-module }}
         env:
           TWINE_USERNAME: __token__
-          TWINE_PASSWORD: ${{ matrix.TWINE_PASSWORD }}
+          TWINE_PASSWORD: ${{ secrets[matrix.TWINE_PASSWORD_VAR] }}
         run: |
           python setup.py sdist bdist_wheel
           # twine upload --skip-existing dist/*
