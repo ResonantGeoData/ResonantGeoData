@@ -4,7 +4,7 @@ from . import rest, views
 
 urlpatterns = [
     # Pages
-    path('rgd', views.SpatialEntriesListView.as_view(), name='index'),
+    path('rgd', views.SpatialEntriesListView.as_view(), name='rgd-index'),
     path(
         'rgd/statistics',
         views.StatisticsView.as_view(),
