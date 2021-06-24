@@ -1,7 +1,7 @@
 name: RGD Package Release
 on:
   push:
-    tags: "v*"
+    tags: "*"
   release:
     types: [released]
 jobs:
