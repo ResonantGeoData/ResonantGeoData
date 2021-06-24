@@ -1,3 +1,5 @@
+from io import open as io_open
+import os
 from pathlib import Path
 
 from setuptools import find_packages, setup
@@ -11,13 +13,15 @@ else:
     # When this is first installed in development Docker, README.md is not available
     long_description = ''
 
-# Load version
-with open(base_dir / 'rgdc' / 'version.py') as version_file:
-    version = version_file.read().replace('__version__ = ', '').replace("'", '').strip()
+__version__ = None
+filepath = os.path.dirname(__file__)
+version_file = os.path.join(filepath, '..', 'version.py')
+with io_open(version_file, mode='r') as fd:
+    exec(fd.read())
 
 setup(
     name='rgd-client',
-    version=version,
+    version=__version__,
     description='Make web requests to a ResonantGeoData instance.',
     long_description=long_description,
     long_description_content_type='text/markdown',
