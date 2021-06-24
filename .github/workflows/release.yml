@@ -1,8 +1,7 @@
 name: RGD Package Release
 on:
   push:
-    # tags: "*"
-    branches: "*"
+    tags: "*"
   release:
     types: [released]
 jobs:
@@ -44,4 +43,4 @@ jobs:
           TWINE_PASSWORD: ${{ secrets[matrix.TWINE_PASSWORD_VAR] }}
         run: |
           python setup.py sdist bdist_wheel
-          # twine upload --skip-existing dist/*
+          twine upload --skip-existing dist/*
