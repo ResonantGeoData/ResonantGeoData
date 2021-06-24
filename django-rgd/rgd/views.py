@@ -1,5 +1,4 @@
 import json
-import logging
 
 from django.contrib import messages
 from django.contrib.gis.db.models import Collect, Extent
@@ -13,8 +12,6 @@ from rest_framework.reverse import reverse
 from rgd import permissions
 
 from . import filters, models
-
-logger = logging.getLogger(__name__)
 
 
 class PermissionDetailView(DetailView):
@@ -107,7 +104,6 @@ class StatisticsView(generic.ListView):
     template_name = 'rgd/statistics.html'
 
     def get_queryset(self):
-        logger.info('in get_queryset ----------------------')
         queryset = self.model.objects.all()
         return permissions.filter_read_perm(self.request.user, queryset)
 
