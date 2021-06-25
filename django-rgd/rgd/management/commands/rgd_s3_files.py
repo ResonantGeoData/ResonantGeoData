@@ -16,7 +16,7 @@ def _iter_matching_objects(
     include_regex: str,
     exclude_regex: str,
 ) -> Generator[dict, None, None]:
-    paginator = s3_client.get_paginator('list_objects')
+    paginator = s3_client.get_paginator('list_objects_v2')
     page_iter = paginator.paginate(Bucket=bucket, Prefix=prefix)
     include_pattern = re.compile(include_regex)
     exclude_pattern = re.compile(exclude_regex)
@@ -27,7 +27,7 @@ def _iter_matching_objects(
                 yield obj
 
 
-class CloudLoader:
+class Loader:
     def __init__(self, bucket: str, region: str, google: bool = False):
         self.bucket = bucket
         self.google = google
@@ -81,7 +81,7 @@ def ingest_s3(
 
     s3_client = boto3.client('s3', **boto3_params)
 
-    loader = CloudLoader(bucket, region, google=google)
+    loader = Loader(bucket, region, google=google)
     pool = multiprocessing.Pool(multiprocessing.cpu_count())
     pool.map(
         loader.load_object,
