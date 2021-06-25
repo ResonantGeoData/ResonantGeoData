@@ -10,7 +10,7 @@ class PointCloud(TimeStampedModel, TaskEventMixin, PermissionPathMixin):
     """Container for point cloud file."""
 
     task_funcs = (jobs.task_read_point_cloud_file,)
-    file = models.ForeignKey(ChecksumFile, on_delete=models.CASCADE)
+    file = models.ForeignKey(ChecksumFile, on_delete=models.CASCADE, related_name='+')
 
     def data_link(self):
         return self.file.data_link()
@@ -34,7 +34,7 @@ class PointCloudMeta(TimeStampedModel, PermissionPathMixin, DetailViewMixin):
     source = models.OneToOneField(PointCloud, null=True, blank=True, on_delete=models.CASCADE)
 
     # A place to store converted file - must be in VTP format
-    vtp_data = models.ForeignKey(ChecksumFile, on_delete=models.DO_NOTHING)
+    vtp_data = models.ForeignKey(ChecksumFile, on_delete=models.DO_NOTHING, related_name='+')
 
     def data_link(self):
         return self.vtp_data.data_link()

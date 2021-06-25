@@ -19,7 +19,7 @@ class Image(TimeStampedModel, TaskEventMixin, PermissionPathMixin):
 
     permissions_paths = ['file__collection__collection_permissions']
     task_funcs = (jobs.task_load_image,)
-    file = models.ForeignKey(ChecksumFile, on_delete=models.CASCADE)
+    file = models.ForeignKey(ChecksumFile, on_delete=models.CASCADE, related_name='+')
 
     def image_data_link(self):
         return self.file.data_link()

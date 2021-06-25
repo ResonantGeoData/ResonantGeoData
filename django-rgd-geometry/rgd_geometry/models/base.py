@@ -26,7 +26,7 @@ class GeometryArchive(TimeStampedModel, TaskEventMixin, PermissionPathMixin):
     """
 
     task_funcs = (jobs.task_read_geometry_archive,)
-    file = models.ForeignKey(ChecksumFile, on_delete=models.CASCADE)
+    file = models.ForeignKey(ChecksumFile, on_delete=models.CASCADE, related_name='+')
 
     def save(self, *args, **kwargs):
         super(GeometryArchive, self).save(*args, **kwargs)

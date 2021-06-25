@@ -30,4 +30,4 @@ class RegionImageAdmin(OSMGeoAdmin):
     )
     readonly_fields = ('processed_image',) + TASK_EVENT_READONLY
     actions = (reprocess,)
-    list_filter = ('sample_type', ) + MODIFIABLE_FILTERS + TASK_EVENT_FILTERS
+    list_filter = ('sample_type',) + MODIFIABLE_FILTERS + TASK_EVENT_FILTERS
