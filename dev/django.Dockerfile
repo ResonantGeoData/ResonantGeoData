@@ -35,7 +35,7 @@ RUN pip install \
     --find-links https://girder.github.io/large_image_wheels \
     -e ./django-rgd \
     -e ./testing-utils \
-    -e ./example_project
+    -e ./example_project[graph]
 RUN pip install \
     --find-links https://girder.github.io/large_image_wheels \
     -e ./django-rgd-3d \

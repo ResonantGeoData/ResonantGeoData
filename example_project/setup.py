@@ -34,4 +34,11 @@ setup(
         'pyparsing',
         'pydot',
     ],
+    extras_require={
+        'graph': [
+            'pygraphviz',
+            'pyparsing',
+            'pydot',
+        ],
+    }
 )
