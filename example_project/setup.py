@@ -40,5 +40,5 @@ setup(
             'pyparsing',
             'pydot',
         ],
-    }
+    },
 )
