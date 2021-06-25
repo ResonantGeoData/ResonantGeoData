@@ -57,9 +57,9 @@ def task_convert_to_cog(conv_id):
 
 
 @shared_task(time_limit=86400)
-def task_populate_subsampled_image(subsampled_id):
-    from rgd_imagery.models import SubsampledImage
-    from rgd_imagery.tasks.subsample import populate_subsampled_image
+def task_populate_region_image(subsampled_id):
+    from rgd_imagery.models import RegionImage
+    from rgd_imagery.tasks.subsample import populate_region_image
 
-    cog = SubsampledImage.objects.get(id=subsampled_id)
-    helpers._run_with_failure_reason(cog, populate_subsampled_image, subsampled_id)
+    cog = RegionImage.objects.get(id=subsampled_id)
+    helpers._run_with_failure_reason(cog, populate_region_image, subsampled_id)

@@ -7,9 +7,9 @@ class CreateConvertedImage(CreateAPIView):
     serializer_class = serializers.ConvertedImageSerializer
 
 
-class CreateSubsampledImage(CreateAPIView):
-    queryset = models.SubsampledImage.objects.all()
-    serializer_class = serializers.SubsampledImageSerializer
+class CreateRegionImage(CreateAPIView):
+    queryset = models.RegionImage.objects.all()
+    serializer_class = serializers.RegionImageSerializer
 
 
 class CreateRasterSTAC(CreateAPIView):

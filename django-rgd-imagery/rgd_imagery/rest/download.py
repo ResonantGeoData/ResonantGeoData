@@ -28,16 +28,16 @@ def download_image_file(request, pk):
 def download_cog_file(request, pk):
     instance = get_object_or_404(models.ConvertedImage, pk=pk)
     check_read_perm(request.user, instance)
-    af_id = instance.converted_file.id
+    af_id = instance.processed_image.file.id
     instance = get_object_or_404(ChecksumFile, pk=af_id)
     return HttpResponseRedirect(instance.get_url())
 
 
 @swagger_auto_schema(
     method='GET',
-    operation_summary='Check the status of SubsampledImage.',
+    operation_summary='Check the status of RegionImage.',
 )
 @api_view(['GET'])
 def get_status_subsampled_image(request, pk):
-    """Get the status of any SubsampledImage model."""
-    return _get_status_response(request, 'SubsampledImage', pk)
+    """Get the status of any RegionImage model."""
+    return _get_status_response(request, 'RegionImage', pk)

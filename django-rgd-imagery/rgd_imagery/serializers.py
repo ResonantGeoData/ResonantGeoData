@@ -15,56 +15,6 @@ from rgd.serializers import ChecksumFileSerializer, SpatialEntrySerializer
 from . import models
 
 
-class ConvertedImageSerializer(serializers.ModelSerializer):
-    def validate_source_image(self, value):
-        if 'request' in self.context:
-            check_write_perm(self.context['request'].user, value)
-        return value
-
-    class Meta:
-        model = models.ConvertedImage
-        fields = '__all__'
-        read_only_fields = ['id', 'status', 'failure_reason', 'converted_file']
-
-
-class SubsampledImageSerializer(serializers.ModelSerializer):
-
-    data = ChecksumFileSerializer(read_only=True)
-
-    def validate_source_image(self, value):
-        if 'request' in self.context:
-            check_write_perm(self.context['request'].user, value)
-        return value
-
-    def to_representation(self, value):
-        ret = super().to_representation(value)
-        realtive_status_uri = reverse('subsampled-status', args=[value.id])
-        if 'request' in self.context:
-            request = self.context['request']
-            ret['status'] = request.build_absolute_uri(realtive_status_uri)
-        else:
-            ret['status'] = realtive_status_uri
-        return ret
-
-    class Meta:
-        model = models.SubsampledImage
-        fields = '__all__'
-        read_only_fields = [
-            'id',
-            'status',
-            'failure_reason',
-            'data',
-        ]
-
-    def create(self, validated_data):
-        """Prevent duplicated subsamples from being created."""
-        obj, created = models.SubsampledImage.objects.get_or_create(**validated_data)
-        if not created:
-            # Trigger save event to reprocess the subsampling
-            obj.save()
-        return obj
-
-
 class ImageSerializer(serializers.ModelSerializer):
     file = ChecksumFileSerializer()
 
@@ -98,6 +48,59 @@ class ImageMetaSerializer(serializers.ModelSerializer):
             'width',
             'number_of_bands',
         ]
+
+
+class ConvertedImageSerializer(serializers.ModelSerializer):
+
+    processed_image = ImageSerializer(read_only=True)
+
+    def validate_source_image(self, value):
+        if 'request' in self.context:
+            check_write_perm(self.context['request'].user, value)
+        return value
+
+    class Meta:
+        model = models.ConvertedImage
+        fields = '__all__'
+        read_only_fields = ['id', 'status', 'failure_reason', 'processed_image']
+
+
+class RegionImageSerializer(serializers.ModelSerializer):
+
+    processed_image = ImageSerializer(read_only=True)
+
+    def validate_source_image(self, value):
+        if 'request' in self.context:
+            check_write_perm(self.context['request'].user, value)
+        return value
+
+    def to_representation(self, value):
+        ret = super().to_representation(value)
+        realtive_status_uri = reverse('subsampled-status', args=[value.id])
+        if 'request' in self.context:
+            request = self.context['request']
+            ret['status'] = request.build_absolute_uri(realtive_status_uri)
+        else:
+            ret['status'] = realtive_status_uri
+        return ret
+
+    class Meta:
+        model = models.RegionImage
+        fields = '__all__'
+        read_only_fields = [
+            'id',
+            'status',
+            'failure_reason',
+            'processed_image',
+        ]
+
+    def create(self, validated_data):
+        """Prevent duplicated subsamples from being created."""
+        obj, created = models.RegionImage.objects.get_or_create(**validated_data)
+        if not created:
+            # Trigger save event to reprocess the subsampling
+            obj.save()
+        return obj
 
 
 class ImageSetSerializer(serializers.ModelSerializer):

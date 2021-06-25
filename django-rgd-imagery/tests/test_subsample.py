@@ -2,8 +2,8 @@ from large_image_source_gdal import GDALFileTileSource
 import pytest
 from rgd.datastore import datastore
 from rgd.models import ChecksumFile
-from rgd_imagery.models import Annotation, ConvertedImage, Image, SubsampledImage
-from rgd_imagery.tasks.subsample import populate_subsampled_image
+from rgd_imagery.models import Annotation, ConvertedImage, Image, RegionImage
+from rgd_imagery.tasks.subsample import populate_region_image
 
 from . import factories
 
@@ -19,17 +19,17 @@ def test_cog_image_conversion():
     c.save()
     # Task should complete synchronously
     c.refresh_from_db()
-    assert c.converted_file
+    assert c.processed_image
 
 
 def _create_subsampled(image, sample_type, params):
-    sub = SubsampledImage()
+    sub = RegionImage()
     sub.source_image = image
     sub.sample_type = sample_type
     sub.sample_parameters = params
     sub.skip_signal = True
     sub.save()
-    populate_subsampled_image(sub)
+    populate_region_image(sub)
     sub.refresh_from_db()
     return sub
 
@@ -50,8 +50,9 @@ def test_subsample_pixel_box(elevation):
     sub = _create_subsampled(
         elevation, 'pixel box', {'left': 0, 'right': 100, 'bottom': 0, 'top': 200}
     )
-    assert sub.data
-    with sub.data.yield_local_path() as file_path:
+    sub.refresh_from_db()
+    assert sub.processed_image.file
+    with sub.processed_image.file.yield_local_path() as file_path:
         tile_source = GDALFileTileSource(str(file_path), projection='EPSG:3857', encoding='PNG')
         new = tile_source.getBounds()
     _assert_bounds(new, bounds)
@@ -76,8 +77,9 @@ def test_subsample_geo_box(elevation):
             'projection': 'EPSG:4326',
         },
     )
-    assert sub.data
-    with sub.data.yield_local_path() as file_path:
+    sub.refresh_from_db()
+    assert sub.processed_image.file
+    with sub.processed_image.file.yield_local_path() as file_path:
         tile_source = GDALFileTileSource(str(file_path), projection='EPSG:3857', encoding='PNG')
         new = tile_source.getBounds()
     _assert_bounds(new, bounds)
@@ -104,8 +106,9 @@ def test_subsample_geojson(elevation):
         'projection': 'EPSG:4326',
     }
     sub = _create_subsampled(elevation, 'geojson', geojson)
-    assert sub.data
-    with sub.data.yield_local_path() as file_path:
+    sub.refresh_from_db()
+    assert sub.processed_image.file
+    with sub.processed_image.file.yield_local_path() as file_path:
         tile_source = GDALFileTileSource(str(file_path), projection='EPSG:3857', encoding='PNG')
         new = tile_source.getBounds()
     _assert_bounds(new, bounds)
@@ -125,4 +128,5 @@ def test_subsample_annotaion():
     image = Image.objects.get(file=file)
     a = Annotation.objects.get(image=image.pk)  # Should be only one
     sub = _create_subsampled(image, 'annotation', {'id': a.pk})
-    assert sub.data
+    sub.refresh_from_db()
+    assert sub.processed_image.file

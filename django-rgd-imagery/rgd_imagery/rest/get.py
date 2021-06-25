@@ -11,10 +11,10 @@ class GetConvertedImageStatus(RetrieveAPIView, _PermissionMixin):
     queryset = models.ConvertedImage.objects.all()
 
 
-class GetSubsampledImage(RetrieveAPIView, _PermissionMixin):
-    serializer_class = serializers.SubsampledImageSerializer
+class GetRegionImage(RetrieveAPIView, _PermissionMixin):
+    serializer_class = serializers.RegionImageSerializer
     lookup_field = 'pk'
-    queryset = models.SubsampledImage.objects.all()
+    queryset = models.RegionImage.objects.all()
 
 
 class GetImageMeta(RetrieveAPIView, _PermissionMixin):

@@ -2,7 +2,6 @@ from django.contrib.gis.db import models
 from django.contrib.gis.geos import GEOSGeometry
 from django.utils.translation import gettext_lazy as _
 from django_extensions.db.models import TimeStampedModel
-from rgd.models import ChecksumFile
 from rgd.models.mixins import PermissionPathMixin, TaskEventMixin
 from rgd_imagery.tasks import jobs
 from shapely.geometry import shape
@@ -11,25 +10,35 @@ from shapely.wkb import dumps
 from .base import Image
 
 
-class ConvertedImage(TimeStampedModel, TaskEventMixin, PermissionPathMixin):
-    """A model to store converted versions of a raster entry."""
+class ProcessedImage(TimeStampedModel, TaskEventMixin, PermissionPathMixin):
+    """Base class for processed images."""
 
-    task_funcs = (jobs.task_convert_to_cog,)
-    converted_file = models.OneToOneField(ChecksumFile, on_delete=models.SET_NULL, null=True)
-    source_image = models.OneToOneField(Image, on_delete=models.CASCADE)
+    class Meta:
+        abstract = True
+
+    processed_image = models.ForeignKey(
+        Image, on_delete=models.SET_NULL, null=True, related_name='+'
+    )
+    source_image = models.ForeignKey(Image, on_delete=models.CASCADE, related_name='+')
 
     def _post_delete(self, *args, **kwargs):
-        # Cleanup the associated ChecksumFile
-        if self.converted_file:
-            self.converted_file.delete()
+        # Cleanup the associated Image and ChecksumFile
+        if self.processed_image:
+            self.processed_image.file.delete()
 
     permissions_paths = ['source_image__file__collection__collection_permissions']
 
 
-class SubsampledImage(TimeStampedModel, TaskEventMixin, PermissionPathMixin):
-    """A subsample of an ImageMeta."""
+class ConvertedImage(ProcessedImage):
+    """A model to store converted versions of an Image."""
 
-    task_funcs = (jobs.task_populate_subsampled_image,)
+    task_funcs = (jobs.task_convert_to_cog,)
+
+
+class RegionImage(ProcessedImage):
+    """A sub region of an Image."""
+
+    task_funcs = (jobs.task_populate_region_image,)
 
     class SampleTypes(models.TextChoices):
         PIXEL_BOX = 'pixel box', _('Pixel bounding box')
@@ -37,13 +46,10 @@ class SubsampledImage(TimeStampedModel, TaskEventMixin, PermissionPathMixin):
         GEOJSON = 'geojson', _('GeoJSON feature')
         ANNOTATION = 'annotation', _('Annotation entry')
 
-    source_image = models.ForeignKey(Image, on_delete=models.CASCADE)
     sample_type = models.CharField(
         max_length=20, default=SampleTypes.PIXEL_BOX, choices=SampleTypes.choices
     )
     sample_parameters = models.JSONField()
-
-    data = models.OneToOneField(ChecksumFile, on_delete=models.SET_NULL, null=True)
 
     def get_extent(self):
         """Convert ``sample_parameters`` to length 4 tuple of XY extents.
@@ -61,23 +67,23 @@ class SubsampledImage(TimeStampedModel, TaskEventMixin, PermissionPathMixin):
 
         projection = p.pop('projection', None)
         if self.sample_type in (
-            SubsampledImage.SampleTypes.PIXEL_BOX,
-            SubsampledImage.SampleTypes.ANNOTATION,
+            RegionImage.SampleTypes.PIXEL_BOX,
+            RegionImage.SampleTypes.ANNOTATION,
         ):
             projection = 'pixels'
 
         if self.sample_type in (
-            SubsampledImage.SampleTypes.GEO_BOX,
-            SubsampledImage.SampleTypes.PIXEL_BOX,
+            RegionImage.SampleTypes.GEO_BOX,
+            RegionImage.SampleTypes.PIXEL_BOX,
         ):
             return p['left'], p['right'], p['bottom'], p['top'], projection
-        elif self.sample_type == SubsampledImage.SampleTypes.GEOJSON:
+        elif self.sample_type == RegionImage.SampleTypes.GEOJSON:
             # Convert GeoJSON to extents
             geom = shape(p)
             feature = GEOSGeometry(memoryview(dumps(geom)))
             l, b, r, t = feature.extent  # (xmin, ymin, xmax, ymax)
             return l, r, b, t, projection
-        elif self.sample_type == SubsampledImage.SampleTypes.ANNOTATION:
+        elif self.sample_type == RegionImage.SampleTypes.ANNOTATION:
             from .annotation import Annotation
 
             ann_id = p['id']
@@ -86,9 +92,3 @@ class SubsampledImage(TimeStampedModel, TaskEventMixin, PermissionPathMixin):
             return l, r, b, t, projection
         else:
             raise ValueError('Sample type ({}) unknown.'.format(self.sample_type))
-
-    def _post_delete(self, *args, **kwargs):
-        # Cleanup the associated ChecksumFile
-        self.data.delete()
-
-    permissions_paths = ['source_image__file__collection__collection_permissions']
