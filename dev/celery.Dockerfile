@@ -8,6 +8,9 @@ RUN apt-get update && \
         gcc \
         libc6-dev \
         libmagic1 \
+        graphviz \
+        libgraphviz-dev \
+        pkg-config \
         libgl1-mesa-glx \
         libglib2.0-0 \
         ffmpeg \

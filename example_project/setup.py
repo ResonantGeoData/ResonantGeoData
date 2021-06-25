@@ -26,6 +26,12 @@ setup(
     packages=find_packages(),
     include_package_data=True,
     install_requires=[
+        'django-extensions',
+        'django-debug-toolbar',
         'django-rest-swagger',
+        'ipython',
+        'pygraphviz',
+        'pyparsing',
+        'pydot',
     ],
 )

@@ -8,6 +8,9 @@ RUN apt-get update && \
         gcc \
         libc6-dev \
         libmagic1 \
+        graphviz \
+        libgraphviz-dev \
+        pkg-config \
         && \
     rm -rf /var/lib/apt/lists/*
 

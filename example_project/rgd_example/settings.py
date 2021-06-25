@@ -7,6 +7,7 @@ INSTALLED_APPS += [  # noqa
     'rgd_imagery',
     # Swagger
     'drf_yasg',
+    'django_extensions',
 ]
 
 ROOT_URLCONF = 'rgd_example.urls'
