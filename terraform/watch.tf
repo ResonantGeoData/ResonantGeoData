@@ -18,12 +18,12 @@ module "watch_smtp" {
   source  = "girder/girder/aws//modules/smtp"
   version = "0.8.0"
 
-  fqdn = aws_route53_record.watch.fqdn
-  project_slug = "watch"
+  fqdn            = aws_route53_record.watch.fqdn
+  project_slug    = "watch"
   route53_zone_id = aws_route53_zone.common.zone_id
 }
 
 output "watch_smtp_url" {
-  value = "submission://${urlencode(module.watch_smtp.username)}:${urlencode(module.watch_smtp.password)}@${module.watch_smtp.host}:${module.watch_smtp.port}"
+  value     = "submission://${urlencode(module.watch_smtp.username)}:${urlencode(module.watch_smtp.password)}@${module.watch_smtp.host}:${module.watch_smtp.port}"
   sensitive = true
 }
