@@ -30,9 +30,6 @@ setup(
         'django-debug-toolbar',
         'django-rest-swagger',
         'ipython',
-        'pygraphviz',
-        'pyparsing',
-        'pydot',
     ],
     extras_require={
         'graph': [
