@@ -29,6 +29,7 @@ resource "aws_route53_record" "watch_dev" {
 
   name    = "watch-test"
   type    = "A"
+  ttl     = "300"
   zone_id = aws_route53_zone.common.zone_id
   records = [aws_eip.watch_dev.public_ip]
 }
