@@ -18,7 +18,11 @@ import numpy as np
 from rgd_client import Rgdc
 
 def plot_geojson(gjs, *args, **kwargs):
-    points = np.array(gjs['coordinates'][0])
+    points = np.array(gjs['coordinates'])
+    if points.ndim == 3:
+        points = points[0]
+    if points.ndim == 1:
+        points = points.reshape((1, points.size, ))
     return plt.plot(points[:,0], points[:,1], *args, **kwargs)
 
 client = Rgdc(username='username', password='password')
@@ -50,12 +54,14 @@ plt.title(f'Count: {len(q)}')
 ```
 
 ### Inspect raster
+
+Preview thumbnails of the raster
+
 ```python
 import imageio
 from io import BytesIO
-import requests
 
-raster = requests.get(q[0]['detail']).json()
+raster = client.get_raster(q[0])
 plot_geojson(bbox, 'k--')
 plot_geojson(raster['outline'], 'r')
 load_image = lambda imbytes: imageio.imread(BytesIO(imbytes))
@@ -72,6 +78,9 @@ plt.show()
 ```
 
 ### Download Raster
+
+Download the entire image set of the raster
+
 ```python
 import rasterio
 from rasterio.plot import show
@@ -79,7 +88,7 @@ from rasterio.plot import show
 paths = client.download_raster(q[0])
 rasters = [rasterio.open(im) for im in paths.images]
 for i, src in enumerate(rasters):
-    plt.subplot(1, count, i+1)
+    plt.subplot(1, len(rasters), i+1)
     ax = plt.gca()
     show(src, ax=ax)
 plt.tight_layout()

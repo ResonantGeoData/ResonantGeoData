@@ -49,7 +49,7 @@ def limit_offset_pager(session: Session, url: str, **kwargs) -> Generator[Dict, 
         r.raise_for_status()
 
         # Yield results
-        results = r.json()['results']
+        results = r.json()
         yield from results
 
         # Update offset and num_results
@@ -126,7 +126,7 @@ def download_checksum_file_to_path(file: Dict, path: Path, keep_existing: bool):
 
 def spatial_subentry_id(search_result):
     """Get the id of a returned SpatialEntry."""
-    return search_result['pk']
+    return search_result['spatial_id']
 
 
 def spatial_search_params(

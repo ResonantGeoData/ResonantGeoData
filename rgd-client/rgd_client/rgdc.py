@@ -73,7 +73,7 @@ class Rgdc:
         Returns:
             An iterator of byte chunks.
         """
-        r = self.session.get(f'geodata/imagery/{image_id}/data', stream=True)
+        r = self.session.get(f'rgd_imagery/{image_id}/data', stream=True)
         return r.iter_content(chunk_size=chunk_size)
 
     def download_image_thumbnail(
@@ -110,7 +110,7 @@ class Rgdc:
         if isinstance(raster_meta_id, dict):
             raster_meta_id = spatial_subentry_id(raster_meta_id)
 
-        r = self.session.get(f'geodata/imagery/raster/{raster_meta_id}')
+        r = self.session.get(f'rgd_imagery/raster/{raster_meta_id}')
         parent_raster = r.json().get('parent_raster', {})
         images = parent_raster.get('image_set', {}).get('images', [])
         try:
@@ -131,9 +131,9 @@ class Rgdc:
             raster_meta_id = spatial_subentry_id(raster_meta_id)
 
         if stac:
-            r = self.session.get(f'geodata/imagery/raster/{raster_meta_id}/stac')
+            r = self.session.get(f'rgd_imagery/raster/{raster_meta_id}/stac')
         else:
-            r = self.session.get(f'geodata/imagery/raster/{raster_meta_id}')
+            r = self.session.get(f'rgd_imagery/raster/{raster_meta_id}')
         return r.json()
 
     def download_raster(
@@ -158,7 +158,7 @@ class Rgdc:
         if isinstance(raster_meta_id, dict):
             raster_meta_id = spatial_subentry_id(raster_meta_id)
 
-        r = self.session.get(f'geodata/imagery/raster/{raster_meta_id}')
+        r = self.session.get(f'rgd_imagery/raster/{raster_meta_id}')
         parent_raster = r.json().get('parent_raster', {})
 
         # Create dirs after request to avoid empty dirs if failed
@@ -182,7 +182,7 @@ class Rgdc:
         # Download images
         images = parent_raster.get('image_set', {}).get('images', [])
         for image in tqdm(images, desc='Downloading image files'):
-            file = image.get('image_file', {}).get('file', {})
+            file = image.get('file', {})
             file_path = download_checksum_file_to_path(file, path, keep_existing=keep_existing)
             if file_path:
                 raster_download.images.append(file_path)
@@ -238,11 +238,11 @@ class Rgdc:
             limit=limit,
             offset=offset,
         )
-        return list(limit_offset_pager(self.session, 'geosearch', params=params))
+        return list(limit_offset_pager(self.session, 'rgd/search', params=params))
 
     def create_raster_stac(self, raster: Dict) -> Dict:
         """Create a raster entry using STAC format."""
-        r = self.session.post('geodata/imagery/raster/stac', json=raster)
+        r = self.session.post('rgd_imagery/raster/stac', json=raster)
         r.raise_for_status()
 
         return r.json()
