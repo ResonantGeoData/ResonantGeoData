@@ -113,11 +113,6 @@ class StatisticsView(generic.ListView):
             self.get_queryset().aggregate(
                 count=Count('spatial_id', distinct=True),
                 coordinates=ArrayAgg(AsGeoJSON(Centroid('footprint'))),
-                raster_count=Count(
-                    'spatial_id',
-                    distinct=True,
-                    filter=Q(rastermeta__isnull=False),
-                ),
                 instrumentation_count=Count(
                     'instrumentation',
                     distinct=True,
