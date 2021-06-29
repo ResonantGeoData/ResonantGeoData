@@ -1,0 +1,123 @@
+{% extends "rgd/_base/spatial_detail.html" %}
+
+{% block extra_meta_table_body %}
+
+  <tr>
+    <td>Parent Raster ID</td>
+    <td>{{ object.parent_raster.id }}</td>
+  </tr>
+  <tr>
+    <td>Description</td>
+    <td>{{ object.parent_raster.description }}</td>
+  </tr>
+  <tr>
+    <td>Number of bands</td>
+    <td>{{ object.parent_raster.count }}</td>
+  </tr>
+  <tr>
+    <td>Resolution</td>
+    <td>{{ object.resolution }}</td>
+  </tr>
+  <tr>
+    <td>Origin</td>
+    <td>{{ object.origin }}</td>
+  </tr>
+  <tr>
+    <td>Extent</td>
+    <td>{{ object.extent }}</td>
+  </tr>
+  <tr>
+    <td>Transform</td>
+    <td>{{ object.transform }}</td>
+  </tr>
+  <tr>
+    <td>PROJ4 String</td>
+    <td>{{ object.crs }}</td>
+  </tr>
+  <tr>
+    <td>Cloud Cover</td>
+    <td>{{ object.cloud_cover }}</td>
+  </tr>
+
+{% endblock %}
+
+{% block extra_meta %}
+
+  <select id="band-selector" onchange="updateBandThumbnail()">
+    {% for image in object.parent_raster.image_set.images.all %}
+      <option value="{{ image.id }}">{{ image.file.name | truncatechars:36 }}</option>
+    {% endfor %}
+    <option value="-1">-- none --</option>
+  </select>
+
+  <div class="slidecontainer">
+    <label for="rasterOpacityRange">Raster Layer Opacity: </label>
+    <input type="range" min="1" max="100" value="100" class="slider" id="rasterOpacityRange" onChange="updateTilesOpacity(event, value)">
+  </div>
+
+  <div class="thumbnailContainer">
+    <img src="" id="thumbnail"/>
+  </div>
+
+{% endblock %}
+
+{% block detail %}
+
+  {% include 'rgd/_include/empty_viewer.html' %}
+
+  <script>
+    let extents = JSON.parse('{{ extents|escapejs }}');
+
+    // Make sure regions outside the extent of the raster do not load null tiles
+    //   this relieves strain on the tile server
+    const dataset_bb = extents.extent;
+    tileLayer.isValid = (index) => {
+      const tileBounds = tileLayer.gcsTileBounds(index);
+      return tileBounds.left <= dataset_bb.xmax &&
+        tileBounds.right >= dataset_bb.xmin &&
+        tileBounds.top >= dataset_bb.ymin &&
+        tileBounds.bottom <= dataset_bb.ymax;
+    }
+
+    function updateBandThumbnail () {
+      selector = document.getElementById('band-selector')
+      thumbnail = document.getElementById('thumbnail')
+      var image_id = Number(selector.value);
+      console.log(image_id)
+      if (image_id >= 0) {
+        tileLayer.visible(true)
+        tileLayer.url(`${host}/api/image_process/imagery/${image_id}/tiles/{z}/{x}/{y}.png?projection=EPSG:3857`)
+        thumbnail.src = `${host}/api/image_process/imagery/${image_id}/thumbnail`
+        thumbnail.hidden = false
+      } else {
+        tileLayer.visible(false)
+        thumbnail.hidden = true
+      }
+      // TODO: clear tileLayer when `none` is selected
+    }
+    updateBandThumbnail()
+
+    function updateTilesOpacity(e, value) {
+      value = Number(value) / 100.0;
+      tileLayer.opacity(value);
+    }
+
+    // Add collected polygons to map
+    let reader = geo.createFileReader('geojsonReader', {
+      'layer': layer
+    });
+
+    var footprint = '{{ object.footprint.json|escapejs }}'
+    reader.read(footprint, (features) => {
+      features[0].style({
+        strokeColor: '#FF0000',
+        fill: false,
+      })
+      .draw();
+    });
+
+    setBounds(extents.extent, true)
+
+  </script>
+
+{% endblock %}

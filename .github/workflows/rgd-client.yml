@@ -1,0 +1,29 @@
+name: RGD Client Tests
+on:
+  push:
+    branches: "*"
+  pull_request:
+    branches: "**"
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: Set up Python
+        uses: actions/setup-python@v2
+        with:
+          python-version: "3.8"
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install setuptools pytest
+      - name: Install rgd-client
+        working-directory: ./rgd-client
+        run: pip install -e .
+      - name: Test import
+        working-directory: ./rgd-client
+        run: |
+          python -c "from rgd_client import Rgdc; print('Import went okay!')"
+      # - name: Test
+      #   working-directory: ./rgd-client
+      #   run: pytest . -v

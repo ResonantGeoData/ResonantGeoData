@@ -1,0 +1,50 @@
+{% extends "rgd/_base/base.html" %}
+{% block title %}
+  <input class="button is-secondary" type="button" value="&#x2190; Back to Search" onclick="history.back()">
+  {{ object.name | truncatechars:36 }} ({{object.pk}})
+{% endblock title %}
+
+{% block extra_title_content %}
+  <div class="column is-2">
+    <span class="text-has-dark-bg is-block">Created:</span>
+    {{ object.created }}
+  </div>
+  <div class="column is-2">
+    <span class="text-has-dark-bg is-block">Modified:</span>
+    {{ object.modified }}
+  </div>
+  {% block extra_extra_title_content %}{% endblock %}
+{% endblock extra_title_content %}
+
+{% block content %}
+
+  <div class="columns m-0">
+    <div class="column is-sidebar is-one-quarter p-0">
+      <div class="column is-sidebar-content">
+        <input id="json" class="is-hidden" value="{{ object.footprint.json }}" readonly />
+
+        <div style="overflow-x:auto;">
+          <table class="table">
+            <thead class="thead-dark">
+              <tr>
+                <th><span class="text">Field</span></th>
+                <th><span class="text">Value</span></th>
+              </tr>
+            </thead>
+            <tbody>
+              {% block meta_table_body %}{% endblock %}
+            </tbody>
+          </table>
+        </div>
+
+        {% block extra_meta %}{% endblock %}
+
+      </div>
+    </div>
+
+    <div class="column p-0">
+      {% block detail %}{% endblock %}
+    </div>
+  </div>
+
+{% endblock content %}

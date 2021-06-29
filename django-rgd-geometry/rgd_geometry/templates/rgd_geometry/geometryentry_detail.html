@@ -1,0 +1,48 @@
+{% extends "rgd/_base/spatial_detail.html" %}
+
+{% block extra_meta_table_body %}
+
+  <tr>
+    <td>Description</td>
+    <td>{{ object.description }}</td>
+  </tr>
+
+{% endblock %}
+
+
+{% block detail %}
+
+
+  {% include 'rgd/_include/empty_viewer.html' %}
+
+  <script>
+    let extents = JSON.parse('{{ extents|escapejs }}');
+
+
+    // Add collected polygons to map
+    let reader = geo.createFileReader('geojsonReader', {
+      'layer': layer
+    });
+
+    // Reads the boundary
+    reader.read(extents.collect, (features) => {
+      features[0].style({
+        strokeColor: '#FF0000',
+        fill: false,
+      })
+      .draw();
+    });
+
+    // Read the data
+    reader.read(extents.data, (features) => {
+      features[0].style({
+        strokeColor: '#00FFFF',
+        fill: true,
+      })
+      .draw();
+    });
+
+    setBounds(extents.extent, true)
+  </script>
+
+{% endblock %}

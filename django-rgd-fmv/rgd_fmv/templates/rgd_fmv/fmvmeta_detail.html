@@ -1,0 +1,71 @@
+{% extends "rgd/_base/spatial_detail.html" %}
+
+{% block extra_meta_table_body %}
+  <tr>
+    <td>Description</td>
+    <td>{{ object.description }}</td>
+  </tr>
+  <tr>
+    <td>KLV Metadata</td>
+    <td>{{ object.fmv_file.klv_data_link }}</td>
+  </tr>
+  <tr>
+    <td>Original FMV Video</td>
+    <td>{{ object.fmv_file.fmv_data_link }}</td>
+  </tr>
+
+{% endblock %}
+
+{% block extra_meta %}
+
+  <br/>
+
+  <video width="100%" height="240" autobuffer="autobuffer" autoplay="autoplay" loop="loop" controls="controls" id="fmv_video">
+    <source src="{{ object.fmv_file.web_video_file.url }}" type='video/mp4; codecs="avc1.42E01E, mp4a.40.2"'>
+  </video>
+
+{% endblock %}
+
+{% block detail %}
+
+    {% include 'rgd/_include/viewer.html' %}
+
+    <script>
+      let frameRate = JSON.parse('{{ frame_rate|escapejs }}');
+      var video = document.getElementById('fmv_video');
+
+      // Move video to UI layer in map
+      // var videoFrame = ui.createWidget('dom', {position: {left: 10, bottom: 10}});
+      // videoFrame.canvas().appendChild(video)
+
+      if (extents.ground_frames !== undefined) {
+        let polys = JSON.parse(extents.ground_frames);
+        let frameNumbers = extents.frame_numbers;
+
+        var frameFootprint = layer.createFeature('quad')
+          .style({
+            color: 'red',
+            opacity: 0.5
+          })
+
+        var callback = () => {
+          let frame = Math.round(video.currentTime * frameRate);
+          let index = frameNumbers.indexOf(frame);
+          if (index > -1) {
+            var coords = polys.coordinates[index][0]
+            var data = [{
+              ll: {x: coords[0][0], y: coords[0][1]},
+              lr: {x: coords[1][0], y: coords[1][1]},
+              ur: {x: coords[2][0], y: coords[2][1]},
+              ul: {x: coords[3][0], y: coords[3][1]},
+              // video: video,
+            }]
+            frameFootprint.data(data).draw();
+          }
+        }
+
+        video.addEventListener('timeupdate', callback);
+      }
+    </script>
+
+{% endblock %}

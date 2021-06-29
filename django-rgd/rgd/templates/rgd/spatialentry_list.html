@@ -1,0 +1,33 @@
+{% extends "rgd/_base/search_view.html" %}
+{% block title %}
+  Spatial Entries
+{% endblock title %}
+
+{% block search_fields %}
+  {% include 'rgd/_include/search_fields.html' %}
+{% endblock search_fields %}
+
+{% block list_view %}
+
+  <div style="overflow-x:auto;">
+    <table class="table">
+      <thead class="thead-dark">
+        <tr>
+          <th><span class="text">ID - Name</span></th>
+          <th><span class="text">Area</span></th>
+          <th><span class="text">Data Type</span></th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for entry in spatial_entries %}
+          <tr>
+            <td><a href="{% url 'spatial-entry-detail' entry.pk %}">{{ entry.spatial_id }} - {{ entry.name | truncatechars:12 }}</a></td>
+            <td>{{ entry.footprint.area | floatformat:-2 }}</td>
+            <td>{{ entry }}</td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+{% endblock list_view %}

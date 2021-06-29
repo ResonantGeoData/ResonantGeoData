@@ -1,0 +1,79 @@
+{% extends "rgd/_base/base.html" %}
+{% block title %}
+  Catalog Statistics
+{% endblock title %}
+
+{% block extra_title_content %}
+  <div class="column is-1">
+    <span class="text-has-dark-bg is-block">Spatial Entries:</span>
+    <p id="search-count">{{ count }}</p>
+  </div>
+{% endblock extra_title_content %}
+
+{% block content %}
+
+  <div class="columns m-0">
+    <div class="column is-sidebar is-one-quarter p-0">
+      <div class="column is-sidebar-content">
+        <div style="overflow-x:auto;">
+          <table class="table">
+            <thead class="thead-dark">
+              <tr>
+                <th><span class="text">Field</span></th>
+                <th><span class="text">Value</span></th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td># of Spatial Entries</td>
+                <td>{{ count }}</td>
+              </tr>
+              <tr>
+                <td># of Instruments</td>
+                <td>{{ instrumentation_count }}</td>
+              </tr>
+              <tr>
+                <td>Earliest Date</td>
+                <td>{{ acquisition_date__min }}</td>
+              </tr>
+              <tr>
+                <td>Lateset Date</td>
+                <td>{{ acquisition_date__max }}</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <div class="column p-0">
+      {% include 'rgd/_include/empty_viewer.html' %}
+
+      <script>
+        var mapviews = document.getElementsByClassName('geojs-map');
+        for (var i = 0; i < mapviews.length; i++) {
+          mapviews[i].style.overflow = 'hidden';
+        }
+
+        var coordinates = JSON.parse('{{ coordinates|escapejs }}')
+        var heatLayer = map.createLayer('feature', {
+          features: ['heatmap'],
+          opacity: 0.75
+        });
+        var heatmap = heatLayer.createFeature('heatmap')
+        .position(function (d) {
+          x = d.coordinates[0]
+          y = d.coordinates[1]
+          return {x: x, y: y};
+        })
+        .updateDelay((coordinates.length >= 5.0e+8) ? 1000 : 25)
+        .data(coordinates)
+        .draw();
+
+        var extents = JSON.parse('{{ extents|escapejs }}')
+        setBounds(extents)
+      </script>
+    </div>
+  </div>
+
+{% endblock content %}

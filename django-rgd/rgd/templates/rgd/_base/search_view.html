@@ -1,0 +1,216 @@
+{% extends "rgd/_base/base.html" %}
+
+{% block extra_title_content %}
+  <div class="column is-1">
+    <span class="text-has-dark-bg is-block">Spatial Entries:</span>
+    <p id="search-count"></p>
+  </div>
+  <script>
+    let extents_meta = JSON.parse('{{ extents_meta|escapejs }}');
+    document.getElementById('search-count').innerHTML = extents_meta['count'];
+  </script>
+
+{% endblock extra_title_content %}
+
+{% block content %}
+
+  <div class="columns m-0">
+    <div class="column is-sidebar is-one-quarter p-0">
+
+      <div class="tab tabs is-boxed" id="tabs">
+        <ul class="pt-2 px-2">
+          <li class="tablinks is-active" id="searchTabLink" onclick="openTab(event, 'searchTab')"><a href="#searchTab">Search</a></li>
+          <li class="tablinks" id="resultsTabLink" onclick="openTab(event, 'resultsTab')"><a href="#resultsTab">Results</a></li>
+        </ul>
+      </div>
+
+      <div class="column is-sidebar-content">
+        <div id="searchTab" class="tabcontent" style="display: block;">
+
+          <div class="columns is-multiline mx-0">
+            <div class="column is-full mb-2 pb-5">
+              <div class="field">
+                <div class="field-label is-normal mb-1">
+                  <label class="label">Map Tool:</label>
+                </div>
+                <div class="field-body">
+                  <div class="field">
+                    <div class="control">
+                      <div class="select is-halfwidth">
+                        <select id="mapTool">
+                          <option value="stJSON">GeoJSON</option>
+                          <option value="stPoint">Point</option>
+                          <option value="stBounding">Bounding Box</option>
+                        </select>
+                      </div>
+                      <div>
+                        <div id="stJSON" class="selection" style="display: none;">
+                          <div class="column is-full field is-grouped">
+                            <div class="control">
+                              <input class="button is-secondary" type="button" value="Draw on Map" name="drawOnMapButton" onclick="enableDrawOnMap()">
+                            </div>
+                          </div>
+                        </div>
+                        <div id="stPoint" class="selection" style="display: none;">
+                          <div class="column is-full field is-grouped">
+                            <div class="control">
+                              <input class="button is-secondary" type="button" value="Use Map" name="button" onclick="populatePoint()">
+                            </div>
+                          </div>
+                        </div>
+                        <div id="stBounding" class="selection" style="display: none;">
+                          <div class="column is-full field is-grouped">
+                            <div class="control">
+                              <input class="button is-secondary" type="button" value="Use Map" name="button" onclick="populateBounds()">
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="column is-full">
+              <form method="GET">
+                <div class="columns is-multiline mx-0">
+                  {% block search_fields %}{% endblock %}
+
+                  <div id="submitButton" class="column is-full" style="left: 0; bottom: 0; width: 100%;">
+                    <div class="field">
+                      <div class="control">
+                        <input class="button is-accent" type="submit" value="Filter">
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </form>
+            </div>
+          </div>
+
+          <script>
+            var geojsonField = document.getElementsByName("q")[0]
+
+            function populateBounds() {
+              var bounds = map.bounds()
+              var boxjson = {
+                "type": "Polygon",
+                "coordinates": [
+                  [
+                    [bounds.left, bounds.bottom],
+                    [bounds.left, bounds.top],
+                    [bounds.right, bounds.top],
+                    [bounds.right, bounds.bottom],
+                    [bounds.left, bounds.bottom]
+                  ]
+                ]
+              };
+              geojsonField.value = JSON.stringify(boxjson);
+            }
+
+            function populatePoint() {
+              var center = map.center()
+              var pointjson = {
+                "type": "Point",
+                "coordinates": [center.x, center.y]
+              }
+              geojsonField.value = JSON.stringify(pointjson)
+            }
+
+
+            function enableDrawOnMap() {
+              // Disable button until completed
+              var button = document.getElementsByName("drawOnMapButton")[0]
+              button.disabled = true
+              // Clear any previous annotations
+              annotationLayer.removeAllAnnotations()
+              // Start new annotation
+              annotationLayer.mode('polygon');
+              annotationLayer.geoOn(geo.event.annotation.state, (e) => {
+                if (e.annotation.state() === "done") {
+                  geojsonField.value = JSON.stringify(e.annotation.geojson().geometry)
+                  // Re-enable button
+                  button.disabled = false
+                }
+              });
+            }
+
+            var mapTool = document.getElementById("mapTool")
+            $(function() {
+              $('#mapTool').change(function() {
+                $('.selection').hide();
+                $('#' + $(this).val()).show();
+                setCookie('mapToolType', $(this)[0].value)
+              });
+              mapTool.value = getCookie('mapToolType', 'stPoint')
+              $('#mapTool').change()
+            });
+          </script>
+
+
+
+
+
+        </div>
+
+        <div id="resultsTab" class="tabcontent" style="display: none;">
+          {% block list_view %}{% endblock %}
+
+          <div class="pagination" style="position: absolute; margin-left:10px; margin-top:10px;">
+            <span class="step-links">
+              {% if page_obj.has_previous %}
+                <a href="?page=1{{ query_params }}#resultsTab">&laquo; first</a>
+                <a href="?page={{ page_obj.previous_page_number }}{{ query_params }}#resultsTab">previous</a>
+              {% endif %}
+
+              <span class="current">
+                Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}.
+              </span>
+
+              {% if page_obj.has_next %}
+                <a href="?page={{ page_obj.next_page_number }}{{ query_params }}#resultsTab">next</a>
+                <a href="?page={{ page_obj.paginator.num_pages }}{{ query_params }}#resultsTab">last &raquo;</a>
+              {% endif %}
+            </span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="column p-0">
+      {% include 'rgd/_include/search_map.html' %}
+    </div>
+  </div>
+
+  <script>
+    function openTab(evt, tabName) {
+      // Declare all variables
+      var i, tabcontent, tablinks;
+      // Get all elements with class="tabcontent" and hide them
+      tabcontent = document.getElementsByClassName("tabcontent");
+      for (i = 0; i < tabcontent.length; i++) {
+        tabcontent[i].style.display = "none";
+      }
+      // Get all elements with class="tablinks" and remove the class "active"
+      tablinks = document.getElementsByClassName("tablinks");
+      for (i = 0; i < tablinks.length; i++) {
+        tablinks[i].className = tablinks[i].className.replace(" is-active", "");
+      }
+      // Show the current tab, and add an "active" class to the button that opened the tab
+      document.getElementById(tabName).style.display = "block";
+      // evt.currentTarget.className += " is-active";
+      document.getElementById(tabName + "Link").className += " is-active";
+    }
+
+    window.onload = function (event) {
+        var hash = window.location.hash;
+        if (hash == '#resultsTab') {
+          openTab(event, 'resultsTab');
+        } else if (hash == '#searchTab') {
+          openTab(event, 'searchTab');
+        }
+    };
+  </script>
+
+{% endblock content %}

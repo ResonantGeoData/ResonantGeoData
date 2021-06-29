@@ -1,0 +1,46 @@
+{% extends "rgd/_base/detail.html" %}
+
+{% block extra_extra_title_content %}
+  <div class="column is-2">
+    <span class="text-has-dark-bg is-block">Acquired:</span>
+    {{ object.acquisition_date }}
+  </div>
+  <div class="column is-2">
+    <a id="copyjson" class="button has-icon is-flex is-justify-content-space-between is-secondary is-fullwidth">
+      <span>Copy GeoJSON</span>
+      <span class="icon is-small">
+        <i class="material-icons">refresh</i>
+      </span>
+    </a>
+
+    <script>
+      document.getElementById("copyjson").onclick = function () {
+        // We have to create a visible element in the document in order
+        // to copy its content to the clipboard, at least in Chrome.
+        var el = document.getElementById("json");
+        var tempInput = document.createElement("input");
+        tempInput.value = el.value;
+        document.body.appendChild(tempInput);
+        tempInput.select();
+        document.execCommand("copy");
+        document.body.removeChild(tempInput);
+      }
+    </script>
+  </div>
+{% endblock extra_extra_title_content %}
+
+{% block meta_table_body %}
+  <tr>
+    <td>Acquisition Date</td>
+    <td>{{ object.acquisition_date }}</td>
+  </tr>
+  <tr>
+    <td>Area</td>
+    <td>{{ object.footprint.area | floatformat:-2 }}</td>
+  </tr>
+  <tr>
+    <td>Instrumentation</td>
+    <td>{{ object.instrumentation }}</td>
+  </tr>
+  {% block extra_meta_table_body %}{% endblock %}
+{% endblock %}

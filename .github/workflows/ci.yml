@@ -1,4 +1,4 @@
-name: ci
+name: RGD Module Tests
 on:
   pull_request:
   push:
@@ -7,7 +7,22 @@ on:
   schedule:
     - cron: "0 0 * * *"
 jobs:
-  test:
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: Set up Python
+        uses: actions/setup-python@v2
+        with:
+          python-version: "3.8"
+      - name: Install tox
+        run: |
+          pip install --upgrade pip
+          pip install tox
+      - name: Run linting
+        run: |
+          tox -e lint
+  check-migrations:
     runs-on: ubuntu-latest
     services:
       postgres:
@@ -35,37 +50,65 @@ jobs:
         uses: actions/setup-python@v2
         with:
           python-version: "3.8"
-      - name: Install ffmpeg
+      - name: Install tox
         run: |
+          pip install --upgrade pip
+          pip install tox
+      - name: Run check migrations
+        run: |
+          tox -e check-migrations
+        env:
+          MINIO_STORAGE_ENDPOINT: localhost:9000
+  test:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgis/postgis:latest
+        env:
+          POSTGRES_DB: django
+          POSTGRES_PASSWORD: postgres
+        ports:
+          - 5432:5432
+      rabbitmq:
+        image: rabbitmq:management
+        ports:
+          - 5672:5672
+      minio:
+        # This image does not require any command arguments (which GitHub Actions don't support)
+        image: bitnami/minio:latest
+        env:
+          MINIO_ACCESS_KEY: minioAccessKey
+          MINIO_SECRET_KEY: minioSecretKey
+        ports:
+          - 9000:9000
+    strategy:
+      fail-fast: false
+      matrix:
+        rgd-module: ['rgd', 'rgd-3d', 'rgd-fmv', 'rgd-geometry', 'rgd-imagery']
+    steps:
+      - uses: actions/checkout@v2
+      - name: Set up Python
+        uses: actions/setup-python@v2
+        with:
+          python-version: "3.8"
+      - name: Install ffmpeg
+        if: ${{ matrix.rgd-module=='rgd-fmv' }}
+        run: |
+          sudo apt update
           sudo apt-get install --no-install-recommends --yes ffmpeg
       - name: Install tox and codecov
         run: |
           pip install --upgrade pip
           pip install tox codecov
-      - name: Run linting
+      - name: Run RGD module tests
         run: |
-          tox -e lint
+          tox -e test-${{ matrix.rgd-module }}
         env:
-          DJANGO_DATABASE_URL: postgres://postgres:postgres@localhost:5432/django
-          DJANGO_MINIO_STORAGE_ENDPOINT: localhost:9000
-          DJANGO_MINIO_STORAGE_ACCESS_KEY: minioAccessKey
-          DJANGO_MINIO_STORAGE_SECRET_KEY: minioSecretKey
-      - name: Run check migrations
-        run: |
-          tox -e check-migrations
-        env:
-          DJANGO_DATABASE_URL: postgres://postgres:postgres@localhost:5432/django
-          DJANGO_MINIO_STORAGE_ENDPOINT: localhost:9000
-          DJANGO_MINIO_STORAGE_ACCESS_KEY: minioAccessKey
-          DJANGO_MINIO_STORAGE_SECRET_KEY: minioSecretKey
-      - name: Run tests
-        run: |
-          tox -e test
-        env:
-          DJANGO_DATABASE_URL: postgres://postgres:postgres@localhost:5432/django
-          DJANGO_MINIO_STORAGE_ENDPOINT: localhost:9000
-          DJANGO_MINIO_STORAGE_ACCESS_KEY: minioAccessKey
-          DJANGO_MINIO_STORAGE_SECRET_KEY: minioSecretKey
-      - name: Upload Coverage
-        run: |
-          codecov
+          MINIO_STORAGE_ENDPOINT: localhost:9000
+          MINIO_STORAGE_ACCESS_KEY: minioAccessKey
+          MINIO_STORAGE_SECRET_KEY: minioSecretKey
+          CELERY_BROKER_URL: amqp://localhost:5672/
+          DATABASE_HOST: localhost
+      # - name: Upload Coverage
+      #   run: |
+      #     codecov

@@ -1,0 +1,12 @@
+{% block viewer %}
+
+  {% include 'rgd/_include/empty_viewer.html' %}
+
+  <script>
+    let extents = JSON.parse('{{ extents|escapejs }}');
+    setBounds(extents.extent)
+  </script>
+
+  {% include 'rgd/_include/geojson_reader.html' %}
+
+{% endblock %}
