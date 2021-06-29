@@ -163,6 +163,9 @@ class STACRasterSerializer(serializers.BaseSerializer):
         item.ext.eo.apply(cloud_cover=instance.cloud_cover, bands=[])
         # Add assets
         for image in instance.parent_raster.image_set.images.all():
+            if image.file.type != FileSourceType.URL:
+                # TODO: we need fix this
+                raise ValueError('Files must point to valid URL resources, not internal storage.')
             asset = pystac.Asset(
                 href=image.file.get_url(),
                 title=image.file.name,
