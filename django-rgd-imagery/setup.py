@@ -51,7 +51,6 @@ setup(
         'large-image-source-pil>=1.6.0',
         'numpy',
         'pystac[validation]',
-        'rasterio',
         'shapely',
     ],
     extras_require={
@@ -60,6 +59,7 @@ setup(
             'kwcoco',
             'kwimage[headless]>=0.6.7',
             'large-image-converter',
+            'rasterio',
         ],
     },
 )
