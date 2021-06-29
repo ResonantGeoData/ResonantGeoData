@@ -17,14 +17,7 @@ from rasterio.warp import Resampling, calculate_default_transform, reproject
 from rgd.models.constants import DB_SRID
 from rgd.models.transform import transform_geometry
 from rgd.utility import get_or_create_no_commit
-from rgd_imagery.models import (
-    BandMeta,
-    ConvertedImage,
-    Image,
-    ImageMeta,
-    RasterEntry,
-    RasterMetaEntry,
-)
+from rgd_imagery.models import BandMeta, ConvertedImage, Image, ImageMeta, Raster, RasterMetaEntry
 from shapely.geometry import shape
 from shapely.ops import unary_union
 
@@ -121,7 +114,7 @@ def _extract_raster_meta(image):
     """Extract all of the raster meta info in our models from an Image.
 
     The keys of the returned dict should match the fields of the
-    ``RasterEntry``.
+    ``Raster``.
 
     """
     raster_meta = dict()
@@ -315,21 +308,21 @@ def _validate_image_set_is_raster(image_set):
     return first_meta
 
 
-def populate_raster_entry(raster_entry):
+def populate_raster(raster):
     """Autopopulate the fields of the raster."""
-    if not isinstance(raster_entry, RasterEntry):
-        raster_entry = RasterEntry.objects.get(id=raster_entry)
+    if not isinstance(raster, Raster):
+        raster = Raster.objects.get(id=raster)
 
     # Has potential to error with failure reason
-    meta = _validate_image_set_is_raster(raster_entry.image_set)
-    if not raster_entry.name:
-        raster_entry.name = raster_entry.image_set.name
-        raster_entry.save(
+    meta = _validate_image_set_is_raster(raster.image_set)
+    if not raster.name:
+        raster.name = raster.image_set.name
+        raster.save(
             update_fields=[
                 'name',
             ]
         )
-    raster_meta, created = get_or_create_no_commit(RasterMetaEntry, parent_raster=raster_entry)
+    raster_meta, created = get_or_create_no_commit(RasterMetaEntry, parent_raster=raster)
     # Not using `defaults` here because we want `meta` to always get updated.
     for k, v in meta.items():
         # Yeah. This is sketchy, but it works.
@@ -339,12 +332,12 @@ def populate_raster_entry(raster_entry):
 
 
 def populate_raster_outline(raster_id):
-    raster_entry = RasterEntry.objects.get(id=raster_id)
-    base_image = raster_entry.image_set.images.first()
+    raster = Raster.objects.get(id=raster_id)
+    base_image = raster.image_set.images.first()
     with base_image.file.yield_local_path(vsi=True) as path:
         with rasterio.open(path) as src:
-            raster_entry.rastermetaentry.outline = _extract_raster_outline(src)
-    raster_entry.rastermetaentry.save(
+            raster.rastermetaentry.outline = _extract_raster_outline(src)
+    raster.rastermetaentry.save(
         update_fields=[
             'outline',
         ]
@@ -352,12 +345,12 @@ def populate_raster_outline(raster_id):
 
 
 def populate_raster_footprint(raster_id):
-    raster_entry = RasterEntry.objects.get(id=raster_id)
+    raster = Raster.objects.get(id=raster_id)
     # Only set the footprint if the RasterMetaEntry has been created already
     #   this avoids a race condition where footprint might not get set correctly.
     try:
-        raster_meta = RasterMetaEntry.objects.get(parent_raster=raster_entry)
-        base_image = raster_entry.image_set.images.first()
+        raster_meta = RasterMetaEntry.objects.get(parent_raster=raster)
+        base_image = raster.image_set.images.first()
         footprint = _extract_raster_footprint(base_image)
         if footprint:
             raster_meta.footprint = footprint

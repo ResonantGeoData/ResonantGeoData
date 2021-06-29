@@ -14,5 +14,5 @@ class RasterMetaEntriesListView(SpatialEntriesListView):
     template_name = 'rgd_imagery/rastermetaentry_list.html'
 
 
-class RasterEntryDetailView(_SpatialDetailView):
+class RasterDetailView(_SpatialDetailView):
     model = models.RasterMetaEntry

@@ -1,7 +1,7 @@
 # How to Ingest Data
 
 
-## Imagery: `ImageEntry` and `RasterEntry`
+## Imagery: `ImageEntry` and `Raster`
 
 All new images added to the catalog, spatial or not, must be added as a new
 `ImageFile` entry which links to the base `ChecksumFile` model.
@@ -29,7 +29,7 @@ If you want to register one or more of your uploaded images as a geospatial rast
 ![image_set](./images/image_set.png)
 
 
-Once you have an `ImageSet`, we need to register that set with the `RasterEntry` model. Create a new `RasterEntry` and only populate the first section of fields: name, description, and image set. Then hit save, and the linked `RasterMetaEntry` will be automatically populated.
+Once you have an `ImageSet`, we need to register that set with the `Raster` model. Create a new `Raster` and only populate the first section of fields: name, description, and image set. Then hit save, and the linked `RasterMetaEntry` will be automatically populated.
 
 
 ![raster_entry](./images/raster_entry.png)

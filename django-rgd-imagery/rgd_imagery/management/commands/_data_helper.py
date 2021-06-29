@@ -78,7 +78,7 @@ def load_raster(pks, raster_dict, footprint=False):
         ]
     imset = _get_or_create_image_set(pks)
     # Make raster of that image set
-    raster, created = get_or_create_no_commit(models.RasterEntry, image_set=imset)
+    raster, created = get_or_create_no_commit(models.Raster, image_set=imset)
     _save_signal(raster, created)
 
     # Add optional metadata

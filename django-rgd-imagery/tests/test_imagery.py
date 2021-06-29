@@ -27,7 +27,7 @@ def _make_raster_from_datastore(name):
     image_set = factories.ImageSetFactory(
         images=[image.id],
     )
-    raster = factories.RasterEntryFactory(
+    raster = factories.RasterFactory(
         name=name,
         image_set=image_set,
     )
@@ -55,7 +55,7 @@ def test_imagefile_url_to_rasterentry_centroids(testfile):
     image_set = factories.ImageSetFactory(
         images=[image.id],
     )
-    raster = factories.RasterEntryFactory(
+    raster = factories.RasterFactory(
         name=testfile['name'],
         image_set=image_set,
     )

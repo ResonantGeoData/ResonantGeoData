@@ -26,9 +26,9 @@ class ImageSetFactory(factory.django.DjangoModelFactory):
                 self.images.add(image)
 
 
-class RasterEntryFactory(factory.django.DjangoModelFactory):
+class RasterFactory(factory.django.DjangoModelFactory):
     class Meta:
-        model = models.RasterEntry
+        model = models.Raster
 
     name = factory.Faker('sentence', nb_words=2)
     image_set = factory.SubFactory(ImageSetFactory)

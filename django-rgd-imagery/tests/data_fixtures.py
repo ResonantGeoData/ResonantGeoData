@@ -33,7 +33,7 @@ def sample_raster_a():
     image_set = factories.ImageSetFactory(
         images=[image.id],
     )
-    raster = factories.RasterEntryFactory(
+    raster = factories.RasterFactory(
         name='20091021202517-01000100-VIS_0001.ntf',
         image_set=image_set,
     )
@@ -49,7 +49,7 @@ def sample_raster_b():
     image_set = factories.ImageSetFactory(
         images=[image.id],
     )
-    raster = factories.RasterEntryFactory(
+    raster = factories.RasterFactory(
         name='cclc_schu_100.tif',
         image_set=image_set,
     )
@@ -65,7 +65,7 @@ def sample_raster_c():
     image_set = factories.ImageSetFactory(
         images=[image.id],
     )
-    raster = factories.RasterEntryFactory(
+    raster = factories.RasterFactory(
         name='RomanColosseum_WV2mulitband_10.tif',
         image_set=image_set,
     )
@@ -90,8 +90,8 @@ def sample_raster_multi():
     image_set = factories.ImageSetFactory(
         images=images,
     )
-    # Create a RasterEntry from the three band image entries
-    raster = factories.RasterEntryFactory(
+    # Create a Raster from the three band image entries
+    raster = factories.RasterFactory(
         name='Multi File Test',
         image_set=image_set,
     )
@@ -121,8 +121,8 @@ def sample_raster_url():
         url=datastore.get_url('stars.png'),
         type=FileSourceType.URL,
     )
-    # Create a RasterEntry from the three band image entries
-    raster = factories.RasterEntryFactory(
+    # Create a Raster from the three band image entries
+    raster = factories.RasterFactory(
         name='Multi File Test',
         image_set=image_set,
     )

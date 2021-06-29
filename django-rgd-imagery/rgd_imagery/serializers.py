@@ -116,17 +116,17 @@ class ImageSetSerializer(serializers.ModelSerializer):
         ]
 
 
-class RasterEntrySerializer(serializers.ModelSerializer):
+class RasterSerializer(serializers.ModelSerializer):
     image_set = ImageSetSerializer()
     ancillary_files = ChecksumFileSerializer(many=True)
 
     class Meta:
-        model = models.RasterEntry
+        model = models.Raster
         fields = '__all__'
 
 
 class RasterMetaEntrySerializer(SpatialEntrySerializer):
-    parent_raster = RasterEntrySerializer()
+    parent_raster = RasterSerializer()
 
     class Meta:
         model = models.RasterMetaEntry
@@ -216,11 +216,11 @@ class STACRasterSerializer(serializers.BaseSerializer):
         image_set = models.ImageSet.objects.create()
         image_set.images.set(images)
 
-        raster_entry, _ = models.RasterEntry.objects.get_or_create(
+        raster, _ = models.Raster.objects.get_or_create(
             image_set=image_set, defaults=dict(name=item.id)
         )
-        [raster_entry.ancillary_files.add(af) for af in ancillary]
-        raster_entry.save()
+        [raster.ancillary_files.add(af) for af in ancillary]
+        raster.save()
 
         outline = Polygon(
             (
@@ -233,7 +233,7 @@ class STACRasterSerializer(serializers.BaseSerializer):
         )
 
         instance = models.RasterMetaEntry(
-            parent_raster=raster_entry,
+            parent_raster=raster,
             footprint=json.dumps(item.geometry),
             crs=f'+init=epsg:{item.ext.projection.epsg}',
             cloud_cover=item.ext.eo.cloud_cover,

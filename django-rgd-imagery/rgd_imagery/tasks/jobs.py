@@ -12,30 +12,30 @@ def task_load_image(file_id):
 
 
 @shared_task(time_limit=86400)
-def task_populate_raster_entry(raster_id):
-    from rgd_imagery.models import RasterEntry
-    from rgd_imagery.tasks.etl import populate_raster_entry
+def task_populate_raster(raster_id):
+    from rgd_imagery.models import Raster
+    from rgd_imagery.tasks.etl import populate_raster
 
-    raster_entry = RasterEntry.objects.get(id=raster_id)
-    helpers._run_with_failure_reason(raster_entry, populate_raster_entry, raster_id)
+    raster = Raster.objects.get(id=raster_id)
+    helpers._run_with_failure_reason(raster, populate_raster, raster_id)
 
 
 @shared_task(time_limit=86400)
 def task_populate_raster_footprint(raster_id):
-    from rgd_imagery.models import RasterEntry
+    from rgd_imagery.models import Raster
     from rgd_imagery.tasks.etl import populate_raster_footprint
 
-    raster_entry = RasterEntry.objects.get(id=raster_id)
-    helpers._run_with_failure_reason(raster_entry, populate_raster_footprint, raster_id)
+    raster = Raster.objects.get(id=raster_id)
+    helpers._run_with_failure_reason(raster, populate_raster_footprint, raster_id)
 
 
 @shared_task(time_limit=86400)
 def task_populate_raster_outline(raster_id):
-    from rgd_imagery.models import RasterEntry
+    from rgd_imagery.models import Raster
     from rgd_imagery.tasks.etl import populate_raster_outline
 
-    raster_entry = RasterEntry.objects.get(id=raster_id)
-    helpers._run_with_failure_reason(raster_entry, populate_raster_outline, raster_id)
+    raster = Raster.objects.get(id=raster_id)
+    helpers._run_with_failure_reason(raster, populate_raster_outline, raster_id)
 
 
 @shared_task(time_limit=86400)

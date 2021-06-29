@@ -19,9 +19,9 @@ def _m2m_changed_image_set(sender, instance, action, reverse, *args, **kwargs):
             instance.save(update_fields=['name'])
 
 
-@receiver(post_save, sender=models.RasterEntry)
+@receiver(post_save, sender=models.Raster)
 @skip_signal()
-def _post_save_raster_entry(sender, instance, *args, **kwargs):
+def _post_save_raster(sender, instance, *args, **kwargs):
     transaction.on_commit(lambda: instance._on_commit_event_task(*args, **kwargs))
 
 

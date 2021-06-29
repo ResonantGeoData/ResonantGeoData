@@ -7,7 +7,7 @@ from rgd.admin.mixins import (
     TASK_EVENT_READONLY,
     reprocess,
 )
-from rgd_imagery.models import RasterEntry, RasterMetaEntry
+from rgd_imagery.models import Raster, RasterMetaEntry
 from rgd_imagery.tasks import jobs
 
 
@@ -70,8 +70,8 @@ class RasterMetaEntryAdmin(OSMGeoAdmin):
     modifiable = False  # To still show the footprint and outline
 
 
-@admin.register(RasterEntry)
-class RasterEntryAdmin(OSMGeoAdmin):
+@admin.register(Raster)
+class RasterAdmin(OSMGeoAdmin):
     list_display = (
         'pk',
         'name',

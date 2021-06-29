@@ -21,7 +21,7 @@ urlpatterns = [
     path(r'rgd_imagery/raster/', views.RasterMetaEntriesListView.as_view(), name='raster-search'),
     path(
         'rgd_imagery/raster/<int:pk>/',
-        views.RasterEntryDetailView.as_view(),
+        views.RasterDetailView.as_view(),
         name=models.RasterMetaEntry.detail_view_name,
     ),
     path(

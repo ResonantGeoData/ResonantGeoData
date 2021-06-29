@@ -18,7 +18,7 @@ from rgd_imagery.models import (
     ImageMeta,
     ImageSet,
     ImageSetSpatial,
-    RasterEntry,
+    Raster,
 )
 
 
@@ -41,7 +41,7 @@ def make_image_set_from_images(modeladmin, request, queryset):
 
 
 def _make_raster_from_image_set(imset):
-    raster = RasterEntry()
+    raster = Raster()
     raster.image_set = imset
     raster.save()
     return raster

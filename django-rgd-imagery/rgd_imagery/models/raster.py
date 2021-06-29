@@ -10,7 +10,7 @@ from rgd_imagery.tasks import jobs
 from .base import ImageSet
 
 
-class RasterEntry(TimeStampedModel, TaskEventMixin, PermissionPathMixin):
+class Raster(TimeStampedModel, TaskEventMixin, PermissionPathMixin):
     """This class is a container for the metadata of a raster.
 
     This model inherits from ``ImageSet`` and only adds an extra layer of
@@ -27,7 +27,7 @@ class RasterEntry(TimeStampedModel, TaskEventMixin, PermissionPathMixin):
     ancillary_files = models.ManyToManyField(ChecksumFile, blank=True)
 
     task_funcs = (
-        jobs.task_populate_raster_entry,
+        jobs.task_populate_raster,
         # jobs.task_populate_raster_footprint,
     )
 
@@ -49,7 +49,7 @@ class RasterMetaEntry(TimeStampedModel, SpatialEntry, PermissionPathMixin, Detai
     ]
     detail_view_name = 'raster-entry-detail'
 
-    parent_raster = models.OneToOneField(RasterEntry, on_delete=models.CASCADE)
+    parent_raster = models.OneToOneField(Raster, on_delete=models.CASCADE)
 
     # Raster fields
     crs = models.TextField(help_text='PROJ string')  # PROJ String

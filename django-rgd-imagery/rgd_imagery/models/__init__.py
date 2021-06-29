@@ -11,4 +11,4 @@ from .annotation import Annotation, PolygonSegmentation, RLESegmentation, Segmen
 from .base import BandMeta, Image, ImageMeta, ImageSet, ImageSetSpatial
 from .kwcoco import KWCOCOArchive
 from .processed import ConvertedImage, RegionImage
-from .raster import RasterEntry, RasterMetaEntry
+from .raster import Raster, RasterMetaEntry
