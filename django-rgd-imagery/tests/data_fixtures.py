@@ -99,6 +99,33 @@ def sample_raster_multi():
 
 
 @pytest.fixture
+def sample_raster_url_single():
+    images = [
+        factories.ImageFactory(
+            file__type=FileSourceType.URL,
+            file__file=None,
+            file__url=datastore.get_url('LC08_L1TP_034032_20200429_20200509_01_T1_sr_band1.tif'),
+        )
+    ]
+    image_set = factories.ImageSetFactory(
+        images=images,
+    )
+    anc = factories.ChecksumFileFactory(
+        file=None,
+        url=datastore.get_url('stars.png'),
+        type=FileSourceType.URL,
+    )
+    # Create a Raster from the three band image entries
+    raster = factories.RasterFactory(
+        name='Multi File Test',
+        image_set=image_set,
+    )
+    raster.ancillary_files.add(anc)
+    raster.save()
+    return raster.rastermeta
+
+
+@pytest.fixture
 def sample_raster_url():
     landsat_files = [
         'LC08_L1TP_034032_20200429_20200509_01_T1_sr_band1.tif',

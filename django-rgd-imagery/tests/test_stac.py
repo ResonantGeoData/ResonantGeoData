@@ -14,27 +14,27 @@ def _check_conforms_stac(data):
 
 
 @pytest.mark.django_db(transaction=True)
-def test_raster_stac_serializer_simple(admin_api_client, sample_raster_a):
-    id = sample_raster_a.pk
+def test_raster_stac_serializer_simple(admin_api_client, sample_raster_url_single):
+    id = sample_raster_url_single.pk
     response = admin_api_client.get(f'/rgd_imagery_test/api/rgd_imagery/raster/{id}/stac')
     assert response.status_code == 200
     data = response.data
     assert data
     _check_conforms_stac(data)
     assets = data['assets']
-    assert len(assets) == 1
+    assert len(assets) == 2
 
 
 @pytest.mark.django_db(transaction=True)
-def test_raster_stac_serializer_multi_file_bands(admin_api_client, sample_raster_multi):
-    id = sample_raster_multi.pk
+def test_raster_stac_serializer_multi_file_bands(admin_api_client, sample_raster_url):
+    id = sample_raster_url.pk
     response = admin_api_client.get(f'/rgd_imagery_test/api/rgd_imagery/raster/{id}/stac')
     assert response.status_code == 200
     data = response.data
     assert data
     _check_conforms_stac(data)
     assets = data['assets']
-    assert len(assets) == 3
+    assert len(assets) == 4
 
 
 @pytest.mark.django_db(transaction=True)
