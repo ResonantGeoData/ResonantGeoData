@@ -38,7 +38,7 @@ def _make_raster_from_datastore(name):
 @pytest.mark.django_db(transaction=True)
 def test_imagefile_to_rasterentry_centroids(testfile):
     raster = _make_raster_from_datastore(testfile['name'])
-    meta = raster.rastermetaentry
+    meta = raster.rastermeta
     centroid = meta.outline.centroid
     assert centroid.x == pytest.approx(testfile['centroid']['x'], abs=TOLERANCE)
     assert centroid.y == pytest.approx(testfile['centroid']['y'], abs=TOLERANCE)
@@ -59,7 +59,7 @@ def test_imagefile_url_to_rasterentry_centroids(testfile):
         name=testfile['name'],
         image_set=image_set,
     )
-    meta = raster.rastermetaentry
+    meta = raster.rastermeta
     centroid = meta.outline.centroid
     # Sanity check
     assert image.file.type == FileSourceType.URL
@@ -98,6 +98,6 @@ def test_multi_file_raster(sample_raster_multi):
 def test_raster_footprint(name):
     raster = _make_raster_from_datastore(name)
     populate_raster_footprint(raster.id)
-    meta = raster.rastermetaentry
+    meta = raster.rastermeta
     assert meta.footprint
     assert meta.footprint != meta.outline

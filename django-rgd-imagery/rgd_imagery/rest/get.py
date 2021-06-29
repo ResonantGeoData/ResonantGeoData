@@ -29,13 +29,13 @@ class GetImageSet(RetrieveAPIView, _PermissionMixin):
     queryset = models.ImageSet.objects.all()
 
 
-class GetRasterMetaEntry(RetrieveAPIView, _PermissionMixin):
-    serializer_class = serializers.RasterMetaEntrySerializer
+class GetRasterMeta(RetrieveAPIView, _PermissionMixin):
+    serializer_class = serializers.RasterMetaSerializer
     lookup_field = 'pk'
-    queryset = models.RasterMetaEntry.objects.all()
+    queryset = models.RasterMeta.objects.all()
 
 
-class GetRasterMetaEntrySTAC(RetrieveAPIView, _PermissionMixin):
+class GetRasterMetaSTAC(RetrieveAPIView, _PermissionMixin):
     serializer_class = serializers.STACRasterSerializer
     lookup_field = 'pk'
-    queryset = models.RasterMetaEntry.objects.all()
+    queryset = models.RasterMeta.objects.all()

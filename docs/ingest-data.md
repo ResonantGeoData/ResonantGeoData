@@ -29,7 +29,7 @@ If you want to register one or more of your uploaded images as a geospatial rast
 ![image_set](./images/image_set.png)
 
 
-Once you have an `ImageSet`, we need to register that set with the `Raster` model. Create a new `Raster` and only populate the first section of fields: name, description, and image set. Then hit save, and the linked `RasterMetaEntry` will be automatically populated.
+Once you have an `ImageSet`, we need to register that set with the `Raster` model. Create a new `Raster` and only populate the first section of fields: name, description, and image set. Then hit save, and the linked `RasterMeta` will be automatically populated.
 
 
 ![raster_entry](./images/raster_entry.png)

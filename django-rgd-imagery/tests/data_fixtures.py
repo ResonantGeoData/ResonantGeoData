@@ -37,7 +37,7 @@ def sample_raster_a():
         name='20091021202517-01000100-VIS_0001.ntf',
         image_set=image_set,
     )
-    return raster.rastermetaentry
+    return raster.rastermeta
 
 
 @pytest.fixture
@@ -53,7 +53,7 @@ def sample_raster_b():
         name='cclc_schu_100.tif',
         image_set=image_set,
     )
-    return raster.rastermetaentry
+    return raster.rastermeta
 
 
 @pytest.fixture
@@ -69,7 +69,7 @@ def sample_raster_c():
         name='RomanColosseum_WV2mulitband_10.tif',
         image_set=image_set,
     )
-    return raster.rastermetaentry
+    return raster.rastermeta
 
 
 @pytest.fixture
@@ -95,7 +95,7 @@ def sample_raster_multi():
         name='Multi File Test',
         image_set=image_set,
     )
-    return raster.rastermetaentry
+    return raster.rastermeta
 
 
 @pytest.fixture
@@ -128,7 +128,7 @@ def sample_raster_url():
     )
     raster.ancillary_files.add(anc)
     raster.save()
-    return raster.rastermetaentry
+    return raster.rastermeta
 
 
 @pytest.fixture

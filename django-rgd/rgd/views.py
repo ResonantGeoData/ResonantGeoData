@@ -116,7 +116,7 @@ class StatisticsView(generic.ListView):
                 raster_count=Count(
                     'spatial_id',
                     distinct=True,
-                    filter=Q(rastermetaentry__isnull=False),
+                    filter=Q(rastermeta__isnull=False),
                 ),
                 instrumentation_count=Count(
                     'instrumentation',

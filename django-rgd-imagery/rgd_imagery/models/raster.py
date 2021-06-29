@@ -43,7 +43,7 @@ class Raster(TimeStampedModel, TaskEventMixin, PermissionPathMixin):
         return n
 
 
-class RasterMetaEntry(TimeStampedModel, SpatialEntry, PermissionPathMixin, DetailViewMixin):
+class RasterMeta(TimeStampedModel, SpatialEntry, PermissionPathMixin, DetailViewMixin):
     permissions_paths = [
         'parent_raster__image_set__images__file__collection__collection_permissions'
     ]

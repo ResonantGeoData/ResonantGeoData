@@ -22,7 +22,7 @@ urlpatterns = [
     path(
         'rgd_imagery/raster/<int:pk>/',
         views.RasterDetailView.as_view(),
-        name=models.RasterMetaEntry.detail_view_name,
+        name=models.RasterMeta.detail_view_name,
     ),
     path(
         'rgd_imagery/image_set/<int:pk>/',
@@ -31,7 +31,7 @@ urlpatterns = [
     ),
     #############
     # Search
-    path('api/rgd_imagery/raster/search', rest.search.SearchRasterMetaEntrySTACView.as_view()),
+    path('api/rgd_imagery/raster/search', rest.search.SearchRasterMetaSTACView.as_view()),
     #############
     # Other
     path(
@@ -51,12 +51,12 @@ urlpatterns = [
     ),
     path(
         'api/rgd_imagery/raster/<int:pk>',
-        rest.get.GetRasterMetaEntry.as_view(),
+        rest.get.GetRasterMeta.as_view(),
         name='raster-meta-entry',
     ),
     path(
         'api/rgd_imagery/raster/<int:pk>/stac',
-        rest.get.GetRasterMetaEntrySTAC.as_view(),
+        rest.get.GetRasterMetaSTAC.as_view(),
         name='raster-meta-entry-stac',
     ),
     path(

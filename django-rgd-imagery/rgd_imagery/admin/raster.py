@@ -7,7 +7,7 @@ from rgd.admin.mixins import (
     TASK_EVENT_READONLY,
     reprocess,
 )
-from rgd_imagery.models import Raster, RasterMetaEntry
+from rgd_imagery.models import Raster, RasterMeta
 from rgd_imagery.tasks import jobs
 
 
@@ -42,8 +42,8 @@ def clean_empty_rasters(modeladmin, request, queryset):
             raster.image_set.delete()
 
 
-@admin.register(RasterMetaEntry)
-class RasterMetaEntryAdmin(OSMGeoAdmin):
+@admin.register(RasterMeta)
+class RasterMetaAdmin(OSMGeoAdmin):
     list_display = (
         'pk',
         'name',

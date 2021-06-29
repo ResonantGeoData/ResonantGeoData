@@ -8,11 +8,11 @@ class ImageSetSpatialDetailView(_SpatialDetailView):
 
 
 class RasterMetaEntriesListView(SpatialEntriesListView):
-    model = models.RasterMetaEntry
-    filter = filters.RasterMetaEntryFilter
+    model = models.RasterMeta
+    filter = filters.RasterMetaFilter
     context_object_name = 'spatial_entries'
-    template_name = 'rgd_imagery/rastermetaentry_list.html'
+    template_name = 'rgd_imagery/rastermeta_list.html'
 
 
 class RasterDetailView(_SpatialDetailView):
-    model = models.RasterMetaEntry
+    model = models.RasterMeta

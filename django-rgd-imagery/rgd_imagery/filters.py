@@ -2,10 +2,10 @@ from django.contrib.gis import forms
 from django.db.models import Q, Sum
 from django_filters import rest_framework as filters
 from rgd.filters import SpatialEntryFilter
-from rgd_imagery.models import RasterMetaEntry
+from rgd_imagery.models import RasterMeta
 
 
-class RasterMetaEntryFilter(SpatialEntryFilter):
+class RasterMetaFilter(SpatialEntryFilter):
 
     num_bands = filters.RangeFilter(
         fields=(forms.IntegerField(), forms.IntegerField()),
@@ -55,7 +55,7 @@ class RasterMetaEntryFilter(SpatialEntryFilter):
         return queryset
 
     class Meta:
-        model = RasterMetaEntry
+        model = RasterMeta
         fields = [
             'num_bands',
             'resolution',

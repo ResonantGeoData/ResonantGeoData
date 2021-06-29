@@ -24,7 +24,7 @@
           <tr>
             <td><a href="{% url 'raster-entry-detail' entry.pk %}">{{ entry.spatial_id }} - {{ entry.name | truncatechars:12 }}</a></td>
             <td>{{ entry.footprint.area | floatformat:-2 }}</td>
-            <td>RasterMetaEntry</td>
+            <td>RasterMeta</td>
           </tr>
         {% endfor %}
       </tbody>

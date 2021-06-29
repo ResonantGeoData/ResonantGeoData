@@ -90,17 +90,17 @@ def load_raster(pks, raster_dict, footprint=False):
     if date:
         adt = dateutil.parser.isoparser().isoparse(date)
         try:
-            raster.rastermetaentry.acquisition_date = make_aware(adt)
+            raster.rastermeta.acquisition_date = make_aware(adt)
         except ValueError:
-            raster.rastermetaentry.acquisition_date = adt
-        raster.rastermetaentry.save(
+            raster.rastermeta.acquisition_date = adt
+        raster.rastermeta.save(
             update_fields=[
                 'acquisition_date',
             ]
         )
     if cloud_cover:
-        raster.rastermetaentry.cloud_cover = cloud_cover
-        raster.rastermetaentry.save(
+        raster.rastermeta.cloud_cover = cloud_cover
+        raster.rastermeta.save(
             update_fields=[
                 'cloud_cover',
             ]
@@ -118,8 +118,8 @@ def load_raster(pks, raster_dict, footprint=False):
             for path, af in ancillary
         ]
     if instrumentation:
-        raster.rastermetaentry.instrumentation = instrumentation
-        raster.rastermetaentry.save(
+        raster.rastermeta.instrumentation = instrumentation
+        raster.rastermeta.save(
             update_fields=[
                 'instrumentation',
             ]

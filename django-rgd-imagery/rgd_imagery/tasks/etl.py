@@ -17,7 +17,7 @@ from rasterio.warp import Resampling, calculate_default_transform, reproject
 from rgd.models.constants import DB_SRID
 from rgd.models.transform import transform_geometry
 from rgd.utility import get_or_create_no_commit
-from rgd_imagery.models import BandMeta, ConvertedImage, Image, ImageMeta, Raster, RasterMetaEntry
+from rgd_imagery.models import BandMeta, ConvertedImage, Image, ImageMeta, Raster, RasterMeta
 from shapely.geometry import shape
 from shapely.ops import unary_union
 
@@ -322,7 +322,7 @@ def populate_raster(raster):
                 'name',
             ]
         )
-    raster_meta, created = get_or_create_no_commit(RasterMetaEntry, parent_raster=raster)
+    raster_meta, created = get_or_create_no_commit(RasterMeta, parent_raster=raster)
     # Not using `defaults` here because we want `meta` to always get updated.
     for k, v in meta.items():
         # Yeah. This is sketchy, but it works.
@@ -336,8 +336,8 @@ def populate_raster_outline(raster_id):
     base_image = raster.image_set.images.first()
     with base_image.file.yield_local_path(vsi=True) as path:
         with rasterio.open(path) as src:
-            raster.rastermetaentry.outline = _extract_raster_outline(src)
-    raster.rastermetaentry.save(
+            raster.rastermeta.outline = _extract_raster_outline(src)
+    raster.rastermeta.save(
         update_fields=[
             'outline',
         ]
@@ -346,14 +346,14 @@ def populate_raster_outline(raster_id):
 
 def populate_raster_footprint(raster_id):
     raster = Raster.objects.get(id=raster_id)
-    # Only set the footprint if the RasterMetaEntry has been created already
+    # Only set the footprint if the RasterMeta has been created already
     #   this avoids a race condition where footprint might not get set correctly.
     try:
-        raster_meta = RasterMetaEntry.objects.get(parent_raster=raster)
+        raster_meta = RasterMeta.objects.get(parent_raster=raster)
         base_image = raster.image_set.images.first()
         footprint = _extract_raster_footprint(base_image)
         if footprint:
             raster_meta.footprint = footprint
             raster_meta.save(update_fields=['footprint'])
-    except RasterMetaEntry.DoesNotExist:
+    except RasterMeta.DoesNotExist:
         logger.error('Cannot populate raster footprint yet due to race condition. Try again later.')
