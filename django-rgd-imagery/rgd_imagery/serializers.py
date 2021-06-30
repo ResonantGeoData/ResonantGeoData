@@ -11,6 +11,7 @@ from rgd import utility
 from rgd.models import ChecksumFile, FileSourceType
 from rgd.permissions import check_write_perm
 from rgd.serializers import ChecksumFileSerializer, SpatialEntrySerializer
+from rgd.utility import get_or_create_no_commit
 
 from . import models
 
@@ -218,11 +219,13 @@ class STACRasterSerializer(serializers.BaseSerializer):
 
         image_set = models.ImageSet.objects.create()
         image_set.images.set(images)
+        image_set.save()
 
-        raster, _ = models.Raster.objects.get_or_create(
-            image_set=image_set, defaults=dict(name=item.id)
+        raster, _ = get_or_create_no_commit(
+            models.Raster, image_set=image_set, defaults=dict(name=item.id)
         )
         [raster.ancillary_files.add(af) for af in ancillary]
+        raster.skip_signal = True
         raster.save()
 
         outline = Polygon(
