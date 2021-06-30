@@ -56,7 +56,7 @@ def filter_perm(user, queryset, role):
         user_path = (path + '__' if path != '' else path) + 'user'
         role_path = (path + '__' if path != '' else path) + 'role'
         condition = Q(**{user_path: user}) & Q(**{role_path + '__lt': role})
-        if settings.RGD_GLOBAL_READ_ACCESS:
+        if getattr(settings, 'RGD_GLOBAL_READ_ACCESS', False):
             condition |= Q(**{path + '__isnull': True})
         subquery = subquery.union(queryset.filter(condition).values('pk'))
     return queryset.filter(pk__in=subquery)
