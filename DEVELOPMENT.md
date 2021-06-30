@@ -36,8 +36,9 @@ but allows developers to run Python code on their native system.
 2. Install Python 3.8
 3. Install
    [`psycopg2` build prerequisites](https://www.psycopg.org/docs/install.html#build-prerequisites)
-4. Create and activate a new Python virtualenv
-5. Run: `pip install --find-links https://girder.github.io/large_image_wheels -e .[dev,worker]`
+4. Create a new Python virtualenv: `tox --devenv .venv -e dev`. Force recreation
+   introducing updated dependencies: `tox -r --devenv .venv -e dev`
+5. Activate it as usual: `source ./.venv/bin/activate`
 6. Run `source ./dev/export-env.sh`
 7. Run `./manage.py migrate`
 8. Run `./manage.py createsuperuser` and follow the prompts to create your own user
