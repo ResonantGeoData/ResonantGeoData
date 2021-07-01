@@ -201,7 +201,7 @@ class STACRasterSerializer(serializers.BaseSerializer):
     @transaction.atomic
     def create(self, data):
         item = pystac.Item.from_dict(data)
-        images, ancillary = [], []
+        image_ids, ancillary = [], []
         single_asset = False
         if len(item.assets) == 1:
             single_asset = True
@@ -213,15 +213,15 @@ class STACRasterSerializer(serializers.BaseSerializer):
             )
             if single_asset or (asset.roles and 'data' in asset.roles):
                 image, _ = models.Image.objects.get_or_create(file=checksum_file)
-                images.append(image)
+                image_ids.append(image.pk)
             else:
                 ancillary.append(checksum_file)
 
-        image_set = models.ImageSet.objects.create()
-        image_set.images.set(images)
-        image_set.save()
+        image_set, image_set_created = models.get_or_create_image_set(
+            image_ids, defaults=dict(name=item.id)
+        )
 
-        raster, _ = get_or_create_no_commit(
+        raster, raster_created = get_or_create_no_commit(
             models.Raster, image_set=image_set, defaults=dict(name=item.id)
         )
         raster.skip_signal = True
@@ -239,8 +239,7 @@ class STACRasterSerializer(serializers.BaseSerializer):
             )
         )
 
-        instance = models.RasterMeta(
-            parent_raster=raster,
+        raster_meta = dict(
             footprint=json.dumps(item.geometry),
             crs=f'+init=epsg:{item.ext.projection.epsg}',
             cloud_cover=item.ext.eo.cloud_cover,
@@ -252,7 +251,15 @@ class STACRasterSerializer(serializers.BaseSerializer):
             acquisition_date=dateutil.parser.isoparser().isoparse(item.properties['datetime']),
             instrumentation=item.properties['platform'],
         )
+
+        if raster_created:
+            instance = models.RasterMeta(**raster_meta)
+            instance.parent_raster = raster
+        else:
+            models.RasterMeta.objects.filter(parent_raster=raster).update(**raster_meta)
+            instance = models.RasterMeta.objects.get(parent_raster=raster)
         instance.save()
+
         return instance
 
 
