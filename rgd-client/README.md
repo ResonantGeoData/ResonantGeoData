@@ -47,7 +47,7 @@ for s in q:
 plot_geojson(bbox, 'k--', label='Search Region')
 
 for s in q:
-    plot_geojson(s['footprint'], label=s['subentry_name'])
+    plot_geojson(s['feature'], label=s['subentry_name'])
 
 plt.legend()
 plt.title(f'Count: {len(q)}')

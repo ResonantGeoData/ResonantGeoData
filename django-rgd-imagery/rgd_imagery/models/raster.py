@@ -28,7 +28,7 @@ class Raster(TimeStampedModel, TaskEventMixin, PermissionPathMixin):
 
     task_funcs = (
         jobs.task_populate_raster,
-        # jobs.task_populate_raster_footprint,
+        # jobs.task_populate_raster_feature,
     )
 
     @property

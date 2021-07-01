@@ -26,7 +26,7 @@ class FMVMetaSerializer(SpatialEntrySerializer):
             'flight_path',
             'frame_numbers',
             'outline',
-            'footprint',
+            'feature',
         ]
 
 

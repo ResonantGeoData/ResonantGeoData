@@ -20,7 +20,7 @@ class ChecksumFileSerializer(serializers.ModelSerializer):
 class SpatialEntrySerializer(serializers.ModelSerializer):
     def to_representation(self, value):
         ret = super().to_representation(value)
-        # NOTE: including footprint can cause the search results to blow up in size
+        # NOTE: including feature can cause the search results to blow up in size
         ret['outline'] = json.loads(value.outline.geojson)
         # NOTE HACK: this is dirty but it works
         subentry = models.SpatialEntry.objects.filter(pk=value.pk).select_subclasses().first()
@@ -35,18 +35,18 @@ class SpatialEntrySerializer(serializers.ModelSerializer):
 
     class Meta:
         model = models.SpatialEntry
-        exclude = ['footprint', 'outline']
+        exclude = ['feature', 'outline']
 
 
 class SpatialEntryFootprintSerializer(SpatialEntrySerializer):
     def to_representation(self, value):
         ret = super().to_representation(value)
-        ret['footprint'] = json.loads(value.footprint.geojson)
+        ret['feature'] = json.loads(value.feature.geojson)
         return ret
 
     class Meta:
         model = models.SpatialEntry
-        exclude = ['footprint', 'outline']
+        exclude = ['feature', 'outline']
 
 
 utility.make_serializers(globals(), models)

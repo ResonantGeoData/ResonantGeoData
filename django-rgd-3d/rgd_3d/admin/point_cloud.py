@@ -41,7 +41,7 @@ class PointCloudSpatialAdmin(OSMGeoAdmin):
         'created',
         'source',
     )
-    modifiable = False  # To still show the footprint and outline
+    modifiable = False  # To still show the feature and outline
 
 
 @admin.register(PointCloudMeta)

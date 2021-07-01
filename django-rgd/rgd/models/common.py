@@ -29,7 +29,14 @@ from .mixins import PermissionPathMixin, TaskEventMixin
 logger = logging.getLogger(__name__)
 
 
-class SpatialEntry(models.Model):
+class GeospatialFeature(models.Model):
+    class Meta:
+        abstract = True
+
+    feature = models.GeometryField(srid=DB_SRID)
+
+
+class SpatialEntry(GeospatialFeature):
     """Common model to all geospatial data entries.
 
     This is intended to be used in a mixin manner.
@@ -44,8 +51,6 @@ class SpatialEntry(models.Model):
     # Datetime of creation for the dataset
     acquisition_date = models.DateTimeField(null=True, default=None, blank=True)
 
-    # This can be used with GeoDjango's geographic database functions for spatial indexing
-    footprint = models.GeometryField(srid=DB_SRID)
     outline = models.GeometryField(srid=DB_SRID)
 
     instrumentation = models.CharField(

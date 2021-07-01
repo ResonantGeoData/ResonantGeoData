@@ -31,9 +31,9 @@ urlpatterns = [
         name='spatial-entry',
     ),
     path(
-        'api/rgd/spatial_entry/<int:spatial_id>/footprint',
+        'api/rgd/spatial_entry/<int:spatial_id>/feature',
         rest.get.GetSpatialEntryFootprint.as_view(),
-        name='spatial-entry-footprint',
+        name='spatial-entry-feature',
     ),
     path(
         'api/rgd/checksum_file/<int:pk>',

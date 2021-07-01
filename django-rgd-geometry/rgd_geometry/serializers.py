@@ -9,7 +9,7 @@ from . import models
 class GeometrySerializer(SpatialEntrySerializer):
     class Meta:
         model = models.Geometry
-        exclude = ['data', 'footprint', 'outline']
+        exclude = ['data', 'feature', 'outline']
 
 
 class GeometryDataSerializer(GeometrySerializer):

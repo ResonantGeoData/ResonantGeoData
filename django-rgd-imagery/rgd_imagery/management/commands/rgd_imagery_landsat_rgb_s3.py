@@ -45,10 +45,10 @@ class Command(SynchronousTasksCommand):
         )
         parser.add_argument(
             '-f',
-            '--footprint',
+            '--feature',
             action='store_true',
             default=False,
-            help='Compute the valid data footprints',
+            help='Compute the valid data features',
         )
 
     def handle(self, *args, **options):
@@ -60,9 +60,9 @@ class Command(SynchronousTasksCommand):
             return
 
         count = options.get('count', 0)
-        footprint = options.get('footprint')
+        feature = options.get('feature')
 
         # Run the command
-        helper.load_raster_files(_get_landsat_urls(count), footprint=footprint)
+        helper.load_raster_files(_get_landsat_urls(count), feature=feature)
         self.stdout.write(self.style.SUCCESS(SUCCESS_MSG))
         self.reset_celery()

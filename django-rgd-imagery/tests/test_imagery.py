@@ -1,7 +1,7 @@
 import pytest
 from rgd.datastore import datastore
 from rgd.models import FileSourceType
-from rgd_imagery.tasks.etl import load_image, populate_raster_footprint
+from rgd_imagery.tasks.etl import load_image, populate_raster_feature
 
 from . import factories
 
@@ -95,9 +95,9 @@ def test_multi_file_raster(sample_raster_multi):
     ],
 )
 @pytest.mark.django_db(transaction=True)
-def test_raster_footprint(name):
+def test_raster_feature(name):
     raster = _make_raster_from_datastore(name)
-    populate_raster_footprint(raster.id)
+    populate_raster_feature(raster.id)
     meta = raster.rastermeta
-    assert meta.footprint
-    assert meta.footprint != meta.outline
+    assert meta.feature
+    assert meta.feature != meta.outline

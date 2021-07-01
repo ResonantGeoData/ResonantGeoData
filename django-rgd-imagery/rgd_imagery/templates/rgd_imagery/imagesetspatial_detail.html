@@ -26,8 +26,8 @@
     let reader = geo.createFileReader('geojsonReader', {
       'layer': layer
     });
-    var footprint = '{{ object.footprint.json|escapejs }}'
-    reader.read(footprint, (features) => {
+    var feature = '{{ object.feature.json|escapejs }}'
+    reader.read(feature, (features) => {
       features[0].style({
         strokeColor: '#FF0000',
         fill: true,

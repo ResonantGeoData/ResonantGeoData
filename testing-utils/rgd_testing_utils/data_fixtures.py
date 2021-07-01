@@ -26,7 +26,7 @@ def spatial_asset_a():
         'POLYGON ((-84.14505029585798 39.8080495412844, -84.07694970414201 39.8080495412844, -84.07694970414201 39.75395045871559, -84.14505029585798 39.75395045871559, -84.14505029585798 39.8080495412844))'
     )
     e = models.SpatialAsset()
-    e.footprint = geom
+    e.feature = geom
     e.outline = geom
     e.save()
     e.files.add(factories.ChecksumFileFactory())
@@ -40,7 +40,7 @@ def spatial_asset_b():
         'POLYGON ((-77.16435685136094 42.60406117923981, -76.53961844004117 42.60406117923981, -76.53961844004117 42.20103756066038, -77.16435685136094 42.20103756066038, -77.16435685136094 42.60406117923981))'
     )
     e = models.SpatialAsset()
-    e.footprint = geom
+    e.feature = geom
     e.outline = geom
     e.save()
     e.files.add(factories.ChecksumFileFactory())

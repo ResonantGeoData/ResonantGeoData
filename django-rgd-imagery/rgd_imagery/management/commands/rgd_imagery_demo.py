@@ -48,19 +48,19 @@ class Command(SynchronousTasksCommand):
     def add_arguments(self, parser):
         parser.add_argument(
             '-f',
-            '--footprint',
+            '--feature',
             action='store_true',
             default=False,
-            help='Compute the valid data footprints',
+            help='Compute the valid data features',
         )
 
     def handle(self, *args, **options):
-        footprint = options.get('footprint')
+        feature = options.get('feature')
 
         self.set_synchronous()
         # Run the command
         helper.load_raster_files(
-            [helper.make_raster_dict(im) for im in RASTER_FILES], footprint=footprint
+            [helper.make_raster_dict(im) for im in RASTER_FILES], feature=feature
         )
         helper.load_kwcoco_archives(KWCOCO_ARCHIVES)
         helper.load_spatial_image_sets(SPATIAL_IMAGE_SETS)

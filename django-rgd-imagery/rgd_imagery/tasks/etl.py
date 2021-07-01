@@ -131,12 +131,12 @@ def _extract_raster_meta(image):
             raster_meta['resolution'] = src.res
             raster_meta['transform'] = src.transform.to_gdal()  # TODO: check this
             raster_meta['outline'] = _extract_raster_outline(src)
-            raster_meta['footprint'] = raster_meta['outline']
+            raster_meta['feature'] = raster_meta['outline']
     return raster_meta
 
 
-def _get_valid_data_footprint(src, band_num):
-    """Get ``GEOSGeometry`` of valid data footprint from the raster mask."""
+def _get_valid_data_feature(src, band_num):
+    """Get ``GEOSGeometry`` of valid data feature from the raster mask."""
     # Determine mask resolution to prevent loading massive imagery
     # shape = tuple(np.min([src.shape, MAX_LOAD_SHAPE], axis=0))
     # mask = src.read_masks(band_num, out_shape=shape, resampling=5)
@@ -166,7 +166,7 @@ def _get_valid_data_footprint(src, band_num):
         geom = unary_union(geoms)
         return GEOSGeometry(geom.to_wkt()).convex_hull
 
-    raise ValueError('No valid raster footprint found.')
+    raise ValueError('No valid raster feature found.')
 
 
 @contextmanager
@@ -256,8 +256,8 @@ def _reproject_raster(file_path, epsg):
                 yield rsrc
 
 
-def _extract_raster_footprint(image):
-    """Extract the footprint of raster's Image.
+def _extract_raster_feature(image):
+    """Extract the feature of raster's Image.
 
     This operates on the assumption that the Image is a valid raster.
 
@@ -268,9 +268,9 @@ def _extract_raster_footprint(image):
         with _reproject_raster(file_path, DB_SRID) as src:
             try:
                 # Only implement for first band for now
-                return _get_valid_data_footprint(src, 1)
+                return _get_valid_data_feature(src, 1)
             except Exception as e:  # TODO: be more clever about this
-                logger.error(f'Issue computing valid data footprint: {e}')
+                logger.error(f'Issue computing valid data feature: {e}')
 
 
 def _compare_raster_meta(a, b):
@@ -344,16 +344,16 @@ def populate_raster_outline(raster_id):
     )
 
 
-def populate_raster_footprint(raster_id):
+def populate_raster_feature(raster_id):
     raster = Raster.objects.get(id=raster_id)
-    # Only set the footprint if the RasterMeta has been created already
-    #   this avoids a race condition where footprint might not get set correctly.
+    # Only set the feature if the RasterMeta has been created already
+    #   this avoids a race condition where feature might not get set correctly.
     try:
         raster_meta = RasterMeta.objects.get(parent_raster=raster)
         base_image = raster.image_set.images.first()
-        footprint = _extract_raster_footprint(base_image)
-        if footprint:
-            raster_meta.footprint = footprint
-            raster_meta.save(update_fields=['footprint'])
+        feature = _extract_raster_feature(base_image)
+        if feature:
+            raster_meta.feature = feature
+            raster_meta.save(update_fields=['feature'])
     except RasterMeta.DoesNotExist:
-        logger.error('Cannot populate raster footprint yet due to race condition. Try again later.')
+        logger.error('Cannot populate raster feature yet due to race condition. Try again later.')

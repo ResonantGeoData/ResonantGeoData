@@ -131,7 +131,7 @@ class RasterMetaSerializer(SpatialEntrySerializer):
 
     class Meta:
         model = models.RasterMeta
-        exclude = ['footprint', 'outline']
+        exclude = ['feature', 'outline']
 
 
 class STACRasterSerializer(serializers.BaseSerializer):
@@ -145,7 +145,7 @@ class STACRasterSerializer(serializers.BaseSerializer):
     def to_representation(self, instance: models.RasterMeta) -> dict:
         item = pystac.Item(
             id=instance.pk,
-            geometry=json.loads(instance.footprint.json),
+            geometry=json.loads(instance.feature.json),
             bbox=instance.extent,
             datetime=(instance.acquisition_date or instance.modified or instance.created),
             properties=dict(
@@ -241,7 +241,7 @@ class STACRasterSerializer(serializers.BaseSerializer):
 
         instance = models.RasterMeta(
             parent_raster=raster,
-            footprint=json.dumps(item.geometry),
+            feature=json.dumps(item.geometry),
             crs=f'+init=epsg:{item.ext.projection.epsg}',
             cloud_cover=item.ext.eo.cloud_cover,
             transform=item.ext.projection.transform,

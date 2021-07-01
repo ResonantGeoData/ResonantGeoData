@@ -71,7 +71,7 @@ def _get_or_create_image_set(image_ids):
     return imset
 
 
-def load_raster(pks, raster_dict, footprint=False):
+def load_raster(pks, raster_dict, feature=False):
     if not isinstance(pks, (list, tuple)):
         pks = [
             pks,
@@ -124,19 +124,19 @@ def load_raster(pks, raster_dict, footprint=False):
                 'instrumentation',
             ]
         )
-    if footprint:
-        etl.populate_raster_footprint(raster.id)
+    if feature:
+        etl.populate_raster_feature(raster.id)
     return raster
 
 
-def load_raster_files(raster_dicts, footprint=False):
+def load_raster_files(raster_dicts, feature=False):
     ids = []
     count = len(raster_dicts)
     for i, rf in enumerate(raster_dicts):
         logger.info(f'Processesing raster {i+1} of {count}')
         start_time = datetime.now()
         imentries = load_images(rf.get('images'))
-        raster = load_raster(imentries, rf, footprint=footprint)
+        raster = load_raster(imentries, rf, feature=feature)
         ids.append(raster.pk)
         logger.info('\t Loaded raster in: {}'.format(datetime.now() - start_time))
     return ids
@@ -168,6 +168,6 @@ def load_spatial_image_sets(image_sets):
         imset = _get_or_create_image_set(image_ids)
         # Make an ImageSetSpatial
         imset_spatial, _ = get_or_create_no_commit(models.ImageSetSpatial, image_set=imset)
-        imset_spatial.footprint = feature
+        imset_spatial.feature = feature
         imset_spatial.outline = feature.convex_hull
         imset_spatial.save()

@@ -27,7 +27,7 @@ class GeometryInline(admin.StackedInline):
         'created',
         'geometry_archive',
     )
-    modifiable = False  # To still show the footprint and outline
+    modifiable = False  # To still show the feature and outline
 
 
 @admin.register(GeometryArchive)
