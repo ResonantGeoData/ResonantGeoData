@@ -88,7 +88,7 @@ def make_raster_for_each_image(modeladmin, request, queryset):
 def clean_empty_image_sets(modeladmin, request, queryset):
     """Delete empty `ImageSet`s."""
     for imset in queryset.all():
-        if len(imset.images) < 1:
+        if len(imset.images.all()) < 1:
             imset.delete()
 
 
