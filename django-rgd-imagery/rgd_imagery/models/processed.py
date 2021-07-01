@@ -84,10 +84,10 @@ class RegionImage(ProcessedImage):
             l, b, r, t = feature.extent  # (xmin, ymin, xmax, ymax)
             return l, r, b, t, projection
         elif self.sample_type == RegionImage.SampleTypes.ANNOTATION:
-            from .annotation import Annotation
+            from .annotation import PixelAnnotation
 
             ann_id = p['id']
-            ann = Annotation.objects.get(id=ann_id)
+            ann = PixelAnnotation.objects.get(id=ann_id)
             l, b, r, t = ann.segmentation.outline.extent  # (xmin, ymin, xmax, ymax)
             return l, r, b, t, projection
         else:

@@ -5,7 +5,7 @@ As new data types are introduced to the database, a new model for that data
 type should be added, subclassing the appropriate base models.
 
 """
-from .annotation import Annotation, PolygonSegmentation, RLESegmentation, Segmentation
+from .annotation import PixelAnnotation, PolygonSegmentation, RLESegmentation, Segmentation
 
 # flake8: noqa
 from .base import BandMeta, Image, ImageMeta, ImageSet, ImageSetSpatial

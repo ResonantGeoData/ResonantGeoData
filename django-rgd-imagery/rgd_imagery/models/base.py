@@ -88,7 +88,7 @@ class ImageSet(TimeStampedModel, PermissionPathMixin):
     def get_all_annotations(self):
         annots = {}
         for image in self.images.all():
-            annots[image.pk] = image.annotation_set.all()
+            annots[image.pk] = image.pixelannotation_set.all()
         return annots
 
 

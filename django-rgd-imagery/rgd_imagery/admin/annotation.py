@@ -1,7 +1,7 @@
 from django.contrib import admin
 from django.contrib.gis.admin import OSMGeoAdmin
 from rgd.admin.mixins import MODIFIABLE_FILTERS
-from rgd_imagery.models import Annotation, PolygonSegmentation, RLESegmentation, Segmentation
+from rgd_imagery.models import PixelAnnotation, PolygonSegmentation, RLESegmentation, Segmentation
 
 
 class SegmentationInline(admin.StackedInline):
@@ -28,8 +28,8 @@ class RLESegmentationInline(admin.StackedInline):
     readonly_fields = ('outline', 'width', 'height', 'blob')
 
 
-@admin.register(Annotation)
-class AnnotationAdmin(OSMGeoAdmin):
+@admin.register(PixelAnnotation)
+class PixelAnnotationAdmin(OSMGeoAdmin):
     list_display = (
         'pk',
         'caption',

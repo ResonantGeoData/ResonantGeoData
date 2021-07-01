@@ -10,10 +10,10 @@ import kwimage
 import numpy as np
 from rgd.models import ChecksumFile
 from rgd_imagery.models import (
-    Annotation,
     Image,
     ImageSet,
     KWCOCOArchive,
+    PixelAnnotation,
     PolygonSegmentation,
     RLESegmentation,
     Segmentation,
@@ -23,7 +23,7 @@ logger = get_task_logger(__name__)
 
 
 def _fill_annotation_segmentation(annotation_entry, ann_json):
-    """For converting KWCOCO annotation JSON to an Annotation entry."""
+    """For converting KWCOCO annotation JSON to an PixelAnnotation entry."""
     if 'keypoints' in ann_json and ann_json['keypoints']:
         # populate keypoints - ignore 3rd value visibility
         logger.info('Keypoints: {}'.format(ann_json['keypoints']))
@@ -141,7 +141,7 @@ def load_kwcoco_dataset(kwcoco_dataset_id):
                 ds_entry.image_set.images.add(image)
                 # Create annotations that link to that ImageMeta
                 for ann in anns:
-                    annotation_entry = Annotation()
+                    annotation_entry = PixelAnnotation()
                     annotation_entry.image = image
                     try:
                         annotation_entry.label = ds.cats[ann['category_id']]['name']

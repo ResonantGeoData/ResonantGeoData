@@ -5,20 +5,39 @@ from django.contrib.gis.db import models
 from django.core.exceptions import ObjectDoesNotExist
 from django_extensions.db.models import TimeStampedModel
 import numpy as np
+from rgd.models.constants import DB_SRID
 from rgd.models.mixins import PermissionPathMixin
 
 from .base import Image
 
 
-class Annotation(TimeStampedModel, PermissionPathMixin):
-    """Image annotation/label for ``Image``."""
-
-    image = models.ForeignKey(Image, on_delete=models.CASCADE)
+class BaseAnnotation(TimeStampedModel):
+    class Meta:
+        abstract = True
 
     caption = models.CharField(max_length=100, blank=True, null=True)
     label = models.CharField(max_length=100, blank=True, null=True)
     annotator = models.CharField(max_length=100, blank=True, null=True)
     notes = models.TextField(null=True, blank=True)
+    properties = models.JSONField(null=True, blank=True)
+
+
+class GeospatialTemporalAnnotation(BaseAnnotation):
+    """Annotation in world coordinates during a time frame.
+
+    This annotation could be associated with many different images/rasters.
+
+    """
+
+    feature = models.GeometryField(srid=DB_SRID)
+    start_date = models.DateTimeField(null=True, default=None, blank=True)
+    end_date = models.DateTimeField(null=True, default=None, blank=True)
+
+
+class PixelAnnotation(BaseAnnotation, PermissionPathMixin):
+    """Image annotation/label for ``Image``."""
+
+    image = models.ForeignKey(Image, on_delete=models.CASCADE)
 
     keypoints = models.MultiPointField(null=True, srid=0)
     line = models.LineStringField(null=True, srid=0)
@@ -27,7 +46,7 @@ class Annotation(TimeStampedModel, PermissionPathMixin):
         """Get type of segmentation."""
         return self.segmentation.get_type()
 
-    permissions_paths = ['image__collection__collection_permissions']
+    permissions_paths = ['image__file__collection__collection_permissions']
 
 
 class Segmentation(models.Model):
@@ -47,7 +66,7 @@ class Segmentation(models.Model):
 
     """
 
-    annotation = models.OneToOneField(Annotation, on_delete=models.CASCADE)
+    annotation = models.OneToOneField(PixelAnnotation, on_delete=models.CASCADE)
 
     # COCO bounding box format is [top left x position, top left y position, width, height]
     # This should come from the COCO format rather than be autopopulated by us
@@ -67,7 +86,7 @@ class Segmentation(models.Model):
             pass
         return 'Oultine/BBox'
 
-    permissions_paths = ['annotation__image__collection__collection_permissions']
+    permissions_paths = ['annotation__image__file__collection__collection_permissions']
 
 
 class PolygonSegmentation(Segmentation):

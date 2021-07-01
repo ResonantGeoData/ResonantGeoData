@@ -2,7 +2,7 @@ from large_image_source_gdal import GDALFileTileSource
 import pytest
 from rgd.datastore import datastore
 from rgd.models import ChecksumFile
-from rgd_imagery.models import Annotation, ConvertedImage, Image, RegionImage
+from rgd_imagery.models import ConvertedImage, Image, PixelAnnotation, RegionImage
 from rgd_imagery.tasks.subsample import populate_region_image
 
 from . import factories
@@ -115,7 +115,7 @@ def test_subsample_geojson(elevation):
 
 
 @pytest.mark.django_db(transaction=True)
-def test_subsample_annotaion():
+def test_subsample_pixel_annotaion():
     # Test with annotations
     factories.KWCOCOArchiveFactory(
         image_archive__file__filename='demo_rle.zip',
@@ -126,7 +126,7 @@ def test_subsample_annotaion():
 
     file = ChecksumFile.objects.get(name='000000242287.jpg')  # bicycle
     image = Image.objects.get(file=file)
-    a = Annotation.objects.get(image=image.pk)  # Should be only one
+    a = PixelAnnotation.objects.get(image=image.pk)  # Should be only one
     sub = _create_subsampled(image, 'annotation', {'id': a.pk})
     sub.refresh_from_db()
     assert sub.processed_image.file
