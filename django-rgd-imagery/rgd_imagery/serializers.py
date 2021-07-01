@@ -224,8 +224,9 @@ class STACRasterSerializer(serializers.BaseSerializer):
         raster, _ = get_or_create_no_commit(
             models.Raster, image_set=image_set, defaults=dict(name=item.id)
         )
-        [raster.ancillary_files.add(af) for af in ancillary]
         raster.skip_signal = True
+        raster.save()
+        [raster.ancillary_files.add(af) for af in ancillary]
         raster.save()
 
         outline = Polygon(
