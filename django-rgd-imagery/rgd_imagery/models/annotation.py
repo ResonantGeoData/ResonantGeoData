@@ -3,34 +3,11 @@ import pickle
 
 from django.contrib.gis.db import models
 from django.core.exceptions import ObjectDoesNotExist
-from django_extensions.db.models import TimeStampedModel
 import numpy as np
-from rgd.models import GeospatialFeature
+from rgd.models import BaseAnnotation
 from rgd.models.mixins import PermissionPathMixin
 
 from .base import Image
-
-
-class BaseAnnotation(TimeStampedModel):
-    class Meta:
-        abstract = True
-
-    caption = models.CharField(max_length=100, blank=True, null=True)
-    label = models.CharField(max_length=100, blank=True, null=True)
-    annotator = models.CharField(max_length=100, blank=True, null=True)
-    notes = models.TextField(null=True, blank=True)
-    properties = models.JSONField(null=True, blank=True)
-
-
-class GeospatialTemporalAnnotation(BaseAnnotation, GeospatialFeature):
-    """Annotation in world coordinates during a time frame.
-
-    This annotation could be associated with many different images/rasters.
-
-    """
-
-    start_date = models.DateTimeField(null=True, default=None, blank=True)
-    end_date = models.DateTimeField(null=True, default=None, blank=True)
 
 
 class PixelAnnotation(BaseAnnotation, PermissionPathMixin):
