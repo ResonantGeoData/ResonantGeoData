@@ -14,5 +14,3 @@ from rgd.serializers import ChecksumFileSerializer, SpatialEntrySerializer
 from rgd.utility import get_or_create_no_commit
 
 from . import models
-
-utility.make_serializers(globals(), models)
