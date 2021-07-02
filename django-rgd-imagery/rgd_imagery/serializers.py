@@ -6,6 +6,7 @@ from django.contrib.gis.geos import Polygon
 from django.db import transaction
 from pyproj import CRS
 import pystac
+from pystac.extensions.eo import EOExtension
 from rest_framework import serializers
 from rest_framework.reverse import reverse
 from rgd import utility
@@ -251,6 +252,24 @@ class STACRasterSerializer(serializers.BaseSerializer):
             if single_asset or (asset.roles and 'data' in asset.roles):
                 image, _ = models.Image.objects.get_or_create(file=checksum_file)
                 image_ids.append(image.pk)
+                eo = EOExtension(asset)
+                for eo_band in eo.bands:
+                    if eo_band.name.startswith("B") and eo_band.name[1:].isdigit():
+                        eo_band_number = int(eo_band.name[1:])
+                    else:
+                        eo_band_number = 0
+                    if eo_band.common_name in BAND_RANGE_BY_COMMON_NAMES:
+                        eo_band_min, eo_band_max = BAND_RANGE_BY_COMMON_NAMES[eo_band.common_name]
+                    if eo_band.center_wavelength and eo_band.full_width_half_max:
+                        eo_band_min = eo_band.center_wavelength - eo_band.full_width_half_max / 2
+                        eo_band_max = eo_band.center_wavelength + eo_band.full_width_half_max / 2
+                    models.BandMeta.objects.get_or_create(
+                        parent_image=image,
+                        band_number=eo_band_number,
+                        description=eo_band.description,
+                        min=eo_band_min,
+                        max=eo_band_max,
+                    )
             else:
                 ancillary.append(checksum_file)
 
