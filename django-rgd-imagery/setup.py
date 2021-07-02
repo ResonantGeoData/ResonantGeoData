@@ -45,6 +45,7 @@ setup(
     packages=find_packages(),
     include_package_data=True,
     install_requires=[
+        'bidict',
         'django-rgd',
         'large-image>=1.6.0',
         'large-image-source-gdal>=1.6.0',

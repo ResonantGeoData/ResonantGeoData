@@ -1,5 +1,6 @@
 import json
 
+from bidict import bidict
 import dateutil.parser
 from django.contrib.gis.geos import Polygon
 from django.db import transaction
@@ -132,6 +133,28 @@ class RasterMetaSerializer(SpatialEntrySerializer):
     class Meta:
         model = models.RasterMeta
         exclude = ['footprint', 'outline']
+
+
+BAND_RANGE_BY_COMMON_NAMES = bidict(
+    {
+        'coastal': (0.40, 0.45),
+        'blue': (0.45, 0.50),
+        'green': (0.50, 0.60),
+        'red': (0.60, 0.70),
+        'yellow': (0.58, 0.62),
+        'pan': (0.50, 0.70),
+        'rededge': (0.70, 0.79),
+        'nir': (0.75, 1.00),
+        'nir08': (0.75, 0.90),
+        'nir09': (0.85, 1.05),
+        'cirrus': (1.35, 1.40),
+        'swir16': (1.55, 1.75),
+        'swir22': (2.10, 2.30),
+        'lwir': (10.5, 12.5),
+        'lwir11': (10.5, 11.5),
+        'lwir12': (11.5, 12.5),
+    }
+)
 
 
 class STACRasterSerializer(serializers.BaseSerializer):
