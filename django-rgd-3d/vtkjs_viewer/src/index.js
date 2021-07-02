@@ -111,7 +111,7 @@ function createViewer (container) {
   const fullScreenRenderer = vtkFullScreenRenderWindow.newInstance({
     background,
     rootContainer: container,
-    containerStyle: { height: '80%', width: '75%' }
+    containerStyle: { height: '100%', width: '100%', position: 'absolute' }
   });
   renderer = fullScreenRenderer.getRenderer();
   renderWindow = fullScreenRenderer.getRenderWindow();

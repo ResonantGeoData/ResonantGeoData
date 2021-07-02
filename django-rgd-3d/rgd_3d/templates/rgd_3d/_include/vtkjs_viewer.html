@@ -1,9 +1,12 @@
 {% block vtkjs_viewer %}
   {% load static %}
-
-  <div id="vtkContainer"></div>
-
   <style>
+  .displayContent {
+    width: 100%;
+    height: 100%;
+    position: relative;
+  }
+
   .progress {
     color: black;
     z-index: 100;
@@ -18,8 +21,12 @@
   }
   </style>
 
-  <div class="progress" id="progressContainer">
-    <h1>Loading...</h1>
+  <div class="displayContent">
+    <div id="vtkContainer">
+    </div>
+    <div class="progress" id="progressContainer">
+      <h1>Loading...</h1>
+    </div>
   </div>
 
   <script src="{% static 'rgd_3d/vtkjs_viewer.js' %}"></script>
@@ -28,31 +35,23 @@
     const progressContainer = document.getElementById('progressContainer');
     progressContainer.innerHTML = 'Loading...';
 
-    console.log("{% static 'rgd_3d/index_bundle.js' %}")
-
     // console.log(vtk.Rendering.OpenGL.vtkRenderWindow.newInstance().getGLInformations())
     const vtkContainer = document.getElementById("vtkContainer")
 
-    function load (container, urls) {
+    function load (container, url) {
       emptyContainer(container);
 
-      if (urls) {
+      if (url) {
         createViewer(container);
-        let count = urls.length;
-        while (count--) {
-          fetch(urls[count])
-            .then((resp) => resp.json())
-            .then(function(data) {
-              createPipeline(data.vtp_data)
-            })
-            .catch(function(error) {
-              console.log(`Error loading data: ${error}`)
-            });
-        }
-        updateCamera(renderer.getActiveCamera());
+        fetch(url)
+          .then((resp) => resp.json())
+          .then(function(data) {
+            createPipeline(data.vtp_data)
+            progressContainer.style.display = 'none'
+            updateCamera(renderer.getActiveCamera());
+          });
       }
 
-      progressContainer.style.display = 'none'
     }
 
 
