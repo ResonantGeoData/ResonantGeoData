@@ -197,6 +197,20 @@ class STACRasterSerializer(serializers.BaseSerializer):
                     'data',
                 ],
             )
+            bands = []
+            for bandmeta in image.bandmeta_set.all():
+                band = pystac.extensions.eo.Band.create(
+                    name=f'B{bandmeta.band_number}',
+                    description=bandmeta.description,
+                )
+                if (bandmeta.min, bandmeta.max) in BAND_RANGE_BY_COMMON_NAMES.inverse:
+                    band.common_name = BAND_RANGE_BY_COMMON_NAMES.inverse[
+                        (bandmeta.min, bandmeta.max)
+                    ]
+                elif bandmeta.min is not None and bandmeta.max is not None:
+                    band.center_wavelength = (bandmeta.min + bandmeta.max) / 2
+                    band.full_width_half_max = bandmeta.max - bandmeta.min
+                bands.append(band)
             item.ext.eo.set_bands(
                 bands=[
                     pystac.extensions.eo.Band.create(
