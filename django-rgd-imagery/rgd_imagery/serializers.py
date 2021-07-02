@@ -16,23 +16,6 @@ from rgd.utility import get_or_create_no_commit
 from . import models
 
 
-class RasterSerializer(serializers.ModelSerializer):
-    image_set = ImageSetSerializer()
-    ancillary_files = ChecksumFileSerializer(many=True)
-
-    class Meta:
-        model = models.Raster
-        fields = '__all__'
-
-
-class RasterMetaSerializer(SpatialEntrySerializer):
-    parent_raster = RasterSerializer()
-
-    class Meta:
-        model = models.RasterMeta
-        exclude = ['footprint', 'outline']
-
-
 class STACRasterSerializer(serializers.BaseSerializer):
     def to_internal_value(self, data):
         # item = pystac.Item.from_dict(data)
