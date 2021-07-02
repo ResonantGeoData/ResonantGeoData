@@ -1,0 +1,25 @@
+{
+  "name": "vtkjs_viewer",
+  "version": "1.0.0",
+  "description": "VTK.js Viewer",
+  "main": "index.js",
+  "scripts": {
+    "build": "webpack --progress --colors --mode development",
+    "build:release": "webpack --progress --colors --mode production",
+    "start": "webpack-dev-server --content-base ./dist",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Bane Sullivan",
+  "license": "Apache",
+  "devDependencies": {
+    "css-loader": "^4.2.2",
+    "html-webpack-plugin": "^4.3.0",
+    "kw-web-suite": "^10.0.0",
+    "style-loader": "^1.2.1",
+    "webpack": "^4.44.1",
+    "webpack-cli": "^3.3.12"
+  },
+  "dependencies": {
+    "vtk.js": "^14.19.0"
+  }
+}
