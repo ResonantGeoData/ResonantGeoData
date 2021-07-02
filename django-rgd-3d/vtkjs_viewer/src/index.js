@@ -3,8 +3,7 @@ import '@kitware/vtk.js/favicon';
 // Load the rendering pieces we want to use (for both WebGL and WebGPU)
 import '@kitware/vtk.js/Rendering/Profiles/Geometry';
 
-import { formatBytesToProperUnit, debounce } from '@kitware/vtk.js/macro';
-import HttpDataAccessHelper from '@kitware/vtk.js/IO/Core/DataAccessHelper/HttpDataAccessHelper';
+import { debounce } from '@kitware/vtk.js/macro';
 import vtkActor from '@kitware/vtk.js/Rendering/Core/Actor';
 import vtkDataArray from '@kitware/vtk.js/Common/Core/DataArray';
 import vtkScalarBarActor from '@kitware/vtk.js/Rendering/Core/ScalarBarActor';
@@ -23,13 +22,12 @@ import '@kitware/vtk.js/IO/Core/DataAccessHelper/JSZipDataAccessHelper';
 
 import {
   ColorMode,
-  ScalarMode,
+  ScalarMode
 } from '@kitware/vtk.js/Rendering/Core/Mapper/Constants';
 
 import style from './GeometryViewer.module.css';
 import icon from './favicon-96x96.png';
 
-let autoInit = true;
 let background = [0, 0, 0];
 let renderWindow;
 let renderer;
@@ -56,7 +54,7 @@ const lutName = userParams.lut || 'erdc_rainbow_bright';
 const field = userParams.field || '';
 
 // camera
-function updateCamera(camera) {
+function updateCamera (camera) {
   ['zoom', 'pitch', 'elevation', 'yaw', 'azimuth', 'roll', 'dolly'].forEach(
     (key) => {
       if (userParams[key]) {
@@ -67,11 +65,6 @@ function updateCamera(camera) {
   );
 }
 global.updateCamera = updateCamera;
-
-function preventDefaults(e) {
-  e.preventDefault();
-  e.stopPropagation();
-}
 
 // ----------------------------------------------------------------------------
 // DOM containers for UI control
@@ -104,7 +97,7 @@ if (iOS) {
 
 // ----------------------------------------------------------------------------
 
-function emptyContainer(container) {
+function emptyContainer (container) {
   fpsMonitor.setContainer(null);
   while (container.firstChild) {
     container.removeChild(container.firstChild);
@@ -114,16 +107,16 @@ function emptyContainer(container) {
 global.emptyContainer = emptyContainer;
 // ----------------------------------------------------------------------------
 
-function createViewer(container) {
+function createViewer (container) {
   const fullScreenRenderer = vtkFullScreenRenderWindow.newInstance({
     background,
     rootContainer: container,
-    containerStyle: { height: '80%', width: '75%', position: 'absolute' }
+    containerStyle: { height: '80%', width: '75%' }
   });
   renderer = fullScreenRenderer.getRenderer();
   renderWindow = fullScreenRenderer.getRenderWindow();
 
-  global.fullScreenRenderer = fullScreenRenderer
+  global.fullScreenRenderer = fullScreenRenderer;
   global.renderer = renderer;
   global.renderWindow = renderWindow;
 
@@ -151,7 +144,7 @@ global.createViewer = createViewer;
 
 // ----------------------------------------------------------------------------
 
-function createPipeline(fileContents, name = undefined) {
+function createPipeline (fileContents, name = undefined) {
   // Create UI
   const presetSelector = document.createElement('select');
   presetSelector.setAttribute('class', selectorClass);
@@ -171,7 +164,7 @@ function createPipeline(fileContents, name = undefined) {
     'Points',
     'Wireframe',
     'Surface',
-    'Surface with Edge',
+    'Surface with Edge'
   ]
     .map(
       (name, idx) =>
@@ -224,7 +217,7 @@ function createPipeline(fileContents, name = undefined) {
     interpolateScalarsBeforeMapping: false,
     useLookupTableScalarRange: true,
     lookupTable,
-    scalarVisibility: false,
+    scalarVisibility: false
   });
   const actor = vtkActor.newInstance();
   const scalars = source.getPointData().getScalars();
@@ -235,7 +228,7 @@ function createPipeline(fileContents, name = undefined) {
   // Color handling
   // --------------------------------------------------------------------
 
-  function applyPreset() {
+  function applyPreset () {
     const preset = vtkColorMaps.getPresetByName(presetSelector.value);
     lookupTable.applyColorMap(preset);
     lookupTable.setMappingRange(dataRange[0], dataRange[1]);
@@ -249,11 +242,11 @@ function createPipeline(fileContents, name = undefined) {
   // Representation handling
   // --------------------------------------------------------------------
 
-  function updateRepresentation(event) {
+  function updateRepresentation (event) {
     const [
       visibility,
       representation,
-      edgeVisibility,
+      edgeVisibility
     ] = event.target.value.split(':').map(Number);
     actor.getProperty().set({ representation, edgeVisibility });
     actor.setVisibility(!!visibility);
@@ -265,7 +258,7 @@ function createPipeline(fileContents, name = undefined) {
   // Opacity handling
   // --------------------------------------------------------------------
 
-  function updateOpacity(event) {
+  function updateOpacity (event) {
     const opacity = Number(event.target.value) / 100;
     actor.getProperty().setOpacity(opacity);
     renderWindow.render();
@@ -283,14 +276,14 @@ function createPipeline(fileContents, name = undefined) {
       .getArrays()
       .map((a) => ({
         label: `(p) ${a.getName()}`,
-        value: `PointData:${a.getName()}`,
+        value: `PointData:${a.getName()}`
       })),
     source
       .getCellData()
       .getArrays()
       .map((a) => ({
         label: `(c) ${a.getName()}`,
-        value: `CellData:${a.getName()}`,
+        value: `CellData:${a.getName()}`
       }))
   );
   colorBySelector.innerHTML = colorByOptions
@@ -302,7 +295,7 @@ function createPipeline(fileContents, name = undefined) {
     )
     .join('');
 
-  function updateColorBy(event) {
+  function updateColorBy (event) {
     const [location, colorByArrayName] = event.target.value.split(':');
     const interpolateScalarsBeforeMapping = location === 'PointData';
     let colorMode = ColorMode.DEFAULT;
@@ -351,14 +344,14 @@ function createPipeline(fileContents, name = undefined) {
       colorMode,
       interpolateScalarsBeforeMapping,
       scalarMode,
-      scalarVisibility,
+      scalarVisibility
     });
     applyPreset();
   }
   colorBySelector.addEventListener('change', updateColorBy);
   updateColorBy({ target: colorBySelector });
 
-  function updateColorByComponent(event) {
+  function updateColorByComponent (event) {
     if (mapper.getLookupTable()) {
       const lut = mapper.getLookupTable();
       if (event.target.value === -1) {
