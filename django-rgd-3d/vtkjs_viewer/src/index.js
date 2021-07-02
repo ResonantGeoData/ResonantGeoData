@@ -1,32 +1,39 @@
-/* eslint-disable import/prefer-default-export */
-/* eslint-disable import/no-extraneous-dependencies */
+import '@kitware/vtk.js/favicon';
 
-import 'vtk.js/Sources/favicon';
+// Load the rendering pieces we want to use (for both WebGL and WebGPU)
+import '@kitware/vtk.js/Rendering/Profiles/Geometry';
 
-import macro from 'vtk.js/Sources/macro';
-import HttpDataAccessHelper from 'vtk.js/Sources/IO/Core/DataAccessHelper/HttpDataAccessHelper';
-import vtkActor from 'vtk.js/Sources/Rendering/Core/Actor';
-import vtkDataArray from 'vtk.js/Sources/Common/Core/DataArray';
-import vtkColorMaps from 'vtk.js/Sources/Rendering/Core/ColorTransferFunction/ColorMaps';
-import vtkColorTransferFunction from 'vtk.js/Sources/Rendering/Core/ColorTransferFunction';
-import vtkFullScreenRenderWindow from 'vtk.js/Sources/Rendering/Misc/FullScreenRenderWindow';
-import vtkMapper from 'vtk.js/Sources/Rendering/Core/Mapper';
-import vtkURLExtract from 'vtk.js/Sources/Common/Core/URLExtract';
-import vtkXMLPolyDataReader from 'vtk.js/Sources/IO/XML/XMLPolyDataReader';
-import vtkFPSMonitor from 'vtk.js/Sources/Interaction/UI/FPSMonitor';
-import Base64 from 'vtk.js/Sources/Common/Core/Base64';
+import { formatBytesToProperUnit, debounce } from '@kitware/vtk.js/macro';
+import HttpDataAccessHelper from '@kitware/vtk.js/IO/Core/DataAccessHelper/HttpDataAccessHelper';
+import vtkActor from '@kitware/vtk.js/Rendering/Core/Actor';
+import vtkDataArray from '@kitware/vtk.js/Common/Core/DataArray';
+import vtkScalarBarActor from '@kitware/vtk.js/Rendering/Core/ScalarBarActor';
+import vtkColorMaps from '@kitware/vtk.js/Rendering/Core/ColorTransferFunction/ColorMaps';
+import vtkColorTransferFunction from '@kitware/vtk.js/Rendering/Core/ColorTransferFunction';
+import vtkFullScreenRenderWindow from '@kitware/vtk.js/Rendering/Misc/FullScreenRenderWindow';
+import vtkMapper from '@kitware/vtk.js/Rendering/Core/Mapper';
+import vtkURLExtract from '@kitware/vtk.js/Common/Core/URLExtract';
+import vtkXMLPolyDataReader from '@kitware/vtk.js/IO/XML/XMLPolyDataReader';
+import vtkFPSMonitor from '@kitware/vtk.js/Interaction/UI/FPSMonitor';
+import Base64 from '@kitware/vtk.js/Common/Core/Base64';
+
+// Force DataAccessHelper to have access to various data source
+import '@kitware/vtk.js/IO/Core/DataAccessHelper/HtmlDataAccessHelper';
+import '@kitware/vtk.js/IO/Core/DataAccessHelper/JSZipDataAccessHelper';
 
 import {
   ColorMode,
   ScalarMode,
-} from 'vtk.js/Sources/Rendering/Core/Mapper/Constants';
+} from '@kitware/vtk.js/Rendering/Core/Mapper/Constants';
 
 import style from './GeometryViewer.module.css';
 import icon from './favicon-96x96.png';
 
+let autoInit = true;
 let background = [0, 0, 0];
 let renderWindow;
 let renderer;
+let scalarBarActor;
 
 global.pipeline = {};
 
@@ -97,7 +104,7 @@ if (iOS) {
 
 // ----------------------------------------------------------------------------
 
-function emptyContainer (container) {
+function emptyContainer(container) {
   fpsMonitor.setContainer(null);
   while (container.firstChild) {
     container.removeChild(container.firstChild);
@@ -105,18 +112,18 @@ function emptyContainer (container) {
 }
 
 global.emptyContainer = emptyContainer;
-
 // ----------------------------------------------------------------------------
 
-function createViewer (container) {
+function createViewer(container) {
   const fullScreenRenderer = vtkFullScreenRenderWindow.newInstance({
     background,
     rootContainer: container,
-    containerStyle: { height: '100%', width: '100%', position: 'absolute' },
+    containerStyle: { height: '100%', width: '100%', position: 'absolute' }
   });
   renderer = fullScreenRenderer.getRenderer();
   renderWindow = fullScreenRenderer.getRenderWindow();
 
+  global.fullScreenRenderer = fullScreenRenderer
   global.renderer = renderer;
   global.renderWindow = renderWindow;
 
@@ -124,6 +131,9 @@ function createViewer (container) {
 
   container.appendChild(rootControllerContainer);
   container.appendChild(addDataSetButton);
+
+  scalarBarActor = vtkScalarBarActor.newInstance();
+  renderer.addActor(scalarBarActor);
 
   if (userParams.fps) {
     if (Array.isArray(userParams.fps)) {
@@ -141,7 +151,7 @@ global.createViewer = createViewer;
 
 // ----------------------------------------------------------------------------
 
-function createPipeline (fileContents, name = undefined) {
+function createPipeline(fileContents, name = undefined) {
   // Create UI
   const presetSelector = document.createElement('select');
   presetSelector.setAttribute('class', selectorClass);
@@ -230,6 +240,7 @@ function createPipeline (fileContents, name = undefined) {
     lookupTable.applyColorMap(preset);
     lookupTable.setMappingRange(dataRange[0], dataRange[1]);
     lookupTable.updateRange();
+    renderWindow.render();
   }
   applyPreset();
   presetSelector.addEventListener('change', applyPreset);
@@ -329,8 +340,11 @@ function createPipeline (fileContents, name = undefined) {
       } else {
         componentSelector.style.display = 'none';
       }
+      scalarBarActor.setAxisLabel(colorByArrayName);
+      scalarBarActor.setVisibility(true);
     } else {
       componentSelector.style.display = 'none';
+      scalarBarActor.setVisibility(false);
     }
     mapper.set({
       colorByArrayName,
@@ -371,10 +385,11 @@ function createPipeline (fileContents, name = undefined) {
   mapper.setInputData(source);
   renderer.addActor(actor);
 
+  scalarBarActor.setScalarsToColors(mapper.getLookupTable());
+
   // Manage update when lookupTable change
-  lookupTable.onModified(() => {
-    renderWindow.render();
-  });
+  const debouncedRender = debounce(renderWindow.render, 10);
+  lookupTable.onModified(debouncedRender, -1);
 
   // First render
   renderer.resetCamera();
@@ -394,5 +409,4 @@ function createPipeline (fileContents, name = undefined) {
 }
 
 global.createPipeline = createPipeline;
-
 // ----------------------------------------------------------------------------

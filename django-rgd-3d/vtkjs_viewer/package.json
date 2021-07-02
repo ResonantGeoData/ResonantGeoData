@@ -4,22 +4,22 @@
   "description": "VTK.js Viewer",
   "main": "index.js",
   "scripts": {
-    "build": "webpack --progress --colors --mode development",
-    "build:release": "webpack --progress --colors --mode production",
+    "build": "webpack --progress --color --mode development",
+    "build:release": "webpack --progress --color --mode production",
     "start": "webpack-dev-server --content-base ./dist",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "author": "Bane Sullivan",
   "license": "Apache",
   "devDependencies": {
-    "css-loader": "^4.2.2",
-    "html-webpack-plugin": "^4.3.0",
-    "kw-web-suite": "^10.0.0",
-    "style-loader": "^1.2.1",
-    "webpack": "^4.44.1",
-    "webpack-cli": "^3.3.12"
+    "css-loader": "^5.2.6",
+    "kw-web-suite": "^11.1.0",
+    "style-loader": "^3.0.0",
+    "webpack": "^5.42.0",
+    "webpack-cli": "^4.7.2",
+    "webpack-dev-server": "^3.11.2"
   },
   "dependencies": {
-    "vtk.js": "^14.19.0"
+    "@kitware/vtk.js": "^18.4.1"
   }
 }
