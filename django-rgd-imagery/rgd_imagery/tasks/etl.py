@@ -313,8 +313,6 @@ def populate_raster(raster):
     if not isinstance(raster, Raster):
         raster = Raster.objects.get(id=raster)
 
-    # Has potential to error with failure reason
-    meta = _validate_image_set_is_raster(raster.image_set)
     if not raster.name:
         raster.name = raster.image_set.name
         raster.save(
@@ -322,6 +320,8 @@ def populate_raster(raster):
                 'name',
             ]
         )
+    # Has potential to error with failure reason
+    meta = _validate_image_set_is_raster(raster.image_set)
     raster_meta, created = get_or_create_no_commit(RasterMeta, parent_raster=raster)
     # Not using `defaults` here because we want `meta` to always get updated.
     for k, v in meta.items():
