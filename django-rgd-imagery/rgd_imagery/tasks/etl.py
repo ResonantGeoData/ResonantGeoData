@@ -17,59 +17,47 @@ from rasterio.warp import Resampling, calculate_default_transform, reproject
 from rgd.models.constants import DB_SRID
 from rgd.models.transform import transform_geometry
 from rgd.utility import get_or_create_no_commit
+from rgd_imagery.large_image_utilities import yeild_tilesource_from_image
 from rgd_imagery.models import BandMeta, ConvertedImage, Image, ImageMeta, Raster, RasterMeta
 from shapely.geometry import shape
 from shapely.ops import unary_union
 
 logger = get_task_logger(__name__)
 
-GDAL_DATA = os.path.join(os.path.dirname(rasterio.__file__), 'gdal_data')
-os.environ['GDAL_DATA'] = GDAL_DATA
+# GDAL_DATA = os.path.join(os.path.dirname(rasterio.__file__), 'gdal_data')
+# os.environ['GDAL_DATA'] = GDAL_DATA
 
 
 MAX_LOAD_SHAPE = (4000, 4000)
 
 
-def _populate_image_meta_models(image_meta, image_file_path):
+def _populate_image_meta_models(image, image_meta):
 
-    with rasterio.open(image_file_path) as src:
-        image_meta.number_of_bands = src.count
-        image_meta.driver = src.driver
-        image_meta.height = src.shape[0]
-        image_meta.width = src.shape[1]
+    with yeild_tilesource_from_image(image) as tile_source:
+        meta = tile_source.getMetadata()
+        imeta = tile_source.getInternalMetadata()
 
-        # A catch-all metadata feild:
-        # TODO: image_meta.metadata =
-
-        # These are things I couldn't figure out how to get with gdal directly
-        dtypes = src.dtypes
-        interps = src.colorinterp
-
+        image_meta.number_of_bands = len(meta['bands'])
+        image_meta.driver = imeta['driverShortName']
+        image_meta.height = meta['sizeY']
+        image_meta.width = meta['sizeX']
         # No longer editing image_entry
         image_meta.save()
 
-        for i in range(src.count):
+        for index, band_info in meta['bands'].items():
+
+            def safe_get(key):
+                return band_info[key] if key in band_info else None
+
             band_meta = BandMeta()
             band_meta.parent_image = image_meta.parent_image
-            band_meta.band_number = i + 1  # off by 1 indexing
-            band_meta.description = src.descriptions[i]
-            band_meta.nodata_value = src.nodatavals[i]
-            try:
-                band_meta.dtype = dtypes[i]
-            except IndexError:
-                pass
-            # TODO: seperate out band stats into separate tasks
-            # bmin, bmax, mean, std = gdal_band.GetStatistics(True, True)
-            # band_meta.min = bmin
-            # band_meta.max = bmax
-            # band_meta.mean = mean
-            # band_meta.std = std
-
-            try:
-                band_meta.interpretation = interps[i].name
-            except IndexError:
-                pass
-
+            band_meta.band_number = index
+            band_meta.nodata_value = safe_get('nodata')
+            band_meta.min = safe_get('min')
+            band_meta.max = safe_get('max')
+            band_meta.mean = safe_get('mean')
+            band_meta.std = safe_get('stdev')
+            band_meta.interpretation = safe_get('interpretation')
             # Save this band entirely
             band_meta.save()
 
@@ -85,29 +73,31 @@ def load_image(image):
     if not isinstance(image, Image):
         image = Image.objects.get(id=image)
 
-    with image.file.yield_local_path(vsi=True) as file_path:
-        image_meta, created = get_or_create_no_commit(ImageMeta, parent_image=image)
-        if not created:
-            # Clear out associated entries because they could be invalid
-            BandMeta.objects.filter(parent_image=image).delete()
-            ConvertedImage.objects.filter(source_image=image).delete()
+    image_meta, created = get_or_create_no_commit(ImageMeta, parent_image=image)
+    if not created:
+        # Clear out associated entries because they could be invalid
+        BandMeta.objects.filter(parent_image=image).delete()
+        ConvertedImage.objects.filter(source_image=image).delete()
 
-        _populate_image_meta_models(image_meta, file_path)
+    _populate_image_meta_models(image, image_meta)
 
     return image_meta
 
 
-def _extract_raster_outline(src):
+def _extract_raster_outline(tile_source):
+    meta = tile_source.getMetadata()
+    imeta = tile_source.getInternalMetadata()
+
     coords = np.array(
         (
-            (src.bounds.left, src.bounds.top),
-            (src.bounds.right, src.bounds.top),
-            (src.bounds.right, src.bounds.bottom),
-            (src.bounds.left, src.bounds.bottom),
-            (src.bounds.left, src.bounds.top),  # Close the loop
+            (meta['bounds']['xmin'], meta['bounds']['ymax']),
+            (meta['bounds']['xmax'], meta['bounds']['ymax']),
+            (meta['bounds']['xmax'], meta['bounds']['ymin']),
+            (meta['bounds']['xmin'], meta['bounds']['ymin']),
+            (meta['bounds']['xmin'], meta['bounds']['ymax']),  # Close the loop
         )
     )
-    return transform_geometry(Polygon(coords, srid=src.crs.to_epsg()), src.crs.to_wkt())
+    return transform_geometry(Polygon(coords), imeta['Projection'])
 
 
 def _extract_raster_meta(image):
@@ -118,20 +108,24 @@ def _extract_raster_meta(image):
 
     """
     raster_meta = dict()
-    with image.file.yield_local_path(vsi=True) as path:
-        with rasterio.open(path) as src:
-            raster_meta['crs'] = src.crs.to_proj4()
-            raster_meta['origin'] = [src.bounds.left, src.bounds.bottom]
-            raster_meta['extent'] = [
-                src.bounds.left,
-                src.bounds.bottom,
-                src.bounds.right,
-                src.bounds.top,
-            ]
-            raster_meta['resolution'] = src.res
-            raster_meta['transform'] = src.transform.to_gdal()  # TODO: check this
-            raster_meta['outline'] = _extract_raster_outline(src)
-            raster_meta['footprint'] = raster_meta['outline']
+
+    with yeild_tilesource_from_image(image) as tile_source:
+        meta = tile_source.getMetadata()
+        imeta = tile_source.getInternalMetadata()
+
+        raster_meta['crs'] = tile_source.getProj4String()
+        raster_meta['origin'] = [meta['bounds']['xmin'], meta['bounds']['ymin']]
+        raster_meta['resolution'] = (meta['mm_x'] * 0.001, meta['mm_y'] * 0.001)  # meters
+        raster_meta['transform'] = imeta['GeoTransform']
+        raster_meta['extent'] = [
+            meta['bounds']['xmin'],
+            meta['bounds']['ymin'],
+            meta['bounds']['xmax'],
+            meta['bounds']['ymax'],
+        ]
+        raster_meta['outline'] = _extract_raster_outline(tile_source)
+        raster_meta['footprint'] = raster_meta['outline']
+
     return raster_meta
 
 
@@ -334,9 +328,8 @@ def populate_raster(raster):
 def populate_raster_outline(raster_id):
     raster = Raster.objects.get(id=raster_id)
     base_image = raster.image_set.images.first()
-    with base_image.file.yield_local_path(vsi=True) as path:
-        with rasterio.open(path) as src:
-            raster.rastermeta.outline = _extract_raster_outline(src)
+    with yeild_tilesource_from_image(base_image) as tile_source:
+        raster.rastermeta.outline = _extract_raster_outline(tile_source)
     raster.rastermeta.save(
         update_fields=[
             'outline',

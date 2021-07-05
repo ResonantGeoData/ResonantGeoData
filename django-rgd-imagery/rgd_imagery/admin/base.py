@@ -158,7 +158,6 @@ class BandMetaInline(admin.StackedInline):
         'parent_image',
         'std',
         'nodata_value',
-        'dtype',
         'band_number',
     )
 

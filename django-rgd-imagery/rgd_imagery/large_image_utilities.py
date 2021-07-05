@@ -1,3 +1,5 @@
+from contextlib import contextmanager
+
 from large_image.exceptions import TileSourceException
 from large_image.tilesource import FileTileSource
 from large_image_source_gdal import GDALFileTileSource
@@ -13,6 +15,11 @@ def get_tilesource_from_image(image: Image, projection: str = None) -> FileTileS
     except TileSourceException:
         with image.file.yield_local_path() as file_path:
             return PILFileTileSource(file_path)
+
+
+@contextmanager
+def yeild_tilesource_from_image(image: Image, projection: str = None) -> FileTileSource:
+    yield get_tilesource_from_image(image, projection)
 
 
 def get_region_world(
