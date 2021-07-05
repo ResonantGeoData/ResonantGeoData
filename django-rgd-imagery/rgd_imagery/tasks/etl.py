@@ -44,22 +44,24 @@ def _populate_image_meta_models(image, image_meta):
         # No longer editing image_entry
         image_meta.save()
 
-        for index, band_info in meta['bands'].items():
+        # TODO: we need `PILFileTileSource` in large_image to support band information
+        if 'bands' in meta:
+            for index, band_info in meta['bands'].items():
 
-            def safe_get(key):
-                return band_info[key] if key in band_info else None
+                def safe_get(key):
+                    return band_info[key] if key in band_info else None
 
-            band_meta = BandMeta()
-            band_meta.parent_image = image_meta.parent_image
-            band_meta.band_number = index
-            band_meta.nodata_value = safe_get('nodata')
-            band_meta.min = safe_get('min')
-            band_meta.max = safe_get('max')
-            band_meta.mean = safe_get('mean')
-            band_meta.std = safe_get('stdev')
-            band_meta.interpretation = safe_get('interpretation')
-            # Save this band entirely
-            band_meta.save()
+                band_meta = BandMeta()
+                band_meta.parent_image = image_meta.parent_image
+                band_meta.band_number = index
+                band_meta.nodata_value = safe_get('nodata')
+                band_meta.min = safe_get('min')
+                band_meta.max = safe_get('max')
+                band_meta.mean = safe_get('mean')
+                band_meta.std = safe_get('stdev')
+                band_meta.interpretation = safe_get('interpretation')
+                # Save this band entirely
+                band_meta.save()
 
 
 def load_image(image):
