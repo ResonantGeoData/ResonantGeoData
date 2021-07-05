@@ -52,8 +52,8 @@ def task_convert_to_cog(conv_id):
     from rgd_imagery.models import ConvertedImage
     from rgd_imagery.tasks.subsample import convert_to_cog
 
-    cog = ConvertedImage.objects.get(id=conv_id)
-    helpers._run_with_failure_reason(cog, convert_to_cog, conv_id)
+    obj = ConvertedImage.objects.get(id=conv_id)
+    helpers._run_with_failure_reason(obj, convert_to_cog, conv_id)
 
 
 @shared_task(time_limit=86400)
@@ -61,5 +61,14 @@ def task_populate_region_image(subsampled_id):
     from rgd_imagery.models import RegionImage
     from rgd_imagery.tasks.subsample import populate_region_image
 
-    cog = RegionImage.objects.get(id=subsampled_id)
-    helpers._run_with_failure_reason(cog, populate_region_image, subsampled_id)
+    obj = RegionImage.objects.get(id=subsampled_id)
+    helpers._run_with_failure_reason(obj, populate_region_image, subsampled_id)
+
+
+@shared_task(time_limit=86400)
+def task_resample_image(resampled_id):
+    from rgd_imagery.models import ResampledImage
+    from rgd_imagery.tasks.subsample import resample_image
+
+    obj = ResampledImage.objects.get(id=resampled_id)
+    helpers._run_with_failure_reason(obj, resample_image, resampled_id)

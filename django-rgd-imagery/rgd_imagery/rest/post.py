@@ -12,6 +12,11 @@ class CreateRegionImage(CreateAPIView):
     serializer_class = serializers.RegionImageSerializer
 
 
+class CreateResampledImage(CreateAPIView):
+    queryset = models.RegionImage.objects.all()
+    serializer_class = serializers.ResampledImageSerializer
+
+
 class CreateRasterSTAC(CreateAPIView):
     queryset = models.RasterMeta.objects.all()
     serializer_class = serializers.STACRasterSerializer

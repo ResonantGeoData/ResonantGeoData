@@ -3,10 +3,12 @@ from contextlib import contextmanager
 
 from celery.utils.log import get_task_logger
 import large_image_converter
+import rasterio
+from rasterio.warp import Resampling
 from rgd.models import ChecksumFile
 from rgd.utility import input_output_path_helper, output_path_helper
 from rgd_imagery import large_image_utilities
-from rgd_imagery.models import ConvertedImage, Image, RegionImage
+from rgd_imagery.models import ConvertedImage, Image, RegionImage, ResampledImage
 
 logger = get_task_logger(__name__)
 
@@ -78,3 +80,54 @@ def populate_region_image(region):
                 path, mime_type = large_image_utilities.get_region_pixel(tile_source, l, r, b, t)
             with open(path, 'rb') as f, open(output_path, 'wb') as o:
                 o.write(f.read())
+
+
+def resample_image(resample):
+    if not isinstance(resample, ResampledImage):
+        resample = ResampledImage.objects.get(id=resample)
+    else:
+        resample.refresh_from_db()
+
+    factor = resample.sample_factor
+    logger.info(f'Resample factor: {factor}')
+
+    with _processed_image_helper(resample) as (image, output):
+
+        with input_output_path_helper(
+            image.file, output.file, prefix='resampled_{:.2f}_'.format(factor), vsi=True
+        ) as (
+            input_path,
+            output_path,
+        ):
+
+            with rasterio.open(input_path) as dataset:
+
+                # resample data to target shape
+                data = dataset.read(
+                    out_shape=(
+                        dataset.count,
+                        int(dataset.height * factor),
+                        int(dataset.width * factor),
+                    ),
+                    resampling=Resampling.bilinear,
+                )
+
+                # scale image transform
+                transform = dataset.transform * dataset.transform.scale(
+                    (dataset.width / data.shape[-1]), (dataset.height / data.shape[-2])
+                )
+
+                out_meta = dataset.meta.copy()
+
+                # Update the metadata
+                out_meta.update(
+                    {
+                        "driver": "GTiff",
+                        "height": data.shape[1],
+                        "width": data.shape[2],
+                        "transform": transform,
+                    }
+                )
+
+                with rasterio.open(output_path, "w", **out_meta) as dest:
+                    dest.write(data)

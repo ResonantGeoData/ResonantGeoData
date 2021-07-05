@@ -104,6 +104,21 @@ class RegionImageSerializer(serializers.ModelSerializer):
         return obj
 
 
+class ResampledImageSerializer(serializers.ModelSerializer):
+
+    processed_image = ImageSerializer(read_only=True)
+
+    def validate_source_image(self, value):
+        if 'request' in self.context:
+            check_write_perm(self.context['request'].user, value)
+        return value
+
+    class Meta:
+        model = models.ConvertedImage
+        fields = '__all__'
+        read_only_fields = ['id', 'status', 'failure_reason', 'processed_image']
+
+
 class ImageSetSerializer(serializers.ModelSerializer):
     images = ImageSerializer(many=True)
 

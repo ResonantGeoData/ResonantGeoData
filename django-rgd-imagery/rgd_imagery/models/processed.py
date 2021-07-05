@@ -92,3 +92,9 @@ class RegionImage(ProcessedImage):
             return l, r, b, t, projection
         else:
             raise ValueError('Sample type ({}) unknown.'.format(self.sample_type))
+
+
+class ResampledImage(ProcessedImage):
+    task_funcs = (jobs.task_resample_image,)
+
+    sample_factor = models.FloatField()

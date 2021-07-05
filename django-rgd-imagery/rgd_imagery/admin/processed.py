@@ -1,7 +1,7 @@
 from django.contrib import admin
 from django.contrib.gis.admin import OSMGeoAdmin
 from rgd.admin.mixins import MODIFIABLE_FILTERS, TASK_EVENT_FILTERS, TASK_EVENT_READONLY, reprocess
-from rgd_imagery.models import ConvertedImage, RegionImage
+from rgd_imagery.models import ConvertedImage, RegionImage, ResampledImage
 
 
 @admin.register(ConvertedImage)
@@ -31,3 +31,18 @@ class RegionImageAdmin(OSMGeoAdmin):
     readonly_fields = ('processed_image',) + TASK_EVENT_READONLY
     actions = (reprocess,)
     list_filter = ('sample_type',) + MODIFIABLE_FILTERS + TASK_EVENT_FILTERS
+
+
+@admin.register(ResampledImage)
+class ResampledImageAdmin(OSMGeoAdmin):
+    list_display = (
+        'pk',
+        'source_image',
+        'sample_factor',
+        'status',
+        'modified',
+        'created',
+    )
+    readonly_fields = ('processed_image',) + TASK_EVENT_READONLY
+    actions = (reprocess,)
+    list_filter = ('sample_factor',) + MODIFIABLE_FILTERS + TASK_EVENT_FILTERS

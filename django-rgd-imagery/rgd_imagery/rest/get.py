@@ -17,6 +17,12 @@ class GetRegionImage(RetrieveAPIView, _PermissionMixin):
     queryset = models.RegionImage.objects.all()
 
 
+class GetResampledImage(RetrieveAPIView, _PermissionMixin):
+    serializer_class = serializers.ResampledImageSerializer
+    lookup_field = 'pk'
+    queryset = models.ResampledImage.objects.all()
+
+
 class GetImageMeta(RetrieveAPIView, _PermissionMixin):
     serializer_class = serializers.ImageMetaSerializer
     lookup_field = 'pk'

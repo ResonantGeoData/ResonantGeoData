@@ -125,11 +125,22 @@ urlpatterns = [
     path(
         'api/image_process/imagery/subsample',
         rest.post.CreateRegionImage.as_view(),
+        name='create-subsample'
     ),
     path(
         'api/image_process/imagery/subsample/<int:pk>',
         rest.get.GetRegionImage.as_view(),
         name='subsampled',
+    ),
+    path(
+        'api/image_process/imagery/resample/<int:pk>',
+        rest.get.GetResampledImage.as_view(),
+        name='resampled',
+    ),
+    path(
+        'api/image_process/imagery/resample',
+        rest.post.CreateResampledImage.as_view(),
+        name='create-resampled',
     ),
     path(
         'api/image_process/imagery/subsample/<int:pk>/status',
