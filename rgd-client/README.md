@@ -94,3 +94,29 @@ for i, src in enumerate(rasters):
 plt.tight_layout()
 plt.show()
 ```
+
+
+### STAC Item Support
+
+The Python client has a search endpoint specifically for Raster data that
+returns each record in the search results as a STAC Item.
+
+```py
+
+q = client.search_raster_stac(query=json.dumps(bbox), predicate='intersects')
+
+print(q[0])  # view result as STAC Item
+
+# Download using the search result
+paths = client.download_raster(q[0])
+print(paths)
+
+```
+
+We can also upload new data in the STAC Item format. Here we simply pass back
+the same STAC Item JSON which will not actually do anything because RGD
+recognizes that these files are already present with a Raster.
+
+```py
+client.create_raster_stac(q[0])
+```
