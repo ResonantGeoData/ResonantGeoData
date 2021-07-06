@@ -89,7 +89,6 @@ def load_image(image):
 def _extract_raster_outline(tile_source):
     meta = tile_source.getMetadata()
     imeta = tile_source.getInternalMetadata()
-
     coords = np.array(
         (
             (meta['bounds']['xmin'], meta['bounds']['ymax']),
@@ -99,7 +98,8 @@ def _extract_raster_outline(tile_source):
             (meta['bounds']['xmin'], meta['bounds']['ymax']),  # Close the loop
         )
     )
-    return transform_geometry(Polygon(coords), imeta['Projection'])
+    wkt = imeta['Projection'] or imeta['GCPProjection']
+    return transform_geometry(Polygon(coords), wkt)
 
 
 def _extract_raster_meta(image):
