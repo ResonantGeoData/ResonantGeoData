@@ -24,8 +24,8 @@ from shapely.ops import unary_union
 
 logger = get_task_logger(__name__)
 
-# GDAL_DATA = os.path.join(os.path.dirname(rasterio.__file__), 'gdal_data')
-# os.environ['GDAL_DATA'] = GDAL_DATA
+GDAL_DATA = os.path.join(os.path.dirname(rasterio.__file__), 'gdal_data')
+os.environ['GDAL_DATA'] = GDAL_DATA
 
 
 MAX_LOAD_SHAPE = (4000, 4000)
