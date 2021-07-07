@@ -26,7 +26,7 @@ class ProcessedImage(TimeStampedModel, TaskEventMixin, PermissionPathMixin):
         if self.processed_image:
             self.processed_image.file.delete()
 
-    permissions_paths = ['source_image__file__collection__collection_permissions']
+    permissions_paths = ['source_image__file']
 
 
 class ConvertedImage(ProcessedImage):

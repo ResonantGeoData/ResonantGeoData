@@ -27,7 +27,7 @@ class Annotation(TimeStampedModel, PermissionPathMixin):
         """Get type of segmentation."""
         return self.segmentation.get_type()
 
-    permissions_paths = ['image__collection__collection_permissions']
+    permissions_paths = ['image__file']
 
 
 class Segmentation(models.Model):
@@ -67,7 +67,7 @@ class Segmentation(models.Model):
             pass
         return 'Oultine/BBox'
 
-    permissions_paths = ['annotation__image__collection__collection_permissions']
+    permissions_paths = ['annotation__image__file']
 
 
 class PolygonSegmentation(Segmentation):

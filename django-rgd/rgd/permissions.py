@@ -7,6 +7,8 @@ from django.core.exceptions import PermissionDenied
 from django.db.models import Q
 from rgd import models
 
+PERMISSIONS_END = ['collection', 'collection_permissions']
+
 
 def get_subclasses(model):
     """Retrieve all model subclasses for the provided class excluding the model class itself."""
@@ -18,6 +20,10 @@ def get_collection_permissions_paths(model, prefix='') -> List[str]:
 
     Relationships are represented as 'dunder's ('__').
     """
+    if model == models.CollectionPermission:
+        return ['']
+    if model == models.Collection:
+        return ['collection_permissions']
     if model == models.SpatialEntry:
         submodels = get_subclasses(model)
         paths = []
@@ -27,11 +33,14 @@ def get_collection_permissions_paths(model, prefix='') -> List[str]:
             [paths.append(s) for s in get_collection_permissions_paths(sub, prefix=model_name)]
         return paths
 
-    if not hasattr(model, 'permissions_paths'):
+    if not issubclass(model, models.mixins.PermissionPathMixin):
         # NOTE: checking subclass here does not work - must use hasattr :(
         raise TypeError(f'{type(model)} does not have the `PermissionPathMixin` interface.')
 
-    return [(f'{prefix}__' if prefix else '') + s for s in model.permissions_paths]
+    return [
+        (f'{prefix}__' if prefix else '') + '__'.join(s.split('__') + PERMISSIONS_END)
+        for s in model.permissions_paths
+    ]
 
 
 def filter_perm(user, queryset, role):
