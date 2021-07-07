@@ -54,3 +54,15 @@ def test_geojson_intersects(spatial_asset_a, spatial_asset_b):
     qs = filterset.filter_queryset(models.SpatialEntry.objects.all())
     assert qs.count() == 1
     assert qs.first().spatial_id == spatial_asset_a.spatial_id
+
+
+@pytest.mark.django_db(transaction=True)
+def test_q_time(spatial_asset_a, spatial_asset_b):
+    filterset = SpatialEntryFilter(data={'time_of_day_before': '23:59'})
+    assert filterset.is_valid()
+    qs = filterset.filter_queryset(models.SpatialEntry.objects.all())
+    assert qs.count() == 2
+    filterset = SpatialEntryFilter(data={'time_of_day_after': '23:59'})
+    assert filterset.is_valid()
+    qs = filterset.filter_queryset(models.SpatialEntry.objects.all())
+    assert qs.count() == 0
