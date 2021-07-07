@@ -189,6 +189,13 @@ function createPipeline (fileContents, name = undefined) {
   opacitySelector.setAttribute('max', '100');
   opacitySelector.setAttribute('min', '1');
 
+  const pointSizeSelector = document.createElement('input');
+  pointSizeSelector.setAttribute('class', selectorClass);
+  pointSizeSelector.setAttribute('type', 'range');
+  pointSizeSelector.setAttribute('value', '1');
+  pointSizeSelector.setAttribute('max', '20');
+  pointSizeSelector.setAttribute('min', '1');
+
   if (name === undefined) {
     name = 'Mesh';
   }
@@ -204,6 +211,7 @@ function createPipeline (fileContents, name = undefined) {
   controlContainer.appendChild(colorBySelector);
   controlContainer.appendChild(componentSelector);
   controlContainer.appendChild(opacitySelector);
+  controlContainer.appendChild(pointSizeSelector);
   rootControllerContainer.appendChild(controlContainer);
 
   // VTK pipeline
@@ -265,6 +273,18 @@ function createPipeline (fileContents, name = undefined) {
   }
 
   opacitySelector.addEventListener('input', updateOpacity);
+
+  // --------------------------------------------------------------------
+  // Point size handling
+  // --------------------------------------------------------------------
+
+  function updatePointSize (event) {
+    const pointSize = Number(event.target.value);
+    actor.getProperty().setPointSize(pointSize);
+    renderWindow.render();
+  }
+
+  pointSizeSelector.addEventListener('input', updatePointSize);
 
   // --------------------------------------------------------------------
   // ColorBy handling
