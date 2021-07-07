@@ -39,59 +39,10 @@
 
     {% include 'rgd_3d/_include/vtkjs_viewer.html' %}
 
-    <style>
-    .progress {
-      color: black;
-      z-index: 100;
-      background: rgba(128,128,128,.5);
-      padding: 100px;
-      border-radius: 10px;
-      user-select: none;
-      width: 25%;
-      text-align: center;
-      margin: 20% auto;
-      position: relative;
-      }
-    </style>
-
-    <div class="progress" id="progressContainer">
-      <h1>Loading...</h1>
-    </div>
-
     <script>
-      const reader = vtk.IO.XML.vtkXMLPolyDataReader.newInstance();
 
-      function loadBase64Content (contentToLoad) {
-        var buffer = vtk.Common.Core.vtkBase64.toArrayBuffer(contentToLoad);
-        reader.parseAsArrayBuffer(buffer);
-        return reader.getOutputData(0);
-      }
+      load(vtkContainer, `{% url 'point-cloud-entry-data' object.id %}`)
 
-      const progressContainer = document.getElementById('progressContainer');
-      progressContainer.innerHTML = 'Loading...';
-
-      fetch(`{% url 'point-cloud-entry-data' object.id %}`)
-        .then((resp) => resp.json())
-        .then(function(data) {
-          const contentToLoad = data.vtp_data;
-
-          const polydata = loadBase64Content(contentToLoad);
-
-          var actor = vtk.Rendering.Core.vtkActor.newInstance();
-          var mapper = vtk.Rendering.Core.vtkMapper.newInstance();
-
-          actor.setMapper(mapper);
-          mapper.setInputData(polydata);
-          renderer.addActor(actor);
-
-          renderer.resetCamera();
-          renderWindow.render();
-
-          progressContainer.style.display = 'none'
-        })
-        .catch(function(error) {
-          console.log(`Error loading data: ${error}`)
-        });
     </script>
 
 {% endblock %}

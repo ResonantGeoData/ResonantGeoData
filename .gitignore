@@ -62,3 +62,5 @@ files/
 docker-compose.local.yml
 
 .mypy_cache
+
+**/node_modules
