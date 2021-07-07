@@ -1,5 +1,3 @@
-import '@kitware/vtk.js/favicon';
-
 // Load the rendering pieces we want to use (for both WebGL and WebGPU)
 import '@kitware/vtk.js/Rendering/Profiles/Geometry';
 
@@ -195,6 +193,7 @@ function createPipeline (fileContents, name = undefined) {
   pointSizeSelector.setAttribute('value', '1');
   pointSizeSelector.setAttribute('max', '20');
   pointSizeSelector.setAttribute('min', '1');
+  pointSizeSelector.style.display = 'none'; // Deafault hidden
 
   if (name === undefined) {
     name = 'Mesh';
@@ -259,6 +258,13 @@ function createPipeline (fileContents, name = undefined) {
     actor.getProperty().set({ representation, edgeVisibility });
     actor.setVisibility(!!visibility);
     renderWindow.render();
+    console.log(representation);
+    if (representation === 0) {
+      // Points === 0
+      pointSizeSelector.style.display = 'block';
+    } else {
+      pointSizeSelector.style.display = 'none';
+    }
   }
   representationSelector.addEventListener('change', updateRepresentation);
 
@@ -350,6 +356,9 @@ function createPipeline (fileContents, name = undefined) {
         componentSelector.innerHTML = compOpts
           .map((t, index) => `<option value="${index - 1}">${t}</option>`)
           .join('');
+        if (numberOfComponents > 2 && numberOfComponents < 5) {
+          componentSelector.innerHTML += '<option value="-2">RGB(A)</option>';
+        }
       } else {
         componentSelector.style.display = 'none';
       }
@@ -374,12 +383,21 @@ function createPipeline (fileContents, name = undefined) {
   function updateColorByComponent (event) {
     if (mapper.getLookupTable()) {
       const lut = mapper.getLookupTable();
-      if (event.target.value === -1) {
+      const v = Number(event.target.value);
+      if (v === -1) {
         lut.setVectorModeToMagnitude();
+        mapper.setColorModeToMapScalars();
+        scalarBarActor.setVisibility(true);
+      } else if (v === -2) {
+        lut.setVectorModeToRGBColors();
+        mapper.setColorModeToDirectScalars();
+        scalarBarActor.setVisibility(false);
       } else {
         lut.setVectorModeToComponent();
-        lut.setVectorComponent(Number(event.target.value));
-        const newDataRange = activeArray.getRange(Number(event.target.value));
+        mapper.setColorModeToMapScalars();
+        scalarBarActor.setVisibility(true);
+        lut.setVectorComponent(v);
+        const newDataRange = activeArray.getRange(v);
         dataRange[0] = newDataRange[0];
         dataRange[1] = newDataRange[1];
         lookupTable.setMappingRange(dataRange[0], dataRange[1]);
