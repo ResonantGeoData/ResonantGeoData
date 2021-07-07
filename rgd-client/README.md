@@ -94,3 +94,59 @@ for i, src in enumerate(rasters):
 plt.tight_layout()
 plt.show()
 ```
+
+
+### STAC Item Support
+
+The Python client has a search endpoint specifically for Raster data that
+returns each record in the search results as a STAC Item.
+
+```py
+
+q = client.search_raster_stac(query=json.dumps(bbox), predicate='intersects')
+
+print(q[0])  # view result as STAC Item
+
+# Download using the search result
+paths = client.download_raster(q[0])
+print(paths)
+
+```
+
+We can also upload new data in the STAC Item format. Here we simply pass back
+the same STAC Item JSON which will not actually do anything because RGD
+recognizes that these files are already present with a Raster.
+
+```py
+client.create_raster_stac(q[0])
+```
+
+Please note that the assets in the STAC Item must already be uploaded to a
+cloud storage provider with either `s3://` or `https://` URLs. Further, the
+images must have the `data` tag on each asset. e.g.:
+
+```py
+{
+    ... # other STAC Item fields
+    'assets': {
+        'image-15030': {
+            'href': 'http://storage.googleapis.com/gcp-public-data-sentinel-2/tiles/17/S/MS/S2A_MSIL1C_20210302T161201_N0209_R140_T17SMS_20210302T200521.SAFE/GRANULE/L1C_T17SMS_A029738_20210302T161751/IMG_DATA/T17SMS_20210302T161201_B01.jp2',
+            'title': 'GRANULE/L1C_T17SMS_A029738_20210302T161751/IMG_DATA/T17SMS_20210302T161201_B01.jp2',
+            'eo:bands': [{'name': 'B1'}],
+            'roles': ['data'],
+        },
+        'image-15041': {
+            'href': 'http://storage.googleapis.com/gcp-public-data-sentinel-2/tiles/17/S/MS/S2A_MSIL1C_20210302T161201_N0209_R140_T17SMS_20210302T200521.SAFE/GRANULE/L1C_T17SMS_A029738_20210302T161751/IMG_DATA/T17SMS_20210302T161201_B02.jp2',
+            'title': 'GRANULE/L1C_T17SMS_A029738_20210302T161751/IMG_DATA/T17SMS_20210302T161201_B02.jp2',
+            'eo:bands': [{'name': 'B1'}],
+            'roles': ['data'],
+        },
+        ...  # ancillary files can lack a role but we like to see `metadata` used.
+        'ancillary-30687': {
+            'href': 'http://storage.googleapis.com/gcp-public-data-sentinel-2/tiles/17/S/MS/S2A_MSIL1C_20210302T161201_N0209_R140_T17SMS_20210302T200521.SAFE/GRANULE/L1C_T17SMS_A029738_20210302T161751/QI_DATA/MSK_TECQUA_B03.gml',
+            'title': 'GRANULE/L1C_T17SMS_A029738_20210302T161751/QI_DATA/MSK_TECQUA_B03.gml',
+            'roles': ['metadata'],
+        },
+    }
+}
+```
