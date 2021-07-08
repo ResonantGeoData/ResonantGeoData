@@ -9,7 +9,7 @@
       let searchGeometry = JSON.parse(searchParams.q)
       // Add search parameters as markers
       if (searchGeometry.type == 'Point') {
-        // center map here by default (incase no data appears in search)
+        // center map here by default (in case no data appears in search)
         map.center({
            x: searchGeometry.coordinates[0],
            y: searchGeometry.coordinates[1]

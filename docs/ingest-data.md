@@ -14,7 +14,7 @@ Then simply create a new `ImageFile` entry that links to the previously created 
 
 ![image_file](./images/image_file.png)
 
-This step lets the data catalog know that the added file is an image, and it will begin a few processing routines in the background to create an `ImageEntry` automatically. Once saved, you can go to the "image entrys" section of the admin portal, and you will find your image listed there:
+This step lets the data catalog know that the added file is an image, and it will begin a few processing routines in the background to create an `ImageEntry` automatically. Once saved, you can go to the image entries section of the admin portal, and you will find your image listed there:
 
 ![image_entry_list](./images/image_entry_list.png)
 

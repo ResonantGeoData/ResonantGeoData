@@ -5,9 +5,9 @@
 
 2D/3D/4D Geospatial Data API in Django
 
-A publically deployed instance of this application is available at https://www.resonantgeodata.com - find the project code for this at [ResonantGeoData/RD-OpenGeo](https://github.com/ResonantGeoData/RD-OpenGeo)
+A publicly deployed instance of this application is available at https://www.resonantgeodata.com - find the project code for this at [ResonantGeoData/RD-OpenGeo](https://github.com/ResonantGeoData/RD-OpenGeo)
 
-ResonantGeoData is a Django application well suited for catalogging and searching annotated geospatial imagery, shapefiles, and full motion video datasets.
+ResonantGeoData is a Django application well suited for cataloging and searching annotated geospatial imagery, shapefiles, and full motion video datasets.
 
 ![homepage](./docs/images/homepage.png)
 
