@@ -193,7 +193,7 @@ function createPipeline (fileContents, name = undefined) {
   pointSizeSelector.setAttribute('value', '1');
   pointSizeSelector.setAttribute('max', '20');
   pointSizeSelector.setAttribute('min', '1');
-  pointSizeSelector.style.display = 'none'; // Deafault hidden
+  pointSizeSelector.style.display = 'none'; // Default hidden
 
   if (name === undefined) {
     name = 'Mesh';
