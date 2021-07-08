@@ -48,7 +48,7 @@ class BandMeta(TimeStampedModel, PermissionPathMixin):
     description = models.TextField(
         null=True,
         blank=True,
-        help_text='Automatically retreived from raster but can be overwritten.',
+        help_text='Automatically retrieved from raster but can be overwritten.',
     )
     dtype = models.CharField(max_length=10)
     max = models.FloatField(null=True)

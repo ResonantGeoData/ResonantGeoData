@@ -264,9 +264,9 @@ def output_path_helper(filename: str, output: FieldFile):
 def input_output_path_helper(
     source, output: FieldFile, prefix: str = '', suffix: str = '', vsi: bool = False
 ):
-    """Yeild source and output paths between a ChecksumFile and a FileFeild.
+    """Yield source and output paths between a ChecksumFile and a FileFeild.
 
-    The output path is saved to the output field after yeilding.
+    The output path is saved to the output field after yielding.
 
     """
     filename = prefix + os.path.basename(source.name) + suffix

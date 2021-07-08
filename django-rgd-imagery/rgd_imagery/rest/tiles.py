@@ -107,7 +107,7 @@ class TileRegionView(BaseTileView):
 
 
 class TileRegionPixelView(BaseTileView):
-    """Returns region tile binary from pixel coordiantes."""
+    """Returns region tile binary from pixel coordinates."""
 
     def get(
         self, request: Request, pk: int, left: float, right: float, bottom: float, top: float
