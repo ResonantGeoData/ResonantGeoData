@@ -124,6 +124,11 @@ class SpatialEntryFilter(filters.FilterSet):
         return queryset
 
     def filter_time_of_day(self, queryset, name, value):
+        """Filter the queryset by time of day acquired.
+
+        Use case: find all rasters acquired between 8am and 4pm
+        for all days in the acquired date range (i.e. only daytime imagery)
+        """
         if value is not None:
             queryset = queryset.annotate(time_of_day=F('acquisition_date__time'))
             if value.start is not None:
@@ -141,4 +146,5 @@ class SpatialEntryFilter(filters.FilterSet):
             'distance',
             'acquired',
             'instrumentation',
+            'time_of_day',
         ]

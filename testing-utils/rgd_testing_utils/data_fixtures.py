@@ -1,5 +1,3 @@
-from datetime import datetime
-
 from django.contrib.gis.geos import GEOSGeometry
 import pytest
 from rgd import models
@@ -32,7 +30,6 @@ def spatial_asset_a():
     e.outline = geom
     e.save()
     e.files.add(factories.ChecksumFileFactory())
-    e.acquisition_date = datetime.now()
     e.save()
     return e
 
@@ -47,6 +44,5 @@ def spatial_asset_b():
     e.outline = geom
     e.save()
     e.files.add(factories.ChecksumFileFactory())
-    e.acquisition_date = datetime.now()
     e.save()
     return e
