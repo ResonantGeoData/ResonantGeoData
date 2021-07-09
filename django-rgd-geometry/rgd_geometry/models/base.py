@@ -36,7 +36,7 @@ class GeometryArchive(TimeStampedModel, TaskEventMixin, PermissionPathMixin):
 
     archive_data_link.allow_tags = True
 
-    permissions_paths = ['file']
+    permissions_paths = [('file', ChecksumFile)]
 
 
 class Geometry(TimeStampedModel, SpatialEntry, PermissionPathMixin, DetailViewMixin):
@@ -51,5 +51,5 @@ class Geometry(TimeStampedModel, SpatialEntry, PermissionPathMixin, DetailViewMi
     # Can be null if not generated from uploaded ZIP file but something else
     geometry_archive = models.OneToOneField(GeometryArchive, null=True, on_delete=models.CASCADE)
 
-    permissions_paths = ['geometry_archive__file']
+    permissions_paths = [('geometry_archive', GeometryArchive)]
     detail_view_name = 'geometry-entry-detail'

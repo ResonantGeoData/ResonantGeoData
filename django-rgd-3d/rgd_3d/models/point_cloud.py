@@ -17,7 +17,7 @@ class PointCloud(TimeStampedModel, TaskEventMixin, PermissionPathMixin):
 
     data_link.allow_tags = True
 
-    permissions_paths = ['file']
+    permissions_paths = [('file', ChecksumFile)]
 
 
 class PointCloudMeta(TimeStampedModel, PermissionPathMixin, DetailViewMixin):
@@ -41,10 +41,7 @@ class PointCloudMeta(TimeStampedModel, PermissionPathMixin, DetailViewMixin):
 
     data_link.allow_tags = True
 
-    permissions_paths = [
-        'source__file',
-        'vtp_data',
-    ]
+    permissions_paths = [('source', PointCloud), ('vtp_data', ChecksumFile)]
     detail_view_name = 'point-cloud-entry-detail'
 
 
@@ -61,6 +58,4 @@ class PointCloudSpatial(TimeStampedModel, SpatialEntry, PermissionPathMixin):
     def name(self):
         return self.source.file.name
 
-    permissions_paths = [
-        'source__file',
-    ]
+    permissions_paths = [('source', PointCloud)]

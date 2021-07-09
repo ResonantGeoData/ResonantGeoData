@@ -46,6 +46,6 @@ class KWCOCOArchive(TimeStampedModel, TaskEventMixin, PermissionPathMixin):
         self.image_set.delete()
 
     permissions_paths = [
-        'spec_file',
-        'image_archive',
+        ('spec_file', ChecksumFile),
+        ('image_archive', ChecksumFile),
     ]

@@ -100,7 +100,7 @@ class ChecksumFile(TimeStampedModel, TaskEventMixin, PermissionPathMixin):
     task_funcs = (
         # tasks.task_checksum_file_post_save,
     )
-    permissions_paths = ['']
+    permissions_paths = [('collection', Collection)]
 
     class Meta:
         constraints = [
@@ -303,6 +303,6 @@ class SpatialAsset(SpatialEntry, TimeStampedModel, PermissionPathMixin):
 
     """
 
-    permissions_paths = ['files']
+    permissions_paths = [('files', ChecksumFile)]
 
     files = models.ManyToManyField(ChecksumFile)

@@ -18,7 +18,7 @@ class Raster(TimeStampedModel, TaskEventMixin, PermissionPathMixin):
 
     """
 
-    permissions_paths = ['image_set__images__file']
+    permissions_paths = [('image_set', ImageSet)]
 
     name = models.CharField(max_length=1000, blank=True)
     description = models.TextField(null=True, blank=True)
@@ -44,7 +44,7 @@ class Raster(TimeStampedModel, TaskEventMixin, PermissionPathMixin):
 
 
 class RasterMeta(TimeStampedModel, SpatialEntry, PermissionPathMixin, DetailViewMixin):
-    permissions_paths = ['parent_raster__image_set__images__file']
+    permissions_paths = [('parent_raster', Raster)]
     detail_view_name = 'raster-entry-detail'
 
     parent_raster = models.OneToOneField(Raster, on_delete=models.CASCADE)
