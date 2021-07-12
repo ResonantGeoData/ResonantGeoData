@@ -5,8 +5,10 @@ import time
 
 import requests
 
+from . import MANAGE_PATH, PYTHON_PATH
+from .data_fixtures import *
+
 proc = None
-python_path = '/usr/local/bin/python'
 max_attempts = 10  # number of attempts to connect to server
 timeout = 5  # time in seconds between connection attempts
 
@@ -15,18 +17,21 @@ timeout = 5  # time in seconds between connection attempts
 def pytest_configure(config):
     global proc
 
-    # path to manage.py for example_project
-    manage_path = os.path.normpath(os.path.join(os.getcwd(), '../../example_project/manage.py'))
+    # reset db
+    subprocess.run(
+        [PYTHON_PATH, MANAGE_PATH, 'reset_db', '--noinput'],
+        env={"DJANGO_SETTINGS_MODULE": "rgd_example.settings"},
+    )
 
     # run migrations
     subprocess.run(
-        [python_path, manage_path, 'migrate'],
+        [PYTHON_PATH, MANAGE_PATH, 'migrate'],
         env={"DJANGO_SETTINGS_MODULE": "rgd_example.settings"},
     )
 
     # start server as background process
     proc = subprocess.Popen(
-        [python_path, manage_path, 'runserver', '0.0.0.0:8000'],
+        [PYTHON_PATH, MANAGE_PATH, 'runserver', '0.0.0.0:8000'],
         env={"DJANGO_SETTINGS_MODULE": "rgd_example.settings"},
         preexec_fn=os.setsid,
     )
