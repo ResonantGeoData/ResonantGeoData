@@ -2,6 +2,8 @@ from django.contrib import admin
 
 # from django.contrib.admin import SimpleListFilter
 from django.contrib.gis.admin import OSMGeoAdmin
+from django.contrib.gis.db.models import GeometryField
+from django.contrib.gis.forms.widgets import OSMWidget
 from rgd.admin.mixins import (
     MODIFIABLE_FILTERS,
     SPATIAL_ENTRY_FILTERS,
@@ -120,6 +122,9 @@ class ImageSetSpatialInline(admin.StackedInline):
         'created',
     )
     list_filter = MODIFIABLE_FILTERS + SPATIAL_ENTRY_FILTERS
+    formfield_overrides = {
+        GeometryField: {'widget': OSMWidget},
+    }
 
 
 @admin.register(ImageSet)
