@@ -62,7 +62,7 @@ class Segmentation(models.Model):
             pass
         return 'Oultine/BBox'
 
-    permissions_paths = [('annotation', Annotation)]
+    permissions_paths = [('annotation', PixelAnnotation)]
 
 
 class PolygonSegmentation(Segmentation):
