@@ -1,7 +1,7 @@
+from decimal import Decimal
 import json
 
 from bidict import bidict
-from decimal import Decimal
 import dateutil.parser
 from django.contrib.gis.geos import Polygon
 from django.db import transaction
