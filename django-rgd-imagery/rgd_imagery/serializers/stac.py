@@ -65,7 +65,6 @@ class STACRasterSerializer(serializers.BaseSerializer):
         item.ext.enable('eo')
         item.ext.eo.apply(cloud_cover=instance.cloud_cover, bands=[])
         # Add assets
-        band_num = 0
         for image in instance.parent_raster.image_set.images.all():
             if image.file.type != FileSourceType.URL:
                 # TODO: we need fix this
@@ -96,7 +95,6 @@ class STACRasterSerializer(serializers.BaseSerializer):
                 asset=asset,
             )
             item.add_asset(f'image-{image.pk}', asset)
-            band_num += image.imagemeta.number_of_bands
 
         for ancillary_file in instance.parent_raster.ancillary_files.all():
             asset = pystac.Asset(
