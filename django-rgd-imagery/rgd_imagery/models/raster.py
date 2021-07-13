@@ -61,6 +61,7 @@ class RasterMeta(TimeStampedModel, SpatialEntry, PermissionPathMixin, DetailView
     cloud_cover = models.FloatField(
         null=True, validators=[MinValueValidator(0), MaxValueValidator(100)], blank=True
     )
+    band_range = fields.RangeField(null=True)
 
     @property
     def name(self):
