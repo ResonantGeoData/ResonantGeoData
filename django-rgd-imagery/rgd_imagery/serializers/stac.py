@@ -157,9 +157,7 @@ class STACRasterSerializer(serializers.BaseSerializer):
             else:
                 ancillary.append(checksum_file)
 
-        image_set, image_set_created = models.get_or_create_image_set(
-            image_ids, defaults=dict(name=item.id)
-        )
+        image_set, _ = models.get_or_create_image_set(image_ids, defaults=dict(name=item.id))
 
         raster, raster_created = get_or_create_no_commit(
             models.Raster, image_set=image_set, defaults=dict(name=item.id)
