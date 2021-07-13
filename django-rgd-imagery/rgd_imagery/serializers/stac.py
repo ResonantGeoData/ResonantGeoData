@@ -68,43 +68,30 @@ class STACRasterSerializer(serializers.BaseSerializer):
             if image.file.type != FileSourceType.URL:
                 # TODO: we need fix this
                 raise ValueError('Files must point to valid URL resources, not internal storage.')
-            if image.imagemeta.number_of_bands == 1:
-                bands = [
-                    pystac.extensions.eo.Band.create(
-                        name=image.file.name,
-                        description=image.bandmeta_set.first().description,
-                    )
-                ]
-            else:
-                bands = []
-                for bandmeta in image.bandmeta_set.all():
-                    band = pystac.extensions.eo.Band.create(
-                        name=f'B{bandmeta.band_number}',
-                        description=bandmeta.description,
-                    )
-                    # The wavelength statistics is described by either the
-                    # common_name or via center_wavelength and full_width_half_max.
-                    # We can derive our bandmeta.band_range.lower,
-                    # bandmeta.band_range.upper from the center_wavelength
-                    # and full_width_half_max.
-                    if (
-                        bandmeta.band_range.lower,
-                        bandmeta.band_range.upper,
-                    ) in BAND_RANGE_BY_COMMON_NAMES.inverse:
-                        band.common_name = BAND_RANGE_BY_COMMON_NAMES.inverse[
-                            (bandmeta.band_range.lower, bandmeta.band_range.upper)
-                        ]
-                    elif (
-                        bandmeta.band_range.lower is not None
-                        and bandmeta.band_range.upper is not None
-                    ):
-                        band.center_wavelength = (
-                            bandmeta.band_range.lower + bandmeta.band_range.upper
-                        ) / 2
-                        band.full_width_half_max = (
-                            bandmeta.band_range.upper - bandmeta.band_range.lower
-                        )
-                    bands.append(band)
+            bands = []
+            for bandmeta in image.bandmeta_set.filter(band_range__contained_by=(None, None)):
+                band = pystac.extensions.eo.Band.create(
+                    name=f'B{bandmeta.band_number}',
+                    description=bandmeta.description,
+                )
+                # The wavelength statistics is described by either the
+                # common_name or via center_wavelength and full_width_half_max.
+                # We can derive our bandmeta.band_range.lower,
+                # bandmeta.band_range.upper from the center_wavelength
+                # and full_width_half_max.
+                if (
+                    bandmeta.band_range.lower,
+                    bandmeta.band_range.upper,
+                ) in BAND_RANGE_BY_COMMON_NAMES.inverse:
+                    band.common_name = BAND_RANGE_BY_COMMON_NAMES.inverse[
+                        (bandmeta.band_range.lower, bandmeta.band_range.upper)
+                    ]
+                else:
+                    band.center_wavelength = (
+                        bandmeta.band_range.lower + bandmeta.band_range.upper
+                    ) / 2
+                    band.full_width_half_max = bandmeta.band_range.upper - bandmeta.band_range.lower
+                bands.append(band)
             asset = pystac.Asset(
                 href=image.file.get_url(),
                 title=image.file.name,
@@ -113,7 +100,13 @@ class STACRasterSerializer(serializers.BaseSerializer):
                 ],
             )
             item.ext.eo.set_bands(
-                bands=bands,
+                bands=bands
+                or [
+                    pystac.extensions.eo.Band.create(
+                        name=image.file.name,
+                        description=image.bandmeta_set.first().description,
+                    )
+                ],
                 asset=asset,
             )
 
