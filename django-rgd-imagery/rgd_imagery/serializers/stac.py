@@ -165,6 +165,8 @@ class STACRasterSerializer(serializers.BaseSerializer):
                             Decimal(eo_band_spectral_lower),
                             Decimal(eo_band_spectral_upper),
                         ),
+                        interpretation='',
+                        dtype='',
                     )
             else:
                 ancillary.append(checksum_file)
