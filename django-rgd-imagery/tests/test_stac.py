@@ -1,5 +1,6 @@
 import pystac
 import pytest
+from rgd_imagery import models
 from rgd_imagery.serializers import STACRasterSerializer
 
 
@@ -38,6 +39,23 @@ def test_raster_stac_serializer_multi_file_bands(admin_api_client, sample_raster
 
 
 @pytest.mark.django_db(transaction=True)
+def test_eo_serialize(admin_api_client, sample_raster_url):
+    id = sample_raster_url.pk
+    response = admin_api_client.get(f'/rgd_imagery_test/api/rgd_imagery/raster/{id}/stac')
+    data = response.data
+    _check_conforms_stac(data)
+    for asset in data['assets'].values():
+        if 'data' in asset.get('roles', []):
+            assert 'eo:bands' in asset
+            bands = asset['eo:bands']
+            for band in bands:
+                assert 'name' in band and band['name'].startswith('B')
+                assert 'common_name' in band or (
+                    'center_wavelength' in band and 'full_width_half_max' in band
+                )
+
+
+@pytest.mark.django_db(transaction=True)
 def test_raster_stac_export_import(admin_api_client, sample_raster_url):
     sample = sample_raster_url
     data = STACRasterSerializer(sample).data
@@ -68,3 +86,6 @@ def test_raster_stac_export_import(admin_api_client, sample_raster_url):
 
     # Check that no duplicate data were produced
     assert instance.pk == sample.pk
+
+    # assert that bands were made
+    assert models.BandMeta.objects.count() == models.BandMeta.objects.count() > 0

@@ -1,3 +1,5 @@
+from decimal import Decimal
+
 import pytest
 from rgd.datastore import datastore
 from rgd.models import FileSourceType
@@ -132,14 +134,24 @@ def sample_raster_url():
         'LC08_L1TP_034032_20200429_20200509_01_T1_sr_band2.tif',
         'LC08_L1TP_034032_20200429_20200509_01_T1_sr_band3.tif',
     ]
-    images = [
-        factories.ImageFactory(
+    band_ranges = [
+        (Decimal(0.75), Decimal(1.00)),  # "nir"
+        (Decimal(0.70), Decimal(0.79)),  # "rededge"
+        (Decimal(0.41), Decimal(0.43)),  # not a common name
+    ]
+    images = []
+    for i, (f, band_range) in enumerate(zip(landsat_files, band_ranges)):
+        image = factories.ImageFactory(
             file__type=FileSourceType.URL,
             file__file=None,
             file__url=datastore.get_url(f),
         )
-        for f in landsat_files
-    ]
+        images.append(image)
+        factories.BandMetaFactory(
+            parent_image=image,
+            band_range=band_range,
+            band_number=(i + 1),
+        )
     image_set = factories.ImageSetFactory(
         images=images,
     )
