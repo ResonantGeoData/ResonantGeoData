@@ -84,6 +84,23 @@ def datetime_to_str(value: object):
     return value
 
 
+def datetime_to_time(value: object):
+    """Convert datetime objects to HH:MM strings."""
+    if value is not None:
+        if isinstance(value, datetime):
+            return value.strftime('%H:%M')
+
+    return value
+
+
+def order_datetimes(value1: object, value2: object):
+    """Sort 2 objects if they are datetimes."""
+    if isinstance(value1, datetime) and isinstance(value2, datetime):
+        return value1, value2 if value1 < value2 else value2, value1
+
+    return value1, value2
+
+
 def download_checksum_file_to_path(file: Dict, path: Path, keep_existing: bool):
     """
     Download a RGD ChecksumFile to a given path.
@@ -140,6 +157,7 @@ def spatial_search_params(
     instrumentation: Optional[str] = None,
     limit: Optional[int] = None,
     offset: Optional[int] = None,
+    time_of_day: Optional[DATETIME_OR_STR_TUPLE] = None,
 ) -> Dict:
     # The dict that will be used to store params.
     # Initialize with queries that won't be additionally processed.
@@ -173,8 +191,13 @@ def spatial_search_params(
 
     # TODO: Determine if the before/after param order needs to be swapped?
     if acquired and len(acquired) == 2:
-        amin, amax = acquired
+        amin, amax = order_datetimes(*acquired)
         params['acquired_before'] = datetime_to_str(amax)
         params['acquired_after'] = datetime_to_str(amin)
+
+    if time_of_day and len(time_of_day) == 2:
+        after, before = order_datetimes(*time_of_day)
+        params['time_of_day_after'] = datetime_to_time(after)
+        params['time_of_day_before'] = datetime_to_time(before)
 
     return params
