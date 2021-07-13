@@ -1,4 +1,4 @@
-from .annotation import BaseAnnotation, GeoTemporalAnnotation
+from .annotation import BaseAnnotation, GeoTemporalAnnotation  # noqa
 from .collection import Collection, CollectionPermission  # noqa
 from .common import (  # noqa
     ChecksumFile,
