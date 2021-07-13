@@ -13,7 +13,6 @@ from rgd.utility import get_or_create_no_commit
 
 from .. import models
 
-
 BAND_RANGE_BY_COMMON_NAMES = bidict(
     {
         'coastal': (0.40, 0.45),
