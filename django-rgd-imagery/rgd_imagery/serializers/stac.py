@@ -68,13 +68,6 @@ class STACRasterSerializer(serializers.BaseSerializer):
             if image.file.type != FileSourceType.URL:
                 # TODO: we need fix this
                 raise ValueError('Files must point to valid URL resources, not internal storage.')
-            asset = pystac.Asset(
-                href=image.file.get_url(),
-                title=image.file.name,
-                roles=[
-                    'data',
-                ],
-            )
             if image.imagemeta.number_of_bands == 1:
                 bands = [
                     pystac.extensions.eo.Band.create(
@@ -112,6 +105,13 @@ class STACRasterSerializer(serializers.BaseSerializer):
                             bandmeta.band_range.upper - bandmeta.band_range.lower
                         )
                     bands.append(band)
+            asset = pystac.Asset(
+                href=image.file.get_url(),
+                title=image.file.name,
+                roles=[
+                    'data',
+                ],
+            )
             item.ext.eo.set_bands(
                 bands=bands,
                 asset=asset,
