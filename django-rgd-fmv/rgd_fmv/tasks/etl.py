@@ -115,7 +115,7 @@ def _get_path_and_footprints(content):
         p = Polygon(box, srid=srid)
         polys.append(p)
         if union is None:
-            # Ony on first
+            # Only on first
             union = p
         else:
             union = union.union(p)
@@ -206,7 +206,7 @@ def read_fmv_file(fmv_file_id):
     fmv_file.skip_signal = True
 
     validation = True  # TODO: use `fmv_file.file.validate()`
-    # Only extraxt the KLV data if it does not exist or the checksum of the video has changed
+    # Only extract the KLV data if it does not exist or the checksum of the video has changed
     if not fmv_file.klv_file or not validation:
         _extract_klv(fmv_file)
     if not fmv_file.web_video_file or not validation:

@@ -76,7 +76,7 @@ class PolygonSegmentation(Segmentation):
     Note
     ----
     We use ``MultiPolygonField`` as the segmentation can be multiple
-    seperated polygons across the image.
+    separated polygons across the image.
 
     """
 
