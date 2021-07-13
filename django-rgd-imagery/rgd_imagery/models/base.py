@@ -37,7 +37,9 @@ class ImageMeta(TimeStampedModel, PermissionPathMixin):
     driver = models.CharField(max_length=100)
     height = models.PositiveIntegerField()
     width = models.PositiveIntegerField()
-    number_of_bands = models.PositiveIntegerField()
+    number_of_bands = (
+        models.PositiveIntegerField()
+    )  # TODO: code smell? this can be computed relationally
 
 
 class BandMeta(TimeStampedModel, PermissionPathMixin):
