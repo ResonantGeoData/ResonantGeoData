@@ -1,3 +1,4 @@
+import decimal
 from decimal import Decimal
 import json
 
@@ -87,10 +88,14 @@ class STACRasterSerializer(serializers.BaseSerializer):
                         (bandmeta.band_range.lower, bandmeta.band_range.upper)
                     ]
                 else:
-                    band.center_wavelength = (
-                        bandmeta.band_range.lower + bandmeta.band_range.upper
-                    ) / 2
-                    band.full_width_half_max = bandmeta.band_range.upper - bandmeta.band_range.lower
+                    with decimal.localcontext(decimal.BasicContext):
+                        band.center_wavelength = float(
+                            (bandmeta.band_range.lower + bandmeta.band_range.upper) / 2
+                        )
+                        band.full_width_half_max = float(
+                            bandmeta.band_range.upper - bandmeta.band_range.lower
+                        )
+
                 bands.append(band)
             asset = pystac.Asset(
                 href=image.file.get_url(),
