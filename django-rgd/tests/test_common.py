@@ -96,7 +96,7 @@ def test_checksumfile_file_yield_local_path(file_path):
     path = model.yield_local_path()
     with model.yield_local_path() as path:
         assert os.path.exists(path)
-    # Make sure it is cleaned up afer context ends
+    # Make sure it is cleaned up after context ends
     assert not os.path.exists(path)
     # Now test that is gets cleaned up during an exception
     with pytest.raises(ValueError):
@@ -113,7 +113,7 @@ def test_checksumfile_url_yield_local_path():
     model.save()
     with model.yield_local_path() as path:
         assert os.path.exists(path)
-    # Make sure it is cleaned up afer context ends
+    # Make sure it is cleaned up after context ends
     assert not os.path.exists(path)
     # Now test that is gets cleaned up during an exception
     with pytest.raises(ValueError):

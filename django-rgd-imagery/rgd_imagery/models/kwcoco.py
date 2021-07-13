@@ -36,7 +36,7 @@ class KWCOCOArchive(TimeStampedModel, TaskEventMixin, PermissionPathMixin):
     image_set = models.OneToOneField(ImageSet, on_delete=models.SET_NULL, null=True)
 
     def _post_delete(self, *args, **kwargs):
-        # Frist delete all the images in the image set
+        # First delete all the images in the image set
         #  this will cascade to the annotations
         images = self.image_set.images.all()
         for image in images:
@@ -46,6 +46,6 @@ class KWCOCOArchive(TimeStampedModel, TaskEventMixin, PermissionPathMixin):
         self.image_set.delete()
 
     permissions_paths = [
-        'spec_file__collection__collection_permissions',
-        'image_archive__collection__collection_permissions',
+        ('spec_file', ChecksumFile),
+        ('image_archive', ChecksumFile),
     ]

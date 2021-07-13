@@ -38,7 +38,7 @@ def _populate_image_meta_models(image_meta, image_file_path):
         image_meta.height = src.shape[0]
         image_meta.width = src.shape[1]
 
-        # A catch-all metadata feild:
+        # A catch-all metadata field:
         # TODO: image_meta.metadata =
 
         # These are things I couldn't figure out how to get with gdal directly
@@ -58,7 +58,7 @@ def _populate_image_meta_models(image_meta, image_file_path):
                 band_meta.dtype = dtypes[i]
             except IndexError:
                 pass
-            # TODO: seperate out band stats into separate tasks
+            # TODO: separate out band stats into separate tasks
             # bmin, bmax, mean, std = gdal_band.GetStatistics(True, True)
             # band_meta.min = bmin
             # band_meta.max = bmax

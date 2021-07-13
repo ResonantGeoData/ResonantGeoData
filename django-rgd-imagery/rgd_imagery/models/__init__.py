@@ -1,4 +1,4 @@
-"""This models contains a model heirarchy for raster datasets.
+"""This models contains a model hierarchy for raster datasets.
 
 The ``base`` module contains base classes for representing raster models.
 As new data types are introduced to the database, a new model for that data
@@ -12,3 +12,4 @@ from .base import BandMeta, Image, ImageMeta, ImageSet, ImageSetSpatial
 from .kwcoco import KWCOCOArchive
 from .processed import ConvertedImage, RegionImage
 from .raster import Raster, RasterMeta
+from .utility import *  # noqa

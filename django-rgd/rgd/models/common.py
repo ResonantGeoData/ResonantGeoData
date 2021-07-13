@@ -75,7 +75,7 @@ class FileSourceType(models.IntegerChoices):
 class ChecksumFile(TimeStampedModel, TaskEventMixin, PermissionPathMixin):
     """The main class for user-uploaded files.
 
-    This has support for manually uploading files or specifing a URL to a file
+    This has support for manually uploading files or specifying a URL to a file
     (for example in an existing S3 bucket). This broadly supports ``http<s>://``
     URLs to file resources as well as ``s3://`` as long as the node the app is
     running on is provisioned to access that S3 bucket.
@@ -105,7 +105,7 @@ class ChecksumFile(TimeStampedModel, TaskEventMixin, PermissionPathMixin):
     task_funcs = (
         # tasks.task_checksum_file_post_save,
     )
-    permissions_paths = ['collection__collection_permissions']
+    permissions_paths = [('collection', Collection)]
 
     class Meta:
         constraints = [
@@ -302,12 +302,12 @@ class SpatialAsset(SpatialEntry, TimeStampedModel, PermissionPathMixin):
     """Any spatially referenced file set.
 
     This can be any collection of files that have a spatial reference and are
-    not explictly handled by the other SpatialEntry subtypes. For example, this
+    not explicitly handled by the other SpatialEntry subtypes. For example, this
     model can be used to hold a collection of PDF documents or slide decks that
     have a georeference.
 
     """
 
-    permissions_paths = ['files__collection__collection_permissions']
+    permissions_paths = [('files', ChecksumFile)]
 
     files = models.ManyToManyField(ChecksumFile)

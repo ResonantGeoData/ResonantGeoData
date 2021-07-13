@@ -5,7 +5,7 @@ from .mixins import PermissionPathMixin
 
 
 class Collection(models.Model, PermissionPathMixin):
-    permissions_paths = ['collection_permissions']
+    permissions_paths = [('collection_permissions', 'CollectionPermission')]
 
     name = models.CharField(max_length=127)
 
@@ -16,14 +16,14 @@ class Collection(models.Model, PermissionPathMixin):
         default_related_name = 'collections'
 
 
-class CollectionPermission(models.Model):
+class CollectionPermission(models.Model, PermissionPathMixin):
     READER = 1
     OWNER = 2
     ROLE_CHOICES = [
         (READER, 'Reader'),
         (OWNER, 'Owner'),
     ]
-    permissions_paths = ['']
+    permissions_paths = [('', None)]
 
     collection = models.ForeignKey(Collection, on_delete=models.CASCADE)
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)

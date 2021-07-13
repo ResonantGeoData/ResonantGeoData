@@ -1,3 +1,43 @@
 # ResonantGeoData Imagery
 
 A submodule of ResonantGeoData for storing imagery supporting annotations and spatial reference.
+
+
+## Installation
+
+Follow the instructions for the core `django-rgd` app first, then
+
+```
+pip install --find-links https://girder.github.io/large_image_wheels django-rgd-imagery
+```
+
+Add this app to your `INSTALLED_APPS` along with the core RGD app:
+
+```py
+INSTALLED_APPS += [
+    'django.contrib.gis',
+    'rgd',
+    'rgd_imagery',
+]
+```
+
+
+## Models
+
+This app adds quite a few additional models on top of the core app for storing image data
+
+
+## Management Commands
+
+- `rgd_imagery_demo`: populate the database with example image data (image sets, annotations, rasters, etc.).
+- `rgd_imagery_landsat_rgb_s3`: populate the database with example raster data of the RGB bands of Landsat 8 imagery hosted on a public S3 bucket.
+
+
+## Notable Features
+
+- STAC Item ingest/export for raster imagery
+- Image tile serving through `large_image`
+- Image annotation support
+- KWCOCO image archive and annotation ingest
+- Cloud Optimized GeoTIFF conversion utility
+- Extract ROIs from imagery in pixel and world coordinates

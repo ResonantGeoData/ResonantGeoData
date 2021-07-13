@@ -206,6 +206,7 @@ class Rgdc:
         instrumentation: Optional[str] = None,
         limit: Optional[int] = None,
         offset: Optional[int] = None,
+        time_of_day: Optional[DATETIME_OR_STR_TUPLE] = None,
     ) -> List[Dict]:
         """
         Search for geospatial entries based on various criteria.
@@ -237,6 +238,7 @@ class Rgdc:
             instrumentation=instrumentation,
             limit=limit,
             offset=offset,
+            time_of_day=time_of_day,
         )
         return list(limit_offset_pager(self.session, 'rgd/search', params=params))
 

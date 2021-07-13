@@ -191,7 +191,7 @@ def url_file_to_local_path(url: str, num_blocks=128, block_size=128) -> Generato
 def precheck_fuse(url: str) -> bool:
     try:
         import simple_httpfs  # noqa
-    except ImportError:
+    except (ImportError, EnvironmentError):
         return False
     parsed = urlparse(url)
     if parsed.scheme not in ['https', 'http']:
@@ -264,9 +264,9 @@ def output_path_helper(filename: str, output: FieldFile):
 def input_output_path_helper(
     source, output: FieldFile, prefix: str = '', suffix: str = '', vsi: bool = False
 ):
-    """Yeild source and output paths between a ChecksumFile and a FileFeild.
+    """Yield source and output paths between a ChecksumFile and a FileFeild.
 
-    The output path is saved to the output field after yeilding.
+    The output path is saved to the output field after yielding.
 
     """
     filename = prefix + os.path.basename(source.name) + suffix

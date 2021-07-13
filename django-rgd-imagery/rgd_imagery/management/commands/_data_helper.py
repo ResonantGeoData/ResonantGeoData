@@ -1,11 +1,9 @@
 from datetime import datetime
-from functools import reduce
 import json
 import logging
 
 import dateutil.parser
 from django.contrib.gis.geos import GEOSGeometry
-from django.db.models import Count
 from django.utils.timezone import make_aware
 from rgd.datastore import datastore
 from rgd.management.commands._data_helper import (
@@ -54,29 +52,12 @@ def load_images(images):
     return ids
 
 
-def _get_or_create_image_set(image_ids):
-    # Check if an ImageSet already exists containing all of these images
-    q = models.ImageSet.objects.annotate(count=Count('images')).filter(count=len(image_ids))
-    imsets = reduce(lambda p, id: q.filter(images=id), image_ids, q).values()
-    if len(imsets) > 0:
-        # Grab first, could be N-many
-        imset = models.ImageSet.objects.get(id=imsets[0]['id'])
-    else:
-        images = models.Image.objects.filter(pk__in=image_ids).all()
-        imset = models.ImageSet()
-        imset.save()  # Have to save before adding to ManyToManyField
-        for image in images:
-            imset.images.add(image)
-        imset.save()
-    return imset
-
-
 def load_raster(pks, raster_dict, feature=False):
     if not isinstance(pks, (list, tuple)):
         pks = [
             pks,
         ]
-    imset = _get_or_create_image_set(pks)
+    imset, _ = models.get_or_create_image_set(pks)
     # Make raster of that image set
     raster, created = get_or_create_no_commit(models.Raster, image_set=imset)
     _save_signal(raster, created)
@@ -165,7 +146,7 @@ def load_spatial_image_sets(image_sets):
         feature = GEOSGeometry(memoryview(dumps(geom)))
         # Load image entries
         image_ids = load_images(list(zip([None] * len(image_files), image_files)))
-        imset = _get_or_create_image_set(image_ids)
+        imset, _ = models.get_or_create_image_set(image_ids)
         # Make an ImageSetSpatial
         imset_spatial, _ = get_or_create_no_commit(models.ImageSetSpatial, image_set=imset)
         imset_spatial.feature = feature
