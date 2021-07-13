@@ -1,6 +1,6 @@
-# ResonantGeoData Geometry
+# Resonant GeoData Geometry
 
-A submodule of ResonantGeoData for storing shapefiles.
+A submodule of Resonant GeoData for storing shapefiles.
 
 
 ## Installation

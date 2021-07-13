@@ -1,11 +1,11 @@
-# ResonantGeoData
+# Resonant GeoData
 
 [![codecov](https://codecov.io/gh/ResonantGeoData/ResonantGeoData/branch/master/graph/badge.svg)](https://codecov.io/gh/ResonantGeoData/ResonantGeoData)
 [![ci](https://github.com/ResonantGeoData/ResonantGeoData/actions/workflows/ci.yml/badge.svg?branch=master)](https://github.com/ResonantGeoData/ResonantGeoData/actions/workflows/ci.yml)
 
 > Geospatial Data API in Django
 
-ResonantGeoData (RGD) is a series of Django applications well suited for cataloging and searching annotated geospatial imagery, shapefiles, and full motion video datasets.
+Resonant GeoData (RGD) is a series of Django applications well suited for cataloging and searching annotated geospatial imagery, shapefiles, and full motion video datasets.
 
 A publicly deployed instance of this application is available at https://www.resonantgeodata.com - find the deployment code for this at [ResonantGeoData/RD-OpenGeo](https://github.com/ResonantGeoData/RD-OpenGeo)
 
@@ -26,12 +26,12 @@ Each app's README file contains an overview of functionality.
 
 Documentation is currently a work in progress.
 
-For general questions about the project, its applications, or about software usage, please create an issue directly in this repository. You are also welcome to send us an email at [rgd@kitware.com](mailto:rgd@kitware.com) with the subject line including ResonantGeoData.
+For general questions about the project, its applications, or about software usage, please create an issue directly in this repository. You are also welcome to send us an email at [rgd@kitware.com](mailto:rgd@kitware.com) with the subject line including Resonant GeoData.
 
 
 ## Connections
 
-- ResonantGeoData is built on top of [Kitware's Girder 4 platform](https://github.com/search?q=topic%3Agirder-4+org%3Agirder+fork%3Atrue).
+- Resonant GeoData is built on top of [Kitware's Girder 4 platform](https://github.com/search?q=topic%3Agirder-4+org%3Agirder+fork%3Atrue).
 - [GeoJS](https://opengeoscience.github.io/geojs/): we leverage GeoJS for our interactive map view.
 - [`large_image`](http://girder.github.io/large_image/index.html): we leverage `large_image` to serve image tiles and extract thumbnails.
 - [VTK.js](https://kitware.github.io/vtk-js/): we use VTK.js for the client-side 3D viewer for 3D data.

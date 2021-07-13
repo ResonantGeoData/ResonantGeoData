@@ -1,6 +1,6 @@
-# ResonantGeoData Full Motion Video (FMV)
+# Resonant GeoData Full Motion Video (FMV)
 
-A submodule of ResonantGeoData for storing Full Motion Video (FMV) datasets
+A submodule of Resonant GeoData for storing Full Motion Video (FMV) datasets
 
 
 ## Installation
