@@ -155,7 +155,7 @@ class STACRasterSerializer(serializers.BaseSerializer):
                         eo_band_number = 0  # TODO: confirm reasonable default here
                     if eo_band.common_name in BAND_RANGE_BY_COMMON_NAMES:
                         eo_band_min, eo_band_max = BAND_RANGE_BY_COMMON_NAMES[eo_band.common_name]
-                    if eo_band.center_wavelength and eo_band.full_width_half_max:
+                    elif eo_band.center_wavelength and eo_band.full_width_half_max:
                         eo_band_min = eo_band.center_wavelength - eo_band.full_width_half_max / 2
                         eo_band_max = eo_band.center_wavelength + eo_band.full_width_half_max / 2
                     models.BandMeta.objects.get_or_create(
