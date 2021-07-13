@@ -82,6 +82,10 @@ class STACRasterSerializer(serializers.BaseSerializer):
                     name=f'B{bandmeta.band_number}',
                     description=bandmeta.description,
                 )
+                # The wavelength statistics is described by either the
+                # common_name or via center_wavelength and full_width_half_max.
+                # We can derive our bandmeta.min, bandmeta.max from the
+                # center_wavelength and full_width_half_max.
                 if (bandmeta.min, bandmeta.max) in BAND_RANGE_BY_COMMON_NAMES.inverse:
                     band.common_name = BAND_RANGE_BY_COMMON_NAMES.inverse[
                         (bandmeta.min, bandmeta.max)
