@@ -134,16 +134,13 @@ class STACRasterSerializer(serializers.BaseSerializer):
     def create(self, data):
         item = pystac.Item.from_dict(data)
         image_ids, ancillary = [], []
-        single_asset = False
-        if len(item.assets) == 1:
-            single_asset = True
         for name in item.assets:
             asset = item.assets[name]
             checksum_file, _ = ChecksumFile.objects.get_or_create(
                 type=FileSourceType.URL,
                 url=asset.href,
             )
-            if single_asset or (asset.roles and 'data' in asset.roles):
+            if len(item.assets) == 1 or (asset.roles and 'data' in asset.roles):
                 image, _ = models.Image.objects.get_or_create(file=checksum_file)
                 image_ids.append(image.pk)
                 for eo_band in item.ext.eo.bands:
