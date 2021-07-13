@@ -156,13 +156,20 @@ class STACRasterSerializer(serializers.BaseSerializer):
                     if eo_band.common_name in BAND_RANGE_BY_COMMON_NAMES:
                         eo_band_min, eo_band_max = BAND_RANGE_BY_COMMON_NAMES[eo_band.common_name]
                     elif eo_band.center_wavelength and eo_band.full_width_half_max:
-                        eo_band_min = eo_band.center_wavelength - eo_band.full_width_half_max / 2
-                        eo_band_max = eo_band.center_wavelength + eo_band.full_width_half_max / 2
+                        eo_band_spectral_lower = (
+                            eo_band.eo_band_spectral_upper - eo_band.full_width_half_max / 2
+                        )
+                        eo_band_spectral_upper = (
+                            eo_band.center_wavelength + eo_band.full_width_half_max / 2
+                        )
                     models.BandMeta.objects.get_or_create(
                         parent_image=image,
                         band_number=eo_band_number,
                         description=eo_band.description,
-                        band_range=(Decimal(eo_band_min), Decimal(eo_band_max)),
+                        band_range=(
+                            Decimal(eo_band_spectral_lower),
+                            Decimal(eo_band_spectral_upper),
+                        ),
                     )
             else:
                 ancillary.append(checksum_file)
