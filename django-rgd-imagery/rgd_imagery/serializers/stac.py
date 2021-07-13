@@ -154,7 +154,9 @@ class STACRasterSerializer(serializers.BaseSerializer):
                     else:
                         eo_band_number = 0  # TODO: confirm reasonable default here
                     if eo_band.common_name in BAND_RANGE_BY_COMMON_NAMES:
-                        eo_band_min, eo_band_max = BAND_RANGE_BY_COMMON_NAMES[eo_band.common_name]
+                        eo_band_spectral_lower, eo_band_spectral_upper = BAND_RANGE_BY_COMMON_NAMES[
+                            eo_band.common_name
+                        ]
                     elif eo_band.center_wavelength and eo_band.full_width_half_max:
                         eo_band_spectral_lower = (
                             eo_band.eo_band_spectral_upper - eo_band.full_width_half_max / 2
