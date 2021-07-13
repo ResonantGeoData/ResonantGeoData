@@ -99,6 +99,7 @@ class STACRasterSerializer(serializers.BaseSerializer):
                     'data',
                 ],
             )
+            item.add_asset(f'image-{image.pk}', asset)
             item.ext.eo.set_bands(
                 bands=bands
                 or [
