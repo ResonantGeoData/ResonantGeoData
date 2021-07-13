@@ -1,6 +1,7 @@
 import json
 
 from bidict import bidict
+from decimal import Decimal
 import dateutil.parser
 from django.contrib.gis.geos import Polygon
 from django.db import transaction
@@ -15,22 +16,22 @@ from .. import models
 
 BAND_RANGE_BY_COMMON_NAMES = bidict(
     {
-        'coastal': (0.40, 0.45),
-        'blue': (0.45, 0.50),
-        'green': (0.50, 0.60),
-        'red': (0.60, 0.70),
-        'yellow': (0.58, 0.62),
-        'pan': (0.50, 0.70),
-        'rededge': (0.70, 0.79),
-        'nir': (0.75, 1.00),
-        'nir08': (0.75, 0.90),
-        'nir09': (0.85, 1.05),
-        'cirrus': (1.35, 1.40),
-        'swir16': (1.55, 1.75),
-        'swir22': (2.10, 2.30),
-        'lwir': (10.5, 12.5),
-        'lwir11': (10.5, 11.5),
-        'lwir12': (11.5, 12.5),
+        'coastal': (Decimal(0.40), Decimal(0.45)),
+        'blue': (Decimal(0.45), Decimal(0.50)),
+        'green': (Decimal(0.50), Decimal(0.60)),
+        'red': (Decimal(0.60), Decimal(0.70)),
+        'yellow': (Decimal(0.58), Decimal(0.62)),
+        'pan': (Decimal(0.50), Decimal(0.70)),
+        'rededge': (Decimal(0.70), Decimal(0.79)),
+        'nir': (Decimal(0.75), Decimal(1.00)),
+        'nir08': (Decimal(0.75), Decimal(0.90)),
+        'nir09': (Decimal(0.85), Decimal(1.05)),
+        'cirrus': (Decimal(1.35), Decimal(1.40)),
+        'swir16': (Decimal(1.55), Decimal(1.75)),
+        'swir22': (Decimal(2.10), Decimal(2.30)),
+        'lwir': (Decimal(10.5), Decimal(12.5)),
+        'lwir11': (Decimal(10.5), Decimal(11.5)),
+        'lwir12': (Decimal(11.5), Decimal(12.5)),
     }
 )
 
@@ -91,15 +92,26 @@ class STACRasterSerializer(serializers.BaseSerializer):
                     )
                     # The wavelength statistics is described by either the
                     # common_name or via center_wavelength and full_width_half_max.
-                    # We can derive our bandmeta.min, bandmeta.max from the
-                    # center_wavelength and full_width_half_max.
-                    if (bandmeta.min, bandmeta.max) in BAND_RANGE_BY_COMMON_NAMES.inverse:
+                    # We can derive our bandmeta.band_range.lower,
+                    # bandmeta.band_range.upper from the center_wavelength
+                    # and full_width_half_max.
+                    if (
+                        bandmeta.band_range.lower,
+                        bandmeta.band_range.upper,
+                    ) in BAND_RANGE_BY_COMMON_NAMES.inverse:
                         band.common_name = BAND_RANGE_BY_COMMON_NAMES.inverse[
-                            (bandmeta.min, bandmeta.max)
+                            (bandmeta.band_range.lower, bandmeta.band_range.upper)
                         ]
-                    elif bandmeta.min is not None and bandmeta.max is not None:
-                        band.center_wavelength = (bandmeta.min + bandmeta.max) / 2
-                        band.full_width_half_max = bandmeta.max - bandmeta.min
+                    elif (
+                        bandmeta.band_range.lower is not None
+                        and bandmeta.band_range.upper is not None
+                    ):
+                        band.center_wavelength = (
+                            bandmeta.band_range.lower + bandmeta.band_range.upper
+                        ) / 2
+                        band.full_width_half_max = (
+                            bandmeta.band_range.upper - bandmeta.band_range.lower
+                        )
                     bands.append(band)
             item.ext.eo.set_bands(
                 bands=bands,
@@ -150,8 +162,7 @@ class STACRasterSerializer(serializers.BaseSerializer):
                         parent_image=image,
                         band_number=eo_band_number,
                         description=eo_band.description,
-                        min=eo_band_min,
-                        max=eo_band_max,
+                        band_range=(Decimal(eo_band_min), Decimal(eo_band_max)),
                     )
             else:
                 ancillary.append(checksum_file)
