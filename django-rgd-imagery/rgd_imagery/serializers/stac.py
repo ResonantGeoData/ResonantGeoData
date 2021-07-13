@@ -6,7 +6,7 @@ from django.contrib.gis.geos import Polygon
 from django.db import transaction
 from pyproj import CRS
 import pystac
-from pystac.extensions.eo import EOExtension
+from pystac.extensions.eo import EOItemExt
 from rest_framework import serializers
 from rgd.models import ChecksumFile, FileSourceType
 from rgd.utility import get_or_create_no_commit
@@ -135,7 +135,7 @@ class STACRasterSerializer(serializers.BaseSerializer):
             if single_asset or (asset.roles and 'data' in asset.roles):
                 image, _ = models.Image.objects.get_or_create(file=checksum_file)
                 image_ids.append(image.pk)
-                eo = EOExtension(asset)
+                eo = EOItemExt(asset)
                 for eo_band in eo.bands:
                     if eo_band.name.startswith('B') and eo_band.name[1:].isdigit():
                         eo_band_number = int(eo_band.name[1:])
