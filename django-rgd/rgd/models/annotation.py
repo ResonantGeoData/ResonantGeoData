@@ -18,7 +18,8 @@ class BaseAnnotation(TimeStampedModel):
 class GeoTemporalAnnotation(BaseAnnotation, GeospatialFeature):
     """Annotation in world coordinates during a time frame.
 
-    This annotation could be associated with many different images/rasters.
+    This annotation could be associated with many different spatial entry
+    subtypes.
 
     """
 
