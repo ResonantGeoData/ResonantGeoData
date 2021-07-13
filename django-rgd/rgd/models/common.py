@@ -29,14 +29,14 @@ from .mixins import PermissionPathMixin, TaskEventMixin
 logger = logging.getLogger(__name__)
 
 
-class GeospatialFeature(models.Model):
+class GeospatialFootprint(models.Model):
     class Meta:
         abstract = True
 
-    feature = models.GeometryField(srid=DB_SRID)
+    footprint = models.GeometryField(srid=DB_SRID)
 
 
-class SpatialEntry(GeospatialFeature):
+class SpatialEntry(GeospatialFootprint):
     """Common model to all geospatial data entries.
 
     This is intended to be used in a mixin manner.

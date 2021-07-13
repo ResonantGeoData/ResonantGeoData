@@ -69,7 +69,7 @@ class SpatialEntryFilter(filters.FilterSet):
     )
 
     time_of_day = filters.TimeRangeFilter(
-        help_text='The minimum/maximum times during the day the records were aqcuired.',
+        help_text='The minimum/maximum times during the day the records were acquired.',
         label='Time of Day',
         method='filter_time_of_day',
     )
@@ -91,7 +91,7 @@ class SpatialEntryFilter(filters.FilterSet):
         https://postgis.net/docs/geometry_distance_knn.html
         """
         if value:
-            queryset = queryset.annotate(distance=GeometryDistance('feature', value)).order_by(
+            queryset = queryset.annotate(distance=GeometryDistance('footprint', value)).order_by(
                 'distance'
             )
         return queryset
@@ -99,13 +99,13 @@ class SpatialEntryFilter(filters.FilterSet):
     def filter_predicate(self, queryset, name, value):
         """Filter the spatial entries by the chosen predicate."""
         if value and self._has_geom:
-            queryset = queryset.filter(**{f'feature__{value}': self._geometry})
+            queryset = queryset.filter(**{f'footprint__{value}': self._geometry})
         return queryset
 
     def filter_relates(self, queryset, name, value):
         """Filter the spatial entries by the chosen DE-9IM."""
         if value and self._has_geom:
-            queryset = queryset.filter(feature__relates=(self._geometry, value))
+            queryset = queryset.filter(footprint__relates=(self._geometry, value))
         return queryset
 
     def filter_distance(self, queryset, name, value):
@@ -118,9 +118,9 @@ class SpatialEntryFilter(filters.FilterSet):
         if value and self._has_geom:
             geom = self._geometry
             if value.start is not None:
-                queryset = queryset.filter(feature__distance_gte=(geom, D(m=value.start)))
+                queryset = queryset.filter(footprint__distance_gte=(geom, D(m=value.start)))
             if value.stop is not None:
-                queryset = queryset.filter(feature__distance_lte=(geom, D(m=value.stop)))
+                queryset = queryset.filter(footprint__distance_lte=(geom, D(m=value.stop)))
         return queryset
 
     def filter_time_of_day(self, queryset, name, value):

@@ -23,7 +23,7 @@ class STACRasterSerializer(serializers.BaseSerializer):
     def to_representation(self, instance: models.RasterMeta) -> dict:
         item = pystac.Item(
             id=instance.pk,
-            geometry=json.loads(instance.feature.json),
+            geometry=json.loads(instance.footprint.json),
             bbox=instance.extent,
             datetime=(instance.acquisition_date or instance.modified or instance.created),
             properties=dict(
@@ -129,7 +129,7 @@ class STACRasterSerializer(serializers.BaseSerializer):
         )
 
         raster_meta = dict(
-            feature=json.dumps(item.geometry),
+            footprint=json.dumps(item.geometry),
             crs=f'+init=epsg:{item.ext.projection.epsg}',
             cloud_cover=item.ext.eo.cloud_cover,
             transform=item.ext.projection.transform,

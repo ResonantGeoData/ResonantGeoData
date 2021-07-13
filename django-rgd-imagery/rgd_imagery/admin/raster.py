@@ -17,16 +17,16 @@ def reprocess_rastermeta(modeladmin, request, queryset):
         entry.parent_raster.save()
 
 
-def generate_valid_data_feature(modeladmin, request, queryset):
-    """Generate a valid data feature for each raster."""
+def generate_valid_data_footprint(modeladmin, request, queryset):
+    """Generate a valid data footprint for each raster."""
     for rast in queryset.all():
-        jobs.task_populate_raster_feature.delay(rast.id)
+        jobs.task_populate_raster_footprint.delay(rast.id)
 
 
-def generate_valid_data_feature_rastermeta(modeladmin, request, queryset):
-    """Generate a valid data feature for each raster."""
+def generate_valid_data_footprint_rastermeta(modeladmin, request, queryset):
+    """Generate a valid data footprint for each raster."""
     for entry in queryset.all():
-        jobs.task_populate_raster_feature.delay(entry.parent_raster.id)
+        jobs.task_populate_raster_footprint.delay(entry.parent_raster.id)
 
 
 def generate_outline(modeladmin, request, queryset):
@@ -63,11 +63,11 @@ class RasterMetaAdmin(OSMGeoAdmin):
     )
     actions = (
         reprocess_rastermeta,
-        generate_valid_data_feature_rastermeta,
+        generate_valid_data_footprint_rastermeta,
     )
     list_filter = SPATIAL_ENTRY_FILTERS + MODIFIABLE_FILTERS
 
-    modifiable = False  # To still show the feature and outline
+    modifiable = False  # To still show the footprint and outline
 
 
 @admin.register(Raster)
@@ -86,7 +86,7 @@ class RasterAdmin(OSMGeoAdmin):
     ) + TASK_EVENT_READONLY
     actions = (
         reprocess,
-        generate_valid_data_feature,
+        generate_valid_data_footprint,
         clean_empty_rasters,
     )
     list_filter = MODIFIABLE_FILTERS + TASK_EVENT_FILTERS

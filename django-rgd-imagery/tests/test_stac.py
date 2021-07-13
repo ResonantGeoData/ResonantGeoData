@@ -62,8 +62,8 @@ def test_raster_stac_export_import(admin_api_client, sample_raster_url):
         sample.parent_raster.ancillary_files.all()
     )
 
-    # Asset outline/feature of rasters are the same
-    assert instance.feature.equals(sample.feature)
+    # Asset outline/footprint of rasters are the same
+    assert instance.footprint.equals(sample.footprint)
     # assert instance.outline.equals(sample.outline)
 
     # Check that no duplicate data were produced

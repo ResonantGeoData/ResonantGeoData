@@ -85,8 +85,8 @@ def read_geometry_archive(archive_id):
                 )
 
     geometry_entry.data = GeometryCollection(*collection)
-    geometry_entry.feature = geometry_entry.data.convex_hull
-    bounds = geometry_entry.feature.extent  # (xmin, ymin, xmax, ymax)
+    geometry_entry.footprint = geometry_entry.data.convex_hull
+    bounds = geometry_entry.footprint.extent  # (xmin, ymin, xmax, ymax)
     coords = [
         (bounds[0], bounds[3]),  # (xmin, ymax)
         (bounds[2], bounds[3]),  # (xmax, ymax)

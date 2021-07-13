@@ -112,7 +112,7 @@ class StatisticsView(generic.ListView):
         context.update(
             self.get_queryset().aggregate(
                 count=Count('spatial_id', distinct=True),
-                coordinates=ArrayAgg(AsGeoJSON(Centroid('feature'))),
+                coordinates=ArrayAgg(AsGeoJSON(Centroid('footprint'))),
                 instrumentation_count=Count(
                     'instrumentation',
                     distinct=True,
@@ -150,17 +150,17 @@ class _SpatialDetailView(PermissionDetailView):
         extent = {
             'count': 0,
         }
-        if self.object.feature:
+        if self.object.footprint:
             extent.update(
                 {
                     'count': 1,
-                    'collect': self.object.feature.json,
+                    'collect': self.object.footprint.json,
                     'outline': self.object.outline.json,
                     'extent': {
-                        'xmin': self.object.feature.extent[0],
-                        'ymin': self.object.feature.extent[1],
-                        'xmax': self.object.feature.extent[2],
-                        'ymax': self.object.feature.extent[3],
+                        'xmin': self.object.footprint.extent[0],
+                        'ymin': self.object.footprint.extent[1],
+                        'xmax': self.object.footprint.extent[2],
+                        'ymax': self.object.footprint.extent[3],
                     },
                 }
             )

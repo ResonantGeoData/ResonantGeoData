@@ -3,7 +3,6 @@ from .collection import Collection, CollectionPermission  # noqa
 from .common import (  # noqa
     ChecksumFile,
     FileSourceType,
-    GeospatialFeature,
     SpatialAsset,
     SpatialEntry,
     WhitelistedEmail,

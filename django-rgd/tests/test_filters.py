@@ -30,7 +30,7 @@ def test_q_distance(spatial_asset_a, spatial_asset_b):
 
 
 @pytest.mark.django_db(transaction=True)
-def test_feature_intersects(spatial_asset_a, spatial_asset_b):
+def test_footprint_intersects(spatial_asset_a, spatial_asset_b):
     assert models.SpatialEntry.objects.count() == 2
     filterset = SpatialEntryFilter(
         data={

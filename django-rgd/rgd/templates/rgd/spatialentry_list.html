@@ -22,7 +22,7 @@
         {% for entry in spatial_entries %}
           <tr>
             <td><a href="{% url 'spatial-entry-detail' entry.pk %}">{{ entry.spatial_id }} - {{ entry.name | truncatechars:12 }}</a></td>
-            <td>{{ entry.feature.area | floatformat:-2 }}</td>
+            <td>{{ entry.footprint.area | floatformat:-2 }}</td>
             <td>{{ entry }}</td>
           </tr>
         {% endfor %}

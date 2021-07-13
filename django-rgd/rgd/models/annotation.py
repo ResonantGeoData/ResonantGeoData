@@ -1,7 +1,7 @@
 from django.contrib.gis.db import models
 from django_extensions.db.models import TimeStampedModel
 
-from .common import GeospatialFeature
+from .common import GeospatialFootprint
 
 
 class BaseAnnotation(TimeStampedModel):
@@ -15,7 +15,7 @@ class BaseAnnotation(TimeStampedModel):
     properties = models.JSONField(null=True, blank=True)
 
 
-class GeoTemporalAnnotation(BaseAnnotation, GeospatialFeature):
+class GeoTemporalAnnotation(BaseAnnotation, GeospatialFootprint):
     """Annotation in world coordinates during a time frame.
 
     This annotation could be associated with many different spatial entry

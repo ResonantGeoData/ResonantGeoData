@@ -55,7 +55,7 @@ def _extract_klv(fmv_file_entry):
 
 
 def _get_spatial_ref_of_frame(frame):
-    """Get the sensor location and bounding box feature for the given frame."""
+    """Get the sensor location and bounding box footprint for the given frame."""
     meta_regex = re.compile(r'---------------- Metadata from: (.+)')
     idxs = [m.start() for m in re.finditer(meta_regex, frame)]
     if len(idxs) > 1:
@@ -85,8 +85,8 @@ def _get_spatial_ref_of_frame(frame):
     return path, bbox, srida
 
 
-def _get_path_and_features(content):
-    """Get the flight path and all features for entire video."""
+def _get_path_and_footprints(content):
+    """Get the flight path and all footprints for entire video."""
     frame_regex = re.compile(r'========== Read frame (\d+) \(index (\d+)\) ==========')
     idxs = [m.start() for m in re.finditer(frame_regex, content)]
     frames = [content[idxs[i] : idxs[i + 1]] for i in range(len(idxs) - 1)]
@@ -185,10 +185,10 @@ def _populate_fmv_entry(entry):
     if not content:
         raise Exception('FLV file not created')
 
-    # The returned `features` can have thoousands of Polygons which will not render well
+    # The returned `footprints` can have thoousands of Polygons which will not render well
     #   for now we just ignore those. If there is a need, we can use later.
-    #   FYI: those features do not correspond to all frames, i.e. some are missing
-    path, polys, union, nf = _get_path_and_features(content)
+    #   FYI: those footprints do not correspond to all frames, i.e. some are missing
+    path, polys, union, nf = _get_path_and_footprints(content)
 
     entry.ground_frames = polys
     entry.ground_union = union
@@ -196,7 +196,7 @@ def _populate_fmv_entry(entry):
     entry.frame_numbers = entry._array_to_blob(nf)
 
     entry.outline = union.envelope
-    entry.feature = union.convex_hull
+    entry.footprint = union.convex_hull
 
     entry.save()
 
