@@ -12,8 +12,10 @@ class Migration(migrations.Migration):
 
     operations = [
         migrations.AddField(
-            model_name='rastermeta',
+            model_name='bandmeta',
             name='band_range',
-            field=django.contrib.postgres.fields.ranges.DecimalRangeField(help_text='The spectral range of the band (in micrometers).', null=True),
+            field=django.contrib.postgres.fields.ranges.DecimalRangeField(
+                help_text='The spectral range of the band (in micrometers).', null=True
+            ),
         ),
     ]

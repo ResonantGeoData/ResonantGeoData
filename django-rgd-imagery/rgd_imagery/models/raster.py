@@ -61,9 +61,6 @@ class RasterMeta(TimeStampedModel, SpatialEntry, PermissionPathMixin, DetailView
     cloud_cover = models.FloatField(
         null=True, validators=[MinValueValidator(0), MaxValueValidator(100)], blank=True
     )
-    band_range = fields.DecimalRangeField(
-        null=True, help_text='The spectral range of the band (in micrometers).'
-    )
 
     @property
     def name(self):
