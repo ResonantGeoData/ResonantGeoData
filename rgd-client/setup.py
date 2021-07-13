@@ -22,7 +22,7 @@ with io_open(version_file, mode='r') as fd:
 setup(
     name='rgd-client',
     version=__version__,
-    description='Make web requests to a ResonantGeoData instance.',
+    description='Make web requests to a Resonant GeoData instance.',
     long_description=long_description,
     long_description_content_type='text/markdown',
     license='Apache 2.0',

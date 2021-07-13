@@ -21,9 +21,9 @@ urlpatterns = [
 
 schema_view = get_schema_view(
     openapi.Info(
-        title='ResonantGeoData API',
+        title='Resonant GeoData API',
         default_version='v1',
-        description='ResonantGeoData',
+        description='Resonant GeoData',
         # terms_of_service='https://www.google.com/policies/terms/',
         contact=openapi.Contact(email='kitware@kitare.com'),
         license=openapi.License(name='Apache 2.0'),
