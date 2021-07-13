@@ -4,8 +4,15 @@ from django.apps import apps
 from django.conf import settings
 from django.contrib.auth.backends import BaseBackend
 from django.core.exceptions import PermissionDenied
-from django.db.models import Q
+from django.db.models import Model, Q
 from rgd import models
+
+
+# get django model via name, regardless of app
+def get_model(model_name):
+    for m in apps.get_models():
+        if m.__name__ == model_name:
+            return m
 
 
 def get_subclasses(model):
@@ -13,25 +20,47 @@ def get_subclasses(model):
     return set([m for m in apps.get_models() if issubclass(m, model) and m != model])
 
 
-def get_collection_permissions_paths(model, prefix='') -> List[str]:
+def get_collection_permissions_paths(model) -> List[str]:
     """Get all possible paths to the 'CollectionPermission' model.
 
-    Relationships are represented as 'dunder's ('__').
+    Produces relationships represented as 'dunder's ('__').
     """
+    if model == models.CollectionPermission:
+        return ['']
+
     if model == models.SpatialEntry:
         submodels = get_subclasses(model)
         paths = []
         for sub in submodels:
             # TODO: there should be a cleaner way to do this.
             model_name = sub.__name__.lower()
-            [paths.append(s) for s in get_collection_permissions_paths(sub, prefix=model_name)]
+            [paths.append(f'{model_name}__{s}') for s in get_collection_permissions_paths(sub)]
         return paths
 
-    if not hasattr(model, 'permissions_paths'):
-        # NOTE: checking subclass here does not work - must use hasattr :(
+    if not issubclass(model, models.mixins.PermissionPathMixin):
         raise TypeError(f'{type(model)} does not have the `PermissionPathMixin` interface.')
 
-    return [(f'{prefix}__' if prefix else '') + s for s in model.permissions_paths]
+    paths = []
+    for path in model.permissions_paths:
+        field, next_model = path
+
+        if type(next_model) == str:
+
+            # grab model via class name
+            next_model = get_model(next_model)
+
+        # sanity check
+        if not issubclass(next_model, Model):
+            raise TypeError('Failed to extract next_model in permissions_paths')
+
+        if next_model == models.CollectionPermission:
+            paths.append(field)
+        else:
+            next_path = get_collection_permissions_paths(next_model)
+            for n in next_path:
+                paths.append(f'{field}__{n}')
+
+    return paths
 
 
 def filter_perm(user, queryset, role):
