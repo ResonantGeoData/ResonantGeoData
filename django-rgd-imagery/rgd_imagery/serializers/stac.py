@@ -116,7 +116,6 @@ class STACRasterSerializer(serializers.BaseSerializer):
                 bands=bands,
                 asset=asset,
             )
-            item.add_asset(f'image-{image.pk}', asset)
 
         for ancillary_file in instance.parent_raster.ancillary_files.all():
             asset = pystac.Asset(
