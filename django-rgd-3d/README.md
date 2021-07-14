@@ -1,6 +1,6 @@
-# ResonantGeoData 3D
+# Resonant GeoData 3D
 
-A subapplication of ResonantGeoData for storing 3D data with an optional
+A subapplication of Resonant GeoData for storing 3D data with an optional
 spatial reference.
 
 

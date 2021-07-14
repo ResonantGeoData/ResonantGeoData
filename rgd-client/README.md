@@ -1,6 +1,6 @@
-# rgd_client - ResonantGeoDataClient
+# rgd_client - Resonant GeoDataClient
 
-The **rgd_client** Python package allows users to make web requests to a ResonantGeoData instance within a Python script.
+The **rgd_client** Python package allows users to make web requests to a Resonant GeoData instance within a Python script.
 
 
 # Installation

@@ -1,6 +1,6 @@
-# ResonantGeoData Core Application
+# Resonant GeoData Core Application
 
-The core ResonantGeoData (RGD) app containing file and permissions management
+The core Resonant GeoData (RGD) app containing file and permissions management
 as well as spatial models. Each of the other RGD apps depend on the core
 functionality built here.
 

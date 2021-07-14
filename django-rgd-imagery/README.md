@@ -1,6 +1,6 @@
-# ResonantGeoData Imagery
+# Resonant GeoData Imagery
 
-A submodule of ResonantGeoData for storing imagery supporting annotations and spatial reference.
+A submodule of Resonant GeoData for storing imagery supporting annotations and spatial reference.
 
 
 ## Installation
