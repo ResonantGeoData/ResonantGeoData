@@ -49,7 +49,7 @@ def limit_offset_pager(session: Session, url: str, **kwargs) -> Generator[Dict, 
         r.raise_for_status()
 
         # Yield results
-        results = r.json()['results']
+        results = r.json()
         yield from results
 
         # Update offset and num_results

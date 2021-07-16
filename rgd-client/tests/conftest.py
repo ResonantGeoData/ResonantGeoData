@@ -6,7 +6,7 @@ import time
 import requests
 
 from . import MANAGE_PATH, PYTHON_PATH
-from .data_fixtures import *
+from .data_fixtures import generate_fixtures, sources
 
 proc = None
 max_attempts = 10  # number of attempts to connect to server
@@ -17,22 +17,36 @@ timeout = 5  # time in seconds between connection attempts
 def pytest_configure(config):
     global proc
 
+    for (name, fixture) in generate_fixtures():
+        globals()[name] = fixture
+
     # reset db
     subprocess.run(
         [PYTHON_PATH, MANAGE_PATH, 'reset_db', '--noinput'],
-        env={"DJANGO_SETTINGS_MODULE": "rgd_example.settings"},
+        env={'DJANGO_SETTINGS_MODULE': 'rgd_example.settings'},
     )
 
     # run migrations
     subprocess.run(
         [PYTHON_PATH, MANAGE_PATH, 'migrate'],
-        env={"DJANGO_SETTINGS_MODULE": "rgd_example.settings"},
+        env={'DJANGO_SETTINGS_MODULE': 'rgd_example.settings'},
+    )
+
+    # create user for client
+    # TODO: use better fields
+    subprocess.run(
+        [PYTHON_PATH, MANAGE_PATH, 'createsuperuser', '--no-input'],
+        env={
+            'DJANGO_SUPERUSER_USERNAME': 'test',
+            'DJANGO_SUPERUSER_EMAIL': 'test@kitware.com',
+            'DJANGO_SUPERUSER_PASSWORD': 'testing',
+        },
     )
 
     # start server as background process
     proc = subprocess.Popen(
         [PYTHON_PATH, MANAGE_PATH, 'runserver', '0.0.0.0:8000'],
-        env={"DJANGO_SETTINGS_MODULE": "rgd_example.settings"},
+        env={'DJANGO_SETTINGS_MODULE': 'rgd_example.settings'},
         preexec_fn=os.setsid,
     )
 
@@ -55,3 +69,6 @@ def pytest_configure(config):
 # teardown after all tests
 def pytest_unconfigure(config):
     os.killpg(os.getpgid(proc.pid), signal.SIGTERM)
+
+    for s in sources:
+        config.cache.set(s, False)
