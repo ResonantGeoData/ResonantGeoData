@@ -13,7 +13,7 @@ class RgdcSession(BaseUrlSession):
         self, base_url: str, auth_header: Optional[str] = None, retries: Optional[int] = 5
     ):
         """
-        Initialize a session with a ResonantGeoData server.
+        Initialize a session with a Resonant GeoData server.
 
         base_url: The base url of the RGD API instance.
         auth_header: If provided, set as the `Authorization` header on each request

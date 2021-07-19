@@ -645,7 +645,7 @@ class Migration(migrations.Migration):
                     'description',
                     models.TextField(
                         blank=True,
-                        help_text='Automatically retreived from raster but can be overwritten.',
+                        help_text='Automatically retrieved from raster but can be overwritten.',
                         null=True,
                     ),
                 ),

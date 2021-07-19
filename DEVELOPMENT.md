@@ -1,4 +1,4 @@
-# ResonantGeoData Development Information
+# Resonant GeoData Development Information
 
 2D/3D/4D Geospatial Data API and Machine Learning System for Evaluation
 
@@ -6,13 +6,13 @@
 This is the simplest configuration for developers to start with.
 
 ### Initial Setup
-1. Run `docker-compose run --rm django ./manage.py migrate`
-2. Run `docker-compose run --rm django ./manage.py createsuperuser`
+1. Run `docker-compose run --rm django ./example_project/manage.py migrate`
+2. Run `docker-compose run --rm django ./example_project/manage.py createsuperuser`
    and follow the prompts to create your own user
 
 ### Add Demo Data (Optional)
 
-Please see `docs/manage-commands.md`
+Please see READMEs for each of the apps.
 
 ### Run Application
 1. Run `docker-compose up`
@@ -25,7 +25,7 @@ Occasionally, new package dependencies or schema changes will necessitate
 maintenance. To non-destructively update your development stack at any time:
 1. Run `docker-compose pull`
 2. Run `docker-compose build --pull --no-cache`
-3. Run `docker-compose run --rm django ./manage.py migrate`
+3. Run `docker-compose run --rm django ./example_project/manage.py migrate`
 
 ## Develop Natively (advanced)
 This configuration still uses Docker to run attached services in the background,
@@ -40,14 +40,14 @@ but allows developers to run Python code on their native system.
    introducing updated dependencies: `tox -r --devenv .venv -e dev`
 5. Activate it as usual: `source ./.venv/bin/activate`
 6. Run `source ./dev/export-env.sh`
-7. Run `./manage.py migrate`
-8. Run `./manage.py createsuperuser` and follow the prompts to create your own user
+7. Run `./example_project/manage.py migrate`
+8. Run `./example_project/manage.py createsuperuser` and follow the prompts to create your own user
 
 ### Run Application
 1.  Ensure `docker-compose -f ./docker-compose.yml up -d` is still active
 2. Run:
    1. `source ./dev/export-env.sh`
-   2. `./manage.py runserver`
+   2. `./example_project/manage.py runserver`
 3. Run in a separate terminal:
    1. `source ./dev/export-env.sh`
    2. `celery --app rgd.celery worker --loglevel INFO --without-heartbeat`

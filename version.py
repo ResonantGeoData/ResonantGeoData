@@ -1,4 +1,4 @@
-"""Version info for ResonantGeoData.
+"""Version info for Resonant GeoData.
 
 On the default branch, use 'dev0' to denote a development version.
 For example:

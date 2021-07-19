@@ -32,7 +32,7 @@ class FMV(TimeStampedModel, TaskEventMixin, PermissionPathMixin):
 
     klv_data_link.allow_tags = True
 
-    permissions_paths = ['file__collection__collection_permissions']
+    permissions_paths = [('file', ChecksumFile)]
 
 
 class FMVMeta(TimeStampedModel, SpatialEntry, PermissionPathMixin, DetailViewMixin):
@@ -53,7 +53,7 @@ class FMVMeta(TimeStampedModel, SpatialEntry, PermissionPathMixin, DetailViewMix
     def _blob_to_array(blob):
         return pickle.loads(base64.b64decode(blob))
 
-    permissions_paths = ['fmv_file__file__collection__collection_permissions']
+    permissions_paths = [('fmv_file', FMV)]
     detail_view_name = 'fmv-entry-detail'
 
     @property

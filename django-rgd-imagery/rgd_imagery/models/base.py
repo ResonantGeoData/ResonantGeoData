@@ -17,7 +17,7 @@ class Image(TimeStampedModel, TaskEventMixin, PermissionPathMixin):
 
     """
 
-    permissions_paths = ['file__collection__collection_permissions']
+    permissions_paths = [('file', ChecksumFile)]
     task_funcs = (jobs.task_load_image,)
     file = models.ForeignKey(ChecksumFile, on_delete=models.CASCADE, related_name='+')
 
@@ -30,7 +30,7 @@ class Image(TimeStampedModel, TaskEventMixin, PermissionPathMixin):
 class ImageMeta(TimeStampedModel, PermissionPathMixin):
     """Single image entry, tracks the original file."""
 
-    permissions_paths = ['parent_image__file__collection__collection_permissions']
+    permissions_paths = [('parent_image', Image)]
 
     parent_image = models.OneToOneField(Image, on_delete=models.CASCADE)
     driver = models.CharField(max_length=100)
@@ -42,13 +42,13 @@ class ImageMeta(TimeStampedModel, PermissionPathMixin):
 class BandMeta(TimeStampedModel, PermissionPathMixin):
     """A basic container to keep track of useful band info."""
 
-    permissions_paths = ['parent_image__file__collection__collection_permissions']
+    permissions_paths = [('parent_image', Image)]
     parent_image = models.ForeignKey(Image, on_delete=models.CASCADE)
     band_number = models.IntegerField()
     description = models.TextField(
         null=True,
         blank=True,
-        help_text='Automatically retreived from raster but can be overwritten.',
+        help_text='Automatically retrieved from raster but can be overwritten.',
     )
     dtype = models.CharField(max_length=10)
     max = models.FloatField(null=True)
@@ -62,7 +62,7 @@ class BandMeta(TimeStampedModel, PermissionPathMixin):
 class ImageSet(TimeStampedModel, PermissionPathMixin):
     """Container for many images."""
 
-    permissions_paths = ['images__file__collection__collection_permissions']
+    permissions_paths = [('images', Image)]
 
     name = models.CharField(max_length=1000, blank=True)
     description = models.TextField(null=True, blank=True)
@@ -95,7 +95,7 @@ class ImageSet(TimeStampedModel, PermissionPathMixin):
 class ImageSetSpatial(TimeStampedModel, SpatialEntry, PermissionPathMixin, DetailViewMixin):
     """Arbitrary register an ImageSet to a location."""
 
-    permissions_paths = ['image_set__images__file__collection__collection_permissions']
+    permissions_paths = [('image_set', ImageSet)]
     detail_view_name = 'image-set-spatial-detail'
 
     image_set = models.OneToOneField(ImageSet, on_delete=models.CASCADE)
