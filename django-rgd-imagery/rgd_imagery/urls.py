@@ -125,7 +125,7 @@ urlpatterns = [
     path(
         'api/image_process/imagery/subsample',
         rest.post.CreateRegionImage.as_view(),
-        name='create-subsample'
+        name='create-subsample',
     ),
     path(
         'api/image_process/imagery/subsample/<int:pk>',

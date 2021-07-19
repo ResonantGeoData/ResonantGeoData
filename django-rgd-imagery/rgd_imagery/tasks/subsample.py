@@ -122,12 +122,12 @@ def resample_image(resample):
                 # Update the metadata
                 out_meta.update(
                     {
-                        "driver": "GTiff",
-                        "height": data.shape[1],
-                        "width": data.shape[2],
-                        "transform": transform,
+                        'driver': 'GTiff',
+                        'height': data.shape[1],
+                        'width': data.shape[2],
+                        'transform': transform,
                     }
                 )
 
-                with rasterio.open(output_path, "w", **out_meta) as dest:
+                with rasterio.open(output_path, 'w', **out_meta) as dest:
                     dest.write(data)
