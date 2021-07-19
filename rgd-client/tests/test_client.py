@@ -58,6 +58,7 @@ def test_inspect_raster(rgd_imagery_demo):
             pytest.fail(f'Failed to download raster thumbnail {i}')
 
 
+# TODO: figure out minio hostname issue
 def test_download_raster(rgd_imagery_demo):
 
     q = client.search(query=json.dumps(bbox), predicate='intersects')
@@ -71,9 +72,10 @@ def test_download_raster(rgd_imagery_demo):
         pytest.fail('Failed to download raster image set')
 
 
+# TODO: figure out TemplateDoesNotExist error
 def test_basic_stac_search(rgd_imagery_demo):
 
-    q = client.search_raster_stac(query=json.dumps(bbox), predicate='intersects')
-
-    # TODO: update
-    assert True
+    try:
+        client.search_raster_stac(query=json.dumps(bbox), predicate='intersects')
+    except Exception:
+        pytest.fail('Failed STAC search')

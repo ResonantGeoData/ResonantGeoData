@@ -46,7 +46,9 @@ def pytest_configure(config):
     # start server as background process
     proc = subprocess.Popen(
         [PYTHON_PATH, MANAGE_PATH, 'runserver', '0.0.0.0:8000'],
-        env={'DJANGO_SETTINGS_MODULE': 'rgd_example.settings'},
+        env={
+            'DJANGO_SETTINGS_MODULE': 'rgd_example.settings',
+        },
         preexec_fn=os.setsid,
     )
 
