@@ -1,3 +1,5 @@
+import copy
+
 from django.contrib import admin
 
 # from django.contrib.admin import SimpleListFilter
@@ -111,7 +113,7 @@ def convert_images(modeladmin, request, queryset):
 #             return queryset.filter(imagesetspatial__isnull=False)
 
 
-class ImageSetSpatialInline(admin.StackedInline):
+class ImageSetSpatialInline(OSMGeoAdmin, admin.StackedInline):
     model = ImageSetSpatial
     fk_name = 'image_set'
     list_display = (
@@ -120,6 +122,20 @@ class ImageSetSpatialInline(admin.StackedInline):
         'created',
     )
     list_filter = MODIFIABLE_FILTERS + SPATIAL_ENTRY_FILTERS
+
+    def __init__(self, parent_model, admin_site):
+        self.admin_site = admin_site
+        self.parent_model = parent_model
+        self.opts = self.model._meta
+        self.has_registered_model = admin_site.is_registered(self.model)
+        overrides = copy.deepcopy(admin.options.FORMFIELD_FOR_DBFIELD_DEFAULTS)
+        for k, v in self.formfield_overrides.items():
+            overrides.setdefault(k, {}).update(v)
+        self.formfield_overrides = overrides
+        if self.verbose_name is None:
+            self.verbose_name = self.model._meta.verbose_name
+        if self.verbose_name_plural is None:
+            self.verbose_name_plural = self.model._meta.verbose_name_plural
 
 
 @admin.register(ImageSet)
