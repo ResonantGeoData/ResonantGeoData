@@ -5,7 +5,7 @@ import time
 
 import requests
 
-from . import MANAGE_PATH, PYTHON_PATH
+from . import MANAGE_PATH, PYTHON_PATH, SETTINGS_MODULE
 from .data_fixtures import generate_fixtures, sources
 
 proc = None
@@ -23,13 +23,13 @@ def pytest_configure(config):
     # reset db
     subprocess.run(
         [PYTHON_PATH, MANAGE_PATH, 'reset_db', '--noinput'],
-        env={'DJANGO_SETTINGS_MODULE': 'rgd_example.settings'},
+        env={'DJANGO_SETTINGS_MODULE': SETTINGS_MODULE},
     )
 
     # run migrations
     subprocess.run(
         [PYTHON_PATH, MANAGE_PATH, 'migrate'],
-        env={'DJANGO_SETTINGS_MODULE': 'rgd_example.settings'},
+        env={'DJANGO_SETTINGS_MODULE': SETTINGS_MODULE},
     )
 
     # create user for client
@@ -47,7 +47,7 @@ def pytest_configure(config):
     proc = subprocess.Popen(
         [PYTHON_PATH, MANAGE_PATH, 'runserver', '0.0.0.0:8000'],
         env={
-            'DJANGO_SETTINGS_MODULE': 'rgd_example.settings',
+            'DJANGO_SETTINGS_MODULE': SETTINGS_MODULE,
         },
         preexec_fn=os.setsid,
     )

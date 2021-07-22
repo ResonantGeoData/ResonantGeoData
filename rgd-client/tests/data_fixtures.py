@@ -2,7 +2,7 @@ import subprocess
 
 import pytest
 
-from . import MANAGE_PATH, PYTHON_PATH
+from . import MANAGE_PATH, PYTHON_PATH, SETTINGS_MODULE
 
 sources = [
     'rgd_3d_demo',
@@ -25,7 +25,7 @@ def generate_fixtures():
             if not has_run:
                 subprocess.run(
                     [PYTHON_PATH, MANAGE_PATH, s],
-                    env={'DJANGO_SETTINGS_MODULE': 'rgd_example.settings'},
+                    env={'DJANGO_SETTINGS_MODULE': SETTINGS_MODULE},
                 )
 
                 pytestconfig.cache.set(s, True)
