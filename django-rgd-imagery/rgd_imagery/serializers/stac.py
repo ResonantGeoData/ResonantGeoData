@@ -157,17 +157,16 @@ class STACRasterSerializer(serializers.BaseSerializer):
                         eo_band_spectral_upper = (
                             eo_band.center_wavelength + eo_band.full_width_half_max / 2
                         )
-                    models.BandMeta.objects.get_or_create(
+                    bandmeta = models.BandMeta.objects.get_or_create(
                         parent_image=image,
                         band_number=eo_band_number,
-                        description=eo_band.description,
-                        band_range=(
-                            Decimal(eo_band_spectral_lower),
-                            Decimal(eo_band_spectral_upper),
-                        ),
-                        interpretation='',
-                        dtype='',
                     )
+                    bandmeta.description = eo_band.description
+                    bandmeta.band_range = (
+                        Decimal(eo_band_spectral_lower),
+                        Decimal(eo_band_spectral_upper),
+                    )
+                    bandmeta.save()
             else:
                 ancillary.append(checksum_file)
 
