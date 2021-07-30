@@ -3,6 +3,7 @@ from decimal import Decimal
 import pytest
 from rgd.datastore import datastore
 from rgd.models import FileSourceType
+from rgd_imagery.models import BandMeta
 
 from . import factories
 
@@ -147,10 +148,13 @@ def sample_raster_url():
             file__url=datastore.get_url(f),
         )
         images.append(image)
-        factories.BandMetaFactory(
-            parent_image=image,
-            band_range=band_range,
-            band_number=(i + 1),
+        # band_range
+        band = BandMeta.objects.get(parent_image=image)
+        band.band_range = band_range
+        band.save(
+            update_fields=[
+                'band_range',
+            ]
         )
     image_set = factories.ImageSetFactory(
         images=images,

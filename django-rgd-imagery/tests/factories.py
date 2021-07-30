@@ -41,16 +41,6 @@ class RasterFactory(factory.django.DjangoModelFactory):
         instance.refresh_from_db()
 
 
-class BandMetaFactory(factory.django.DjangoModelFactory):
-    class Meta:
-        model = models.BandMeta
-
-    dtype = ''
-    parent_image = factory.SubFactory(ImageFactory)
-    band_number = factory.Faker('random_digit')
-    interpretation = factory.Faker('sentence', nb_words=14)
-
-
 class KWCOCOArchiveFactory(factory.django.DjangoModelFactory):
     class Meta:
         model = models.KWCOCOArchive
