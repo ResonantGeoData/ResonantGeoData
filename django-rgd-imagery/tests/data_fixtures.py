@@ -141,7 +141,7 @@ def sample_raster_url():
         (Decimal(0.41), Decimal(0.43)),  # not a common name
     ]
     images = []
-    for i, (f, band_range) in enumerate(zip(landsat_files, band_ranges)):
+    for f, band_range in zip(landsat_files, band_ranges):
         image = factories.ImageFactory(
             file__type=FileSourceType.URL,
             file__file=None,
