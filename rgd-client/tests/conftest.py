@@ -1,76 +1,25 @@
-import os
-import signal
-import subprocess
-import time
+from django.contrib.auth.models import User
+import pytest
 
-import requests
+from rgd_client import Rgdc
 
-from . import MANAGE_PATH, PYTHON_PATH, SETTINGS_MODULE
-from .data_fixtures import generate_fixtures, sources
+from .data_fixtures import generate_fixtures
 
-proc = None
-max_attempts = 10  # number of attempts to connect to server
-timeout = 5  # time in seconds between connection attempts
+# dynamic fixtures: populate commands
+for (name, fixture) in generate_fixtures():
+    globals()[name] = fixture
 
 
-# setup before all tests
-def pytest_configure(config):
-    global proc
+@pytest.fixture
+def py_client(live_server):
 
-    for (name, fixture) in generate_fixtures():
-        globals()[name] = fixture
+    params = {'username': 'test@kitware.com', 'email': 'test@kitware.com', 'password': 'password'}
 
-    # reset db
-    subprocess.run(
-        [PYTHON_PATH, MANAGE_PATH, 'reset_db', '--noinput'],
-        env={'DJANGO_SETTINGS_MODULE': SETTINGS_MODULE},
+    user = User.objects.create_user(is_staff=True, is_superuser=True, **params)
+    user.save()
+
+    client = Rgdc(
+        username=params['username'], password=params['password'], api_url=f'{live_server.url}/api'
     )
 
-    # run migrations
-    subprocess.run(
-        [PYTHON_PATH, MANAGE_PATH, 'migrate'],
-        env={'DJANGO_SETTINGS_MODULE': SETTINGS_MODULE},
-    )
-
-    # create user for client
-    # TODO: use better fields
-    subprocess.run(
-        [PYTHON_PATH, MANAGE_PATH, 'createsuperuser', '--no-input'],
-        env={
-            'DJANGO_SUPERUSER_USERNAME': 'test',
-            'DJANGO_SUPERUSER_EMAIL': 'test@kitware.com',
-            'DJANGO_SUPERUSER_PASSWORD': 'testing',
-        },
-    )
-
-    # start server as background process
-    proc = subprocess.Popen(
-        [PYTHON_PATH, MANAGE_PATH, 'runserver', '0.0.0.0:8000'],
-        env={
-            'DJANGO_SETTINGS_MODULE': SETTINGS_MODULE,
-        },
-        preexec_fn=os.setsid,
-    )
-
-    # sleep and poll until server is ready
-    ready = False
-    attempts = 0
-    while (not ready) and attempts < max_attempts:
-        try:
-            resp = requests.get('http://localhost:8000')
-            if resp.status_code == 200:
-                ready = True
-        except requests.exceptions.ConnectionError:
-            attempts += 1
-            time.sleep(timeout)
-
-    if not ready:
-        raise Exception('Could not connect to server')
-
-
-# teardown after all tests
-def pytest_unconfigure(config):
-    os.killpg(os.getpgid(proc.pid), signal.SIGTERM)
-
-    for s in sources:
-        config.cache.set(s, False)
+    return client

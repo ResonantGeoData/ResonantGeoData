@@ -1,8 +1,5 @@
-import subprocess
-
+from django.core.management import call_command
 import pytest
-
-from . import MANAGE_PATH, PYTHON_PATH, SETTINGS_MODULE
 
 sources = [
     'rgd_3d_demo',
@@ -18,16 +15,7 @@ def generate_fixtures():
     for s in sources:
 
         @pytest.fixture
-        def data_fixture(pytestconfig):
-
-            has_run = pytestconfig.cache.get(s, False)
-
-            if not has_run:
-                subprocess.run(
-                    [PYTHON_PATH, MANAGE_PATH, s],
-                    env={'DJANGO_SETTINGS_MODULE': SETTINGS_MODULE},
-                )
-
-                pytestconfig.cache.set(s, True)
+        def data_fixture():
+            call_command(s)
 
         yield (s, data_fixture)

@@ -2,9 +2,6 @@ import json
 
 import pytest
 
-from rgd_client import Rgdc
-
-client = Rgdc(username='test', password='testing', api_url='http://localhost:8000/api')
 bbox = {
     'type': 'Polygon',
     'coordinates': [
@@ -19,9 +16,10 @@ bbox = {
 }
 
 
-def test_basic_search(rgd_imagery_demo):
+@pytest.mark.django_db(transaction=True)
+def test_basic_search(py_client, rgd_imagery_demo):
 
-    q = client.search(query=json.dumps(bbox), predicate='intersects')
+    q = py_client.search(query=json.dumps(bbox), predicate='intersects')
 
     assert any(x['subentry_name'] == 'afie_1.jpg' for x in q)
 
@@ -30,9 +28,10 @@ def test_basic_search(rgd_imagery_demo):
     )
 
 
-def test_inspect_raster(rgd_imagery_demo):
+@pytest.mark.django_db(transaction=True)
+def test_inspect_raster(py_client, rgd_imagery_demo):
 
-    q = client.search(query=json.dumps(bbox), predicate='intersects')
+    q = py_client.search(query=json.dumps(bbox), predicate='intersects')
 
     raster_meta = next(
         (
@@ -46,27 +45,27 @@ def test_inspect_raster(rgd_imagery_demo):
     assert raster_meta is not None
 
     try:
-        raster = client.get_raster(raster_meta)
+        raster = py_client.get_raster(raster_meta)
         count = len(raster['parent_raster']['image_set']['images'])
     except Exception:
         pytest.fail('Failed to get raster from meta')
 
     for i in range(count):
         try:
-            client.download_raster_thumbnail(raster_meta, band=i)
+            py_client.download_raster_thumbnail(raster_meta, band=i)
         except Exception:
             pytest.fail(f'Failed to download raster thumbnail {i}')
 
 
-# TODO: figure out minio hostname issue
-def test_download_raster(rgd_imagery_demo):
+@pytest.mark.django_db(transaction=True)
+def test_download_raster(py_client, rgd_imagery_demo):
 
-    q = client.search(query=json.dumps(bbox), predicate='intersects')
+    q = py_client.search(query=json.dumps(bbox), predicate='intersects')
 
     assert len(q) >= 1
 
     try:
-        client.download_raster(q[0])
+        py_client.download_raster(q[0])
     except Exception as e:
         print(e)
         pytest.fail('Failed to download raster image set')
@@ -76,6 +75,6 @@ def test_download_raster(rgd_imagery_demo):
 # def test_basic_stac_search(rgd_imagery_demo):
 
 #     try:
-#         client.search_raster_stac(query=json.dumps(bbox), predicate='intersects')
+#         py_client.search_raster_stac(query=json.dumps(bbox), predicate='intersects')
 #     except Exception:
 #         pytest.fail('Failed STAC search')
