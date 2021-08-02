@@ -1,6 +1,7 @@
 import json
 
 import pytest
+
 from rgd_client import Rgdc
 
 client = Rgdc(username='test', password='testing', api_url='http://localhost:8000/api')
