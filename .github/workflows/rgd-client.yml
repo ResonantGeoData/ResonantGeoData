@@ -39,6 +39,7 @@ jobs:
           pip install tox
       - name: Test rgd-client
         run: |
+          ./rgd-client/tests/manage.py print_settings
           tox -e test-rgd-client
         env:
           MINIO_STORAGE_ENDPOINT: localhost:9000
