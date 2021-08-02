@@ -1,5 +1,4 @@
 import requests
-
 import rgd_client
 
 

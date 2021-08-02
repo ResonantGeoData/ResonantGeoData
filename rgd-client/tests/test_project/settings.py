@@ -1,5 +1,3 @@
-import os
-
 from rgd_testing_utils.settings import *  # noqa
 
 INSTALLED_APPS += [  # noqa
@@ -14,11 +12,6 @@ INSTALLED_APPS += [  # noqa
 
 ROOT_URLCONF = 'test_project.urls'
 WSGI_APPLICATION = 'test_project.wsgi.application'
-
-# minio
-MINIO_STORAGE_MEDIA_URL = os.environ.get(
-    'MINIO_STORAGE_MEDIA_URL', 'http://minio:9000/django-storage'
-)
 
 # Swagger
 REFETCH_SCHEMA_WITH_AUTH = True
