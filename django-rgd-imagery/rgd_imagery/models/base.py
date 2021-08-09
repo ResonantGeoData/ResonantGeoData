@@ -1,5 +1,6 @@
 """Base classes for raster dataset entries."""
 from django.contrib.gis.db import models
+from django.contrib.postgres.fields import DecimalRangeField
 from django_extensions.db.models import TimeStampedModel
 from rgd.models import ChecksumFile, SpatialEntry
 from rgd.models.mixins import DetailViewMixin, PermissionPathMixin, TaskEventMixin
@@ -36,7 +37,9 @@ class ImageMeta(TimeStampedModel, PermissionPathMixin):
     driver = models.CharField(max_length=100)
     height = models.PositiveIntegerField()
     width = models.PositiveIntegerField()
-    number_of_bands = models.PositiveIntegerField()
+    number_of_bands = (
+        models.PositiveIntegerField()
+    )  # TODO: code smell? this can be computed relationally
 
 
 class BandMeta(TimeStampedModel, PermissionPathMixin):
@@ -57,6 +60,9 @@ class BandMeta(TimeStampedModel, PermissionPathMixin):
     std = models.FloatField(null=True)
     nodata_value = models.FloatField(null=True)
     interpretation = models.TextField()
+    band_range = DecimalRangeField(
+        null=True, help_text='The spectral range of the band (in micrometers).'
+    )
 
 
 class ImageSet(TimeStampedModel, PermissionPathMixin):

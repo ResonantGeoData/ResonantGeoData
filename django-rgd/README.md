@@ -49,7 +49,7 @@ The RGD core app has a few optional settings:
 
 ## Models
 
-- `ChecksumFile`: the central file storage model. Supports uploaded files, S3 URLs, and http<s> URLS.
+- `ChecksumFile`: the central file storage model. Supports uploaded files, S3 URLs, and http URLS.
 - `Collection` and `CollectionPermission`: for grouping files and controlling permission groups on those groups.
 - `SpatialEntry`: the core model for indexing spatial metadata. This is intended to be inherited from but also provides a robust search filter.
 - `SpatialAsset`: a simple spatial model for registering any collection of files with manually inputted spatial metadata.
