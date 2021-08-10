@@ -34,7 +34,12 @@ def _processed_image_helper(param_model):
             'processed_image',
         ]
     )
+
     logger.info(f'Produced ProcessedImage in ChecksumFile: {param_model.processed_image.file.id}')
+
+    if param_model.add_to_sets:
+        for imset in param_model.source_image.imageset_set.all():
+            imset.images.add(param_model.processed_image)
 
 
 def convert_to_cog(cog):

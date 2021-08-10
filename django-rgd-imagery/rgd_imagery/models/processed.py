@@ -20,6 +20,9 @@ class ProcessedImage(TimeStampedModel, TaskEventMixin, PermissionPathMixin):
         Image, on_delete=models.SET_NULL, null=True, related_name='+'
     )
     source_image = models.ForeignKey(Image, on_delete=models.CASCADE, related_name='+')
+    add_to_sets = models.BooleanField(
+        default=True, help_text='Add this image to the ImageSets that the source image belongs to.'
+    )
 
     def _post_delete(self, *args, **kwargs):
         # Cleanup the associated Image and ChecksumFile
