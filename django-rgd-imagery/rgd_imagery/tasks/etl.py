@@ -36,9 +36,12 @@ def _populate_image_meta_models(image, image_meta):
     with yeild_tilesource_from_image(image) as tile_source:
         meta = tile_source.getMetadata()
         imeta = tile_source.getInternalMetadata()
+        bands = tile_source.getBandInformation()
 
-        image_meta.number_of_bands = len(meta['bands'])
-        image_meta.driver = imeta['driverShortName']
+        image_meta.number_of_bands = len(bands)
+        image_meta.driver = (
+            imeta['driverShortName'] if 'driverShortName' in imeta else 'pil'
+        )  # NOTE: assumes PIL if not using GDAL
         image_meta.height = meta['sizeY']
         image_meta.width = meta['sizeX']
         # No longer editing image_entry
@@ -46,7 +49,7 @@ def _populate_image_meta_models(image, image_meta):
 
         # TODO: we need `PILFileTileSource` in large_image to support band information
         if 'bands' in meta:
-            for index, band_info in meta['bands'].items():
+            for index, band_info in bands.items():
 
                 def safe_get(key):
                     return band_info[key] if key in band_info else None
