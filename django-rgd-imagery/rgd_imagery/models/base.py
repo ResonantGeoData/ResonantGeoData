@@ -1,5 +1,6 @@
 """Base classes for raster dataset entries."""
 from django.contrib.gis.db import models
+from django.contrib.postgres.fields import DecimalRangeField
 from django_extensions.db.models import TimeStampedModel
 from rgd.models import ChecksumFile, SpatialEntry
 from rgd.models.mixins import DetailViewMixin, PermissionPathMixin, TaskEventMixin
@@ -17,7 +18,7 @@ class Image(TimeStampedModel, TaskEventMixin, PermissionPathMixin):
 
     """
 
-    permissions_paths = ['file__collection__collection_permissions']
+    permissions_paths = [('file', ChecksumFile)]
     task_funcs = (jobs.task_load_image,)
     file = models.ForeignKey(ChecksumFile, on_delete=models.CASCADE, related_name='+')
 
@@ -30,25 +31,27 @@ class Image(TimeStampedModel, TaskEventMixin, PermissionPathMixin):
 class ImageMeta(TimeStampedModel, PermissionPathMixin):
     """Single image entry, tracks the original file."""
 
-    permissions_paths = ['parent_image__file__collection__collection_permissions']
+    permissions_paths = [('parent_image', Image)]
 
     parent_image = models.OneToOneField(Image, on_delete=models.CASCADE)
     driver = models.CharField(max_length=100)
     height = models.PositiveIntegerField()
     width = models.PositiveIntegerField()
-    number_of_bands = models.PositiveIntegerField()
+    number_of_bands = (
+        models.PositiveIntegerField()
+    )  # TODO: code smell? this can be computed relationally
 
 
 class BandMeta(TimeStampedModel, PermissionPathMixin):
     """A basic container to keep track of useful band info."""
 
-    permissions_paths = ['parent_image__file__collection__collection_permissions']
+    permissions_paths = [('parent_image', Image)]
     parent_image = models.ForeignKey(Image, on_delete=models.CASCADE)
     band_number = models.IntegerField()
     description = models.TextField(
         null=True,
         blank=True,
-        help_text='Automatically retreived from raster but can be overwritten.',
+        help_text='Automatically retrieved from raster but can be overwritten.',
     )
     max = models.FloatField(null=True)
     min = models.FloatField(null=True)
@@ -56,12 +59,15 @@ class BandMeta(TimeStampedModel, PermissionPathMixin):
     std = models.FloatField(null=True)
     nodata_value = models.FloatField(null=True)
     interpretation = models.TextField()
+    band_range = DecimalRangeField(
+        null=True, help_text='The spectral range of the band (in micrometers).'
+    )
 
 
 class ImageSet(TimeStampedModel, PermissionPathMixin):
     """Container for many images."""
 
-    permissions_paths = ['images__file__collection__collection_permissions']
+    permissions_paths = [('images', Image)]
 
     name = models.CharField(max_length=1000, blank=True)
     description = models.TextField(null=True, blank=True)
@@ -94,7 +100,7 @@ class ImageSet(TimeStampedModel, PermissionPathMixin):
 class ImageSetSpatial(TimeStampedModel, SpatialEntry, PermissionPathMixin, DetailViewMixin):
     """Arbitrary register an ImageSet to a location."""
 
-    permissions_paths = ['image_set__images__file__collection__collection_permissions']
+    permissions_paths = [('image_set', ImageSet)]
     detail_view_name = 'image-set-spatial-detail'
 
     image_set = models.OneToOneField(ImageSet, on_delete=models.CASCADE)

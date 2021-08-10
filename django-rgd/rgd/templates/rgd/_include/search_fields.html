@@ -96,4 +96,21 @@
     </div>
   </div>
 
+
+  <div class="column is-full field mb-0">
+    <div class="field-label is-normal">
+      <label class="label">Time of Day</label>
+    </div>
+    <div class="field-body">
+      <div class="field">
+        <div class="control">
+          <input type="time" name="time_of_day_after" value="{{ request.GET.time_of_day_after }}">
+          <button onclick="javascript:time_of_day_after.value=''" type="button">X</button>
+          <input type="time" name="time_of_day_before" value="{{ request.GET.time_of_day_before }}">
+          <button onclick="javascript:time_of_day_before.value=''" type="button">X</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
 {% endblock %}

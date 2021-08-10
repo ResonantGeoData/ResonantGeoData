@@ -27,7 +27,7 @@ class Annotation(TimeStampedModel, PermissionPathMixin):
         """Get type of segmentation."""
         return self.segmentation.get_type()
 
-    permissions_paths = ['image__collection__collection_permissions']
+    permissions_paths = [('image', Image)]
 
 
 class Segmentation(models.Model):
@@ -67,7 +67,7 @@ class Segmentation(models.Model):
             pass
         return 'Oultine/BBox'
 
-    permissions_paths = ['annotation__image__collection__collection_permissions']
+    permissions_paths = [('annotation', Annotation)]
 
 
 class PolygonSegmentation(Segmentation):
@@ -76,7 +76,7 @@ class PolygonSegmentation(Segmentation):
     Note
     ----
     We use ``MultiPolygonField`` as the segmentation can be multiple
-    seperated polygons across the image.
+    separated polygons across the image.
 
     """
 

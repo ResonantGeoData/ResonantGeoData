@@ -2,6 +2,7 @@ from django.contrib.gis import forms
 from django.contrib.gis.db.models.functions import GeometryDistance
 from django.contrib.gis.measure import D
 from django.core.validators import RegexValidator
+from django.db.models import F
 from django_filters import rest_framework as filters
 from rgd.models import SpatialEntry
 
@@ -67,6 +68,12 @@ class SpatialEntryFilter(filters.FilterSet):
         lookup_expr='icontains',
     )
 
+    time_of_day = filters.TimeRangeFilter(
+        help_text='The minimum/maximum times during the day the records were aqcuired.',
+        label='Time of Day',
+        method='filter_time_of_day',
+    )
+
     @property
     def _geometry(self):
         return self.form.cleaned_data['q']
@@ -116,6 +123,20 @@ class SpatialEntryFilter(filters.FilterSet):
                 queryset = queryset.filter(footprint__distance_lte=(geom, D(m=value.stop)))
         return queryset
 
+    def filter_time_of_day(self, queryset, name, value):
+        """Filter the queryset by time of day acquired.
+
+        Use case: find all rasters acquired between 8am and 4pm
+        for all days in the acquired date range (i.e. only daytime imagery)
+        """
+        if value is not None:
+            queryset = queryset.annotate(time_of_day=F('acquisition_date__time'))
+            if value.start is not None:
+                queryset = queryset.filter(time_of_day__gte=value.start)
+            if value.stop is not None:
+                queryset = queryset.filter(time_of_day__lte=value.stop)
+        return queryset
+
     class Meta:
         model = SpatialEntry
         fields = [
@@ -125,4 +146,5 @@ class SpatialEntryFilter(filters.FilterSet):
             'distance',
             'acquired',
             'instrumentation',
+            'time_of_day',
         ]
