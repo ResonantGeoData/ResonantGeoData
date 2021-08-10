@@ -4,7 +4,7 @@ from drf_yasg.utils import swagger_auto_schema
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from rgd import models
-from rgd.permissions import check_read_perm
+from rgd.permissions import check_read_perm, get_model
 
 
 @swagger_auto_schema(
@@ -19,10 +19,8 @@ def download_checksum_file(request, pk):
 
 
 def _get_status_response(request, model, pk):
-    model_class = ''.join([part[:1].upper() + part[1:] for part in model.split('_')])
-    if not hasattr(models, model_class):
-        raise AttributeError(f'No such model ({model})')
-    instance = get_object_or_404(getattr(models, model_class), pk=pk)
+    model_class = get_model(model)
+    instance = get_object_or_404(model_class, pk=pk)
     check_read_perm(request.user, instance)
     if not hasattr(instance, 'status'):
         raise AttributeError(f'Model ({model}) has no attribute (status).')
