@@ -314,3 +314,18 @@ class Rgdc:
             params['cloud_cover_max'] = ccmax
 
         return list(limit_offset_pager(self.session, 'rgd_imagery/raster/search', params=params))
+
+    def create_resampled_image(self, image_id: Union[str, int], sample_factor: float) -> Dict:
+        """ """
+        payload = dict(
+            source_image=image_id,
+            sample_factor=sample_factor,
+        )
+        r = self.session.post('image_process/imagery/resample', json=payload)
+        r.raise_for_status()
+        return r.json()
+
+    def get_resampled_image(self, resampled_id: int) -> Dict:
+        """"""
+        r = self.session.get(f'image_process/imagery/resample/{resampled_id}')
+        return r.json()
