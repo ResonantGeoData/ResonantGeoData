@@ -43,31 +43,13 @@ def _post_save_image_file(sender, instance, *args, **kwargs):
     transaction.on_commit(lambda: instance._post_save_event_task(*args, **kwargs))
 
 
-@receiver(post_save, sender=models.ConvertedImage)
+@receiver(post_save, sender=models.ProcessedImage)
 @skip_signal()
-def _post_save_converted_image_file(sender, instance, *args, **kwargs):
+def _post_save_processed_image(sender, instance, *args, **kwargs):
     transaction.on_commit(lambda: instance._post_save_event_task(*args, **kwargs))
 
 
-@receiver(post_save, sender=models.RegionImage)
+@receiver(post_delete, sender=models.ProcessedImage)
 @skip_signal()
-def _post_save_subsampled_image(sender, instance, *args, **kwargs):
-    transaction.on_commit(lambda: instance._post_save_event_task(*args, **kwargs))
-
-
-@receiver(post_delete, sender=models.ConvertedImage)
-@skip_signal()
-def _post_delete_converted_image_file(sender, instance, *args, **kwargs):
+def _post_delete_processed_image(sender, instance, *args, **kwargs):
     transaction.on_commit(lambda: instance._post_delete(*args, **kwargs))
-
-
-@receiver(post_delete, sender=models.RegionImage)
-@skip_signal()
-def _post_delete_subsampled_image(sender, instance, *args, **kwargs):
-    transaction.on_commit(lambda: instance._post_delete(*args, **kwargs))
-
-
-@receiver(post_save, sender=models.ResampledImage)
-@skip_signal()
-def _post_save_resampled_image(sender, instance, *args, **kwargs):
-    transaction.on_commit(lambda: instance._post_save_event_task(*args, **kwargs))

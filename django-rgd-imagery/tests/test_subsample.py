@@ -2,8 +2,8 @@ from large_image_source_gdal import GDALFileTileSource
 import pytest
 from rgd.datastore import datastore
 from rgd.models import ChecksumFile
-from rgd_imagery.models import Annotation, ConvertedImage, Image, RegionImage
-from rgd_imagery.tasks.subsample import populate_region_image
+from rgd_imagery.models import Annotation, Image, ProcessedImage
+from rgd_imagery.tasks.subsample import extract_region
 
 from . import factories
 
@@ -14,22 +14,23 @@ def test_cog_image_conversion():
         file__file__filename='20091021202517-01000100-VIS_0001.ntf',
         file__file__from_path=datastore.fetch('20091021202517-01000100-VIS_0001.ntf'),
     )
-    c = ConvertedImage()
+    c = ProcessedImage()
     c.source_image = image
+    c.process_type = ProcessedImage.ProcessTypes.COG
     c.save()
     # Task should complete synchronously
     c.refresh_from_db()
     assert c.processed_image
 
 
-def _create_subsampled(image, sample_type, params):
-    sub = RegionImage()
+def _create_subsampled(image, params):
+    sub = ProcessedImage()
     sub.source_image = image
-    sub.sample_type = sample_type
+    sub.process_type = ProcessedImage.ProcessTypes.REGION
     sub.sample_parameters = params
     sub.skip_signal = True
     sub.save()
-    populate_region_image(sub)
+    extract_region(sub)
     sub.refresh_from_db()
     return sub
 
@@ -48,7 +49,7 @@ def test_subsample_pixel_box(elevation):
         bounds = tile_source.getBounds()
     # Test with bbox
     sub = _create_subsampled(
-        elevation, 'pixel box', {'left': 0, 'right': 100, 'bottom': 0, 'top': 200}
+        elevation, {'sample_type': 'pixel box', 'left': 0, 'right': 100, 'bottom': 0, 'top': 200}
     )
     sub.refresh_from_db()
     assert sub.processed_image.file
@@ -68,8 +69,8 @@ def test_subsample_geo_box(elevation):
     # 38.87471016725091, 38.92317443621267
     sub = _create_subsampled(
         elevation,
-        'geographic box',
         {
+            'sample_type': 'geographic box',
             'left': -107.16011512365533,
             'right': -107.05522782296597,
             'bottom': 38.87471016725091,
@@ -92,6 +93,7 @@ def test_subsample_geojson(elevation):
         bounds = tile_source.getBounds()
     # Test with GeoJSON
     geojson = {
+        'sample_type': 'geojson',
         'type': 'Polygon',
         'coordinates': [
             [
@@ -105,7 +107,7 @@ def test_subsample_geojson(elevation):
         ],
         'projection': 'EPSG:4326',
     }
-    sub = _create_subsampled(elevation, 'geojson', geojson)
+    sub = _create_subsampled(elevation, geojson)
     sub.refresh_from_db()
     assert sub.processed_image.file
     with sub.processed_image.file.yield_local_path() as file_path:
@@ -127,6 +129,6 @@ def test_subsample_annotaion():
     file = ChecksumFile.objects.get(name='000000242287.jpg')  # bicycle
     image = Image.objects.get(file=file)
     a = Annotation.objects.get(image=image.pk)  # Should be only one
-    sub = _create_subsampled(image, 'annotation', {'id': a.pk})
+    sub = _create_subsampled(image, {'sample_type': 'annotation', 'id': a.pk})
     sub.refresh_from_db()
     assert sub.processed_image.file

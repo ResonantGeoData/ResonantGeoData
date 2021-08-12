@@ -48,27 +48,9 @@ def task_load_kwcoco_dataset(kwcoco_dataset_id):
 
 
 @shared_task(time_limit=86400)
-def task_convert_to_cog(conv_id):
-    from rgd_imagery.models import ConvertedImage
-    from rgd_imagery.tasks.subsample import convert_to_cog
+def task_run_processed_image(conv_id):
+    from rgd_imagery.models import ProcessedImage
+    from rgd_imagery.tasks.subsample import run_processed_image
 
-    obj = ConvertedImage.objects.get(id=conv_id)
-    helpers._run_with_failure_reason(obj, convert_to_cog, conv_id)
-
-
-@shared_task(time_limit=86400)
-def task_populate_region_image(subsampled_id):
-    from rgd_imagery.models import RegionImage
-    from rgd_imagery.tasks.subsample import populate_region_image
-
-    obj = RegionImage.objects.get(id=subsampled_id)
-    helpers._run_with_failure_reason(obj, populate_region_image, subsampled_id)
-
-
-@shared_task(time_limit=86400)
-def task_resample_image(resampled_id):
-    from rgd_imagery.models import ResampledImage
-    from rgd_imagery.tasks.subsample import resample_image
-
-    obj = ResampledImage.objects.get(id=resampled_id)
-    helpers._run_with_failure_reason(obj, resample_image, resampled_id)
+    obj = ProcessedImage.objects.get(id=conv_id)
+    helpers._run_with_failure_reason(obj, run_processed_image, conv_id)

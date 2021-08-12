@@ -2,13 +2,16 @@
 from contextlib import contextmanager
 
 from celery.utils.log import get_task_logger
+from django.contrib.gis.geos import GEOSGeometry
 import large_image_converter
 import rasterio
 from rasterio.warp import Resampling
 from rgd.models import ChecksumFile
 from rgd.utility import input_output_path_helper, output_path_helper
 from rgd_imagery import large_image_utilities
-from rgd_imagery.models import ConvertedImage, Image, RegionImage, ResampledImage
+from rgd_imagery.models import Annotation, Image, ProcessedImage
+from shapely.geometry import shape
+from shapely.wkb import dumps
 
 logger = get_task_logger(__name__)
 
@@ -38,14 +41,9 @@ def _processed_image_helper(param_model):
     logger.info(f'Produced ProcessedImage in ChecksumFile: {param_model.processed_image.file.id}')
 
 
-def convert_to_cog(cog):
-    """Populate ConvertedImage with COG file."""
-    if not isinstance(cog, ConvertedImage):
-        cog = ConvertedImage.objects.get(id=cog)
-    else:
-        cog.refresh_from_db()
-
-    with _processed_image_helper(cog) as (image, output):
+def convert_to_cog(param_model):
+    """Convert Image to Cloud Optimized GeoTIFF."""
+    with _processed_image_helper(param_model) as (image, output):
 
         with input_output_path_helper(image.file, output.file, prefix='cog_', vsi=True) as (
             input_path,
@@ -54,14 +52,59 @@ def convert_to_cog(cog):
             large_image_converter.convert(str(input_path), str(output_path))
 
 
-def populate_region_image(region):
-    if not isinstance(region, RegionImage):
-        region = RegionImage.objects.get(id=region)
-    else:
-        region.refresh_from_db()
+def extract_region(region):
 
     logger.info(f'Subsample parameters: {region.sample_parameters}')
-    l, r, b, t, projection = region.get_extent()
+
+    class SampleTypes:
+        PIXEL_BOX = 'pixel box'
+        GEO_BOX = 'geographic box'
+        GEOJSON = 'geojson'
+        ANNOTATION = 'annotation'
+
+    def get_extent():
+        """Convert ``sample_parameters`` to length 4 tuple of XY extents.
+
+        Note
+        ----
+        A ``KeyError`` could be raised if the sample parameters are illformed.
+
+        Return
+        ------
+        extents, projection: <left, right, bottom, top>, <projection>
+
+        """
+        p = region.sample_parameters
+        sample_type = p['sample_type']
+
+        projection = p.pop('projection', None)
+        if sample_type in (
+            SampleTypes.PIXEL_BOX,
+            SampleTypes.ANNOTATION,
+        ):
+            projection = 'pixels'
+
+        if sample_type in (
+            SampleTypes.GEO_BOX,
+            SampleTypes.PIXEL_BOX,
+        ):
+            return p['left'], p['right'], p['bottom'], p['top'], projection
+        elif sample_type == SampleTypes.GEOJSON:
+            # Convert GeoJSON to extents
+            geom = shape(p)
+            feature = GEOSGeometry(memoryview(dumps(geom)))
+            l, b, r, t = feature.extent  # (xmin, ymin, xmax, ymax)
+            return l, r, b, t, projection
+        elif sample_type == SampleTypes.ANNOTATION:
+            ann_id = p['id']
+            ann = Annotation.objects.get(id=ann_id)
+            l, b, r, t = ann.segmentation.outline.extent  # (xmin, ymin, xmax, ymax)
+            return l, r, b, t, projection
+        else:
+            raise ValueError('Sample type ({}) unknown.'.format(sample_type))
+
+    l, r, b, t, projection = get_extent()
+    sample_type = region.sample_parameters['sample_type']
 
     with _processed_image_helper(region) as (image, output):
         tile_source = large_image_utilities.get_tilesource_from_image(image)
@@ -70,9 +113,9 @@ def populate_region_image(region):
 
         with output_path_helper(filename, output.file) as output_path:
             logger.info(f'The extent: {l, r, b, t}')
-            if region.sample_type in (
-                RegionImage.SampleTypes.GEOJSON,
-                RegionImage.SampleTypes.GEO_BOX,
+            if sample_type in (
+                SampleTypes.GEOJSON,
+                SampleTypes.GEO_BOX,
             ):
                 path, mime_type = large_image_utilities.get_region_world(
                     tile_source, l, r, b, t, projection=projection
@@ -84,12 +127,8 @@ def populate_region_image(region):
 
 
 def resample_image(resample):
-    if not isinstance(resample, ResampledImage):
-        resample = ResampledImage.objects.get(id=resample)
-    else:
-        resample.refresh_from_db()
 
-    factor = resample.sample_factor
+    factor = float(resample.sample_parameters['sample_factor'])
     logger.info(f'Resample factor: {factor}')
 
     with _processed_image_helper(resample) as (image, output):
@@ -132,3 +171,17 @@ def resample_image(resample):
 
                 with rasterio.open(output_path, 'w', **out_meta) as dest:
                     dest.write(data)
+
+
+def run_processed_image(processed_image):
+    if not isinstance(processed_image, ProcessedImage):
+        processed_image = ProcessedImage.objects.get(id=processed_image)
+    else:
+        processed_image.refresh_from_db()
+
+    methods = {
+        ProcessedImage.ProcessTypes.COG: convert_to_cog,
+        ProcessedImage.ProcessTypes.REGION: extract_region,
+        ProcessedImage.ProcessTypes.RESAMPLE: resample_image,
+    }
+    return methods[processed_image.process_type](processed_image)

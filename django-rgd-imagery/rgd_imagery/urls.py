@@ -111,40 +111,10 @@ urlpatterns = [
         rest.tiles.TileSingleBandInfoView.as_view(),
         name='image-bands-single',
     ),
-    path('api/image_process/imagery/cog', rest.post.CreateConvertedImage.as_view()),
+    path('api/image_process', rest.post.CreateProcessedImage.as_view()),
     path(
-        'api/image_process/imagery/cog/<int:pk>',
-        rest.get.GetConvertedImageStatus.as_view(),
+        'api/image_process/<int:pk>',
+        rest.get.GetProcessedImage.as_view(),
         name='cog',
-    ),
-    path(
-        'api/image_process/imagery/cog/<int:pk>/data',
-        rest.download.download_cog_file,
-        name='cog-data',
-    ),
-    path(
-        'api/image_process/imagery/subsample',
-        rest.post.CreateRegionImage.as_view(),
-        name='create-subsample',
-    ),
-    path(
-        'api/image_process/imagery/subsample/<int:pk>',
-        rest.get.GetRegionImage.as_view(),
-        name='subsampled',
-    ),
-    path(
-        'api/image_process/imagery/resample/<int:pk>',
-        rest.get.GetResampledImage.as_view(),
-        name='resampled',
-    ),
-    path(
-        'api/image_process/imagery/resample',
-        rest.post.CreateResampledImage.as_view(),
-        name='create-resampled',
-    ),
-    path(
-        'api/image_process/imagery/subsample/<int:pk>/status',
-        rest.download.get_status_subsampled_image,
-        name='subsampled-status',
     ),
 ]

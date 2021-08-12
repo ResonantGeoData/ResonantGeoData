@@ -3,24 +3,10 @@ from rgd.rest.get import _PermissionMixin
 from rgd_imagery import models, serializers
 
 
-class GetConvertedImageStatus(RetrieveAPIView, _PermissionMixin):
-    """Get the status of a ConvertedImage by PK."""
-
-    serializer_class = serializers.ConvertedImageSerializer
+class GetProcessedImage(RetrieveAPIView, _PermissionMixin):
+    serializer_class = serializers.ProcessedImageSerializer
     lookup_field = 'pk'
-    queryset = models.ConvertedImage.objects.all()
-
-
-class GetRegionImage(RetrieveAPIView, _PermissionMixin):
-    serializer_class = serializers.RegionImageSerializer
-    lookup_field = 'pk'
-    queryset = models.RegionImage.objects.all()
-
-
-class GetResampledImage(RetrieveAPIView, _PermissionMixin):
-    serializer_class = serializers.ResampledImageSerializer
-    lookup_field = 'pk'
-    queryset = models.ResampledImage.objects.all()
+    queryset = models.ProcessedImage.objects.all()
 
 
 class GetImageMeta(RetrieveAPIView, _PermissionMixin):
