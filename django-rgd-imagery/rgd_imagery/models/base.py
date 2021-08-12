@@ -74,7 +74,6 @@ class ImageSet(TimeStampedModel, PermissionPathMixin):
     description = models.TextField(null=True, blank=True)
 
     images = models.ManyToManyField(Image)
-    secondary = models.ManyToManyField(Image, related_name='+', null=True, blank=True)
 
     @property
     def image_bands(self):
