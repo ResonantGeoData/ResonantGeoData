@@ -20,6 +20,8 @@ def download_checksum_file(request, pk):
 
 def _get_status_response(request, model, pk):
     model_class = get_model(model)
+    if not model_class:
+        raise AttributeError(f'Model ({model}) does not exist.')
     instance = get_object_or_404(model_class, pk=pk)
     check_read_perm(request.user, instance)
     if not hasattr(instance, 'status'):
