@@ -9,13 +9,14 @@ class ProcessedImageAdmin(OSMGeoAdmin):
     list_display = (
         'pk',
         'source_image',
+        'process_type',
         'status',
         'modified',
         'created',
     )
     readonly_fields = MODIFIABLE_FILTERS + TASK_EVENT_READONLY
     actions = (reprocess,)
-    list_filter = MODIFIABLE_FILTERS + TASK_EVENT_FILTERS
+    list_filter = ('process_type',) + MODIFIABLE_FILTERS + TASK_EVENT_FILTERS
 
 
 @admin.register(ProcessedImageGroup)
