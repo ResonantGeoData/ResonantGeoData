@@ -39,7 +39,6 @@ class ProcessedImageSerializer(serializers.ModelSerializer):
 
 
 class ProcessedImageGroupSerializer(serializers.ModelSerializer):
-
     def validate_source_image(self, value):
         if 'request' in self.context:
             check_write_perm(self.context['request'].user, value)
