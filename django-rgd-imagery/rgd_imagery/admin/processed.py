@@ -13,6 +13,6 @@ class ProcessedImageAdmin(OSMGeoAdmin):
         'modified',
         'created',
     )
-    readonly_fields = ('processed_image',) + TASK_EVENT_READONLY
+    readonly_fields = TASK_EVENT_READONLY
     actions = (reprocess,)
     list_filter = MODIFIABLE_FILTERS + TASK_EVENT_FILTERS

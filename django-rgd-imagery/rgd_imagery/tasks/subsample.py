@@ -54,7 +54,7 @@ def convert_to_cog(param_model):
 
 def extract_region(region):
 
-    logger.info(f'Subsample parameters: {region.sample_parameters}')
+    logger.info(f'Subsample parameters: {region.parameters}')
 
     class SampleTypes:
         PIXEL_BOX = 'pixel box'
@@ -63,7 +63,7 @@ def extract_region(region):
         ANNOTATION = 'annotation'
 
     def get_extent():
-        """Convert ``sample_parameters`` to length 4 tuple of XY extents.
+        """Convert ``parameters`` to length 4 tuple of XY extents.
 
         Note
         ----
@@ -74,7 +74,7 @@ def extract_region(region):
         extents, projection: <left, right, bottom, top>, <projection>
 
         """
-        p = region.sample_parameters
+        p = region.parameters
         sample_type = p['sample_type']
 
         projection = p.pop('projection', None)
@@ -104,7 +104,7 @@ def extract_region(region):
             raise ValueError('Sample type ({}) unknown.'.format(sample_type))
 
     l, r, b, t, projection = get_extent()
-    sample_type = region.sample_parameters['sample_type']
+    sample_type = region.parameters['sample_type']
 
     with _processed_image_helper(region) as (image, output):
         tile_source = large_image_utilities.get_tilesource_from_image(image)
@@ -128,7 +128,7 @@ def extract_region(region):
 
 def resample_image(resample):
 
-    factor = float(resample.sample_parameters['sample_factor'])
+    factor = float(resample.parameters['sample_factor'])
     logger.info(f'Resample factor: {factor}')
 
     with _processed_image_helper(resample) as (image, output):
@@ -183,5 +183,6 @@ def run_processed_image(processed_image):
         ProcessedImage.ProcessTypes.COG: convert_to_cog,
         ProcessedImage.ProcessTypes.REGION: extract_region,
         ProcessedImage.ProcessTypes.RESAMPLE: resample_image,
+        ProcessedImage.ProcessTypes.ARBITRARY: lambda *args: None,
     }
     return methods[processed_image.process_type](processed_image)

@@ -27,7 +27,7 @@ def _create_subsampled(image, params):
     sub = ProcessedImage()
     sub.source_image = image
     sub.process_type = ProcessedImage.ProcessTypes.REGION
-    sub.sample_parameters = params
+    sub.parameters = params
     sub.skip_signal = True
     sub.save()
     extract_region(sub)

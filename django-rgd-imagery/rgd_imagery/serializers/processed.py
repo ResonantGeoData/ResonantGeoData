@@ -1,5 +1,6 @@
 from rest_framework import serializers
 from rgd.permissions import check_write_perm
+from rgd.serializers import ChecksumFileSerializer
 
 from .. import models
 from .base import ImageSerializer
@@ -7,7 +8,8 @@ from .base import ImageSerializer
 
 class ProcessedImageSerializer(serializers.ModelSerializer):
 
-    processed_image = ImageSerializer(read_only=True)
+    processed_image = ImageSerializer(required=False)
+    ancillary_files = ChecksumFileSerializer(many=True, required=False)
 
     def validate_source_image(self, value):
         if 'request' in self.context:
@@ -21,7 +23,6 @@ class ProcessedImageSerializer(serializers.ModelSerializer):
             'id',
             'status',
             'failure_reason',
-            'processed_image',
         ]
 
     def create(self, validated_data):

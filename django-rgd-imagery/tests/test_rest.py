@@ -14,25 +14,27 @@ def test_download_image_file(admin_api_client, astro_image):
 def test_create_get_subsampled_image(admin_api_client, astro_image):
     payload = {
         'source_image': astro_image.pk,
-        'sample_type': 'pixel box',
-        'sample_parameters': {'right': 100, 'left': 0, 'top': 200, 'bottom': 0},
+        'process_type': 'region',
+        'parameters': {
+            'sample_type': 'pixel box',
+            'right': 100,
+            'left': 0,
+            'top': 200,
+            'bottom': 0,
+        },
     }
-    response = admin_api_client.post(
-        '/rgd_imagery_test/api/image_process/imagery/subsample', payload, format='json'
-    )
+    response = admin_api_client.post('/rgd_imagery_test/api/image_process', payload, format='json')
     assert response.status_code == 201
     assert response.data
     id = response.data['id']
     sub = models.ProcessedImage.objects.get(id=id)
     assert sub.processed_image
     # Test the GET
-    response = admin_api_client.get(f'/rgd_imagery_test/api/image_process/imagery/subsample/{id}')
+    response = admin_api_client.get(f'/rgd_imagery_test/api/image_process/{id}')
     assert response.status_code == 200
     assert response.data
     # Now test to make sure the serializer prevents duplicates
-    response = admin_api_client.post(
-        '/rgd_imagery_test/api/image_process/imagery/subsample', payload, format='json'
-    )
+    response = admin_api_client.post('/rgd_imagery_test/api/image_process', payload, format='json')
     assert response.status_code == 201
     assert response.data
     assert id == response.data['id']  # Compare against original PK
@@ -41,8 +43,12 @@ def test_create_get_subsampled_image(admin_api_client, astro_image):
 @pytest.mark.django_db(transaction=True)
 def test_create_and_download_cog(admin_api_client, geotiff_image_entry):
     response = admin_api_client.post(
-        '/rgd_imagery_test/api/image_process/imagery/cog',
-        {'source_image': geotiff_image_entry.id},
+        '/rgd_imagery_test/api/image_process',
+        {
+            'source_image': geotiff_image_entry.id,
+            'process_type': 'cog',
+        },
+        format='json',
     )
     assert response.status_code == 201
     assert response.data
@@ -52,5 +58,5 @@ def test_create_and_download_cog(admin_api_client, geotiff_image_entry):
     assert cog.processed_image
     # Also test download endpoint here:
     pk = cog.pk
-    response = admin_api_client.get(f'/rgd_imagery_test/api/image_process/imagery/cog/{pk}/data')
-    assert status.is_redirect(response.status_code)
+    response = admin_api_client.get(f'/rgd_imagery_test/api/image_process/{pk}')
+    assert response.data

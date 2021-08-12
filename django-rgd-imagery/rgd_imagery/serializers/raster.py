@@ -7,7 +7,7 @@ from .base import ImageSetSerializer
 
 class RasterSerializer(serializers.ModelSerializer):
     image_set = ImageSetSerializer()
-    ancillary_files = ChecksumFileSerializer(many=True)
+    ancillary_files = ChecksumFileSerializer(many=True, required=False)
 
     class Meta:
         model = models.Raster
