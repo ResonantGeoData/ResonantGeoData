@@ -8,7 +8,7 @@ from typing import Dict, Iterator, List, Optional, Tuple, Union
 from tqdm import tqdm
 
 from .session import RgdcSession
-from .types import DATETIME_OR_STR_TUPLE, SEARCH_PREDICATE_CHOICE
+from .types import DATETIME_OR_STR_TUPLE, PROCESSED_IMAGE_TYPES, SEARCH_PREDICATE_CHOICE
 from .utils import (
     DEFAULT_RGD_API,
     download_checksum_file_to_path,
@@ -315,17 +315,24 @@ class Rgdc:
 
         return list(limit_offset_pager(self.session, 'rgd_imagery/raster/search', params=params))
 
-    def create_resampled_image(self, image_id: Union[str, int], sample_factor: float) -> Dict:
-        """ """
+    def _create_processed_image(
+        self,
+        image_id: Union[str, int],
+        process_type: PROCESSED_IMAGE_TYPES,
+        parameters: dict = None,
+    ):
+        if parameters is None:
+            parameters = {}
         payload = dict(
             source_image=image_id,
-            sample_factor=sample_factor,
+            process_type=process_type,
+            parameters=parameters,
         )
-        r = self.session.post('image_process/imagery/resample', json=payload)
+        r = self.session.post('image_process', json=payload)
         r.raise_for_status()
         return r.json()
 
-    def get_resampled_image(self, resampled_id: int) -> Dict:
-        """"""
-        r = self.session.get(f'image_process/imagery/resample/{resampled_id}')
-        return r.json()
+    def create_resampled_image(self, image_id: Union[str, int], sample_factor: float) -> Dict:
+        return self._create_processed_image(
+            image_id=image_id, process_type='resample', parameters=dict(sample_factor=sample_factor)
+        )

@@ -12,3 +12,9 @@ SEARCH_PREDICATE_CHOICE = Literal[
     'touches',
     'within',
 ]
+PROCESSED_IMAGE_TYPES = Literal[
+    'arbitrary',
+    'cog',
+    'region',
+    'resample',
+]
