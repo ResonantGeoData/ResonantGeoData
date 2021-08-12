@@ -9,7 +9,7 @@ from rasterio.warp import Resampling
 from rgd.models import ChecksumFile
 from rgd.utility import input_output_path_helper, output_path_helper
 from rgd_imagery import large_image_utilities
-from rgd_imagery.models import Annotation, Image, ProcessedImage
+from rgd_imagery.models import Annotation, CompiledImages, Image, ProcessedImage
 from shapely.geometry import shape
 from shapely.wkb import dumps
 
@@ -186,3 +186,15 @@ def run_processed_image(processed_image):
         ProcessedImage.ProcessTypes.ARBITRARY: lambda *args: None,
     }
     return methods[processed_image.process_type](processed_image)
+
+
+def run_compiled_images(compiled_images):
+    if not isinstance(compiled_images, CompiledImages):
+        compiled_images = ProcessedImage.objects.get(id=compiled_images)
+    else:
+        compiled_images.refresh_from_db()
+
+    methods = {
+        ProcessedImage.ProcessTypes.ARBITRARY: lambda *args: None,
+    }
+    return methods[compiled_images.compile_type](compiled_images)

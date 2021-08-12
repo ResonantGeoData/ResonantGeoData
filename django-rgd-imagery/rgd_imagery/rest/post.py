@@ -7,6 +7,11 @@ class CreateProcessedImage(CreateAPIView):
     serializer_class = serializers.ProcessedImageSerializer
 
 
+class CreateProcessedImageGroup(CreateAPIView):
+    queryset = models.ProcessedImageGroup.objects.all()
+    serializer_class = serializers.ProcessedImageGroupSerializer
+
+
 class CreateRasterSTAC(CreateAPIView):
     queryset = models.RasterMeta.objects.all()
     serializer_class = serializers.STACRasterSerializer

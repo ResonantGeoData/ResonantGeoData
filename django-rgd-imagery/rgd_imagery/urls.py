@@ -111,7 +111,12 @@ urlpatterns = [
         rest.tiles.TileSingleBandInfoView.as_view(),
         name='image-bands-single',
     ),
-    path('api/image_process', rest.post.CreateProcessedImage.as_view()),
+    path('api/image_process', rest.post.CreateProcessedImage.as_view(), name='processed-image'),
+    path(
+        'api/image_process/group',
+        rest.post.CreateProcessedImageGroup.as_view(),
+        name='processed-image-group',
+    ),
     path(
         'api/image_process/<int:pk>',
         rest.get.GetProcessedImage.as_view(),
