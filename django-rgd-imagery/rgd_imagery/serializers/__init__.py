@@ -2,7 +2,7 @@ from rgd import utility
 
 from .. import models
 from .base import ImageMetaSerializer, ImageSerializer, ImageSetSerializer
-from .processed import ProcessedImageSerializer, ProcessedImageGroupSerializer
+from .processed import ProcessedImageGroupSerializer, ProcessedImageSerializer
 from .raster import RasterMetaSerializer, RasterSerializer
 from .stac import STACRasterSerializer
 

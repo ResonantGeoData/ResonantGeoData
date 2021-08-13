@@ -54,12 +54,3 @@ def task_run_processed_image(conv_id):
 
     obj = ProcessedImage.objects.get(id=conv_id)
     helpers._run_with_failure_reason(obj, run_processed_image, conv_id)
-
-
-@shared_task(time_limit=86400)
-def task_run_compiled_images(conv_id):
-    from rgd_imagery.models import CompiledImages
-    from rgd_imagery.tasks.subsample import run_compiled_images
-
-    obj = CompiledImages.objects.get(id=conv_id)
-    helpers._run_with_failure_reason(obj, run_compiled_images, conv_id)

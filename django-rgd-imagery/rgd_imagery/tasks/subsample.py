@@ -9,7 +9,7 @@ from rasterio.warp import Resampling
 from rgd.models import ChecksumFile
 from rgd.utility import input_output_path_helper, output_path_helper
 from rgd_imagery import large_image_utilities
-from rgd_imagery.models import Annotation, CompiledImages, Image, ProcessedImage
+from rgd_imagery.models import Annotation, Image, ProcessedImage, ProcessedImageGroup
 from shapely.geometry import shape
 from shapely.wkb import dumps
 
@@ -17,14 +17,23 @@ logger = get_task_logger(__name__)
 
 
 @contextmanager
-def _processed_image_helper(param_model):
+def _processed_image_helper(param_model, single_input=False):
     # yields the source image object and the processed image file object
     if not param_model.processed_image:
         file = ChecksumFile()
     else:
         file = param_model.processed_image.file
 
-    yield (param_model.source_image, file)
+    param_model.refresh_from_db()
+
+    if single_input:
+        if param_model.source_images.count() != 1:
+            raise RuntimeError(
+                f'The must be one and only one source image. {param_model.source_images.count()} were given.'
+            )
+        yield (param_model.source_images.first(), file)
+    else:
+        yield (param_model.source_images, file)
 
     file.save()
 
@@ -43,7 +52,7 @@ def _processed_image_helper(param_model):
 
 def convert_to_cog(param_model):
     """Convert Image to Cloud Optimized GeoTIFF."""
-    with _processed_image_helper(param_model) as (image, output):
+    with _processed_image_helper(param_model, single_input=True) as (image, output):
 
         with input_output_path_helper(image.file, output.file, prefix='cog_', vsi=True) as (
             input_path,
@@ -52,9 +61,9 @@ def convert_to_cog(param_model):
             large_image_converter.convert(str(input_path), str(output_path))
 
 
-def extract_region(region):
-
-    logger.info(f'Subsample parameters: {region.parameters}')
+def extract_region(processed_image):
+    parameters = processed_image.group.parameters
+    logger.info(f'Subsample parameters: {parameters}')
 
     class SampleTypes:
         PIXEL_BOX = 'pixel box'
@@ -74,7 +83,7 @@ def extract_region(region):
         extents, projection: <left, right, bottom, top>, <projection>
 
         """
-        p = region.parameters
+        p = parameters
         sample_type = p['sample_type']
 
         projection = p.pop('projection', None)
@@ -104,9 +113,9 @@ def extract_region(region):
             raise ValueError('Sample type ({}) unknown.'.format(sample_type))
 
     l, r, b, t, projection = get_extent()
-    sample_type = region.parameters['sample_type']
+    sample_type = parameters['sample_type']
 
-    with _processed_image_helper(region) as (image, output):
+    with _processed_image_helper(processed_image, single_input=True) as (image, output):
         tile_source = large_image_utilities.get_tilesource_from_image(image)
 
         filename = f'region-{image.file.name}'
@@ -126,12 +135,12 @@ def extract_region(region):
                 o.write(f.read())
 
 
-def resample_image(resample):
+def resample_image(processed_image):
 
-    factor = float(resample.parameters['sample_factor'])
+    factor = float(processed_image.group.parameters['sample_factor'])
     logger.info(f'Resample factor: {factor}')
 
-    with _processed_image_helper(resample) as (image, output):
+    with _processed_image_helper(processed_image, single_input=True) as (image, output):
 
         with input_output_path_helper(
             image.file, output.file, prefix='resampled_{:.2f}_'.format(factor), vsi=True
@@ -176,25 +185,11 @@ def resample_image(resample):
 def run_processed_image(processed_image):
     if not isinstance(processed_image, ProcessedImage):
         processed_image = ProcessedImage.objects.get(id=processed_image)
-    else:
-        processed_image.refresh_from_db()
 
     methods = {
-        ProcessedImage.ProcessTypes.COG: convert_to_cog,
-        ProcessedImage.ProcessTypes.REGION: extract_region,
-        ProcessedImage.ProcessTypes.RESAMPLE: resample_image,
-        ProcessedImage.ProcessTypes.ARBITRARY: lambda *args: None,
+        ProcessedImageGroup.ProcessTypes.COG: convert_to_cog,
+        ProcessedImageGroup.ProcessTypes.REGION: extract_region,
+        ProcessedImageGroup.ProcessTypes.RESAMPLE: resample_image,
+        ProcessedImageGroup.ProcessTypes.ARBITRARY: lambda *args: None,
     }
-    return methods[processed_image.process_type](processed_image)
-
-
-def run_compiled_images(compiled_images):
-    if not isinstance(compiled_images, CompiledImages):
-        compiled_images = ProcessedImage.objects.get(id=compiled_images)
-    else:
-        compiled_images.refresh_from_db()
-
-    methods = {
-        ProcessedImage.ProcessTypes.ARBITRARY: lambda *args: None,
-    }
-    return methods[compiled_images.compile_type](compiled_images)
+    return methods[processed_image.group.process_type](processed_image)

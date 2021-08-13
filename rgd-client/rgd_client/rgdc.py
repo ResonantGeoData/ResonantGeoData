@@ -315,24 +315,30 @@ class Rgdc:
 
         return list(limit_offset_pager(self.session, 'rgd_imagery/raster/search', params=params))
 
-    def _create_processed_image(
+    def create_processed_image_group(
         self,
-        image_id: Union[str, int],
         process_type: PROCESSED_IMAGE_TYPES,
         parameters: dict = None,
     ):
         if parameters is None:
             parameters = {}
         payload = dict(
-            source_image=image_id,
             process_type=process_type,
             parameters=parameters,
+        )
+        r = self.session.post('image_process/group', json=payload)
+        r.raise_for_status()
+        return r.json()
+
+    def create_processed_image(
+        self, image_ids: List[Union[str, int]], group_id: Union[str, int, dict]
+    ) -> Dict:
+        if isinstance(group_id, dict):
+            group_id = group_id['id']
+        payload = dict(
+            group=group_id,
+            source_images=image_ids,
         )
         r = self.session.post('image_process', json=payload)
         r.raise_for_status()
         return r.json()
-
-    def create_resampled_image(self, image_id: Union[str, int], sample_factor: float) -> Dict:
-        return self._create_processed_image(
-            image_id=image_id, process_type='resample', parameters=dict(sample_factor=sample_factor)
-        )

@@ -4,28 +4,30 @@ from rgd.admin.mixins import MODIFIABLE_FILTERS, TASK_EVENT_FILTERS, TASK_EVENT_
 from rgd_imagery.models import ProcessedImage, ProcessedImageGroup
 
 
-@admin.register(ProcessedImage)
-class ProcessedImageAdmin(OSMGeoAdmin):
+class ProcessedImageAdmin(admin.StackedInline):
+    model = ProcessedImage
+    fk_name = 'group'
+    extra = 0
     list_display = (
         'pk',
-        'source_image',
-        'process_type',
         'status',
         'modified',
         'created',
     )
     readonly_fields = MODIFIABLE_FILTERS + TASK_EVENT_READONLY
     actions = (reprocess,)
-    list_filter = ('process_type',) + MODIFIABLE_FILTERS + TASK_EVENT_FILTERS
+    list_filter = MODIFIABLE_FILTERS + TASK_EVENT_FILTERS
 
 
 @admin.register(ProcessedImageGroup)
 class ProcessedImageGroupAdmin(OSMGeoAdmin):
     list_display = (
         'pk',
+        'process_type',
         'modified',
         'created',
     )
     readonly_fields = MODIFIABLE_FILTERS
     actions = (reprocess,)
-    list_filter = MODIFIABLE_FILTERS
+    list_filter = ('process_type',) + MODIFIABLE_FILTERS
+    inlines = (ProcessedImageAdmin,)

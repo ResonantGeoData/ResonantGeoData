@@ -59,21 +59,3 @@ def _post_delete_processed_image(sender, instance, *args, **kwargs):
 @skip_signal()
 def _post_save_processed_image_group(sender, instance, *args, **kwargs):
     transaction.on_commit(lambda: instance._post_save(*args, **kwargs))
-
-
-@receiver(post_delete, sender=models.ProcessedImageGroup)
-@skip_signal()
-def _post_delete_processed_image_group(sender, instance, *args, **kwargs):
-    transaction.on_commit(lambda: instance._post_delete(*args, **kwargs))
-
-
-@receiver(post_save, sender=models.CompiledImages)
-@skip_signal()
-def _post_save_compiled_images(sender, instance, *args, **kwargs):
-    transaction.on_commit(lambda: instance._post_save_event_task(*args, **kwargs))
-
-
-@receiver(post_delete, sender=models.CompiledImages)
-@skip_signal()
-def _post_delete_compiled_images(sender, instance, *args, **kwargs):
-    transaction.on_commit(lambda: instance._post_delete(*args, **kwargs))

@@ -13,7 +13,6 @@ def test_download_image_file(admin_api_client, astro_image):
 @pytest.mark.django_db(transaction=True)
 def test_create_get_subsampled_image(admin_api_client, astro_image):
     payload = {
-        'source_image': astro_image.pk,
         'process_type': 'region',
         'parameters': {
             'sample_type': 'pixel box',
@@ -22,6 +21,18 @@ def test_create_get_subsampled_image(admin_api_client, astro_image):
             'top': 200,
             'bottom': 0,
         },
+    }
+    response = admin_api_client.post(
+        '/rgd_imagery_test/api/image_process/group', payload, format='json'
+    )
+    assert response.status_code == 201
+    assert response.data
+    group_id = response.data['id']
+    payload = {
+        'source_images': [
+            astro_image.pk,
+        ],
+        'group': group_id,
     }
     response = admin_api_client.post('/rgd_imagery_test/api/image_process', payload, format='json')
     assert response.status_code == 201
@@ -42,18 +53,33 @@ def test_create_get_subsampled_image(admin_api_client, astro_image):
 
 @pytest.mark.django_db(transaction=True)
 def test_create_and_download_cog(admin_api_client, geotiff_image_entry):
+    payload = {
+        'process_type': 'cog',
+    }
+    response = admin_api_client.post(
+        '/rgd_imagery_test/api/image_process/group', payload, format='json'
+    )
+    assert response.status_code == 201
+    assert response.data
+    group_id = response.data['id']
     response = admin_api_client.post(
         '/rgd_imagery_test/api/image_process',
         {
-            'source_image': geotiff_image_entry.id,
-            'process_type': 'cog',
+            'source_images': [
+                geotiff_image_entry.id,
+            ],
+            'group': group_id,
         },
         format='json',
     )
     assert response.status_code == 201
     assert response.data
     # Check that a COG was generated
-    cog = models.ProcessedImage.objects.get(source_image=geotiff_image_entry.id)
+    cog = models.ProcessedImage.objects.get(
+        source_images=[
+            geotiff_image_entry.id,
+        ]
+    )
     # NOTE: This doesn't actually verify the file is in COG format. Assumed.
     assert cog.processed_image
     # Also test download endpoint here:

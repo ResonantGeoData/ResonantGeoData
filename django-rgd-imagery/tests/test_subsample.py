@@ -2,7 +2,7 @@ from large_image_source_gdal import GDALFileTileSource
 import pytest
 from rgd.datastore import datastore
 from rgd.models import ChecksumFile
-from rgd_imagery.models import Annotation, Image, ProcessedImage
+from rgd_imagery.models import Annotation, Image, ProcessedImage, ProcessedImageGroup
 from rgd_imagery.tasks.subsample import extract_region
 
 from . import factories
@@ -14,9 +14,15 @@ def test_cog_image_conversion():
         file__file__filename='20091021202517-01000100-VIS_0001.ntf',
         file__file__from_path=datastore.fetch('20091021202517-01000100-VIS_0001.ntf'),
     )
+    group = ProcessedImageGroup()
+    group.process_type = ProcessedImageGroup.ProcessTypes.COG
+    group.save()
     c = ProcessedImage()
-    c.source_image = image
-    c.process_type = ProcessedImage.ProcessTypes.COG
+    c.group = group
+    c.skip_signal = True
+    c.save()
+    c.source_images.add(image)
+    c.skip_signal = False
     c.save()
     # Task should complete synchronously
     c.refresh_from_db()
@@ -24,11 +30,15 @@ def test_cog_image_conversion():
 
 
 def _create_subsampled(image, params):
+    group = ProcessedImageGroup()
+    group.process_type = ProcessedImageGroup.ProcessTypes.REGION
+    group.parameters = params
+    group.save()
     sub = ProcessedImage()
-    sub.source_image = image
-    sub.process_type = ProcessedImage.ProcessTypes.REGION
-    sub.parameters = params
     sub.skip_signal = True
+    sub.group = group
+    sub.save()
+    sub.source_images.add(image)
     sub.save()
     extract_region(sub)
     sub.refresh_from_db()
