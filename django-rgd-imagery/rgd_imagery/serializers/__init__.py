@@ -13,6 +13,7 @@ __all__ = [
     'ImageMetaSerializer',
     'ImageSetSerializer',
     'ProcessedImageSerializer',
+    'ProcessedImageGroupSerializer',
     'RasterMetaSerializer',
     'RasterSerializer',
     'STACRasterSerializer',
