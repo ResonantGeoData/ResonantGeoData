@@ -63,6 +63,7 @@ def convert_to_cog(param_model):
 
 def extract_region(processed_image):
     parameters = processed_image.group.parameters
+    sample_type = parameters['sample_type']
     logger.info(f'Subsample parameters: {parameters}')
 
     class SampleTypes:
@@ -84,7 +85,6 @@ def extract_region(processed_image):
 
         """
         p = parameters
-        sample_type = p['sample_type']
 
         projection = p.pop('projection', None)
         if sample_type in (
@@ -113,7 +113,6 @@ def extract_region(processed_image):
             raise ValueError('Sample type ({}) unknown.'.format(sample_type))
 
     l, r, b, t, projection = get_extent()
-    sample_type = parameters['sample_type']
 
     with _processed_image_helper(processed_image, single_input=True) as (image, output):
         tile_source = large_image_utilities.get_tilesource_from_image(image)
