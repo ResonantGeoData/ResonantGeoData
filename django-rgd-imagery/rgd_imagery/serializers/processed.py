@@ -49,12 +49,12 @@ class ProcessedImageSerializer(serializers.ModelSerializer):
             'created',
         ]
 
-    def create(self, validated_data):
-        """Prevent duplicated subsamples from being created."""
-        source_images = validated_data.pop('source_images')
-        obj, created = models.ProcessedImage.objects.get_or_create(**validated_data)
-        obj.source_images.add(*source_images)
-        if not created:
-            # Trigger save event to reprocess the subsampling
-            obj.save()
-        return obj
+    # def create(self, validated_data):
+    #     """Prevent duplicated subsamples from being created."""
+    #     source_images = validated_data.pop('source_images')
+    #     obj, created = models.ProcessedImage.objects.get_or_create(**validated_data)
+    #     obj.source_images.add(*source_images)
+    #     if not created:
+    #         # Trigger save event to reprocess the subsampling
+    #         obj.save()
+    #     return obj

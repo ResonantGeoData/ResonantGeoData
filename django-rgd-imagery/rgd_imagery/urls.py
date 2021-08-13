@@ -120,6 +120,11 @@ urlpatterns = [
     path(
         'api/image_process/<int:pk>',
         rest.get.GetProcessedImage.as_view(),
-        name='cog',
+        name='get-processed-image',
+    ),
+    path(
+        'api/image_process/group/<int:pk>/status',
+        rest.get.get_processed_image_group_status,
+        name='processed-image-group-status',
     ),
 ]

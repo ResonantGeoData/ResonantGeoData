@@ -342,3 +342,10 @@ class Rgdc:
         r = self.session.post('image_process', json=payload)
         r.raise_for_status()
         return r.json()
+
+    def get_pocessed_image_group_status(self, group_id: Union[str, int, dict]):
+        if isinstance(group_id, dict):
+            group_id = group_id['id']
+        r = self.session.get('image_process/group/{group_id}/status')
+        r.raise_for_status()
+        return r.json()
