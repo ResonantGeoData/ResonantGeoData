@@ -240,7 +240,11 @@ class Rgdc:
             offset=offset,
             time_of_day=time_of_day,
         )
-        return list(limit_offset_pager(self.session, 'rgd/search', params=params))
+
+        r = self.session.get('rgd/search', params=params)
+        r.raise_for_status()
+
+        return r.json()
 
     def create_raster_stac(self, raster: Dict) -> Dict:
         """Create a raster entry using STAC format."""
