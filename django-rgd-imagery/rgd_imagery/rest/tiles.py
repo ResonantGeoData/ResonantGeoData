@@ -1,3 +1,5 @@
+import json
+
 from django.http import HttpResponse
 from django.shortcuts import get_object_or_404
 from large_image.tilesource import FileTileSource
@@ -10,12 +12,15 @@ from rgd_imagery.models import Image
 
 
 class BaseTileView(APIView):
-    def get_tile_source(self, request: Request, pk: int) -> FileTileSource:
+    def get_tile_source(self, request: Request, pk: int, style: str = None) -> FileTileSource:
         """Return the built tile source."""
         image_entry = get_object_or_404(Image, pk=pk)
         self.check_object_permissions(request, image_entry)
         projection = request.query_params.get('projection', None)
-        return large_image_utilities.get_tilesource_from_image(image_entry, projection)
+        band = int(request.query_params.get('band', None))
+        if band:
+            style = json.dumps({'band': band})
+        return large_image_utilities.get_tilesource_from_image(image_entry, projection, style=style)
 
 
 class TileMetadataView(BaseTileView):

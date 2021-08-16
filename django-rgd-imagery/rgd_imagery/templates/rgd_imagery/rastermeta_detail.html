@@ -45,7 +45,10 @@
 
   <select id="band-selector" onchange="updateBandThumbnail()">
     {% for image in object.parent_raster.image_set.images.all %}
-      <option value="{{ image.id }}">{{ image.file.name | truncatechars:36 }}</option>
+      <option value="{{ image.id }}.0">{{ image.file.name | truncatechars:36 }}-Default</option>
+      {% for bmeta in image.bandmeta_set.all %}
+        <option value="{{ image.id }}.{{bmeta.band_number}}">{{ image.file.name | truncatechars:36 }}-{{bmeta.band_number}} ({{bmeta.interpretation}}: {{bmeta.description}})</option>
+      {% endfor %}
     {% endfor %}
     <option value="-1">-- none --</option>
   </select>
@@ -82,12 +85,18 @@
     function updateBandThumbnail () {
       selector = document.getElementById('band-selector')
       thumbnail = document.getElementById('thumbnail')
-      var image_id = Number(selector.value);
-      console.log(image_id)
-      if (image_id >= 0) {
+      var selector_value = Number(selector.value);
+      if (selector_value >= 0) {
+        var str = selector_value.toString();
+        var numarray = str.split('.');
+        image_id = Number(numarray[0])
+        band = Number(numarray[1])
+        if (Number.isNaN(band)) {
+          band = 0
+        }
         tileLayer.visible(true)
-        tileLayer.url(`${host}/api/image_process/imagery/${image_id}/tiles/{z}/{x}/{y}.png?projection=EPSG:3857`)
-        thumbnail.src = `${host}/api/image_process/imagery/${image_id}/thumbnail`
+        tileLayer.url(`${host}/api/image_process/imagery/${image_id}/tiles/{z}/{x}/{y}.png?projection=EPSG:3857&band=${band}`)
+        thumbnail.src = `${host}/api/image_process/imagery/${image_id}/thumbnail?band=${band}`
         thumbnail.hidden = false
       } else {
         tileLayer.visible(false)
@@ -116,7 +125,7 @@
       .draw();
     });
 
-    setBounds(extents.extent, true)
+    setBounds(extents.extent, false)
 
   </script>
 
