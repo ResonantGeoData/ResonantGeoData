@@ -96,7 +96,10 @@ CELERY_WORKER_SEND_TASK_EVENTS = True
 DEFAULT_FILE_STORAGE = 'minio_storage.storage.MinioMediaStorage'
 MINIO_STORAGE_ENDPOINT = os.environ.get('MINIO_STORAGE_ENDPOINT', 'minio:9000')
 MINIO_STORAGE_MEDIA_URL = os.environ.get(
-    'MINIO_STORAGE_MEDIA_URL', 'http://localhost:9000/django-storage'
+    'MINIO_STORAGE_MEDIA_URL',
+    'http://minio:9000/django-storage'
+    if MINIO_STORAGE_ENDPOINT == 'minio:9000'
+    else 'http://localhost:9000/django-storage',
 )
 MINIO_STORAGE_USE_HTTPS = False
 MINIO_STORAGE_ACCESS_KEY = os.environ.get('MINIO_STORAGE_ACCESS_KEY', 'minioAccessKey')
