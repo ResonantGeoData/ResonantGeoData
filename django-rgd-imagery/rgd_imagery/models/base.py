@@ -53,7 +53,6 @@ class BandMeta(TimeStampedModel, PermissionPathMixin):
         blank=True,
         help_text='Automatically retrieved from raster but can be overwritten.',
     )
-    dtype = models.CharField(max_length=10)
     max = models.FloatField(null=True)
     min = models.FloatField(null=True)
     mean = models.FloatField(null=True)
