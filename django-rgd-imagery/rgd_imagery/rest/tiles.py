@@ -12,7 +12,7 @@ from rgd_imagery.models import Image
 
 
 class BaseTileView(APIView):
-    def get_tile_source(self, request: Request, pk: int, style: str = None) -> FileTileSource:
+    def get_tile_source(self, request: Request, pk: int) -> FileTileSource:
         """Return the built tile source."""
         image_entry = get_object_or_404(Image, pk=pk)
         self.check_object_permissions(request, image_entry)
