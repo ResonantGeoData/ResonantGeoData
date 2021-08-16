@@ -5,14 +5,16 @@ from large_image_source_pil import PILFileTileSource
 from rgd_imagery.models import Image
 
 
-def get_tilesource_from_image(image: Image, projection: str = None) -> FileTileSource:
+def get_tilesource_from_image(
+    image: Image, projection: str = None, style: str = None
+) -> FileTileSource:
     # Make sure projection is None by default to use source projection
     try:
         file_path = image.file.get_vsi_path(internal=True)
-        return GDALFileTileSource(file_path, projection=projection, encoding='PNG')
+        return GDALFileTileSource(file_path, projection=projection, encoding='PNG', style=style)
     except TileSourceException:
         with image.file.yield_local_path() as file_path:
-            return PILFileTileSource(file_path)
+            return PILFileTileSource(file_path, style=style)
 
 
 def get_region_world(
