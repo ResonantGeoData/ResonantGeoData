@@ -17,7 +17,7 @@ class BaseTileView(APIView):
         image_entry = get_object_or_404(Image, pk=pk)
         self.check_object_permissions(request, image_entry)
         projection = request.query_params.get('projection', None)
-        band = int(request.query_params.get('band', None))
+        band = int(request.query_params.get('band', 0))
         if band:
             style = json.dumps({'band': band})
         return large_image_utilities.get_tilesource_from_image(image_entry, projection, style=style)
