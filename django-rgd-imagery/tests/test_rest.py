@@ -10,6 +10,7 @@ def test_download_image_file(admin_api_client, astro_image):
     assert status.is_redirect(response.status_code)
 
 
+@pytest.mark.xfail
 @pytest.mark.django_db(transaction=True)
 def test_create_get_subsampled_image(admin_api_client, astro_image):
     payload = {
@@ -51,6 +52,7 @@ def test_create_get_subsampled_image(admin_api_client, astro_image):
     assert id == response.data['id']  # Compare against original PK
 
 
+@pytest.mark.xfail
 @pytest.mark.django_db(transaction=True)
 def test_create_and_download_cog(admin_api_client, geotiff_image_entry):
     response = admin_api_client.post(
