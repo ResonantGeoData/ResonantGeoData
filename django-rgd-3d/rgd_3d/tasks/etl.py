@@ -3,9 +3,10 @@ import tempfile
 
 from celery.utils.log import get_task_logger
 from django.conf import settings
+import numpy as np
 from rgd.models import ChecksumFile
 from rgd.utility import get_or_create_no_commit
-from rgd_3d.models import PointCloud, PointCloudMeta
+from rgd_3d.models import GRIB, PointCloud, PointCloudMeta
 
 logger = get_task_logger(__name__)
 
@@ -76,3 +77,62 @@ def read_point_cloud_file(pc_file):
     _file_conversion_helper(pc_file.file, pc_entry.vtp_data.file, method, extension='.vtp')
     # Save the record
     pc_entry.save()
+
+
+def read_grib_file(grib):
+    import pygrib
+    import pyvista
+
+    if not isinstance(grib, GRIB):
+        grib = GRIB.objects.get(id=grib)
+
+    with grib.file.yield_local_path() as file_path:
+        grbs = pygrib.open(str(file_path))
+
+        # Loop through data and collect vars and levels information
+        data_vars = {}
+        list_of_vars = grbs.select()
+        for i in range(len(list_of_vars)):
+            d = grbs.select()[i]
+            if data_vars.get(d.name) is None:
+                data_vars[d.name] = []
+            data_vars[d.name].insert(len(data_vars[d.name]), d.level)
+
+        # Verify that every dataset in the file has the same size - thus there is a single underlying mesh in the XY plane
+        shapes = set()
+        for dl in grbs.select():
+            shapes.add(dl.values.shape)
+        assert len(shapes) == 1
+        nx, ny = list(shapes)[0]
+        nz = max([len(e) for e in data_vars.values()])
+        vol = pyvista.UniformGrid((nx, ny, nz))
+
+        for name in data_vars.keys():
+            levels = grbs.select(name=name)
+            level = levels.pop(0)
+            data = level.values[:, :, np.newaxis]
+            for level in levels:
+                data = np.dstack((data, level.values[:, :, np.newaxis]))
+            temp = np.empty((nx, ny, nz))
+            temp[:] = np.nan
+            temp[:, :, 0 : data.shape[2]] = data
+            vol[name] = temp.ravel(order='F')
+
+    if not grib.vti_data:
+        grib.vti_data = ChecksumFile()
+
+    if not grib.vti_data.collection:
+        grib.vti_data.collection = grib.file.collection
+
+    workdir = getattr(settings, 'GEODATA_WORKDIR', None)
+    with tempfile.TemporaryDirectory(dir=workdir) as tmpdir:
+        output_path = os.path.join(tmpdir, os.path.basename(grib.file.name) + '.vti')
+        vol.save(output_path)
+        with open(output_path, 'rb') as f:
+            grib.vti_data.file.save(os.path.basename(output_path), f)
+
+    grib.save(
+        update_fields=[
+            'vti_data',
+        ]
+    )

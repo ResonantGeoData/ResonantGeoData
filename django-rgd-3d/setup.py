@@ -51,6 +51,7 @@ setup(
         'worker': [
             'pyntcloud[LAS]',
             'pyvista',
+            'pygrib',
         ],
     },
 )
