@@ -41,7 +41,11 @@
     });
 
     // Tile layer for showing rasters/images with large_image
-    var tileLayer = map.createLayer('osm', {keepLower: false, attribution: ''});
+    var tileLayer = map.createLayer('osm', {
+      keepLower: false,
+      attribution: '',
+      autoshareRenderer: false,
+    });
     tileLayer.visible(false)
 
     // Increase zoom range from default of 16
