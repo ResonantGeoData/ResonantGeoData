@@ -41,9 +41,10 @@ class ProcessedImage(TimeStampedModel, TaskEventMixin, PermissionPathMixin):
     )
     ancillary_files = models.ManyToManyField(ChecksumFile, blank=True, related_name='+')
 
-    def _post_delete(self, *args, **kwargs):
+    def _pre_delete(self, *args, **kwargs):
         if self.processed_image:
             self.processed_image.file.delete()
+        # TODO: clean up ancillary_files - this throws an error when done through the admin interface
         for file in self.ancillary_files.all():
             file.delete()
 

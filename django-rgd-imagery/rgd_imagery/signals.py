@@ -1,7 +1,7 @@
 import os
 
 from django.db import transaction
-from django.db.models.signals import m2m_changed, post_delete, post_save
+from django.db.models.signals import m2m_changed, post_delete, post_save, pre_delete
 from django.dispatch import receiver
 from rgd.utility import skip_signal
 from rgd_imagery import models
@@ -49,10 +49,10 @@ def _post_save_processed_image(sender, instance, *args, **kwargs):
     transaction.on_commit(lambda: instance._post_save_event_task(*args, **kwargs))
 
 
-@receiver(post_delete, sender=models.ProcessedImage)
+@receiver(pre_delete, sender=models.ProcessedImage)
 @skip_signal()
-def _post_delete_processed_image(sender, instance, *args, **kwargs):
-    transaction.on_commit(lambda: instance._post_delete(*args, **kwargs))
+def _pre_delete_processed_image(sender, instance, *args, **kwargs):
+    transaction.on_commit(lambda: instance._pre_delete(*args, **kwargs))
 
 
 @receiver(post_save, sender=models.ProcessedImageGroup)
