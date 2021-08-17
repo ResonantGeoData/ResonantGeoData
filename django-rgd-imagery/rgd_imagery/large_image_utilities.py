@@ -50,3 +50,14 @@ def get_region_pixel(
     region = dict(left=left, right=right, bottom=bottom, top=top, units=units)
     path, mime_type = tile_source.getRegion(region=region, encoding='TILED')
     return path, mime_type
+
+
+def get_tile_bounds(
+    tile_source: FileTileSource,
+    projection: str = 'EPSG:4326',
+):
+    bounds = tile_source.getBounds(srs='EPSG:4326')
+    threshold = 89.9999
+    for key in ('ymin', 'ymax'):
+        bounds[key] = max(min(bounds[key], threshold), -threshold)
+    return bounds
