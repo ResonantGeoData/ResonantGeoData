@@ -47,9 +47,9 @@ setup(
     install_requires=[
         'bidict',
         'django-rgd',
-        'large-image>=1.7.1.dev7',
-        'large-image-source-gdal>=1.7.1.dev7',
-        'large-image-source-pil>=1.7.1.dev7',
+        'large-image>=1.7.1',
+        'large-image-source-gdal>=1.7.1',
+        'large-image-source-pil>=1.7.1',
         'numpy',
         'pystac[validation]==0.5.6',
         'shapely',
