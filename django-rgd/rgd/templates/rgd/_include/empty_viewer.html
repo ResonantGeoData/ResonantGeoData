@@ -90,19 +90,16 @@
         if (yc === 0) {
           yc = 0.01
         }
-        map.bounds({
-          left: extent.xmin - xc,
-          right: extent.xmax + xc,
-          top: extent.ymax + yc,
-          bottom: extent.ymin - yc
-        });
+        var bounds = {
+          left: Math.max(extent.xmin - xc, -180.0),
+          right: Math.min(extent.xmax + xc, 180.0),
+          top: Math.min(extent.ymax + yc, 89.9999),
+          bottom: Math.max(extent.ymin - yc, -89.9999)
+        }
+        console.log(bounds)
+        map.bounds(bounds);
         if (setMax) {
-          map.maxBounds({
-            left: extent.xmin - xc,
-            right: extent.xmax + xc,
-            top: extent.ymax + yc,
-            bottom: extent.ymin - yc
-          })
+          map.maxBounds(bounds)
         } else {
           map.zoom(map.zoom() - 0.25);
         }
