@@ -53,11 +53,12 @@ def test_create_get_subsampled_image(admin_api_client, astro_image):
 
 @pytest.mark.django_db(transaction=True)
 def test_create_and_download_cog(admin_api_client, geotiff_image_entry):
-    payload = {
-        'process_type': 'cog',
-    }
     response = admin_api_client.post(
-        '/rgd_imagery_test/api/image_process/group', payload, format='json'
+        '/rgd_imagery_test/api/image_process/group',
+        {
+            'process_type': 'cog',
+        },
+        format='json',
     )
     assert response.status_code == 201
     assert response.data
@@ -75,11 +76,7 @@ def test_create_and_download_cog(admin_api_client, geotiff_image_entry):
     assert response.status_code == 201
     assert response.data
     # Check that a COG was generated
-    cog = models.ProcessedImage.objects.get(
-        source_images=[
-            geotiff_image_entry.id,
-        ]
-    )
+    cog = models.ProcessedImage.objects.get(pk=response.data['id'])
     # NOTE: This doesn't actually verify the file is in COG format. Assumed.
     assert cog.processed_image
     # Also test download endpoint here:

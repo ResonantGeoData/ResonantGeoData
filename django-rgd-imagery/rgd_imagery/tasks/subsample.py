@@ -29,7 +29,7 @@ def _processed_image_helper(param_model, single_input=False):
     if single_input:
         if param_model.source_images.count() != 1:
             raise RuntimeError(
-                f'The must be one and only one source image. {param_model.source_images.count()} were given.'
+                f'There must be one and only one source image. {param_model.source_images.count()} were given.'
             )
         yield (param_model.source_images.first(), file)
     else:
