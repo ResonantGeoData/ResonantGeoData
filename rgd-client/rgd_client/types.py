@@ -17,4 +17,5 @@ PROCESSED_IMAGE_TYPES = Literal[
     'cog',
     'region',
     'resample',
+    'mosaic',
 ]

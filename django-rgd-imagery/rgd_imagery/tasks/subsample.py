@@ -5,6 +5,7 @@ from celery.utils.log import get_task_logger
 from django.contrib.gis.geos import GEOSGeometry
 import large_image_converter
 import rasterio
+from rasterio.merge import merge
 from rasterio.warp import Resampling
 from rgd.models import ChecksumFile
 from rgd.utility import input_output_path_helper, output_path_helper
@@ -33,7 +34,7 @@ def _processed_image_helper(param_model, single_input=False):
             )
         yield (param_model.source_images.first(), file)
     else:
-        yield (param_model.source_images, file)
+        yield (param_model.source_images.all(), file)
 
     file.save()
 
@@ -181,6 +182,32 @@ def resample_image(processed_image):
                     dest.write(data)
 
 
+def mosaic_images(processed_image):
+    with _processed_image_helper(processed_image) as (images, output):
+
+        src_files_to_mosaic = []
+        for image in images:
+            file_path = image.file.get_vsi_path()
+            src_files_to_mosaic.append(file_path)
+
+        with output_path_helper('mosaic.tif', output.file) as output_path:
+            mosaic, out_trans = merge(src_files_to_mosaic)
+            out_meta = src_files_to_mosaic[0].meta.copy()
+
+            # Update the metadata
+            out_meta.update(
+                {
+                    'driver': 'GTiff',
+                    'height': mosaic.shape[1],
+                    'width': mosaic.shape[2],
+                    'transform': out_trans,
+                }
+            )
+
+            with rasterio.open(output_path, 'w', **out_meta) as dest:
+                dest.write(mosaic)
+
+
 def run_processed_image(processed_image):
     if not isinstance(processed_image, ProcessedImage):
         processed_image = ProcessedImage.objects.get(id=processed_image)
@@ -190,5 +217,6 @@ def run_processed_image(processed_image):
         ProcessedImageGroup.ProcessTypes.REGION: extract_region,
         ProcessedImageGroup.ProcessTypes.RESAMPLE: resample_image,
         ProcessedImageGroup.ProcessTypes.ARBITRARY: lambda *args: None,
+        ProcessedImageGroup.ProcessTypes.MOSAIC: mosaic_images,
     }
     return methods[processed_image.group.process_type](processed_image)

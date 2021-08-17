@@ -14,6 +14,7 @@ class ProcessedImageGroup(TimeStampedModel):
         COG = 'cog', _('Converted to Cloud Optimized GeoTIFF')
         REGION = 'region', _('Extract subregion')
         RESAMPLE = 'resample', _('Resample by factor')
+        MOSAIC = 'mosaic', _('Mosaic multiple images')
 
     process_type = models.CharField(
         max_length=20, default=ProcessTypes.ARBITRARY, choices=ProcessTypes.choices
