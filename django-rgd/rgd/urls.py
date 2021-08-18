@@ -70,4 +70,14 @@ urlpatterns = [
         rest.get.GetCollectionPermission.as_view(),
         name='collection-permission',
     ),
+    path(
+        'api/rgd/spatial_asset',
+        rest.post.CreateSpatialAsset.as_view(),
+        name='spatial-asset-create',
+    ),
+    path(
+        'api/rgd/spatial_asset/<int:pk>',
+        rest.get.GetSpatialAsset.as_view(),
+        name='spatial-asset',
+    ),
 ]

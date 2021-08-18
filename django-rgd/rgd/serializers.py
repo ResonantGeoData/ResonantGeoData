@@ -74,4 +74,10 @@ class SpatialEntryFootprintSerializer(SpatialEntrySerializer):
         exclude = ['footprint', 'outline']
 
 
+class SpatialAssetSerializer(SpatialEntrySerializer):
+    class Meta:
+        model = models.SpatialAsset
+        exclude = ['footprint', 'outline']
+
+
 utility.make_serializers(globals(), models)

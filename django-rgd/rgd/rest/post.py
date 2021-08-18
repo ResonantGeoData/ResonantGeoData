@@ -15,3 +15,8 @@ class CreateCollectionPermission(CreateAPIView):
 class CreateChecksumFile(CreateAPIView):
     queryset = models.ChecksumFile.objects.all()
     serializer_class = serializers.ChecksumFileSerializer
+
+
+class CreateSpatialAsset(CreateAPIView):
+    queryset = models.SpatialAsset.objects.all()
+    serializer_class = serializers.SpatialAssetSerializer
