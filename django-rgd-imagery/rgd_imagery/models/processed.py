@@ -46,8 +46,7 @@ class ProcessedImage(TimeStampedModel, TaskEventMixin, PermissionPathMixin):
         if self.processed_image:
             self.processed_image.file.delete()
         # TODO: clean up ancillary_files - this throws an error when done through the admin interface
-        for file in self.ancillary_files.all():
-            file.delete()
+        self.ancillary_files.all().delete()
 
     group = models.ForeignKey(ProcessedImageGroup, on_delete=models.CASCADE)
 
