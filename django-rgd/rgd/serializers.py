@@ -5,7 +5,24 @@ from rest_framework import serializers
 from . import models, utility
 
 
+class CollectionSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = models.Collection
+        fields = '__all__'
+
+
+class CollectionPermissionSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = models.CollectionPermission
+        fields = '__all__'
+
+
 class ChecksumFileSerializer(serializers.ModelSerializer):
+    """Serializer for ChecksumFiles.
+
+    On POST, this can only handle URL files.
+    """
+
     def to_representation(self, value):
         ret = super().to_representation(value)
         ret['download_url'] = value.get_url()
@@ -14,7 +31,15 @@ class ChecksumFileSerializer(serializers.ModelSerializer):
     class Meta:
         model = models.ChecksumFile
         fields = '__all__'
-        read_only_fields = ['id', 'checksum', 'last_validation', 'modified', 'created']
+        read_only_fields = [
+            'id',
+            'checksum',
+            'last_validation',
+            'modified',
+            'created',
+            'status',
+            'failure_reason',
+        ]
 
 
 class SpatialEntrySerializer(serializers.ModelSerializer):

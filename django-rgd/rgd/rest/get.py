@@ -10,6 +10,18 @@ class _PermissionMixin:
         return obj
 
 
+class GetCollection(RetrieveAPIView, _PermissionMixin):
+    serializer_class = serializers.CollectionSerializer
+    lookup_field = 'pk'
+    queryset = models.Collection.objects.all()
+
+
+class GetCollectionPermission(RetrieveAPIView, _PermissionMixin):
+    serializer_class = serializers.CollectionPermissionSerializer
+    lookup_field = 'pk'
+    queryset = models.CollectionPermission.objects.all()
+
+
 class GetChecksumFile(RetrieveAPIView, _PermissionMixin):
     serializer_class = serializers.ChecksumFileSerializer
     lookup_field = 'pk'
