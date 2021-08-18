@@ -1,3 +1,5 @@
+[![logo](https://raw.githubusercontent.com/ResonantGeoData/ResonantGeoData/main/logos/RGD_Logo.png)](https://github.com/ResonantGeoData/ResonantGeoData/)
+
 # Resonant GeoData Imagery
 
 A submodule of Resonant GeoData for storing imagery supporting annotations and spatial reference.

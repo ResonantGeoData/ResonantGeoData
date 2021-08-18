@@ -1,3 +1,5 @@
+[![logo](https://raw.githubusercontent.com/ResonantGeoData/ResonantGeoData/main/logos/RGD_Logo.png)](https://github.com/ResonantGeoData/ResonantGeoData/)
+
 # rgd_client - Resonant GeoDataClient
 
 The **rgd_client** Python package allows users to make web requests to a Resonant GeoData instance within a Python script.
