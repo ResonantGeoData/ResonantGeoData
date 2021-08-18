@@ -15,9 +15,8 @@ import rasterio.shutil
 import rasterio.warp
 from rasterio.warp import Resampling, calculate_default_transform, reproject
 from rgd.models.constants import DB_SRID
-from rgd.models.transform import transform_geometry
 from rgd.utility import get_or_create_no_commit
-from rgd_imagery.large_image_utilities import yeild_tilesource_from_image
+from rgd_imagery.large_image_utilities import get_tile_bounds, yeild_tilesource_from_image
 from rgd_imagery.models import BandMeta, Image, ImageMeta, Raster, RasterMeta
 from shapely.geometry import shape
 from shapely.ops import unary_union
@@ -89,19 +88,18 @@ def load_image(image):
 
 
 def _extract_raster_outline(tile_source):
-    meta = tile_source.getMetadata()
-    imeta = tile_source.getInternalMetadata()
+    bounds = get_tile_bounds(tile_source)
     coords = np.array(
         (
-            (meta['bounds']['xmin'], meta['bounds']['ymax']),
-            (meta['bounds']['xmax'], meta['bounds']['ymax']),
-            (meta['bounds']['xmax'], meta['bounds']['ymin']),
-            (meta['bounds']['xmin'], meta['bounds']['ymin']),
-            (meta['bounds']['xmin'], meta['bounds']['ymax']),  # Close the loop
+            (bounds['xmin'], bounds['ymax']),
+            (bounds['xmin'], bounds['ymax']),
+            (bounds['xmax'], bounds['ymax']),
+            (bounds['xmax'], bounds['ymin']),
+            (bounds['xmin'], bounds['ymin']),
+            (bounds['xmin'], bounds['ymax']),  # Close the loop
         )
     )
-    wkt = imeta['Projection'] or imeta['GCPProjection']
-    return transform_geometry(Polygon(coords), wkt)
+    return Polygon(coords)
 
 
 def _extract_raster_meta(image):
@@ -116,16 +114,17 @@ def _extract_raster_meta(image):
     with yeild_tilesource_from_image(image) as tile_source:
         meta = tile_source.getMetadata()
         imeta = tile_source.getInternalMetadata()
+        bounds = get_tile_bounds(tile_source)
 
         raster_meta['crs'] = tile_source.getProj4String()
-        raster_meta['origin'] = [meta['bounds']['xmin'], meta['bounds']['ymin']]
+        raster_meta['origin'] = [bounds['xmin'], bounds['ymin']]
         raster_meta['resolution'] = (meta['mm_x'] * 0.001, meta['mm_y'] * 0.001)  # meters
         raster_meta['transform'] = imeta['GeoTransform']
         raster_meta['extent'] = [
-            meta['bounds']['xmin'],
-            meta['bounds']['ymin'],
-            meta['bounds']['xmax'],
-            meta['bounds']['ymax'],
+            bounds['xmin'],
+            bounds['ymin'],
+            bounds['xmax'],
+            bounds['ymax'],
         ]
         raster_meta['outline'] = _extract_raster_outline(tile_source)
         raster_meta['footprint'] = raster_meta['outline']

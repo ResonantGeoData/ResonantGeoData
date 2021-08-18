@@ -1,3 +1,5 @@
+[![logo](https://raw.githubusercontent.com/ResonantGeoData/ResonantGeoData/main/logos/RGD_Logo.png)](https://github.com/ResonantGeoData/ResonantGeoData/)
+
 # Resonant GeoData 3D
 
 A subapplication of Resonant GeoData for storing 3D data with an optional

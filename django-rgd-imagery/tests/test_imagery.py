@@ -9,7 +9,7 @@ SampleFiles = [
     {'name': '20091021202517-01000100-VIS_0001.ntf', 'centroid': {'x': -84.11, 'y': 39.78}},
     {'name': 'aerial_rgba_000003.tiff', 'centroid': {'x': -122.01, 'y': 37.34}},
     {'name': 'cclc_schu_100.tif', 'centroid': {'x': -76.85, 'y': 42.40}},
-    {'name': 'landcover_sample_2000.tif', 'centroid': {'x': -75.35, 'y': 42.96}},
+    {'name': 'landcover_sample_2000.tif', 'centroid': {'x': -75.23, 'y': 42.96}},
     {'name': 'paris_france_10.tiff', 'centroid': {'x': 2.55, 'y': 49.00}},
     {'name': 'rgb_geotiff.tiff', 'centroid': {'x': -117.19, 'y': 33.17}},
     {'name': 'RomanColosseum_WV2mulitband_10.tif', 'centroid': {'x': 12.50, 'y': 41.89}},

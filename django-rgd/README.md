@@ -1,3 +1,5 @@
+[![logo](https://raw.githubusercontent.com/ResonantGeoData/ResonantGeoData/main/logos/RGD_Logo.png)](https://github.com/ResonantGeoData/ResonantGeoData/)
+
 # Resonant GeoData Core Application
 
 The core Resonant GeoData (RGD) app containing file and permissions management

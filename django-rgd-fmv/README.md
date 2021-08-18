@@ -1,3 +1,5 @@
+[![logo](https://raw.githubusercontent.com/ResonantGeoData/ResonantGeoData/main/logos/RGD_Logo.png)](https://github.com/ResonantGeoData/ResonantGeoData/)
+
 # Resonant GeoData Full Motion Video (FMV)
 
 A submodule of Resonant GeoData for storing Full Motion Video (FMV) datasets
