@@ -1,6 +1,9 @@
 import json
 
+from django.forms.models import model_to_dict
 import pytest
+from rgd.models.common import ChecksumFile
+from rgd_client import Rgdc
 
 bbox = {
     'type': 'Polygon',
@@ -78,3 +81,27 @@ def test_download_raster(py_client, rgd_imagery_demo):
 #         py_client.search_raster_stac(query=json.dumps(bbox), predicate='intersects')
 #     except Exception:
 #         pytest.fail('Failed STAC search')
+
+
+@pytest.mark.django_db(transaction=True)
+def test_create_file_from_url(py_client: Rgdc, rgd_imagery_demo):
+    """Test that creation of a ChecksumFile with a URL succeeds."""
+    # Get existing file and use it's URL to create a new ChecksumFile
+    file: ChecksumFile = ChecksumFile.objects.first()
+    file_url = file.get_url()
+    file_name = 'test'
+
+    file_dict = py_client.create_file_from_url(file_name, file_url)
+    assert file_dict['name'] == file_name
+    assert file_dict['type'] == 2
+    assert file_dict['url'] == file_url
+
+
+@pytest.mark.django_db(transaction=True)
+def test_create_image_from_file(py_client: Rgdc, rgd_imagery_demo):
+    """Test that creation of an Image with a ChecksumFile succeeds."""
+    # Get existing ChecksumFile to use in image creation
+    file: ChecksumFile = ChecksumFile.objects.first()
+
+    image_dict = py_client.create_image_from_file(model_to_dict(file))
+    assert image_dict['file']['id'] == file.id
