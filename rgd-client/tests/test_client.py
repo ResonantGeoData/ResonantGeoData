@@ -3,6 +3,7 @@ import json
 from django.forms.models import model_to_dict
 import pytest
 from rgd.models.common import ChecksumFile
+
 from rgd_client import Rgdc
 
 bbox = {

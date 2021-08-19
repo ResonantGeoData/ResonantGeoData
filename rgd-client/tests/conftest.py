@@ -1,6 +1,7 @@
 from django.contrib.auth.models import User
 import pytest
-from rgd_client import Rgdc  # noqa
+
+from rgd_client import Rgdc
 
 from .data_fixtures import generate_fixtures
 
