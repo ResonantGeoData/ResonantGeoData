@@ -18,13 +18,7 @@ class ImageSerializer(serializers.ModelSerializer):
     class Meta:
         model = models.Image
         fields = '__all__'
-        read_only_fields = (
-            [
-                'id',
-            ]
-            + MODIFIABLE_READ_ONLY_FIELDS
-            + TASK_EVENT_READ_ONLY_FIELDS
-        )
+        read_only_fields = MODIFIABLE_READ_ONLY_FIELDS + TASK_EVENT_READ_ONLY_FIELDS
 
 
 class ImageMetaSerializer(serializers.ModelSerializer):
@@ -56,9 +50,7 @@ class ImageSetSerializer(serializers.ModelSerializer):
     class Meta:
         model = models.ImageSet
         fields = '__all__'
-        read_only_fields = [
-            'id',
-        ] + MODIFIABLE_READ_ONLY_FIELDS
+        read_only_fields = MODIFIABLE_READ_ONLY_FIELDS
 
 
 class ImageSetSpatialSerializer(SpatialEntrySerializer):
@@ -67,6 +59,4 @@ class ImageSetSpatialSerializer(SpatialEntrySerializer):
     class Meta:
         model = models.ImageSetSpatial
         fields = '__all__'
-        read_only_fields = [
-            'id',
-        ] + MODIFIABLE_READ_ONLY_FIELDS
+        read_only_fields = MODIFIABLE_READ_ONLY_FIELDS
