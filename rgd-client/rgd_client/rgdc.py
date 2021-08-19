@@ -318,3 +318,40 @@ class Rgdc:
             params['cloud_cover_max'] = ccmax
 
         return list(limit_offset_pager(self.session, 'rgd_imagery/raster/search', params=params))
+
+    def create_file_from_url(
+        self,
+        name: str,
+        url: str,
+        collection: Optional[int] = None,
+        description: Optional[str] = None,
+    ) -> Dict:
+        """
+        Create a ChecksumFile from a URL.
+
+        Args:
+            name: The name of the file
+            url: The URL to retrieve the file from
+            collection: The integer collection ID to associate this ChecksumFile with
+            description: The description of the file
+        """
+        # TODO: Add url validation
+        return self.session.post(
+            'rgd/checksum_file',
+            json={
+                'name': name,
+                'url': url,
+                'collection': collection,
+                'description': description,
+                'type': 2,  # Hardcode to 2, to indicate a URL file
+            },
+        ).json()
+
+    def create_image_from_file(self, checksum_file: Dict) -> Dict:
+        """
+        Create an image from a ChecksumFile.
+
+        Args:
+            checksum_file: The checksum file to create an image with.
+        """
+        return self.session.post('rgd_imagery', json={'file': checksum_file.get('id')}).json()
