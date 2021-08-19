@@ -4,6 +4,32 @@ from rest_framework import serializers
 
 from . import models, utility
 
+MODIFIABLE_READ_ONLY_FIELDS = ['modified', 'created']
+TASK_EVENT_READ_ONLY_FIELDS = ['status', 'failure_reason']
+SPATIAL_ENTRY_EXCLUDE = ['footprint', 'outline']
+
+
+class RelatedField(serializers.PrimaryKeyRelatedField):
+    """Handle GET/POST in a single field.
+
+    Reference: https://stackoverflow.com/a/52246232
+    """
+
+    def __init__(self, **kwargs):
+        self.serializer = kwargs.pop('serializer', None)
+        if self.serializer is not None and not issubclass(self.serializer, serializers.Serializer):
+            raise TypeError('"serializer" is not a valid serializer class')
+
+        super().__init__(**kwargs)
+
+    def use_pk_only_optimization(self):
+        return False if self.serializer else True
+
+    def to_representation(self, instance):
+        if self.serializer:
+            return self.serializer(instance, context=self.context).data
+        return super().to_representation(instance)
+
 
 class CollectionSerializer(serializers.ModelSerializer):
     class Meta:
@@ -12,9 +38,8 @@ class CollectionSerializer(serializers.ModelSerializer):
 
 
 class CollectionPermissionSerializer(serializers.ModelSerializer):
-    collection = CollectionSerializer(read_only=True)
-    collection_id = serializers.PrimaryKeyRelatedField(
-        queryset=models.Collection.objects.all(), write_only=True
+    collection = RelatedField(
+        queryset=models.Collection.objects.all(), serializer=CollectionSerializer
     )
 
     class Meta:
@@ -36,15 +61,15 @@ class ChecksumFileSerializer(serializers.ModelSerializer):
     class Meta:
         model = models.ChecksumFile
         fields = '__all__'
-        read_only_fields = [
-            'id',
-            'checksum',
-            'last_validation',
-            'modified',
-            'created',
-            'status',
-            'failure_reason',
-        ]
+        read_only_fields = (
+            [
+                'id',
+                'checksum',
+                'last_validation',
+            ]
+            + MODIFIABLE_READ_ONLY_FIELDS
+            + TASK_EVENT_READ_ONLY_FIELDS
+        )
 
 
 class SpatialEntrySerializer(serializers.ModelSerializer):
@@ -65,7 +90,7 @@ class SpatialEntrySerializer(serializers.ModelSerializer):
 
     class Meta:
         model = models.SpatialEntry
-        exclude = ['footprint', 'outline']
+        exclude = SPATIAL_ENTRY_EXCLUDE
 
 
 class SpatialEntryFootprintSerializer(SpatialEntrySerializer):
@@ -76,18 +101,17 @@ class SpatialEntryFootprintSerializer(SpatialEntrySerializer):
 
     class Meta:
         model = models.SpatialEntry
-        exclude = ['footprint', 'outline']
+        exclude = SPATIAL_ENTRY_EXCLUDE
 
 
 class SpatialAssetSerializer(SpatialEntrySerializer):
-    file = ChecksumFileSerializer(read_only=True)
-    file_id = serializers.PrimaryKeyRelatedField(
-        queryset=models.ChecksumFile.objects.all(), write_only=True
+    file = RelatedField(
+        queryset=models.ChecksumFile.objects.all(), serializer=ChecksumFileSerializer
     )
 
     class Meta:
         model = models.SpatialAsset
-        exclude = ['footprint', 'outline']
+        exclude = SPATIAL_ENTRY_EXCLUDE
 
 
 utility.make_serializers(globals(), models)

@@ -1,20 +1,30 @@
 from rest_framework import serializers
 from rest_framework.reverse import reverse
 from rgd.models import ChecksumFile
-from rgd.serializers import ChecksumFileSerializer, SpatialEntrySerializer
+from rgd.serializers import (
+    MODIFIABLE_READ_ONLY_FIELDS,
+    TASK_EVENT_READ_ONLY_FIELDS,
+    ChecksumFileSerializer,
+    RelatedField,
+    SpatialEntrySerializer,
+)
 
 from .. import models
 
 
 class ImageSerializer(serializers.ModelSerializer):
-    file = ChecksumFileSerializer(read_only=True)
-    file_id = serializers.PrimaryKeyRelatedField(
-        queryset=ChecksumFile.objects.all(), write_only=True
-    )
+    file = RelatedField(queryset=ChecksumFile.objects.all(), serializer=ChecksumFileSerializer)
 
     class Meta:
         model = models.Image
         fields = '__all__'
+        read_only_fields = (
+            [
+                'id',
+            ]
+            + MODIFIABLE_READ_ONLY_FIELDS
+            + TASK_EVENT_READ_ONLY_FIELDS
+        )
 
 
 class ImageMetaSerializer(serializers.ModelSerializer):
@@ -35,21 +45,12 @@ class ImageMetaSerializer(serializers.ModelSerializer):
     class Meta:
         model = models.ImageMeta
         fields = '__all__'
-        read_only_fields = [
-            'id',
-            'modified',
-            'created',
-            'driver',
-            'height',
-            'width',
-            'number_of_bands',
-        ]
+        # read_only_fields - This serializer should be used read-only
 
 
 class ImageSetSerializer(serializers.ModelSerializer):
-    images = ImageSerializer(many=True)
-    images_ids = serializers.PrimaryKeyRelatedField(
-        queryset=models.Image.objects.all(), write_only=True, many=True
+    images = RelatedField(
+        queryset=models.Image.objects.all(), serializer=ImageSerializer, many=True
     )
 
     class Meta:
@@ -57,13 +58,15 @@ class ImageSetSerializer(serializers.ModelSerializer):
         fields = '__all__'
         read_only_fields = [
             'id',
-            'modified',
-            'created',
-        ]
+        ] + MODIFIABLE_READ_ONLY_FIELDS
 
 
 class ImageSetSpatialSerializer(SpatialEntrySerializer):
-    image_set = ImageSetSerializer(read_only=True)
-    image_set_id = serializers.PrimaryKeyRelatedField(
-        queryset=models.ImageSet.objects.all(), write_only=True
-    )
+    image_set = RelatedField(queryset=models.ImageSet.objects.all(), serializer=ImageSetSerializer)
+
+    class Meta:
+        model = models.ImageSetSpatial
+        fields = '__all__'
+        read_only_fields = [
+            'id',
+        ] + MODIFIABLE_READ_ONLY_FIELDS
