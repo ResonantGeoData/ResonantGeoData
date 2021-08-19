@@ -5,13 +5,14 @@ from rgd.admin.mixins import (
     SPATIAL_ENTRY_FILTERS,
     TASK_EVENT_FILTERS,
     TASK_EVENT_READONLY,
+    GeoAdminInline,
     _FileGetNameMixin,
     reprocess,
 )
 from rgd_geometry.models import Geometry, GeometryArchive
 
 
-class GeometryInline(admin.StackedInline):
+class GeometryInline(GeoAdminInline):
     model = Geometry
     fk_name = 'geometry_archive'
     list_display = (

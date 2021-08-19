@@ -4,13 +4,14 @@ from rgd.admin.mixins import (
     MODIFIABLE_FILTERS,
     TASK_EVENT_FILTERS,
     TASK_EVENT_READONLY,
+    GeoAdminInline,
     _FileGetNameMixin,
     reprocess,
 )
 from rgd_fmv.models import FMV, FMVMeta
 
 
-class FMVMetaInline(admin.StackedInline):
+class FMVMetaInline(GeoAdminInline):
     model = FMVMeta
     fk_name = 'fmv_file'
     list_display = (
