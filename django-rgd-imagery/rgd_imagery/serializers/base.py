@@ -1,12 +1,16 @@
 from rest_framework import serializers
 from rest_framework.reverse import reverse
-from rgd.serializers import ChecksumFileSerializer
+from rgd.models import ChecksumFile
+from rgd.serializers import ChecksumFileSerializer, SpatialEntrySerializer
 
 from .. import models
 
 
 class ImageSerializer(serializers.ModelSerializer):
-    file = ChecksumFileSerializer()
+    file = ChecksumFileSerializer(read_only=True)
+    file_id = serializers.PrimaryKeyRelatedField(
+        queryset=ChecksumFile.objects.all(), write_only=True
+    )
 
     class Meta:
         model = models.Image
@@ -14,7 +18,9 @@ class ImageSerializer(serializers.ModelSerializer):
 
 
 class ImageMetaSerializer(serializers.ModelSerializer):
-    parent_image = ImageSerializer()
+    """This is read-only."""
+
+    parent_image = ImageSerializer(read_only=True)
 
     def to_representation(self, value):
         ret = super().to_representation(value)
@@ -42,6 +48,9 @@ class ImageMetaSerializer(serializers.ModelSerializer):
 
 class ImageSetSerializer(serializers.ModelSerializer):
     images = ImageSerializer(many=True)
+    images_ids = serializers.PrimaryKeyRelatedField(
+        queryset=models.Image.objects.all(), write_only=True, many=True
+    )
 
     class Meta:
         model = models.ImageSet
@@ -51,3 +60,10 @@ class ImageSetSerializer(serializers.ModelSerializer):
             'modified',
             'created',
         ]
+
+
+class ImageSetSpatialSerializer(SpatialEntrySerializer):
+    image_set = ImageSetSerializer(read_only=True)
+    image_set_id = serializers.PrimaryKeyRelatedField(
+        queryset=models.ImageSet.objects.all(), write_only=True
+    )
