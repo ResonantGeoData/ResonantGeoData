@@ -12,6 +12,11 @@ class CollectionSerializer(serializers.ModelSerializer):
 
 
 class CollectionPermissionSerializer(serializers.ModelSerializer):
+    collection = CollectionSerializer(read_only=True)
+    collection_id = serializers.PrimaryKeyRelatedField(
+        queryset=models.Collection.objects.all(), write_only=True
+    )
+
     class Meta:
         model = models.CollectionPermission
         fields = '__all__'
@@ -75,6 +80,11 @@ class SpatialEntryFootprintSerializer(SpatialEntrySerializer):
 
 
 class SpatialAssetSerializer(SpatialEntrySerializer):
+    file = ChecksumFileSerializer(read_only=True)
+    file_id = serializers.PrimaryKeyRelatedField(
+        queryset=models.ChecksumFile.objects.all(), write_only=True
+    )
+
     class Meta:
         model = models.SpatialAsset
         exclude = ['footprint', 'outline']
