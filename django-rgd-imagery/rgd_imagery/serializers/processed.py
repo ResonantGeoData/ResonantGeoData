@@ -1,8 +1,14 @@
 import logging
 
 from rest_framework import serializers
+from rgd.models import ChecksumFile
 from rgd.permissions import check_write_perm
-from rgd.serializers import ChecksumFileSerializer
+from rgd.serializers import (
+    MODIFIABLE_READ_ONLY_FIELDS,
+    TASK_EVENT_READ_ONLY_FIELDS,
+    ChecksumFileSerializer,
+    RelatedField,
+)
 
 from .. import models
 from .base import ImageSerializer
@@ -28,10 +34,16 @@ class ProcessedImageGroupSerializer(serializers.ModelSerializer):
 
 class ProcessedImageSerializer(serializers.ModelSerializer):
 
-    # group = ProcessedImageGroupSerializer()
-    # source_images = ImageSerializer(many=True, required=False)
-    processed_image = ImageSerializer(required=False)
-    ancillary_files = ChecksumFileSerializer(many=True, required=False)
+    group = RelatedField(
+        queryset=models.ProcessedImageGroup.objects.all(), serializer=ProcessedImageGroupSerializer
+    )
+    source_images = RelatedField(
+        queryset=models.Image.objects.all(), serializer=ImageSerializer, many=True
+    )
+    processed_image = RelatedField(queryset=models.Image.objects.all(), serializer=ImageSerializer)
+    ancillary_files = RelatedField(
+        queryset=ChecksumFile.objects.all(), serializer=ChecksumFileSerializer, many=True
+    )
 
     def validate_source_image(self, value):
         if 'request' in self.context:
@@ -41,13 +53,7 @@ class ProcessedImageSerializer(serializers.ModelSerializer):
     class Meta:
         model = models.ProcessedImage
         fields = '__all__'
-        read_only_fields = [
-            'id',
-            'status',
-            'failure_reason',
-            'modified',
-            'created',
-        ]
+        read_only_fields = MODIFIABLE_READ_ONLY_FIELDS + TASK_EVENT_READ_ONLY_FIELDS
 
     # def create(self, validated_data):
     #     """Prevent duplicated subsamples from being created."""
