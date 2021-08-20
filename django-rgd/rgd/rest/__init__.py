@@ -1,3 +1,3 @@
-__all__ = ['download', 'get', 'search']
+__all__ = ['download', 'get', 'search', 'post']
 
-from . import download, get, search
+from . import download, get, post, search

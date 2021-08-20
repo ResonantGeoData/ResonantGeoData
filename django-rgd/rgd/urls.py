@@ -45,4 +45,39 @@ urlpatterns = [
         rest.download.download_checksum_file,
         name='checksum-file-data',
     ),
+    path(
+        'api/rgd/checksum_file',
+        rest.post.CreateChecksumFile.as_view(),
+        name='checksum-create',
+    ),
+    path(
+        'api/rgd/collection',
+        rest.post.CreateCollection.as_view(),
+        name='collection-create',
+    ),
+    path(
+        'api/rgd/collection/<int:pk>',
+        rest.get.GetCollection.as_view(),
+        name='collection',
+    ),
+    path(
+        'api/rgd/collection_permission',
+        rest.post.CreateCollectionPermission.as_view(),
+        name='collection-permission-create',
+    ),
+    path(
+        'api/rgd/collection_permission/<int:pk>',
+        rest.get.GetCollectionPermission.as_view(),
+        name='collection-permission',
+    ),
+    path(
+        'api/rgd/spatial_asset',
+        rest.post.CreateSpatialAsset.as_view(),
+        name='spatial-asset-create',
+    ),
+    path(
+        'api/rgd/spatial_asset/<int:pk>',
+        rest.get.GetSpatialAsset.as_view(),
+        name='spatial-asset',
+    ),
 ]

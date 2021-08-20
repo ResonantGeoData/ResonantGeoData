@@ -35,6 +35,11 @@ urlpatterns = [
     #############
     # Other
     path(
+        'api/rgd_imagery',
+        rest.post.CreateImage.as_view(),
+        name='image-create',
+    ),
+    path(
         'api/rgd_imagery/<int:pk>',
         rest.get.GetImageMeta.as_view(),
         name='image-entry',
@@ -45,9 +50,29 @@ urlpatterns = [
         name='image-entry-data',
     ),
     path(
+        'api/rgd_imagery/image_set',
+        rest.post.CreateImageSet.as_view(),
+        name='image-set-create',
+    ),
+    path(
         'api/rgd_imagery/image_set/<int:pk>',
         rest.get.GetImageSet.as_view(),
         name='image-set',
+    ),
+    path(
+        'api/rgd_imagery/image_set_spatial',
+        rest.post.CreateImageSetSpatial.as_view(),
+        name='image-set-spatial-create',
+    ),
+    path(
+        'api/rgd_imagery/image_set_spatial/<int:pk>',
+        rest.get.GetImageSetSpatial.as_view(),
+        name='image-set-spatial',
+    ),
+    path(
+        'api/rgd_imagery/raster',
+        rest.post.CreateRaster.as_view(),
+        name='raster-create',
     ),
     path(
         'api/rgd_imagery/raster/<int:pk>',

@@ -27,6 +27,12 @@ class GetImageSet(RetrieveAPIView, _PermissionMixin):
     queryset = models.ImageSet.objects.all()
 
 
+class GetImageSetSpatial(RetrieveAPIView, _PermissionMixin):
+    serializer_class = serializers.ImageSetSpatialSerializer
+    lookup_field = 'pk'
+    queryset = models.ImageSetSpatial.objects.all()
+
+
 class GetRasterMeta(RetrieveAPIView, _PermissionMixin):
     serializer_class = serializers.RasterMetaSerializer
     lookup_field = 'pk'
