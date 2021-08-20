@@ -94,9 +94,18 @@ def datetime_to_time(value: object):
 
 
 def order_datetimes(value1: object, value2: object):
-    """Sort 2 objects if they are datetimes."""
+    """
+    Sort 2 objects if they are datetimes.
+
+    Example:
+        >>> from rgd_client.utils import *  # NOQA
+        >>> value1 = datetime.fromisoformat('2000-01-01T00:13:30')
+        >>> value2 = datetime.fromisoformat('1999-01-01T00:13:30')
+        >>> result = order_datetimes(value1, value2)
+        >>> assert len(result) == 2
+    """
     if isinstance(value1, datetime) and isinstance(value2, datetime):
-        return value1, value2 if value1 < value2 else value2, value1
+        return (value1, value2) if value1 < value2 else (value2, value1)
 
     return value1, value2
 
