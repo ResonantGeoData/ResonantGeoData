@@ -45,5 +45,5 @@ setup(
         'geomet',
         'tqdm',
     ],
-    extras_require={'dev': ['ipython', 'xdoctest']},
+    extras_require={'dev': ['ipython']},
 )
