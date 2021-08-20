@@ -2,7 +2,7 @@ from django.core.exceptions import FieldDoesNotExist
 from django.db.models import ForeignKey, ManyToManyField, OneToOneField
 import pytest
 from rgd import models
-from rgd.permissions import get_collection_permissions_paths
+from rgd.permissions import get_permissions_paths
 
 
 def check_model_permissions(model):
@@ -10,7 +10,7 @@ def check_model_permissions(model):
         return
 
     try:
-        permissions_paths = get_collection_permissions_paths(model)
+        permissions_paths = get_permissions_paths(model, models.CollectionPermission)
         assert permissions_paths  # field exists and non-empty
     except TypeError:
         pytest.fail('permissions_paths does not exist on model')
