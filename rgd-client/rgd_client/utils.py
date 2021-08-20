@@ -168,6 +168,29 @@ def spatial_search_params(
     offset: Optional[int] = None,
     time_of_day: Optional[DATETIME_OR_STR_TUPLE] = None,
 ) -> Dict:
+    """
+    Validate, fixup, and package parameters for an RGD search
+
+    Example:
+        >>> query = {
+        >>>     "type": "Polygon",
+        >>>     "coordinates": [
+        >>>         [
+        >>>             [-81.7745, 33.1346],
+        >>>             [-81.7746, 33.1437],
+        >>>             [-81.7744, 33.1437],
+        >>>             [-81.7666, 33.1436],
+        >>>             [-81.7745, 33.1346]
+        >>>         ]
+        >>>     ]
+        >>> }
+        >>> predicate = 'intersects'
+        >>> acquired = (
+        >>>     datetime.fromisoformat('2101-01-01T00:10:00'),
+        >>>     datetime.fromisoformat('2101-01-01T00:23:00')
+        >>> )
+        >>> params = spatial_search_params(query, predicate, acquired=acquired)
+    """
     # The dict that will be used to store params.
     # Initialize with queries that won't be additionally processed.
     params = {
