@@ -20,10 +20,9 @@ logger = get_task_logger(__name__)
 @contextmanager
 def _processed_image_helper(param_model, single_input=False):
     # yields the source image object and the processed image file object
-    if not param_model.processed_image:
-        file = ChecksumFile()
-    else:
-        file = param_model.processed_image.file
+    if param_model.processed_image:
+        param_model.processed_image.file.delete()
+    file = ChecksumFile()
 
     param_model.refresh_from_db()
 
