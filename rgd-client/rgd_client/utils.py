@@ -169,7 +169,7 @@ def spatial_search_params(
     time_of_day: Optional[DATETIME_OR_STR_TUPLE] = None,
 ) -> Dict:
     """
-    Validate, fixup, and package parameters for an RGD search
+    Validate, fixup, and package parameters for an RGD search.
 
     Example:
         >>> query = {
