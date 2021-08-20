@@ -40,9 +40,14 @@ class ProcessedImageSerializer(serializers.ModelSerializer):
     source_images = RelatedField(
         queryset=models.Image.objects.all(), serializer=ImageSerializer, many=True
     )
-    processed_image = RelatedField(queryset=models.Image.objects.all(), serializer=ImageSerializer)
+    processed_image = RelatedField(
+        queryset=models.Image.objects.all(), serializer=ImageSerializer, required=False
+    )
     ancillary_files = RelatedField(
-        queryset=ChecksumFile.objects.all(), serializer=ChecksumFileSerializer, many=True
+        queryset=ChecksumFile.objects.all(),
+        serializer=ChecksumFileSerializer,
+        many=True,
+        required=False,
     )
 
     def validate_source_image(self, value):
