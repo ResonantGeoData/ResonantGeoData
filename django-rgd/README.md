@@ -74,7 +74,7 @@ from rgd.models.mixins import PermissionPathMixin
 
 class SpatialAsset(SpatialEntry, TimeStampedModel, PermissionPathMixin):
     """Any spatially referenced file set."""
-    files = models.ManyToManyField(ChecksumFile)
+    files = models.ManyToManyField(ChecksumFile, related_name='+')
     permissions_paths = ['files__collection__collection_permissions']
 ```
 

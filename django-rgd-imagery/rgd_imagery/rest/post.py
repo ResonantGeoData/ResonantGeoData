@@ -2,14 +2,14 @@ from rest_framework.generics import CreateAPIView
 from rgd_imagery import models, serializers
 
 
-class CreateConvertedImage(CreateAPIView):
-    queryset = models.ConvertedImage.objects.all()
-    serializer_class = serializers.ConvertedImageSerializer
+class CreateProcessedImage(CreateAPIView):
+    queryset = models.ProcessedImage.objects.all()
+    serializer_class = serializers.ProcessedImageSerializer
 
 
-class CreateRegionImage(CreateAPIView):
-    queryset = models.RegionImage.objects.all()
-    serializer_class = serializers.RegionImageSerializer
+class CreateProcessedImageGroup(CreateAPIView):
+    queryset = models.ProcessedImageGroup.objects.all()
+    serializer_class = serializers.ProcessedImageGroupSerializer
 
 
 class CreateRasterSTAC(CreateAPIView):

@@ -305,4 +305,4 @@ class SpatialAsset(SpatialEntry, TimeStampedModel, PermissionPathMixin):
 
     permissions_paths = [('files', ChecksumFile)]
 
-    files = models.ManyToManyField(ChecksumFile)
+    files = models.ManyToManyField(ChecksumFile, related_name='+')

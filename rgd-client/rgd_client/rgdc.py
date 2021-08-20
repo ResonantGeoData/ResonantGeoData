@@ -8,7 +8,7 @@ from typing import Dict, Iterator, List, Optional, Tuple, Union
 from tqdm import tqdm
 
 from .session import RgdcSession
-from .types import DATETIME_OR_STR_TUPLE, SEARCH_PREDICATE_CHOICE
+from .types import DATETIME_OR_STR_TUPLE, PROCESSED_IMAGE_TYPES, SEARCH_PREDICATE_CHOICE
 from .utils import (
     DEFAULT_RGD_API,
     download_checksum_file_to_path,
@@ -318,3 +318,38 @@ class Rgdc:
             params['cloud_cover_max'] = ccmax
 
         return list(limit_offset_pager(self.session, 'rgd_imagery/raster/search', params=params))
+
+    def create_processed_image_group(
+        self,
+        process_type: PROCESSED_IMAGE_TYPES,
+        parameters: dict = None,
+    ):
+        if parameters is None:
+            parameters = {}
+        payload = dict(
+            process_type=process_type,
+            parameters=parameters,
+        )
+        r = self.session.post('image_process/group', json=payload)
+        r.raise_for_status()
+        return r.json()
+
+    def create_processed_image(
+        self, image_ids: List[Union[str, int]], group_id: Union[str, int, dict]
+    ) -> Dict:
+        if isinstance(group_id, dict):
+            group_id = group_id['id']
+        payload = dict(
+            group=group_id,
+            source_images=image_ids,
+        )
+        r = self.session.post('image_process', json=payload)
+        r.raise_for_status()
+        return r.json()
+
+    def get_pocessed_image_group_status(self, group_id: Union[str, int, dict]):
+        if isinstance(group_id, dict):
+            group_id = group_id['id']
+        r = self.session.get(f'image_process/group/{group_id}/status')
+        r.raise_for_status()
+        return r.json()
