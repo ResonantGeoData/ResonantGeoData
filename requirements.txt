@@ -6,6 +6,6 @@ pytest-factoryboy
 pytest-mock
 pytest-cov
 pytest-memprof
-xdoctest
+xdoctest >= 0.15.6
 -e ./django-rgd
 -e ./testing-utils
