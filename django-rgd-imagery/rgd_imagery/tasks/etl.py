@@ -17,7 +17,7 @@ from rasterio.warp import Resampling, calculate_default_transform, reproject
 from rgd.models.constants import DB_SRID
 from rgd.utility import get_or_create_no_commit
 from rgd_imagery.large_image_utilities import get_tile_bounds, yeild_tilesource_from_image
-from rgd_imagery.models import BandMeta, ConvertedImage, Image, ImageMeta, Raster, RasterMeta
+from rgd_imagery.models import BandMeta, Image, ImageMeta, Raster, RasterMeta
 from shapely.geometry import shape
 from shapely.ops import unary_union
 
@@ -81,7 +81,6 @@ def load_image(image):
     if not created:
         # Clear out associated entries because they could be invalid
         BandMeta.objects.filter(parent_image=image).delete()
-        ConvertedImage.objects.filter(source_image=image).delete()
 
     _populate_image_meta_models(image, image_meta)
 
