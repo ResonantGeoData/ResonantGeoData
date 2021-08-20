@@ -35,7 +35,7 @@ class ProcessedImage(TimeStampedModel, TaskEventMixin, PermissionPathMixin):
 
     task_funcs = (jobs.task_run_processed_image,)
 
-    source_images = models.ManyToManyField(Image, related_name='+')
+    source_images = models.ManyToManyField(Image)
 
     processed_image = models.ForeignKey(
         Image, on_delete=models.SET_NULL, null=True, blank=True, related_name='+'
