@@ -44,6 +44,55 @@ class STACRasterSerializer(serializers.BaseSerializer):
         #     raise serializers.ValidationError(errors)
         return data
 
+    def _add_image_to_item(self, item, image, asset_type='image', roles=('data',)):
+        if image.file.type != FileSourceType.URL:
+            # TODO: we need fix this
+            raise ValueError('Files must point to valid URL resources, not internal storage.')
+        bands = []
+        for bandmeta in image.bandmeta_set.filter(band_range__contained_by=(None, None)):
+            band = pystac.extensions.eo.Band.create(
+                name=f'B{bandmeta.band_number}',
+                description=bandmeta.description,
+            )
+            # The wavelength statistics is described by either the
+            # common_name or via center_wavelength and full_width_half_max.
+            # We can derive our bandmeta.band_range.lower,
+            # bandmeta.band_range.upper from the center_wavelength
+            # and full_width_half_max.
+            if (
+                bandmeta.band_range.lower,
+                bandmeta.band_range.upper,
+            ) in BAND_RANGE_BY_COMMON_NAMES.inverse:
+                band.common_name = BAND_RANGE_BY_COMMON_NAMES.inverse[
+                    (bandmeta.band_range.lower, bandmeta.band_range.upper)
+                ]
+            else:
+                with decimal.localcontext(decimal.BasicContext):
+                    band.center_wavelength = float(
+                        (bandmeta.band_range.lower + bandmeta.band_range.upper) / 2
+                    )
+                    band.full_width_half_max = float(
+                        bandmeta.band_range.upper - bandmeta.band_range.lower
+                    )
+
+            bands.append(band)
+        asset = pystac.Asset(
+            href=image.file.get_url(),
+            title=image.file.name,
+            roles=roles,
+        )
+        item.add_asset(f'{asset_type}-{image.pk}', asset)
+        item.ext.eo.set_bands(
+            bands=bands
+            or [
+                pystac.extensions.eo.Band.create(
+                    name=image.file.name,
+                    description=image.bandmeta_set.first().description,
+                )
+            ],
+            asset=asset,
+        )
+
     def to_representation(self, instance: models.RasterMeta) -> dict:
         item = pystac.Item(
             id=instance.pk,
@@ -65,56 +114,21 @@ class STACRasterSerializer(serializers.BaseSerializer):
         item.ext.enable('eo')
         item.ext.eo.apply(cloud_cover=instance.cloud_cover, bands=[])
         # Add assets
+        used_images = set()
         for image in instance.parent_raster.image_set.images.all():
-            if image.file.type != FileSourceType.URL:
-                # TODO: we need fix this
-                raise ValueError('Files must point to valid URL resources, not internal storage.')
-            bands = []
-            for bandmeta in image.bandmeta_set.filter(band_range__contained_by=(None, None)):
-                band = pystac.extensions.eo.Band.create(
-                    name=f'B{bandmeta.band_number}',
-                    description=bandmeta.description,
+            if image.id in used_images:
+                continue
+            used_images.add(image.id)
+            self._add_image_to_item(item, image, asset_type='image')
+            for pim in image.processedimage_set.all():
+                if pim.processed_image.id in used_images:
+                    continue
+                self._add_image_to_item(
+                    item,
+                    pim.processed_image,
+                    asset_type='processed-image',
+                    roles=('processed-data',),
                 )
-                # The wavelength statistics is described by either the
-                # common_name or via center_wavelength and full_width_half_max.
-                # We can derive our bandmeta.band_range.lower,
-                # bandmeta.band_range.upper from the center_wavelength
-                # and full_width_half_max.
-                if (
-                    bandmeta.band_range.lower,
-                    bandmeta.band_range.upper,
-                ) in BAND_RANGE_BY_COMMON_NAMES.inverse:
-                    band.common_name = BAND_RANGE_BY_COMMON_NAMES.inverse[
-                        (bandmeta.band_range.lower, bandmeta.band_range.upper)
-                    ]
-                else:
-                    with decimal.localcontext(decimal.BasicContext):
-                        band.center_wavelength = float(
-                            (bandmeta.band_range.lower + bandmeta.band_range.upper) / 2
-                        )
-                        band.full_width_half_max = float(
-                            bandmeta.band_range.upper - bandmeta.band_range.lower
-                        )
-
-                bands.append(band)
-            asset = pystac.Asset(
-                href=image.file.get_url(),
-                title=image.file.name,
-                roles=[
-                    'data',
-                ],
-            )
-            item.add_asset(f'image-{image.pk}', asset)
-            item.ext.eo.set_bands(
-                bands=bands
-                or [
-                    pystac.extensions.eo.Band.create(
-                        name=image.file.name,
-                        description=image.bandmeta_set.first().description,
-                    )
-                ],
-                asset=asset,
-            )
 
         for ancillary_file in instance.parent_raster.ancillary_files.all():
             asset = pystac.Asset(
