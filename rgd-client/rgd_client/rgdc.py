@@ -391,6 +391,28 @@ class Rgdc:
 
         return self.session.post('rgd_imagery/image_set', json=payload).json()
 
+    def create_raster_from_image_set(
+        self,
+        image_set: Union[Dict, int],
+        ancillary_files: Optional[Iterable[Union[dict, int]]] = None,
+        name: Optional[str] = None,
+        description: Optional[str] = None,
+    ) -> Dict:
+
+        # Construct payload, leaving out empty arguments
+        payload = {'image_set': image_set['id'] if isinstance(image_set, dict) else image_set}
+        if ancillary_files is not None:
+            # Ensure all files are represented by their IDs
+            payload['ancillary_files'] = [
+                file['id'] if isinstance(file, dict) else file for file in ancillary_files
+            ]
+        if name is not None:
+            payload['name'] = name
+        if description is not None:
+            payload['description'] = description
+
+        return self.session.post('rgd_imagery/raster', json=payload).json()
+
     def create_processed_image_group(
         self,
         process_type: PROCESSED_IMAGE_TYPES,

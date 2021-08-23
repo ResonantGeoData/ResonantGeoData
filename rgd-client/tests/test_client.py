@@ -3,7 +3,7 @@ import json
 from django.forms.models import model_to_dict
 import pytest
 from rgd.models.common import ChecksumFile
-from rgd_imagery.models.base import Image
+from rgd_imagery.models.base import Image, ImageSet
 
 from rgd_client import Rgdc
 
@@ -116,3 +116,21 @@ def test_create_image_set(py_client: Rgdc, rgd_imagery_demo):
 
     imageset_dict_image_ids = {im['id'] for im in imageset_dict['images']}
     assert all(im['id'] in imageset_dict_image_ids for im in images)
+
+
+@pytest.mark.django_db(transaction=True)
+def test_create_raster_from_image_set(py_client: Rgdc, rgd_imagery_demo):
+    """Test that creation of an ImageSet succeeds."""
+    # Create ImageSet from existing images to use in Raster creation
+    images = [model_to_dict(im) for im in Image.objects.all()[:5]]
+    imageset_dict = py_client.create_image_set(images)
+
+    ancillary_files = [model_to_dict(file) for file in ChecksumFile.objects.all()[:5]]
+    raster_dict = py_client.create_raster_from_image_set(imageset_dict, ancillary_files)
+
+    # Make assertions
+    assert raster_dict['image_set']['id'] == imageset_dict['id']
+
+    sorted_ancillary_files_ids = sorted(file['id'] for file in ancillary_files)
+    sorted_raster_ancillary_file_ids = sorted(file['id'] for file in raster_dict['ancillary_files'])
+    assert sorted_ancillary_files_ids == sorted_raster_ancillary_file_ids
