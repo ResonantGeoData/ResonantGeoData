@@ -3,9 +3,10 @@ from dataclasses import dataclass
 import getpass
 from pathlib import Path
 import tempfile
-from typing import Dict, Iterator, List, Optional, Tuple, Union
+from typing import Dict, Iterable, Iterator, List, Optional, Tuple, Union
 
 from tqdm import tqdm
+import validators
 
 from .session import RgdcSession
 from .types import DATETIME_OR_STR_TUPLE, PROCESSED_IMAGE_TYPES, SEARCH_PREDICATE_CHOICE
@@ -319,18 +320,122 @@ class Rgdc:
 
         return list(limit_offset_pager(self.session, 'rgd_imagery/raster/search', params=params))
 
+    def create_file_from_url(
+        self,
+        url: str,
+        name: Optional[str] = None,
+        collection: Optional[int] = None,
+        description: Optional[str] = None,
+    ) -> Dict:
+        """
+        Create a ChecksumFile from a URL.
+
+        Args:
+            url: The URL to retrieve the file from
+            name: The name of the file
+            collection: The integer collection ID to associate this ChecksumFile with
+            description: The description of the file
+        """
+        # Verify that url is valid in shape, will raise error on failure
+        validators.url(url)
+
+        # Construct payload, leaving out empty arguments
+        payload = {'url': url, 'type': 2}
+        if name is not None:
+            payload['name'] = name
+        if collection is not None:
+            payload['collection'] = collection
+        if description is not None:
+            payload['description'] = description
+
+        r = self.session.post('rgd/checksum_file', json=payload)
+
+        r.raise_for_status()
+        return r.json()
+
+    def create_image_from_file(self, checksum_file: Dict) -> Dict:
+        """
+        Create an image from a ChecksumFile.
+
+        Args:
+            checksum_file: The checksum file to create an image with.
+        """
+        r = self.session.post('rgd_imagery', json={'file': checksum_file.get('id')})
+
+        r.raise_for_status()
+        return r.json()
+
+    def create_image_set(
+        self,
+        images: Iterable[Union[dict, int]],
+        name: Optional[str] = None,
+        description: Optional[str] = None,
+    ) -> Dict:
+        """
+        Create an image set from an iterable of images.
+
+        Args:
+            images: The images to create the image set from. These can be either dicts or integers (image ids).
+            name: (optional) The name of the image set.
+            description: (optional) The description of the image set.
+        """
+        # Ensure all images are represented by their IDs
+        image_ids = [im['id'] if isinstance(im, dict) else im for im in images]
+
+        payload = {'images': image_ids}
+        if name is not None:
+            payload['name'] = name
+        if description is not None:
+            payload['description'] = description
+
+        return self.session.post('rgd_imagery/image_set', json=payload).json()
+
+    def create_raster_from_image_set(
+        self,
+        image_set: Union[Dict, int],
+        ancillary_files: Optional[Iterable[Union[dict, int]]] = None,
+        name: Optional[str] = None,
+        description: Optional[str] = None,
+    ) -> Dict:
+
+        # Construct payload, leaving out empty arguments
+        payload = {'image_set': image_set['id'] if isinstance(image_set, dict) else image_set}
+        if ancillary_files is not None:
+            # Ensure all files are represented by their IDs
+            payload['ancillary_files'] = [
+                file['id'] if isinstance(file, dict) else file for file in ancillary_files
+            ]
+        if name is not None:
+            payload['name'] = name
+        if description is not None:
+            payload['description'] = description
+
+        return self.session.post('rgd_imagery/raster', json=payload).json()
+
     def create_processed_image_group(
         self,
         process_type: PROCESSED_IMAGE_TYPES,
-        parameters: dict = None,
+        parameters: Optional[dict] = None,
     ):
         if parameters is None:
             parameters = {}
-        payload = dict(
-            process_type=process_type,
-            parameters=parameters,
+
+        r = self.session.post(
+            'image_process/group',
+            json=dict(
+                process_type=process_type,
+                parameters=parameters,
+            ),
         )
-        r = self.session.post('image_process/group', json=payload)
+
+        r.raise_for_status()
+        return r.json()
+
+    def get_processed_image_group_status(self, group_id: Union[str, int, dict]):
+        if isinstance(group_id, dict):
+            group_id = group_id['id']
+
+        r = self.session.get(f'image_process/group/{group_id}/status')
         r.raise_for_status()
         return r.json()
 
@@ -339,17 +444,14 @@ class Rgdc:
     ) -> Dict:
         if isinstance(group_id, dict):
             group_id = group_id['id']
-        payload = dict(
-            group=group_id,
-            source_images=image_ids,
-        )
-        r = self.session.post('image_process', json=payload)
-        r.raise_for_status()
-        return r.json()
 
-    def get_pocessed_image_group_status(self, group_id: Union[str, int, dict]):
-        if isinstance(group_id, dict):
-            group_id = group_id['id']
-        r = self.session.get(f'image_process/group/{group_id}/status')
+        r = self.session.post(
+            'image_process',
+            json=dict(
+                group=group_id,
+                source_images=image_ids,
+            ),
+        )
+
         r.raise_for_status()
         return r.json()

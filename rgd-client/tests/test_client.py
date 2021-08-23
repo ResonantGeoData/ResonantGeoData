@@ -1,6 +1,11 @@
 import json
 
+from django.forms.models import model_to_dict
 import pytest
+from rgd.models.common import ChecksumFile
+from rgd_imagery.models.base import Image
+
+from rgd_client import Rgdc
 
 bbox = {
     'type': 'Polygon',
@@ -78,3 +83,54 @@ def test_download_raster(py_client, rgd_imagery_demo):
 #         py_client.search_raster_stac(query=json.dumps(bbox), predicate='intersects')
 #     except Exception:
 #         pytest.fail('Failed STAC search')
+
+
+@pytest.mark.django_db(transaction=True)
+def test_create_file_from_url(py_client: Rgdc, rgd_imagery_demo):
+    """Test that creation of a ChecksumFile with a URL succeeds."""
+    # Get existing file and use it's URL to create a new ChecksumFile
+    file: ChecksumFile = ChecksumFile.objects.first()
+    file_url = file.get_url()
+
+    file_dict = py_client.create_file_from_url(file_url)
+    assert file_dict['url'] == file_url
+    assert file_dict['type'] == 2
+
+
+@pytest.mark.django_db(transaction=True)
+def test_create_image_from_file(py_client: Rgdc, rgd_imagery_demo):
+    """Test that creation of an Image with a ChecksumFile succeeds."""
+    # Get existing ChecksumFile to use in image creation
+    file: ChecksumFile = ChecksumFile.objects.first()
+
+    image_dict = py_client.create_image_from_file(model_to_dict(file))
+    assert image_dict['file']['id'] == file.id
+
+
+@pytest.mark.django_db(transaction=True)
+def test_create_image_set(py_client: Rgdc, rgd_imagery_demo):
+    """Test that creation of an ImageSet succeeds."""
+    # Get existing Images to use in ImageSet creation
+    images = [model_to_dict(im) for im in Image.objects.all()[:5]]
+    imageset_dict = py_client.create_image_set(images)
+
+    imageset_dict_image_ids = {im['id'] for im in imageset_dict['images']}
+    assert all(im['id'] in imageset_dict_image_ids for im in images)
+
+
+@pytest.mark.django_db(transaction=True)
+def test_create_raster_from_image_set(py_client: Rgdc, rgd_imagery_demo):
+    """Test that creation of an ImageSet succeeds."""
+    # Create ImageSet from existing images to use in Raster creation
+    images = [model_to_dict(im) for im in Image.objects.all()[:5]]
+    imageset_dict = py_client.create_image_set(images)
+
+    ancillary_files = [model_to_dict(file) for file in ChecksumFile.objects.all()[:5]]
+    raster_dict = py_client.create_raster_from_image_set(imageset_dict, ancillary_files)
+
+    # Make assertions
+    assert raster_dict['image_set']['id'] == imageset_dict['id']
+
+    sorted_ancillary_files_ids = sorted(file['id'] for file in ancillary_files)
+    sorted_raster_ancillary_file_ids = sorted(file['id'] for file in raster_dict['ancillary_files'])
+    assert sorted_ancillary_files_ids == sorted_raster_ancillary_file_ids

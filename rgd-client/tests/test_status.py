@@ -1,5 +1,6 @@
 import requests
-import rgd_client  # noqa
+
+import rgd_client
 
 
 def test_rgd_version():
