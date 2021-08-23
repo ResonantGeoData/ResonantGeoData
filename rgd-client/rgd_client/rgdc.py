@@ -349,7 +349,10 @@ class Rgdc:
         if description is not None:
             payload['description'] = description
 
-        return self.session.post('rgd/checksum_file', json=payload).json()
+        r = self.session.post('rgd/checksum_file', json=payload)
+
+        r.raise_for_status()
+        return r.json()
 
     def create_image_from_file(self, checksum_file: Dict) -> Dict:
         """
@@ -358,7 +361,10 @@ class Rgdc:
         Args:
             checksum_file: The checksum file to create an image with.
         """
-        return self.session.post('rgd_imagery', json={'file': checksum_file.get('id')}).json()
+        r = self.session.post('rgd_imagery', json={'file': checksum_file.get('id')})
+
+        r.raise_for_status()
+        return r.json()
 
     def create_processed_image_group(
         self,
