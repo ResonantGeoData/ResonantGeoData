@@ -321,8 +321,8 @@ class Rgdc:
 
     def create_file_from_url(
         self,
-        name: str,
         url: str,
+        name: Optional[str] = None,
         collection: Optional[int] = None,
         description: Optional[str] = None,
     ) -> Dict:
@@ -330,22 +330,21 @@ class Rgdc:
         Create a ChecksumFile from a URL.
 
         Args:
-            name: The name of the file
             url: The URL to retrieve the file from
+            name: The name of the file
             collection: The integer collection ID to associate this ChecksumFile with
             description: The description of the file
         """
-        # TODO: Add url validation
-        return self.session.post(
-            'rgd/checksum_file',
-            json={
-                'name': name,
-                'url': url,
-                'collection': collection,
-                'description': description,
-                'type': 2,  # Hardcode to 2, to indicate a URL file
-            },
-        ).json()
+        # Construct payload, leaving out empty arguments
+        payload = {'url': url}
+        if name is not None:
+            payload['name'] = name
+        if collection is not None:
+            payload['collection'] = collection
+        if description is not None:
+            payload['description'] = description
+
+        return self.session.post('rgd/checksum_file', json=payload).json()
 
     def create_image_from_file(self, checksum_file: Dict) -> Dict:
         """

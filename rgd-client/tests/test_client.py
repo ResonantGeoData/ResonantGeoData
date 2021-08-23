@@ -90,12 +90,10 @@ def test_create_file_from_url(py_client: Rgdc, rgd_imagery_demo):
     # Get existing file and use it's URL to create a new ChecksumFile
     file: ChecksumFile = ChecksumFile.objects.first()
     file_url = file.get_url()
-    file_name = 'test'
 
-    file_dict = py_client.create_file_from_url(file_name, file_url)
-    assert file_dict['name'] == file_name
-    assert file_dict['type'] == 2
+    file_dict = py_client.create_file_from_url(file_url)
     assert file_dict['url'] == file_url
+    assert file_dict['type'] == 2
 
 
 @pytest.mark.django_db(transaction=True)
