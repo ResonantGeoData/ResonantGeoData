@@ -340,7 +340,7 @@ class Rgdc:
         validators.url(url)
 
         # Construct payload, leaving out empty arguments
-        payload = {'url': url}
+        payload = {'url': url, 'type': 2}
         if name is not None:
             payload['name'] = name
         if collection is not None:
