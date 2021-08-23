@@ -28,6 +28,17 @@ services:
     volumes:
       - fsdata:/data
 
+  sitemap:
+    build:
+      context: .
+      dockerfile: ./dev/sitemap.Dockerfile
+    # Log printing via Rich is enhanced by a TTY
+    tty: true
+    volumes:
+      - ./logos:/data:ro
+    ports:
+      - 8081:8081  # NOTE: commenting this out will prevent files from being exposed outside of the docker newtork
+
 volumes:
   dbdata:
   fsdata:

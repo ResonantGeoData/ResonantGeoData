@@ -32,8 +32,9 @@ def _save_signal(entry, created):
     entry.save()
 
 
-def _get_or_create_checksum_file_url(url, name=None):
-    URLValidator()(url)  # raises `ValidationError` if not a valid URL
+def _get_or_create_checksum_file_url(url, name=None, validate=True):
+    if validate:
+        URLValidator()(url)  # raises `ValidationError` if not a valid URL
     try:
         file_entry = models.ChecksumFile.objects.get(url=url)
         _save_signal(file_entry, False)

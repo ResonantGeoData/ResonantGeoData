@@ -16,6 +16,7 @@ services:
       - postgres
       - rabbitmq
       - minio
+      - sitemap
 
   celery:
     build:
@@ -41,6 +42,7 @@ services:
       - postgres
       - rabbitmq
       - minio
+      - sitemap
 
   flower:
     image: mher/flower
