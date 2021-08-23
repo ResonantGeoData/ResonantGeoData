@@ -5,6 +5,8 @@ from pathlib import Path
 import tempfile
 from typing import Dict, Iterator, List, Optional, Tuple, Union
 
+import validators
+
 from tqdm import tqdm
 
 from .session import RgdcSession
@@ -335,6 +337,9 @@ class Rgdc:
             collection: The integer collection ID to associate this ChecksumFile with
             description: The description of the file
         """
+        # Verify that url is valid in shape, will raise error on failure
+        validators.url(url)
+
         # Construct payload, leaving out empty arguments
         payload = {'url': url}
         if name is not None:
