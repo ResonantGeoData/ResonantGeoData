@@ -4,6 +4,8 @@ import os
 from urllib.error import URLError
 from urllib.parse import urlencode, urlparse
 
+from crum import get_current_user
+from django.conf import settings
 from django.contrib.gis.db import models
 from django_extensions.db.models import TimeStampedModel
 from girder_utils.files import field_file_to_local_path
@@ -91,6 +93,9 @@ class ChecksumFile(TimeStampedModel, TaskEventMixin, PermissionPathMixin):
         related_query_name='%(class)ss',
         null=True,
         blank=True,
+    )
+    created_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL, null=True, blank=True, default=None, on_delete=models.SET_NULL
     )
 
     type = models.IntegerField(choices=FileSourceType.choices, default=FileSourceType.FILE_FIELD)
@@ -180,6 +185,12 @@ class ChecksumFile(TimeStampedModel, TaskEventMixin, PermissionPathMixin):
                 if not self.name:
                     # Fallback
                     self.name = os.path.basename(urlparse(self.url).path)
+        # Handle `created_by` User
+        user = get_current_user()
+        if user and not user.pk:
+            user = None
+        if not self.pk:
+            self.created_by = user
         # Must save the model with the file before accessing it for the checksum
         super(ChecksumFile, self).save(*args, **kwargs)
 

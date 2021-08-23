@@ -53,6 +53,7 @@ setup(
         'django>=3.2',  # See PR #264: due to this bug: https://code.djangoproject.com/ticket/31910
         'django-allauth',
         'django-click',
+        'django-crum',
         'django-extensions',
         'django-filter',
         'django-girder-utils',
