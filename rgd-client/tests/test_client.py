@@ -3,6 +3,7 @@ import json
 from django.forms.models import model_to_dict
 import pytest
 from rgd.models.common import ChecksumFile
+from rgd_imagery.models.base import Image
 
 from rgd_client import Rgdc
 
@@ -104,3 +105,14 @@ def test_create_image_from_file(py_client: Rgdc, rgd_imagery_demo):
 
     image_dict = py_client.create_image_from_file(model_to_dict(file))
     assert image_dict['file']['id'] == file.id
+
+
+@pytest.mark.django_db(transaction=True)
+def test_create_image_set(py_client: Rgdc, rgd_imagery_demo):
+    """Test that creation of an ImageSet succeeds."""
+    # Get existing Images to use in ImageSet creation
+    images = [model_to_dict(im) for im in Image.objects.all()[:5]]
+    imageset_dict = py_client.create_image_set(images)
+
+    imageset_dict_image_ids = {im['id'] for im in imageset_dict['images']}
+    assert all(im['id'] in imageset_dict_image_ids for im in images)

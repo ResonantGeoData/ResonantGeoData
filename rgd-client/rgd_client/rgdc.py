@@ -3,7 +3,7 @@ from dataclasses import dataclass
 import getpass
 from pathlib import Path
 import tempfile
-from typing import Dict, Iterator, List, Optional, Tuple, Union
+from typing import Dict, Iterable, Iterator, List, Optional, Tuple, Union
 
 import validators
 
@@ -365,6 +365,31 @@ class Rgdc:
 
         r.raise_for_status()
         return r.json()
+
+    def create_image_set(
+        self,
+        images: Iterable[Union[dict, int]],
+        name: Optional[str] = None,
+        description: Optional[str] = None,
+    ) -> Dict:
+        """
+        Create an image set from an iterable of images.
+
+        Args:
+            images: The images to create the image set from. These can be either dicts or integers (image ids).
+            name: (optional) The name of the image set.
+            description: (optional) The description of the image set.
+        """
+        # Ensure all images are represented by their IDs
+        image_ids = [im['id'] if isinstance(im, dict) else im for im in images]
+
+        payload = {'images': image_ids}
+        if name is not None:
+            payload['name'] = name
+        if description is not None:
+            payload['description'] = description
+
+        return self.session.post('rgd_imagery/image_set', json=payload).json()
 
     def create_processed_image_group(
         self,
