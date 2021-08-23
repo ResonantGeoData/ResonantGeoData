@@ -5,9 +5,8 @@ from pathlib import Path
 import tempfile
 from typing import Dict, Iterable, Iterator, List, Optional, Tuple, Union
 
-import validators
-
 from tqdm import tqdm
+import validators
 
 from .session import RgdcSession
 from .types import DATETIME_OR_STR_TUPLE, PROCESSED_IMAGE_TYPES, SEARCH_PREDICATE_CHOICE
