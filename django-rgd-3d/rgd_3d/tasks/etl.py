@@ -58,7 +58,7 @@ def _get_readers():
 def read_point_cloud_file(pc_file):
     """Read a PointCloud object and create a new PointCloudMeta."""
     if not isinstance(pc_file, PointCloud):
-        pc_file = PointCloud.objects.get(id=pc_file)
+        pc_file = PointCloud.objects.get(pk=pc_file)
     pc_entry, _ = get_or_create_no_commit(PointCloudMeta, source=pc_file)
     pc_entry.name = pc_file.file.name
     # Parse the point cloud file format and convert

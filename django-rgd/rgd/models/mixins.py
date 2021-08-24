@@ -52,9 +52,9 @@ class TaskEventMixin(models.Model):
         for func in self.task_funcs:
             if getattr(settings, 'CELERY_TASK_ALWAYS_EAGER', None):
                 # HACK: for some reason this is necessary
-                func(self.id)
+                func(self.pk)
             else:
-                func.delay(self.id)
+                func.delay(self.pk)
 
     def _post_save_event_task(self, created: bool, *args, **kwargs) -> None:
         if not created and kwargs.get('update_fields'):

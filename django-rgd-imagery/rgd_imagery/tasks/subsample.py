@@ -209,7 +209,7 @@ def mosaic_images(processed_image):
 
 def run_processed_image(processed_image):
     if not isinstance(processed_image, ProcessedImage):
-        processed_image = ProcessedImage.objects.get(id=processed_image)
+        processed_image = ProcessedImage.objects.get(pk=processed_image)
 
     methods = {
         ProcessedImageGroup.ProcessTypes.COG: convert_to_cog,
