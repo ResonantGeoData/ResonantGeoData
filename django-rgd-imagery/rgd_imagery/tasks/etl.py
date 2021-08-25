@@ -4,8 +4,10 @@ import os
 import tempfile
 
 from celery.utils.log import get_task_logger
+import dateutil.parser
 from django.conf import settings
 from django.contrib.gis.geos import GEOSGeometry, Polygon
+from django.utils.timezone import make_aware
 import numpy as np
 from osgeo import gdal
 import rasterio
@@ -324,6 +326,22 @@ def populate_raster(raster):
     for k, v in meta.items():
         # Yeah. This is sketchy, but it works.
         setattr(raster_meta, k, v)
+    # Assign extra fields:
+    if raster.extra_fields:
+        date = raster.extra_fields.get('acquisition_date', None)
+        cloud_cover = raster.extra_fields.get('cloud_cover', None)
+        instrumentation = raster.extra_fields.get('instrumentation', None)
+        if date:
+            adt = dateutil.parser.isoparser().isoparse(date)
+            try:
+                raster_meta.acquisition_date = make_aware(adt)
+            except ValueError:
+                raster_meta.acquisition_date = adt
+        if cloud_cover:
+            raster_meta.cloud_cover = cloud_cover
+        if instrumentation:
+            raster.rastermeta.instrumentation = instrumentation
+
     raster_meta.save()
     return True
 
