@@ -55,8 +55,24 @@ def load_raster(pks, raster_dict):
             pks,
         ]
     imset, _ = models.get_or_create_image_set(pks)
+
+    extra = {
+        key: raster_dict[key]
+        for key in ['instrumentation', 'acquisition_date', 'cloud_cover']
+        if key in raster_dict
+    }
+
     # Make raster of that image set
-    raster, created = get_or_create_no_commit(models.Raster, image_set=imset)
+    raster, created = get_or_create_no_commit(
+        models.Raster, image_set=imset, defaults=dict(extra_fields=extra)
+    )
+    if not created and extra:
+        raster.extra_fields = extra
+        raster.save(
+            update_fields=[
+                'extra_fields',
+            ]
+        )
     _save_signal(raster, created)
 
     name = raster_dict.get('name', None)
