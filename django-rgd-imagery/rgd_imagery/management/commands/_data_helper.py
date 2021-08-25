@@ -2,9 +2,7 @@ from datetime import datetime
 import json
 import logging
 
-import dateutil.parser
 from django.contrib.gis.geos import GEOSGeometry
-from django.utils.timezone import make_aware
 from rgd.datastore import datastore
 from rgd.management.commands._data_helper import (
     _get_or_create_checksum_file,
@@ -14,7 +12,6 @@ from rgd.management.commands._data_helper import (
 )
 from rgd.utility import get_or_create_no_commit
 from rgd_imagery import models
-from rgd_imagery.tasks import etl
 from shapely.geometry import shape
 from shapely.wkb import dumps
 
@@ -52,7 +49,7 @@ def load_images(images):
     return ids
 
 
-def load_raster(pks, raster_dict, footprint=False):
+def load_raster(pks, raster_dict):
     if not isinstance(pks, (list, tuple)):
         pks = [
             pks,
@@ -62,30 +59,8 @@ def load_raster(pks, raster_dict, footprint=False):
     raster, created = get_or_create_no_commit(models.Raster, image_set=imset)
     _save_signal(raster, created)
 
-    # Add optional metadata
-    date = raster_dict.get('acquisition_date', None)
-    cloud_cover = raster_dict.get('cloud_cover', None)
     name = raster_dict.get('name', None)
     ancillary = raster_dict.get('ancillary_files', None)
-    instrumentation = raster_dict.get('instrumentation', None)
-    if date:
-        adt = dateutil.parser.isoparser().isoparse(date)
-        try:
-            raster.rastermeta.acquisition_date = make_aware(adt)
-        except ValueError:
-            raster.rastermeta.acquisition_date = adt
-        raster.rastermeta.save(
-            update_fields=[
-                'acquisition_date',
-            ]
-        )
-    if cloud_cover:
-        raster.rastermeta.cloud_cover = cloud_cover
-        raster.rastermeta.save(
-            update_fields=[
-                'cloud_cover',
-            ]
-        )
     if name:
         raster.name = name
         raster.save(
@@ -98,26 +73,17 @@ def load_raster(pks, raster_dict, footprint=False):
             raster.ancillary_files.add(_get_or_create_checksum_file_url(af, name=path))
             for path, af in ancillary
         ]
-    if instrumentation:
-        raster.rastermeta.instrumentation = instrumentation
-        raster.rastermeta.save(
-            update_fields=[
-                'instrumentation',
-            ]
-        )
-    if footprint:
-        etl.populate_raster_footprint(raster.id)
     return raster
 
 
-def load_raster_files(raster_dicts, footprint=False):
+def load_raster_files(raster_dicts):
     ids = []
     count = len(raster_dicts)
     for i, rf in enumerate(raster_dicts):
         logger.info(f'Processesing raster {i+1} of {count}')
         start_time = datetime.now()
         imentries = load_images(rf.get('images'))
-        raster = load_raster(imentries, rf, footprint=footprint)
+        raster = load_raster(imentries, rf)
         ids.append(raster.pk)
         logger.info('\t Loaded raster in: {}'.format(datetime.now() - start_time))
     return ids
