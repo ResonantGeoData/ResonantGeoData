@@ -17,7 +17,15 @@ def get_model(model_name):
 
 def get_subclasses(model):
     """Retrieve all model subclasses for the provided class excluding the model class itself."""
-    return set([m for m in apps.get_models() if issubclass(m, model) and m != model])
+    return set(
+        [
+            m
+            for m in apps.get_models()
+            if issubclass(m, model)
+            and m != model
+            and issubclass(m, models.mixins.PermissionPathMixin)
+        ]
+    )
 
 
 def get_permissions_paths(model, target_model) -> List[str]:
