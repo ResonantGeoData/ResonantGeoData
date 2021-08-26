@@ -42,7 +42,12 @@ def test_nonadmin_user_permissions(user, spatial_asset_a, spatial_asset_b):
     write_q = filter_write_perm(user, models.SpatialEntry.objects.all())
     assert write_q.count() == 0
     # Update permissions to have write access and check
-    permission.update(role=models.CollectionPermission.OWNER)
+    permission.role = models.CollectionPermission.OWNER
+    permission.save(
+        update_fields=[
+            'role',
+        ]
+    )
     write_q = filter_write_perm(user, models.SpatialEntry.objects.all())
     assert write_q.count() == 2
 
