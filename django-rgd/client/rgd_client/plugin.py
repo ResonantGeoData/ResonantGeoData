@@ -2,7 +2,7 @@ from typing import Dict, List, Optional, Tuple, Union
 
 import validators
 
-from .session import RgdcSession
+from .session import RgdClientSession
 from .types import DATETIME_OR_STR_TUPLE, SEARCH_PREDICATE_CHOICE
 from .utils import spatial_search_params
 
@@ -10,7 +10,7 @@ from .utils import spatial_search_params
 class CorePlugin:
     """The core django-rgd client plugin."""
 
-    def __init__(self, session: RgdcSession):
+    def __init__(self, session: RgdClientSession):
         self.session = session
         self.session.base_url += 'rgd/'
 

@@ -3,7 +3,7 @@ from pathlib import Path
 import tempfile
 from typing import Dict, Iterable, Iterator, List, Optional, Tuple, Union
 
-from rgd_client.session import RgdcSession
+from rgd_client.session import RgdClientSession
 from rgd_client.types import SEARCH_PREDICATE_CHOICE, DATETIME_OR_STR_TUPLE
 from rgd_client.utils import (
     download_checksum_file_to_path,
@@ -26,7 +26,7 @@ class RasterDownload:
 class ImageryPlugin:
     """The django-rgd-imagery client plugin."""
 
-    def __init__(self, session: RgdcSession):
+    def __init__(self, session: RgdClientSession):
         # session.base_url not modified due to varying url prefixes
         self.session = session
 

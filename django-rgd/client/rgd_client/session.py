@@ -9,7 +9,7 @@ from requests_toolbelt.sessions import BaseUrlSession
 from ._version import __version__
 
 
-class RgdcSession(BaseUrlSession):
+class RgdClientSession(BaseUrlSession):
     def __init__(
         self, base_url: str, auth_header: Optional[str] = None, retries: Optional[int] = 5
     ):
@@ -51,9 +51,9 @@ class RgdcSession(BaseUrlSession):
         self.hooks['response'].append(assert_status_hook)
 
 
-def clone_session(session: RgdcSession):
+def clone_session(session: RgdClientSession):
     """
-    Clone an existing RgdcSession.
+    Clone an existing RgdClientSession.
 
     This is necessary as simply calling `copy.deepcopy` won't suffice, due to BaseUrlSession
     defining `base_url` as a class/static variable. Since copy.deepcopy doesn't copy class

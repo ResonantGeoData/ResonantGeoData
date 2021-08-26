@@ -6,7 +6,7 @@ from typing import Dict, List, Optional, Type
 from pkg_resources import iter_entry_points
 
 from .plugin import CorePlugin
-from .session import clone_session, RgdcSession
+from .session import clone_session, RgdClientSession
 from .utils import DEFAULT_RGD_API
 
 
@@ -40,7 +40,7 @@ class RgdClient:
             encoded_credentials = b64encode(f"{username}:{password}".encode("utf-8")).decode()
             auth_header = f"Basic {encoded_credentials}"
 
-        self.session = RgdcSession(base_url=api_url, auth_header=auth_header)
+        self.session = RgdClientSession(base_url=api_url, auth_header=auth_header)
         self.rgd = CorePlugin(clone_session(self.session))
 
 
