@@ -89,7 +89,7 @@ def filter_perm(user, queryset, role):
         # `path` can be an empty string (meaning queryset is `CollectionPermission`)
         user_path = (path + '__' if path != '' else path) + 'user'
         role_path = (path + '__' if path != '' else path) + 'role'
-        condition = Q(**{user_path: user}) & Q(**{role_path + '__lt': role})
+        condition = Q(**{user_path: user}) & Q(**{role_path + '__lte': role})
         if getattr(settings, 'RGD_GLOBAL_READ_ACCESS', False):
             condition |= Q(**{path + '__isnull': True})
         subquery = subquery.union(queryset.filter(condition).values('pk'))
