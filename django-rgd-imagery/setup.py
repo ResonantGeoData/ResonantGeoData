@@ -51,7 +51,7 @@ setup(
         'large-image-source-gdal>=1.7.1',
         'large-image-source-pil>=1.7.1',
         'numpy',
-        'pystac[validation]==0.5.6',
+        'pystac',
         'shapely',
     ],
     extras_require={
