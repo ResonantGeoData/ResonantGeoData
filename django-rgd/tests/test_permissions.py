@@ -2,7 +2,7 @@ from django.apps import apps
 from django.conf import settings
 import pytest
 from rgd import models
-from rgd.permissions import filter_read_perm
+from rgd.permissions import filter_read_perm, filter_write_perm
 from rgd_testing_utils.helpers import check_model_permissions
 
 
@@ -22,6 +22,46 @@ def test_unassigned_permissions_complex(user_factory, user, spatial_asset_a, spa
     assert len(admin_q) == len(basic_q)
     assert set(admin_q) == set(basic_q)
     settings.RGD_GLOBAL_READ_ACCESS = prior
+
+
+@pytest.mark.django_db(transaction=True)
+def test_nonadmin_user_permissions(user, spatial_asset_a, spatial_asset_b):
+    # Filter and make sure nothing returns
+    basic_q = filter_read_perm(user, models.SpatialEntry.objects.all())
+    assert basic_q.count() == 0
+    # Set collection on files and make sure both return
+    collection = models.Collection.objects.create(name='test')
+    permission = models.CollectionPermission.objects.create(
+        collection=collection, user=user, role=models.CollectionPermission.READER
+    )
+    spatial_asset_a.files.update(collection=collection)
+    spatial_asset_b.files.update(collection=collection)
+    read_q = filter_read_perm(user, models.SpatialEntry.objects.all())
+    assert read_q.count() == 2
+    # Now make sure this user does not have write accesss
+    write_q = filter_write_perm(user, models.SpatialEntry.objects.all())
+    assert write_q.count() == 0
+    # Update permissions to have write access and check
+    permission.role = models.CollectionPermission.OWNER
+    permission.save(
+        update_fields=[
+            'role',
+        ]
+    )
+    write_q = filter_write_perm(user, models.SpatialEntry.objects.all())
+    assert write_q.count() == 2
+
+
+@pytest.mark.django_db(transaction=True)
+def test_nonadmin_created_by_permissions(user, spatial_asset_a, spatial_asset_b):
+    # Filter and make sure nothing returns
+    basic_q = filter_read_perm(user, models.SpatialEntry.objects.all())
+    assert basic_q.count() == 0
+    # Update the `created_by` field and check that query works
+    spatial_asset_a.files.update(created_by=user)
+    spatial_asset_b.files.update(created_by=user)
+    basic_q = filter_read_perm(user, models.SpatialEntry.objects.all())
+    assert basic_q.count() == 2
 
 
 def test_check_permissions_path_rgd():
