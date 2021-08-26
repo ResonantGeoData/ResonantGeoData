@@ -39,18 +39,7 @@ setup(
     ],
     python_requires='>=3.8',
     packages=find_packages(exclude=['tests']),
-    install_requires=[
-        'requests',
-        'requests-toolbelt',
-        'geomet',
-        'tqdm',
-        'validators',
-        'rgd_client'
-    ],
+    install_requires=['rgd_client'],
     extras_require={'dev': ['ipython']},
-    entry_points={
-        'rgd_client.plugin': [
-            'rgd_imagery_client = rgd_imagery_client:ImageryClient'
-        ]
-    }
+    entry_points={'rgd_client.plugin': ['rgd_imagery_client = rgd_imagery_client:ImageryClient']},
 )
