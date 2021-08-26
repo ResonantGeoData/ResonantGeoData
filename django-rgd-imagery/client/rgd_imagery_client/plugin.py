@@ -4,7 +4,7 @@ import tempfile
 from typing import Dict, Iterable, Iterator, List, Optional, Tuple, Union
 
 from rgd_client.session import RgdClientSession
-from rgd_client.types import SEARCH_PREDICATE_CHOICE, DATETIME_OR_STR_TUPLE
+from rgd_client.types import DATETIME_OR_STR_TUPLE, SEARCH_PREDICATE_CHOICE
 from rgd_client.utils import (
     download_checksum_file_to_path,
     limit_offset_pager,

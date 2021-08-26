@@ -3,12 +3,12 @@ from copy import deepcopy
 import getpass
 import inspect
 from typing import Dict, List, Optional, Type
+
 from pkg_resources import iter_entry_points
 
 from .plugin import CorePlugin
-from .session import clone_session, RgdClientSession
+from .session import RgdClientSession, clone_session
 from .utils import DEFAULT_RGD_API
-
 
 _NAMESPACE = 'rgd_client.plugin'
 

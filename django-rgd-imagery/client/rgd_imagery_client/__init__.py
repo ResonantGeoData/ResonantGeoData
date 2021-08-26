@@ -1,7 +1,7 @@
 from rgd_client.client import RgdClient
 
-from .plugin import ImageryPlugin, RasterDownload
 from ._version import __version__  # noqa
+from .plugin import ImageryPlugin, RasterDownload
 
 
 class ImageryClient(RgdClient):
