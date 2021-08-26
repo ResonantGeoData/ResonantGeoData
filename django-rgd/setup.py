@@ -42,7 +42,7 @@ setup(
         'Programming Language :: Python',
     ],
     python_requires='>=3.8',
-    packages=find_packages(),
+    packages=find_packages(exclude=('client',)),
     include_package_data=True,
     dependency_links=[
         'https://girder.github.io/large_image_wheels',
