@@ -1,5 +1,4 @@
 from base64 import b64encode
-from copy import deepcopy
 import getpass
 import inspect
 from typing import Dict, List, Optional, Type
@@ -37,8 +36,8 @@ class RgdClient:
             password = getpass.getpass()
 
         if username and password:
-            encoded_credentials = b64encode(f"{username}:{password}".encode("utf-8")).decode()
-            auth_header = f"Basic {encoded_credentials}"
+            encoded_credentials = b64encode(f'{username}:{password}'.encode('utf-8')).decode()
+            auth_header = f'Basic {encoded_credentials}'
 
         self.session = RgdClientSession(base_url=api_url, auth_header=auth_header)
         self.rgd = CorePlugin(clone_session(self.session))
@@ -52,7 +51,7 @@ def _plugins_dict(extra_plugins: Optional[List] = None) -> Dict:
 
     members = {}
     for cls in plugins_classes:
-        members.update({n: v for n, v in inspect.getmembers(cls) if not n.startswith("__")})
+        members.update({n: v for n, v in inspect.getmembers(cls) if not n.startswith('__')})
 
     return members
 
