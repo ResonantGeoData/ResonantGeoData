@@ -2,7 +2,7 @@ from django.apps import apps
 from django.conf import settings
 import pytest
 from rgd import models
-from rgd.permissions import filter_read_perm
+from rgd.permissions import filter_read_perm, filter_write_perm
 from rgd_testing_utils.helpers import check_model_permissions
 
 
@@ -31,11 +31,20 @@ def test_nonadmin_user_permissions(user, spatial_asset_a, spatial_asset_b):
     assert basic_q.count() == 0
     # Set collection on files and make sure both return
     collection = models.Collection.objects.create(name='test')
-    _ = models.CollectionPermission.objects.create(collection=collection, user=user, role=models.CollectionPermission.READER)
+    permission = models.CollectionPermission.objects.create(
+        collection=collection, user=user, role=models.CollectionPermission.READER
+    )
     spatial_asset_a.files.update(collection=collection)
     spatial_asset_b.files.update(collection=collection)
-    basic_q = filter_read_perm(user, models.SpatialEntry.objects.all())
-    assert basic_q.count() == 2
+    read_q = filter_read_perm(user, models.SpatialEntry.objects.all())
+    assert read_q.count() == 2
+    # Now make sure this user does not have write accesss
+    write_q = filter_write_perm(user, models.SpatialEntry.objects.all())
+    assert write_q.count() == 0
+    # Update permissions to have write access and check
+    permission.update(role=models.CollectionPermission.OWNER)
+    write_q = filter_write_perm(user, models.SpatialEntry.objects.all())
+    assert write_q.count() == 2
 
 
 @pytest.mark.django_db(transaction=True)
