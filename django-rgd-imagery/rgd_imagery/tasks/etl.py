@@ -4,8 +4,10 @@ import os
 import tempfile
 
 from celery.utils.log import get_task_logger
+import dateutil.parser
 from django.conf import settings
 from django.contrib.gis.geos import GEOSGeometry, Polygon
+from django.utils.timezone import make_aware
 import numpy as np
 from osgeo import gdal
 import rasterio
@@ -75,7 +77,7 @@ def load_image(image):
     """
     # Fetch the image file this Layer corresponds to
     if not isinstance(image, Image):
-        image = Image.objects.get(id=image)
+        image = Image.objects.get(pk=image)
 
     image_meta, created = get_or_create_no_commit(ImageMeta, parent_image=image)
     if not created:
@@ -308,7 +310,7 @@ def _validate_image_set_is_raster(image_set):
 def populate_raster(raster):
     """Autopopulate the fields of the raster."""
     if not isinstance(raster, Raster):
-        raster = Raster.objects.get(id=raster)
+        raster = Raster.objects.get(pk=raster)
 
     if not raster.name:
         raster.name = raster.image_set.name
@@ -324,12 +326,28 @@ def populate_raster(raster):
     for k, v in meta.items():
         # Yeah. This is sketchy, but it works.
         setattr(raster_meta, k, v)
+    # Assign extra fields:
+    if raster.extra_fields:
+        date = raster.extra_fields.get('acquisition_date', None)
+        cloud_cover = raster.extra_fields.get('cloud_cover', None)
+        instrumentation = raster.extra_fields.get('instrumentation', None)
+        if date:
+            adt = dateutil.parser.isoparser().isoparse(date)
+            try:
+                raster_meta.acquisition_date = make_aware(adt)
+            except ValueError:
+                raster_meta.acquisition_date = adt
+        if cloud_cover:
+            raster_meta.cloud_cover = cloud_cover
+        if instrumentation:
+            raster.rastermeta.instrumentation = instrumentation
+
     raster_meta.save()
     return True
 
 
-def populate_raster_outline(raster_id):
-    raster = Raster.objects.get(id=raster_id)
+def populate_raster_outline(raster_pk):
+    raster = Raster.objects.get(pk=raster_pk)
     base_image = raster.image_set.images.first()
     with yeild_tilesource_from_image(base_image) as tile_source:
         raster.rastermeta.outline = _extract_raster_outline(tile_source)
@@ -340,8 +358,8 @@ def populate_raster_outline(raster_id):
     )
 
 
-def populate_raster_footprint(raster_id):
-    raster = Raster.objects.get(id=raster_id)
+def populate_raster_footprint(raster_pk):
+    raster = Raster.objects.get(pk=raster_pk)
     # Only set the footprint if the RasterMeta has been created already
     #   this avoids a race condition where footprint might not get set correctly.
     try:

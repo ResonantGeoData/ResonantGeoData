@@ -19,7 +19,7 @@ from shapely.wkb import dumps
 logger = get_task_logger(__name__)
 
 
-def read_geometry_archive(archive_id):
+def read_geometry_archive(archive_pk):
     """Read an archive of a single shapefile (and associated) files.
 
     This will load zipped archives of shape files and create entries
@@ -36,7 +36,7 @@ def read_geometry_archive(archive_id):
     we assert that they match.
 
     """
-    archive = GeometryArchive.objects.get(id=archive_id)
+    archive = GeometryArchive.objects.get(pk=archive_pk)
 
     # TODO: add a setting like this:
     workdir = getattr(settings, 'GEODATA_WORKDIR', None)

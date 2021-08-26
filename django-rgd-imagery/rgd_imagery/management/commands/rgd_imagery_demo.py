@@ -45,23 +45,10 @@ SPATIAL_IMAGE_SETS = [
 class Command(SynchronousTasksCommand):
     help = 'Populate database with demo data.'
 
-    def add_arguments(self, parser):
-        parser.add_argument(
-            '-f',
-            '--footprint',
-            action='store_true',
-            default=False,
-            help='Compute the valid data footprints',
-        )
-
     def handle(self, *args, **options):
-        footprint = options.get('footprint')
-
         self.set_synchronous()
         # Run the command
-        helper.load_raster_files(
-            [helper.make_raster_dict(im) for im in RASTER_FILES], footprint=footprint
-        )
+        helper.load_raster_files([helper.make_raster_dict(im) for im in RASTER_FILES])
         helper.load_kwcoco_archives(KWCOCO_ARCHIVES)
         helper.load_spatial_image_sets(SPATIAL_IMAGE_SETS)
         self.stdout.write(self.style.SUCCESS(SUCCESS_MSG))

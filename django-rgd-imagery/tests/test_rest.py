@@ -37,7 +37,7 @@ def test_create_get_subsampled_image(admin_api_client, astro_image):
     assert response.status_code == 201
     assert response.data
     id = response.data['id']
-    sub = models.ProcessedImage.objects.get(id=id)
+    sub = models.ProcessedImage.objects.get(pk=id)
     assert sub.processed_image
     # Test the GET
     response = admin_api_client.get(f'/api/image_process/{id}')
