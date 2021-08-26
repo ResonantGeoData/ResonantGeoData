@@ -85,7 +85,6 @@ def filter_perm(user, queryset, role):
             created_by_path = (path + '__' if path != '' else path) + 'created_by'
             condition = Q(**{created_by_path: user})
             subquery = subquery.union(queryset.filter(condition).values('pk'))
-    logger.info(f'Role: {role}, {user}, ')
     for path in get_permissions_paths(queryset.model, models.CollectionPermission):
         # `path` can be an empty string (meaning queryset is `CollectionPermission`)
         user_path = (path + '__' if path != '' else path) + 'user'
