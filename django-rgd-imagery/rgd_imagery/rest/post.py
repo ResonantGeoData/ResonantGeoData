@@ -14,7 +14,7 @@ class CreateRegionImage(CreateAPIView):
 
 class CreateRasterSTAC(CreateAPIView):
     queryset = models.RasterMeta.objects.all()
-    serializer_class = serializers.STACRasterSerializer
+    serializer_class = serializers.STACRasterFeatureSerializer
 
 
 class CreateImage(CreateAPIView):

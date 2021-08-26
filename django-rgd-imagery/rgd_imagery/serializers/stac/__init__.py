@@ -17,7 +17,7 @@ from .. import models
 from .utils import non_unique_get_or_create
 
 
-class STACRasterSerializer(serializers.BaseSerializer):
+class STACRasterFeatureSerializer(serializers.BaseSerializer):
     def to_representation(self, instance: models.RasterMeta) -> dict:
         item = pystac.Item(
             id=instance.pk,

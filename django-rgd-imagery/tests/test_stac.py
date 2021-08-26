@@ -1,7 +1,7 @@
 import pystac
 import pytest
 from rgd_imagery import models
-from rgd_imagery.serializers import STACRasterSerializer
+from rgd_imagery.serializers import STACRasterFeatureSerializer
 
 
 def _check_conforms_stac(data):
@@ -58,8 +58,8 @@ def test_eo_serialize(admin_api_client, sample_raster_url):
 @pytest.mark.django_db(transaction=True)
 def test_raster_stac_export_import(admin_api_client, sample_raster_url):
     sample = sample_raster_url
-    data = STACRasterSerializer(sample).data
-    instance = STACRasterSerializer().create(data)
+    data = STACRasterFeatureSerializer(sample).data
+    instance = STACRasterFeatureSerializer().create(data)
     # Check Image/ImageMeta
     assert (
         instance.parent_raster.image_set.images.count()
