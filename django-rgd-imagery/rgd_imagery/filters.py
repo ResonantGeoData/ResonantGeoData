@@ -118,7 +118,7 @@ class STACSimpleFilter(filters.FilterSet):
 
     def filter_bbox(self, queryset, name, value):
         if value:
-            bbox = [int(i) for i in value.split(',')]
+            bbox = [int(i) for i in value]
             geom = Polygon.from_bbox(bbox)
             return queryset.filter(footprint__intersects=geom)
         return queryset
