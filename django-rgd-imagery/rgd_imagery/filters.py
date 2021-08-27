@@ -103,7 +103,7 @@ class STACSimpleFilter(filters.FilterSet):
     collections = NumberInFilter(
         help_text='Array of Collection IDs to limit results to.',
         label='Collections.',
-        field_name='parent_raster__image_set__file__collection',
+        field_name='parent_raster__image_set__images__file__collection',
         lookup_expr='in',
     )
     datetime = filters.CharFilter(
