@@ -89,8 +89,6 @@ class STACSimpleFilter(filters.FilterSet):
         ),
         label='Bounding Box',
         method='filter_bbox',
-        max_length=4,
-        min_length=4,
     )
     intersects = GeometryFilter(
         help_text='A GeoJSON to filter against.',
