@@ -298,7 +298,7 @@ def skip_signal():
     def _skip_signal(signal_func):
         @wraps(signal_func)
         def _decorator(sender, instance, *args, **kwargs):
-            if hasattr(instance, 'skip_signal'):
+            if hasattr(instance, 'skip_signal') and instance.skip_signal:
                 return None
             return signal_func(sender, instance, *args, **kwargs)
 

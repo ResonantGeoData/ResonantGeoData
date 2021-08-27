@@ -16,7 +16,7 @@ class PointCloudSerializer(serializers.ModelSerializer):
 
 class PointCloudMetaSerializer(serializers.ModelSerializer):
     source = PointCloudSerializer()
-    vtp_data = ChecksumFileSerializer()
+    vtp_data = ChecksumFileSerializer(required=False)
 
     def to_representation(self, value):
         ret = super().to_representation(value)

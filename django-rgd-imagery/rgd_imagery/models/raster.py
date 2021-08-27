@@ -22,9 +22,10 @@ class Raster(TimeStampedModel, TaskEventMixin, PermissionPathMixin):
 
     name = models.CharField(max_length=1000, blank=True)
     description = models.TextField(null=True, blank=True)
+    extra_fields = models.JSONField(null=True, blank=True)
 
     image_set = models.OneToOneField(ImageSet, on_delete=models.CASCADE)
-    ancillary_files = models.ManyToManyField(ChecksumFile, blank=True)
+    ancillary_files = models.ManyToManyField(ChecksumFile, blank=True, related_name='+')
 
     task_funcs = (
         jobs.task_populate_raster,

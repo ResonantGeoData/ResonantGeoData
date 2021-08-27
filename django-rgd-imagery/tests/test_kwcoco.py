@@ -31,17 +31,17 @@ def test_kwcoco_basic_demo():
     annotations = [a for anns in kwds.image_set.get_all_annotations().values() for a in anns]
     assert len(annotations) == demo['n_annotations']
     # Trigger save event and make sure original images were deleted
-    image_file_ids = [im.id for im in kwds.image_set.images.all()]
+    image_file_ids = [im.pk for im in kwds.image_set.images.all()]
     kwds.save()
-    for id in image_file_ids:
+    for pk in image_file_ids:
         with pytest.raises(Image.DoesNotExist):
-            Image.objects.get(id=id)
+            Image.objects.get(pk=pk)
     # Now do same for delete
-    image_file_ids = [im.id for im in kwds.image_set.images.all()]
+    image_file_ids = [im.pk for im in kwds.image_set.images.all()]
     kwds.delete()
-    for id in image_file_ids:
+    for pk in image_file_ids:
         with pytest.raises(Image.DoesNotExist):
-            Image.objects.get(id=id)
+            Image.objects.get(pk=pk)
 
 
 @pytest.mark.django_db(transaction=True)

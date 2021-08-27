@@ -201,8 +201,8 @@ def _populate_fmv_entry(entry):
     entry.save()
 
 
-def read_fmv_file(fmv_file_id):
-    fmv_file = FMV.objects.get(id=fmv_file_id)
+def read_fmv_file(fmv_file_pk):
+    fmv_file = FMV.objects.get(pk=fmv_file_pk)
     fmv_file.skip_signal = True
 
     validation = True  # TODO: use `fmv_file.file.validate()`
