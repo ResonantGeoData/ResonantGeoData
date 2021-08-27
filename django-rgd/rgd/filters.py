@@ -69,7 +69,7 @@ class SpatialEntryFilter(filters.FilterSet):
     )
 
     time_of_day = filters.TimeRangeFilter(
-        help_text='The minimum/maximum times during the day the records were aqcuired.',
+        help_text='The minimum/maximum times during the day the records were acquired.',
         label='Time of Day',
         method='filter_time_of_day',
     )

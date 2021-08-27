@@ -15,7 +15,10 @@ from .base import ImageSetSerializer
 class RasterSerializer(serializers.ModelSerializer):
     image_set = RelatedField(queryset=models.ImageSet.objects.all(), serializer=ImageSetSerializer)
     ancillary_files = RelatedField(
-        queryset=ChecksumFile.objects.all(), serializer=ChecksumFileSerializer, many=True
+        queryset=ChecksumFile.objects.all(),
+        serializer=ChecksumFileSerializer,
+        many=True,
+        required=False,
     )
 
     class Meta:

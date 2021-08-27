@@ -60,12 +60,13 @@ class ChecksumFileAdmin(OSMGeoAdmin):
     list_display = (
         'pk',
         'name',
-        'status',
-        'modified',
-        'created',
         'type',
-        'data_link',
+        'created',
+        'created_by',
+        'modified',
         'collection',
+        'status',
+        'data_link',
     )
     readonly_fields = (
         'checksum',
@@ -78,6 +79,7 @@ class ChecksumFileAdmin(OSMGeoAdmin):
         + (
             'type',
             'collection',
+            'created_by',
         )
     )
 

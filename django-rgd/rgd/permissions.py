@@ -17,15 +17,23 @@ def get_model(model_name):
 
 def get_subclasses(model):
     """Retrieve all model subclasses for the provided class excluding the model class itself."""
-    return set([m for m in apps.get_models() if issubclass(m, model) and m != model])
+    return set(
+        [
+            m
+            for m in apps.get_models()
+            if issubclass(m, model)
+            and m != model
+            and issubclass(m, models.mixins.PermissionPathMixin)
+        ]
+    )
 
 
-def get_collection_permissions_paths(model) -> List[str]:
-    """Get all possible paths to the 'CollectionPermission' model.
+def get_permissions_paths(model, target_model) -> List[str]:
+    """Get all possible paths to the 'target_model'.
 
     Produces relationships represented as 'dunder's ('__').
     """
-    if model == models.CollectionPermission:
+    if model == target_model:
         return ['']
 
     if model == models.SpatialEntry:
@@ -34,7 +42,7 @@ def get_collection_permissions_paths(model) -> List[str]:
         for sub in submodels:
             # TODO: there should be a cleaner way to do this.
             model_name = sub.__name__.lower()
-            [paths.append(f'{model_name}__{s}') for s in get_collection_permissions_paths(sub)]
+            [paths.append(f'{model_name}__{s}') for s in get_permissions_paths(sub, target_model)]
         return paths
 
     if not issubclass(model, models.mixins.PermissionPathMixin):
@@ -53,10 +61,10 @@ def get_collection_permissions_paths(model) -> List[str]:
         if not issubclass(next_model, Model):
             raise TypeError('Failed to extract next_model in permissions_paths')
 
-        if next_model == models.CollectionPermission:
+        if next_model == target_model:
             paths.append(field)
         else:
-            next_path = get_collection_permissions_paths(next_model)
+            next_path = get_permissions_paths(next_model, target_model)
             for n in next_path:
                 paths.append(f'{field}__{n}')
 
@@ -78,13 +86,18 @@ def filter_perm(user, queryset, role):
     if user.is_active and user.is_superuser:
         return queryset
     # Check permissions
-    # `path` can be an empty string (meaning queryset is `CollectionPermission`)
-    paths = get_collection_permissions_paths(queryset.model)
     subquery = queryset.none()
-    for path in paths:
+    # Now grab resources created by this user - only file-based models
+    if not issubclass(queryset.model, (models.CollectionPermission, models.Collection)):
+        for path in get_permissions_paths(queryset.model, models.ChecksumFile):
+            created_by_path = (path + '__' if path != '' else path) + 'created_by'
+            condition = Q(**{created_by_path: user})
+            subquery = subquery.union(queryset.filter(condition).values('pk'))
+    for path in get_permissions_paths(queryset.model, models.CollectionPermission):
+        # `path` can be an empty string (meaning queryset is `CollectionPermission`)
         user_path = (path + '__' if path != '' else path) + 'user'
         role_path = (path + '__' if path != '' else path) + 'role'
-        condition = Q(**{user_path: user}) & Q(**{role_path + '__lt': role})
+        condition = Q(**{user_path: user}) & Q(**{role_path + '__gte': role})
         if getattr(settings, 'RGD_GLOBAL_READ_ACCESS', False):
             condition |= Q(**{path + '__isnull': True})
         subquery = subquery.union(queryset.filter(condition).values('pk'))

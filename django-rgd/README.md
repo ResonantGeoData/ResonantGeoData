@@ -23,7 +23,11 @@ INSTALLED_APPS += [
     'django.contrib.gis',
     'rgd',
 ]
+
+MIDDLEWARE += ('crum.CurrentRequestUserMiddleware',)
 ```
+
+(note that RGD requires [`django-crum`](https://django-crum.readthedocs.io/en/latest/) middleware.)
 
 It is also necessary to configure GDAL in your project settings:
 
@@ -74,7 +78,7 @@ from rgd.models.mixins import PermissionPathMixin
 
 class SpatialAsset(SpatialEntry, TimeStampedModel, PermissionPathMixin):
     """Any spatially referenced file set."""
-    files = models.ManyToManyField(ChecksumFile)
+    files = models.ManyToManyField(ChecksumFile, related_name='+')
     permissions_paths = ['files__collection__collection_permissions']
 ```
 

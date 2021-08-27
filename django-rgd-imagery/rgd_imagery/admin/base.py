@@ -11,16 +11,7 @@ from rgd.admin.mixins import (
     _FileGetNameMixin,
     reprocess,
 )
-from rgd.utility import get_or_create_no_commit
-from rgd_imagery.models import (
-    BandMeta,
-    ConvertedImage,
-    Image,
-    ImageMeta,
-    ImageSet,
-    ImageSetSpatial,
-    Raster,
-)
+from rgd_imagery.models import BandMeta, Image, ImageMeta, ImageSet, ImageSetSpatial, Raster
 
 
 def _make_image_set_from_images(images):
@@ -90,12 +81,6 @@ def clean_empty_image_sets(modeladmin, request, queryset):
     """Delete empty `ImageSet`s."""
     q = queryset.filter(images=None)
     q.delete()
-
-
-def convert_images(modeladmin, request, queryset):
-    for image in queryset.all():
-        entry, created = get_or_create_no_commit(ConvertedImage, source_image=image)
-        entry.save()
 
 
 # class ImageSetSpatialFilter(SimpleListFilter):
@@ -209,7 +194,6 @@ class ImageAdmin(OSMGeoAdmin, _FileGetNameMixin):
         make_image_set_from_images,
         make_raster_from_images,
         make_raster_for_each_image,
-        convert_images,
     )
     list_filter = MODIFIABLE_FILTERS + TASK_EVENT_FILTERS
     inlines = (

@@ -1,59 +1,71 @@
+import logging
+
 from rest_framework import serializers
-from rest_framework.reverse import reverse
+from rgd.models import ChecksumFile
 from rgd.permissions import check_write_perm
+from rgd.serializers import (
+    MODIFIABLE_READ_ONLY_FIELDS,
+    TASK_EVENT_READ_ONLY_FIELDS,
+    ChecksumFileSerializer,
+    RelatedField,
+)
 
 from .. import models
 from .base import ImageSerializer
 
+logger = logging.getLogger(__name__)
 
-class ConvertedImageSerializer(serializers.ModelSerializer):
 
-    processed_image = ImageSerializer(read_only=True)
-
+class ProcessedImageGroupSerializer(serializers.ModelSerializer):
     def validate_source_image(self, value):
         if 'request' in self.context:
             check_write_perm(self.context['request'].user, value)
         return value
 
     class Meta:
-        model = models.ConvertedImage
-        fields = '__all__'
-        read_only_fields = ['id', 'status', 'failure_reason', 'processed_image']
-
-
-class RegionImageSerializer(serializers.ModelSerializer):
-
-    processed_image = ImageSerializer(read_only=True)
-
-    def validate_source_image(self, value):
-        if 'request' in self.context:
-            check_write_perm(self.context['request'].user, value)
-        return value
-
-    def to_representation(self, value):
-        ret = super().to_representation(value)
-        realtive_status_uri = reverse('subsampled-status', args=[value.id])
-        if 'request' in self.context:
-            request = self.context['request']
-            ret['status'] = request.build_absolute_uri(realtive_status_uri)
-        else:
-            ret['status'] = realtive_status_uri
-        return ret
-
-    class Meta:
-        model = models.RegionImage
+        model = models.ProcessedImageGroup
         fields = '__all__'
         read_only_fields = [
             'id',
-            'status',
-            'failure_reason',
-            'processed_image',
+            'modified',
+            'created',
         ]
 
-    def create(self, validated_data):
-        """Prevent duplicated subsamples from being created."""
-        obj, created = models.RegionImage.objects.get_or_create(**validated_data)
-        if not created:
-            # Trigger save event to reprocess the subsampling
-            obj.save()
-        return obj
+
+class ProcessedImageSerializer(serializers.ModelSerializer):
+
+    group = RelatedField(
+        queryset=models.ProcessedImageGroup.objects.all(), serializer=ProcessedImageGroupSerializer
+    )
+    source_images = RelatedField(
+        queryset=models.Image.objects.all(), serializer=ImageSerializer, many=True
+    )
+    processed_image = RelatedField(
+        queryset=models.Image.objects.all(), serializer=ImageSerializer, required=False
+    )
+    ancillary_files = RelatedField(
+        queryset=ChecksumFile.objects.all(),
+        serializer=ChecksumFileSerializer,
+        many=True,
+        required=False,
+    )
+
+    def validate_source_image(self, value):
+        if 'request' in self.context:
+            check_write_perm(self.context['request'].user, value)
+        return value
+
+    class Meta:
+        model = models.ProcessedImage
+        fields = '__all__'
+        read_only_fields = MODIFIABLE_READ_ONLY_FIELDS + TASK_EVENT_READ_ONLY_FIELDS
+
+    # def create(self, validated_data):
+    #     """Prevent duplicated subsamples from being created."""
+    #     source_images = validated_data.pop('source_images')
+    #     obj, created = models.ProcessedImage.objects.get_or_create(**validated_data)
+    #     obj.source_images.add(*source_images)
+    #     if not created:
+    #         # Trigger save event to reprocess the subsampling
+    #         obj.save()
+    #     return obj
