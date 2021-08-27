@@ -98,6 +98,20 @@ plt.show()
 ```
 
 
+### Upload Processed Imagery/Raster
+
+
+```python
+file_url = '...'  # Some already processed file that has been upload to S3
+
+file = client.create_file_from_url(file_url)
+image = client.create_image_from_file(file)
+image_set = client.create_image_set([image, ])
+raster = client.create_raster_from_image_set(image_set)
+raster
+```
+
+
 ### STAC Item Support
 
 The Python client has a search endpoint specifically for Raster data that
