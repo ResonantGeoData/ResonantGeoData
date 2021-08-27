@@ -2,8 +2,8 @@ from typing import Iterable
 
 from rest_framework import serializers
 
+from . import STACRasterFeatureSerializer
 from .. import models
-from .feature import STACRasterFeatureSerializer
 
 
 class STACRasterFeatureCollectionSerializer(serializers.BaseSerializer):

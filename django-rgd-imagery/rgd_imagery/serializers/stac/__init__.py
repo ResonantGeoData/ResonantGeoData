@@ -3,7 +3,7 @@ from .featurecollection import STACRasterFeatureCollectionSerializer
 from .root import STACRootSerializer
 
 __all__ = [
-    'STACRasterFeatureCollectionSerializer',
     'STACRasterFeatureSerializer',
+    'STACRasterFeatureCollectionSerializer',
     'STACRootSerializer',
 ]
