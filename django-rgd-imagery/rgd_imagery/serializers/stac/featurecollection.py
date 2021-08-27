@@ -15,5 +15,5 @@ class STACRasterFeatureCollectionSerializer(serializers.BaseSerializer):
                 'https://stac-extensions.github.io/projection/v1.0.0/schema.json',
             ],
             'type': 'FeatureCollection',
-            'features': [STACRasterFeatureSerializer(rastermeta) for rastermeta in items],
+            'features': [STACRasterFeatureSerializer(rastermeta).data for rastermeta in items],
         }
