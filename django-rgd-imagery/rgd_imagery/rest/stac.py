@@ -4,11 +4,8 @@ from rgd.models import Collection
 from rgd.permissions import filter_read_perm
 from rgd_imagery import models, serializers
 
-
-class _PermissionMixin:
-    def get_queryset(self):
-        queryset = super().get_queryset()
-        return filter_read_perm(self.request.user, queryset)
+from ..filters import STACSimpleFilter
+from ..pagination import STACPagination
 
 
 class _PermissionMixin:
