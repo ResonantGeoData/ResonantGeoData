@@ -39,7 +39,11 @@ class STACRasterFeatureSerializer(serializers.BaseSerializer):
         item_eo_ext = EOExtension.ext(item, add_if_missing=True)
         item_eo_ext.cloud_cover = instance.cloud_cover
         # Add assets
-        for image in instance.parent_raster.image_set.images.all():
+        for image in instance.parent_raster.image_set.images.select_related(
+            'file__collection'
+        ).all():
+            if not item.collection_id and image.file.collection:
+                item.collection_id = str(image.file.collection.pk)
             # if image.file.type != FileSourceType.URL:
             #     # TODO: we need fix this
             #     raise ValueError('Files must point to valid URL resources, not internal storage.')
