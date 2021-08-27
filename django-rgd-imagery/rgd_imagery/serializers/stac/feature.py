@@ -20,7 +20,7 @@ from .utils import non_unique_get_or_create
 class STACRasterFeatureSerializer(serializers.BaseSerializer):
     def to_representation(self, instance: models.RasterMeta) -> dict:
         item = pystac.Item(
-            id=instance.pk,
+            id=str(instance.pk),
             geometry=json.loads(instance.footprint.json),
             bbox=instance.extent,
             datetime=(instance.acquisition_date or instance.modified or instance.created),
@@ -40,9 +40,9 @@ class STACRasterFeatureSerializer(serializers.BaseSerializer):
         item_eo_ext.cloud_cover = instance.cloud_cover
         # Add assets
         for image in instance.parent_raster.image_set.images.all():
-            if image.file.type != FileSourceType.URL:
-                # TODO: we need fix this
-                raise ValueError('Files must point to valid URL resources, not internal storage.')
+            # if image.file.type != FileSourceType.URL:
+            #     # TODO: we need fix this
+            #     raise ValueError('Files must point to valid URL resources, not internal storage.')
             asset = pystac.Asset(
                 href=image.file.get_url(),
                 title=image.file.name,
