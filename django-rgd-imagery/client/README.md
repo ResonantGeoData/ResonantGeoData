@@ -1,60 +1,15 @@
 [![logo](https://raw.githubusercontent.com/ResonantGeoData/ResonantGeoData/main/logos/RGD_Logo.png)](https://github.com/ResonantGeoData/ResonantGeoData/)
 
-# rgd_client - Resonant GeoDataClient
-
-The **rgd_client** Python package allows users to make web requests to a Resonant GeoData instance within a Python script.
-
+# rgd_imagery_client - Resonant GeoData imagery client
 
 # Installation
+
+To install the imagery client plugin
 ```
-pip install rgd-client
+pip install rgd-imagery-client
 ```
 
 # Usage
-### Search and display results
-```python
-import json
-import matplotlib.pyplot as plt
-import numpy as np
-
-from rgd_client import Rgdc
-
-def plot_geojson(gjs, *args, **kwargs):
-    points = np.array(gjs['coordinates'])
-    if points.ndim == 3:
-        points = points[0]
-    if points.ndim == 1:
-        points = points.reshape((1, points.size, ))
-    return plt.plot(points[:,0], points[:,1], *args, **kwargs)
-
-client = Rgdc(username='username', password='password')
-bbox = {
-    "type":"Polygon",
-    "coordinates":[
-        [
-            [-105.45091240368326,39.626245373878696],
-            [-105.45091240368326,39.929904289147274],
-            [-104.88775649170178,39.929904289147274],
-            [-104.88775649170178,39.626245373878696],
-            [-105.45091240368326,39.626245373878696]
-        ]
-    ]
-}
-
-q = client.search(query=json.dumps(bbox), predicate='intersects')
-
-for s in q:
-    print(s['subentry_name'])
-
-plot_geojson(bbox, 'k--', label='Search Region')
-
-for s in q:
-    plot_geojson(s['footprint'], label=s['subentry_name'])
-
-plt.legend()
-plt.title(f'Count: {len(q)}')
-```
-
 ### Inspect raster
 
 Preview thumbnails of the raster
@@ -63,14 +18,20 @@ Preview thumbnails of the raster
 import imageio
 from io import BytesIO
 
-raster = client.get_raster(q[0])
+from rgd_client import create_rgd_client
+from rgd_imagery_client import ImageryClient
+
+
+client: ImageryClient = create_rgd_client(username='username', password='password')
+
+raster = client.imagery.get_raster(q[0])
 plot_geojson(bbox, 'k--')
 plot_geojson(raster['outline'], 'r')
 load_image = lambda imbytes: imageio.imread(BytesIO(imbytes))
 
 count = len(raster['parent_raster']['image_set']['images'])
 for i in range(count):
-    thumb_bytes = client.download_raster_thumbnail(q[0], band=i)
+    thumb_bytes = client.imagery.download_raster_thumbnail(q[0], band=i)
     thumb = load_image(thumb_bytes)
     plt.subplot(1, count, i+1)
     plt.imshow(thumb)
@@ -87,7 +48,7 @@ Download the entire image set of the raster
 import rasterio
 from rasterio.plot import show
 
-paths = client.download_raster(q[0])
+paths = client.imagery.download_raster(q[0])
 rasters = [rasterio.open(im) for im in paths.images]
 for i, src in enumerate(rasters):
     plt.subplot(1, len(rasters), i+1)
@@ -98,20 +59,6 @@ plt.show()
 ```
 
 
-### Upload Processed Imagery/Raster
-
-
-```python
-file_url = '...'  # Some already processed file that has been upload to S3
-
-file = client.create_file_from_url(file_url)
-image = client.create_image_from_file(file)
-image_set = client.create_image_set([image, ])
-raster = client.create_raster_from_image_set(image_set)
-raster
-```
-
-
 ### STAC Item Support
 
 The Python client has a search endpoint specifically for Raster data that
@@ -119,12 +66,12 @@ returns each record in the search results as a STAC Item.
 
 ```py
 
-q = client.search_raster_stac(query=json.dumps(bbox), predicate='intersects')
+q = client.imagery.search_raster_stac(query=json.dumps(bbox), predicate='intersects')
 
 print(q[0])  # view result as STAC Item
 
 # Download using the search result
-paths = client.download_raster(q[0])
+paths = client.imagery.download_raster(q[0])
 print(paths)
 
 ```
@@ -134,7 +81,7 @@ the same STAC Item JSON which will not actually do anything because RGD
 recognizes that these files are already present with a Raster.
 
 ```py
-client.create_raster_stac(q[0])
+client.imagery.create_raster_stac(q[0])
 ```
 
 Please note that the assets in the STAC Item must already be uploaded to a
