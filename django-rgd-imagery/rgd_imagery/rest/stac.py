@@ -39,3 +39,22 @@ class FeatureCollectionView(GenericAPIView, _PermissionMixin):
         )
         serializer = self.get_serializer(queryset)
         return Response(serializer.data)
+
+
+class SimpleSearchView(GenericAPIView, _PermissionMixin):
+    """Search items."""
+
+    serializer_class = serializers.stac.STACRasterFeatureCollectionSerializer
+    queryset = models.RasterMeta.objects.all()
+    pagination_class = STACPagination
+    filter_backends = (filters.DjangoFilterBackend,)
+    filterset_class = STACSimpleFilter
+
+    def get(self, request, *args, **kwargs):
+        queryset = self.filter_queryset(self.get_queryset())
+        page = self.paginate_queryset(queryset)
+        if page is not None:
+            serializer = self.get_serializer(page)
+            return self.get_paginated_response(serializer.data)
+        serializer = self.get_serializer(queryset)
+        return Response(serializer.data)
