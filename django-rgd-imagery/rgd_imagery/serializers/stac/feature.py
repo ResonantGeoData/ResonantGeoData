@@ -18,6 +18,22 @@ from .utils import non_unique_get_or_create
 
 
 class STACRasterFeatureSerializer(serializers.BaseSerializer):
+    def _add_image_to_item(self, item, image, asset_type='image', roles=('data',)):
+        asset = pystac.Asset(
+            href=image.file.get_url(),
+            title=image.file.name,
+            roles=roles,
+        )
+        asset.set_owner(item)
+        asset_eo_ext = EOExtension.ext(asset, add_if_missing=True)
+        asset_eo_ext.bands = [
+            band_utils.to_pystac(bandmeta)
+            for bandmeta in image.bandmeta_set.filter(
+                band_range__contained_by=(None, None),
+            )
+        ]
+        item.add_asset(f'{asset_type}-{image.pk}', asset)
+
     def to_representation(self, instance: models.RasterMeta) -> dict:
         item = pystac.Item(
             id=str(instance.pk),
@@ -39,30 +55,23 @@ class STACRasterFeatureSerializer(serializers.BaseSerializer):
         item_eo_ext = EOExtension.ext(item, add_if_missing=True)
         item_eo_ext.cloud_cover = instance.cloud_cover
         # Add assets
-        for image in instance.parent_raster.image_set.images.select_related(
-            'file__collection'
-        ).all():
+        used_images = set()
+        for image in (
+            instance.parent_raster.image_set.images.exclude(pk__in=used_images)
+            .select_related('file__collection')
+            .all()
+        ):
             if not item.collection_id and image.file.collection:
                 item.collection_id = str(image.file.collection.pk)
-            # if image.file.type != FileSourceType.URL:
-            #     # TODO: we need fix this
-            #     raise ValueError('Files must point to valid URL resources, not internal storage.')
-            asset = pystac.Asset(
-                href=image.file.get_url(),
-                title=image.file.name,
-                roles=[
-                    'data',
-                ],
-            )
-            asset.set_owner(item)
-            asset_eo_ext = EOExtension.ext(asset, add_if_missing=True)
-            asset_eo_ext.bands = [
-                band_utils.to_pystac(bandmeta)
-                for bandmeta in image.bandmeta_set.filter(
-                    band_range__contained_by=(None, None),
+            used_images.add(image.pk)
+            self._add_image_to_item(item, image, asset_type='image')
+            for pim in image.processedimage_set.exclude(processed_image__in=used_images).all():
+                self._add_image_to_item(
+                    item,
+                    pim.processed_image,
+                    asset_type='processed-image',
+                    roles=('processed-data',),
                 )
-            ]
-            item.add_asset(f'image-{image.pk}', asset)
 
         for ancillary_file in instance.parent_raster.ancillary_files.all():
             asset = pystac.Asset(
