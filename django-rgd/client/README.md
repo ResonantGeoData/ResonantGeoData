@@ -161,3 +161,6 @@ images must have the `data` tag on each asset. e.g.:
     }
 }
 ```
+
+# Plugin Development
+For instructions on how to develop a plugin for `rgd_client`, see `PLUGINS.md`.
