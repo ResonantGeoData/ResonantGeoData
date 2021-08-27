@@ -1,5 +1,4 @@
-from datetime import datetime as pydatetime
-
+from dateutil.parser import parse as datetimeparse
 from django.contrib.gis import forms
 from django.contrib.gis.geos import Polygon
 from django.db.models import Q, Sum
@@ -133,17 +132,17 @@ class STACSimpleFilter(filters.FilterSet):
         if value:
             split_datetime = value.split('/')
             if len(split_datetime) == 1:
-                obj = pydatetime.fromisoformat(split_datetime[0])
+                obj = datetimeparse(split_datetime[0])
                 return queryset.filter(acquisition_date__time=obj)
             else:
                 start = split_datetime[0]
                 end = split_datetime[1]
                 if start != '..':
-                    obj = pydatetime.fromisoformat(start)
-                    queryset = queryset.filter(acquisition_date__time__gte=start)
+                    obj = datetimeparse(start)
+                    queryset = queryset.filter(acquisition_date__time__gte=obj)
                 if end != '..':
-                    obj = pydatetime.fromisoformat(end)
-                    queryset = queryset.filter(acquisition_date__time__lte=end)
+                    obj = datetimeparse(end)
+                    queryset = queryset.filter(acquisition_date__time__lte=obj)
         return queryset
 
     class Meta:
