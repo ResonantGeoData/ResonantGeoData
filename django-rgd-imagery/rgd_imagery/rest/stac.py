@@ -11,6 +11,12 @@ class _PermissionMixin:
         return filter_read_perm(self.request.user, queryset)
 
 
+class _PermissionMixin:
+    def get_queryset(self):
+        queryset = super().get_queryset()
+        return filter_read_perm(self.request.user, queryset)
+
+
 class RootView(GenericAPIView, _PermissionMixin):
     """See all the Collections a user can see."""
 
