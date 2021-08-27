@@ -16,5 +16,5 @@ __all__ = [
     'RasterMetaSerializer',
     'RasterSerializer',
     'RegionImageSerializer',
-    'STACRasterSerializer',
+    'STACRasterFeatureSerializer',
 ]
