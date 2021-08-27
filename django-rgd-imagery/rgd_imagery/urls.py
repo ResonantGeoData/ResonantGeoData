@@ -161,4 +161,14 @@ urlpatterns = [
         rest.download.get_status_subsampled_image,
         name='subsampled-status',
     ),
+    path(
+        'api/stac',
+        rest.stac.RootView.as_view(),
+        name='stac-root',
+    ),
+    path(
+        'api/stac/collection/<int:pk>',
+        rest.stac.FeatureCollectionView.as_view(),
+        name='stac-collection',
+    ),
 ]
