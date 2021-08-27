@@ -2,11 +2,14 @@ from django_filters import rest_framework as filters
 from rest_framework.generics import GenericAPIView
 from rest_framework.response import Response
 from rgd.models import Collection
-from rgd.rest.get import _PermissionMixin
+from rgd.permissions import filter_read_perm
 from rgd_imagery import models, serializers
 
-from ..filters import STACSimpleFilter
-from ..pagination import STACPagination
+
+class _PermissionMixin:
+    def get_queryset(self):
+        queryset = super().get_queryset()
+        return filter_read_perm(self.request.user, queryset)
 
 
 class RootView(GenericAPIView, _PermissionMixin):
@@ -31,7 +34,9 @@ class FeatureCollectionView(GenericAPIView, _PermissionMixin):
     def get(self, request, *args, **kwargs):
         collection = self.get_object()
         queryset = self.filter_queryset(
-            models.RasterMeta.objects.filter(parent_raster__image_set__file__collection=collection)
+            models.RasterMeta.objects.filter(
+                parent_raster__image_set__images__file__collection=collection
+            )
         )
         serializer = self.get_serializer(queryset)
         return Response(serializer.data)
