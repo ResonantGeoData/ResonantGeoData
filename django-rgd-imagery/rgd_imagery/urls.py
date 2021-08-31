@@ -158,6 +158,11 @@ urlpatterns = [
         name='stac-root',
     ),
     path(
+        'api/stac/collection/default',
+        rest.stac.FeatureCollectionView.as_view(),
+        name='stac-collection-default',
+    ),
+    path(
         'api/stac/collection/<int:pk>',
         rest.stac.FeatureCollectionView.as_view(),
         name='stac-collection',

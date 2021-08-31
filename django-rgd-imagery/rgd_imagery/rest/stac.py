@@ -27,15 +27,11 @@ class FeatureCollectionView(GenericAPIView, _PermissionMixin):
     """See the Items in the Collection."""
 
     serializer_class = serializers.stac.STACRasterFeatureCollectionSerializer
-    queryset = Collection.objects.all()
-    lookup_field = 'pk'
+    queryset = models.RasterMeta.objects.all()
 
-    def get(self, request, *args, **kwargs):
-        collection = self.get_object()
-        queryset = self.filter_queryset(
-            models.RasterMeta.objects.filter(
-                parent_raster__image_set__images__file__collection=collection
-            )
+    def get(self, request, *args, pk=None, **kwargs):
+        queryset = self.get_queryset().filter(
+            parent_raster__image_set__images__file__collection=collection
         )
         serializer = self.get_serializer(queryset)
         return Response(serializer.data)
