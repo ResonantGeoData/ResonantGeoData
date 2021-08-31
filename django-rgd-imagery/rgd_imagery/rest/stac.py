@@ -18,7 +18,7 @@ class RootView(GenericAPIView, _PermissionMixin):
     queryset = Collection.objects.all()
 
     def get(self, request, *args, **kwargs):
-        queryset = self.filter_queryset(self.get_queryset())
+        queryset = self.get_queryset()
         serializer = self.get_serializer(queryset)
         return Response(serializer.data)
 
