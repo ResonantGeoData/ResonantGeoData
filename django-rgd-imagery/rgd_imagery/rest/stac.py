@@ -30,8 +30,6 @@ class FeatureCollectionView(GenericAPIView, _PermissionMixin):
     queryset = models.RasterMeta.objects.all()
 
     def get(self, request, *args, pk=None, **kwargs):
-        queryset = self.get_queryset().filter(
-            parent_raster__image_set__images__file__collection=collection
-        )
+        queryset = self.get_queryset().filter(parent_raster__image_set__images__file__collection=pk)
         serializer = self.get_serializer(queryset)
         return Response(serializer.data)
