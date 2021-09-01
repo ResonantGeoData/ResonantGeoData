@@ -301,9 +301,8 @@ def _validate_image_set_is_raster(image_set):
 
     base_image = images.pop()
     first_meta = _extract_raster_meta(base_image)
-    for image in images:
-        _extract_raster_meta(image)
-
+    # for image in images:
+    #     _extract_raster_meta(image)
     return first_meta
 
 
