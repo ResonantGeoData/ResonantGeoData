@@ -21,8 +21,8 @@ services:
     tty: true
     command: ["server", "/data"]
     environment:
-      MINIO_ACCESS_KEY: minioAccessKey
-      MINIO_SECRET_KEY: minioSecretKey
+      MINIO_ROOT_USER: minioAccessKey
+      MINIO_ROOT_PASSWORD: minioSecretKey
     ports:
       - ${DOCKER_MINIO_PORT-9000}:9000
     volumes:
