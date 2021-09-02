@@ -44,7 +44,7 @@ services:
 
   flower:
     image: mher/flower
-    command: ["--broker=amqp://rabbitmq:5672/", "--url_prefix=flower"]
+    command: ["celery", "--broker=amqp://rabbitmq:5672/", "flower"]
     ports:
       - 5555:5555
 
