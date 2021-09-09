@@ -8,7 +8,7 @@ from rgd_imagery.models import RasterMeta
 
 class SearchRasterMetaSTACView(ListAPIView):
     queryset = RasterMeta.objects.all()
-    serializer_class = serializers.STACRasterSerializer
+    serializer_class = serializers.STACRasterFeatureSerializer
     filter_backends = [DjangoFilterBackend]
     filterset_class = RasterMetaFilter
 

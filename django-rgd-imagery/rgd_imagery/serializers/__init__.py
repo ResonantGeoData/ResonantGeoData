@@ -4,7 +4,7 @@ from .. import models
 from .base import ImageMetaSerializer, ImageSerializer, ImageSetSerializer
 from .processed import ProcessedImageGroupSerializer, ProcessedImageSerializer
 from .raster import RasterMetaSerializer, RasterSerializer
-from .stac import STACRasterSerializer
+from .stac import STACRasterFeatureSerializer
 
 utility.make_serializers(globals(), models)
 
@@ -16,5 +16,6 @@ __all__ = [
     'ProcessedImageSerializer',
     'RasterMetaSerializer',
     'RasterSerializer',
-    'STACRasterSerializer',
+    'RegionImageSerializer',
+    'STACRasterFeatureSerializer',
 ]
