@@ -22,4 +22,4 @@ DEEP_LINKING = True
 
 STATIC_URL = '/static/'
 
-ALLOWED_HOSTS = "*"
+ALLOWED_HOSTS = '*'
