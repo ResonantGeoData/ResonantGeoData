@@ -158,6 +158,11 @@ urlpatterns = [
         name='stac-root',
     ),
     path(
+        'api/stac/search',
+        rest.stac.SimpleSearchView.as_view(),
+        name='stac-search',
+    ),
+    path(
         'api/stac/collection/default',
         rest.stac.FeatureCollectionView.as_view(),
         name='stac-collection-default',

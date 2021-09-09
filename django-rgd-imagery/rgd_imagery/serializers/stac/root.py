@@ -26,6 +26,11 @@ class STACRootSerializer(serializers.BaseSerializer):
                     'href': reverse('stac-root', request=self.context.get('request')),
                 },
                 {
+                    'rel': 'search',
+                    'type': 'application/json',
+                    'href': reverse('stac-search', request=self.context.get('request')),
+                },
+                {
                     'rel': 'child',
                     'type': 'application/json',
                     'title': 'default',
