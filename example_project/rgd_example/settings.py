@@ -21,3 +21,5 @@ OPERATIONS_SORTER = 'alpha'
 DEEP_LINKING = True
 
 STATIC_URL = '/static/'
+
+ALLOWED_HOSTS = "*"
