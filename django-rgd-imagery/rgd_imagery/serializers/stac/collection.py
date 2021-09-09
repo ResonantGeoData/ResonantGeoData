@@ -1,5 +1,3 @@
-from typing import Optional
-
 from django.contrib.gis.db.models import Extent
 from rest_framework import serializers
 from rest_framework.reverse import reverse as drf_reverse
@@ -12,7 +10,10 @@ from rgd_imagery.models import RasterMeta
 class CollectionSerializer(serializers.BaseSerializer):
     def to_representation(self, collection: Collection) -> dict:
         request = self.context.get('request')
-        reverse = lambda viewname, **kwargs: drf_reverse(viewname, request=request, **kwargs)
+
+        def reverse(viewname, **kwargs):
+            return drf_reverse(viewname, request=request, **kwargs)
+
         user = request and request.user or None
         collection_id = str(collection.pk) if collection.pk else 'default'
         collection_title = str(collection.name) if collection.pk else 'default'
@@ -22,7 +23,6 @@ class CollectionSerializer(serializers.BaseSerializer):
                 parent_raster__image_set__images__file__collection=collection.pk
             ),
         )
-        bbox = items.aggregate(Extent('footprint'))
         return {
             'type': 'Collection',
             'stac_version': '1.0.0',
@@ -34,7 +34,7 @@ class CollectionSerializer(serializers.BaseSerializer):
                 'spatial': {
                     'bbox': [list(items.aggregate(Extent('footprint'))['footprint__extent'])]
                 },
-                'temporal': {'interval': [["2019-01-01T00:00:00Z", None]]},
+                'temporal': {'interval': [[None, None]]},
             },
             'license': 'proprietary',
             'links': [

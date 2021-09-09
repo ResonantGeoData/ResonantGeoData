@@ -8,9 +8,9 @@ from rgd.models import Collection
 # https://github.com/radiantearth/stac-api-spec/tree/master/core
 class CoreSerializer(serializers.BaseSerializer):
     def to_representation(self, collections: Iterable[Collection]) -> dict:
-        reverse = lambda viewname, **kwargs: drf_reverse(
-            viewname, request=self.context.get('request'), **kwargs
-        )
+        def reverse(viewname, **kwargs):
+            return drf_reverse(viewname, request=self.context.get('request'), **kwargs)
+
         return {
             'type': 'Catalog',
             'stac_version': '1.0.0',
