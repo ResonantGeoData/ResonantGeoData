@@ -12,7 +12,10 @@
 
   <select id="image-selector" onchange="updateBandThumbnail()">
     {% for image in object.image_set.images.all %}
-      <option value="{% url 'image-entry-data' image.pk %}">{{ image.file.name | truncatechars:36 }}</option>
+      <option value="{{ image.id }}.0">{{ image.file.name | truncatechars:36 }}-Default</option>
+      {% for bmeta in image.bandmeta_set.all %}
+        <option value="{{ image.id }}.{{bmeta.band_number}}">{{ image.file.name | truncatechars:36 }}-{{bmeta.band_number}} ({{bmeta.interpretation}}: {{bmeta.description}})</option>
+      {% endfor %}
     {% endfor %}
   </select>
 
@@ -103,7 +106,17 @@
         imageViewer.center(zoomAndCenter.center);
 
       }
-      image.src = selector.value
+      thumbnail = document.getElementById('thumbnail')
+      var selector_value = Number(selector.value);
+
+      var str = selector_value.toString();
+      var numarray = str.split('.');
+      image_id = Number(numarray[0])
+      band = Number(numarray[1])
+      if (Number.isNaN(band)) {
+        band = 0
+      }
+      image.src = `${host}/api/image_process/imagery/${image_id}/thumbnail?band=${band}`
     }
     updateBandThumbnail()
   </script>

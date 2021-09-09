@@ -1,9 +1,9 @@
 from contextlib import contextmanager
 
+import large_image
 from large_image.exceptions import TileSourceException
 from large_image.tilesource import FileTileSource
 from large_image_source_gdal import GDALFileTileSource
-from large_image_source_pil import PILFileTileSource
 from rgd_imagery.models import Image
 
 
@@ -16,7 +16,7 @@ def get_tilesource_from_image(
         return GDALFileTileSource(file_path, projection=projection, encoding='PNG', style=style)
     except TileSourceException:
         with image.file.yield_local_path() as file_path:
-            return PILFileTileSource(file_path, style=style)
+            return large_image.open(str(file_path), style=style)
 
 
 @contextmanager
