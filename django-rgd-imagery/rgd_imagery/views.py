@@ -1,5 +1,4 @@
 from django.views.generic.base import TemplateView
-
 from rgd.views import PermissionDetailView, SpatialEntriesListView, _SpatialDetailView
 
 from . import filters, models

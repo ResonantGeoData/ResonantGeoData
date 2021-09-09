@@ -3,8 +3,8 @@ from decimal import Decimal
 
 from bidict import bidict
 from pystac.extensions.eo import Band
-
 from rgd_imagery import models
+
 from ..utils import non_unique_get_or_create
 
 BAND_RANGE_BY_COMMON_NAMES = bidict(

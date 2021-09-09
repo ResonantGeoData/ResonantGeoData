@@ -4,6 +4,7 @@ from rest_framework import serializers
 from rest_framework.reverse import reverse as drf_reverse
 from rgd.models import Collection
 
+
 # https://github.com/radiantearth/stac-api-spec/tree/master/core
 class CoreSerializer(serializers.BaseSerializer):
     def to_representation(self, collections: Iterable[Collection]) -> dict:

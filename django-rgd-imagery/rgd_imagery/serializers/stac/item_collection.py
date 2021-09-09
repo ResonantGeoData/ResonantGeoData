@@ -1,9 +1,9 @@
 from typing import Iterable
 
 from rest_framework import serializers
+from rgd_imagery import models
 
 from .item import ItemSerializer
-from rgd_imagery import models
 
 
 class ItemCollectionSerializer(serializers.BaseSerializer):

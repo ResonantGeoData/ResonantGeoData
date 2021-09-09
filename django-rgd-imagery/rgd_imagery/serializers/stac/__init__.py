@@ -1,7 +1,7 @@
 from .collection import CollectionSerializer
+from .core import CoreSerializer
 from .item import ItemSerializer
 from .item_collection import ItemCollectionSerializer
-from .core import CoreSerializer
 
 __all__ = [
     'ItemSerializer',
