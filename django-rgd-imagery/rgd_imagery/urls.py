@@ -29,6 +29,11 @@ urlpatterns = [
         views.ImageSetDetailView.as_view(),
         name=models.ImageSet.detail_view_name,
     ),
+    path(
+        'rgd_imagery/stac_browser/',
+        views.STACBrowserView.as_view(),
+        name='stac-browser',
+    ),
     #############
     # Search
     path('api/rgd_imagery/raster/search', rest.search.SearchRasterMetaSTACView.as_view()),
