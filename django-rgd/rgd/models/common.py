@@ -1,4 +1,5 @@
 import contextlib
+import json
 import logging
 import os
 from urllib.error import URLError
@@ -62,6 +63,20 @@ class SpatialEntry(models.Model):
             return 'Spatial ID: {} (ID: {}, type: {})'.format(self.spatial_id, self.id, type(self))
         except AttributeError:
             return super().__str__()
+
+    @property
+    def extent(self):
+        extent = {
+            'xmin': self.outline.extent[0],
+            'ymin': self.outline.extent[1],
+            'xmax': self.outline.extent[2],
+            'ymax': self.outline.extent[3],
+        }
+        return extent
+
+    @property
+    def extent_json(self):
+        return json.dumps(self.extent)
 
 
 class FileSourceType(models.IntegerChoices):

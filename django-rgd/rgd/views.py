@@ -146,33 +146,34 @@ class _SpatialDetailView(PermissionDetailView):
         permissions.check_read_perm(self.request.user, obj)
         return obj
 
-    def _get_extent(self):
+    def _get_extent(self, object):
         extent = {
             'count': 0,
         }
-        if self.object.footprint:
+        if object.footprint:
             extent.update(
                 {
                     'count': 1,
-                    'collect': self.object.footprint.json,
-                    'outline': self.object.outline.json,
-                    'extent': {
-                        'xmin': self.object.footprint.extent[0],
-                        'ymin': self.object.footprint.extent[1],
-                        'xmax': self.object.footprint.extent[2],
-                        'ymax': self.object.footprint.extent[3],
-                    },
+                    'collect': object.footprint.json,
+                    'outline': object.outline.json,
+                    'extent': object.extent,
                 }
             )
         return extent
 
     def get_context_data(self, *args, **kwargs):
         context = super().get_context_data(*args, **kwargs)
-        context['extents'] = json.dumps(self._get_extent())
+        context['extents'] = json.dumps(self._get_extent(self.object))
         return context
 
 
 def spatial_entry_redirect_view(request, pk):
     # NOTE HACK: this is dirty but it works
     spat = models.SpatialEntry.objects.filter(pk=pk).select_subclasses().first()
-    return redirect(reverse(spat.detail_view_name, kwargs={'pk': spat.pk}))
+    if hasattr(spat, 'detail_view_pk'):
+        pk = spat
+        for f in spat.detail_view_pk.split('__'):
+            pk = getattr(pk, f)
+    else:
+        pk = spat.pk
+    return redirect(reverse(spat.detail_view_name, kwargs={'pk': pk}))

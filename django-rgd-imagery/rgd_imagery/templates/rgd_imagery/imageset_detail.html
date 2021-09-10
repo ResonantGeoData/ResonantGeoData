@@ -2,8 +2,20 @@
 
 {% block meta_table_body %}
   <tr>
+    <td>Name</td>
+    <td>{{ object.name }}</td>
+  </tr>
+  <tr>
     <td>Description</td>
     <td>{{ object.description }}</td>
+  </tr>
+  <tr>
+    <td>Image Count</td>
+    <td>{{ object.count }}</td>
+  </tr>
+  <tr>
+    <td>Image Bands Count</td>
+    <td>{{ object.image_bands }}</td>
   </tr>
 {% endblock %}
 
@@ -11,7 +23,7 @@
   <br/>
 
   <select id="image-selector" onchange="updateImage()">
-    {% for image in object.image_set.images.all %}
+    {% for image in object.images.all %}
       <option value="{{ image.id }}">{{ image.file.name | truncatechars:36 }}</option>
     {% endfor %}
   </select>
@@ -19,28 +31,30 @@
   <select id="band-selector" onchange="updateBandThumbnail()">
   </select>
 
-  <br/>
+  {% if object.imagesetspatial %}
+    <br/>
 
-  {% include 'rgd/_include/empty_viewer.html' %}
+    {% include 'rgd/_include/empty_viewer.html' %}
 
-  <script>
-    let extents = JSON.parse('{{ extents|escapejs }}');
+    <script>
 
-    let reader = geo.createFileReader('geojsonReader', {
-      'layer': layer
-    });
-    var footprint = '{{ object.footprint.json|escapejs }}'
-    reader.read(footprint, (features) => {
-      features[0].style({
-        strokeColor: '#FF0000',
-        fill: true,
-      })
-      .draw();
-    });
+      let reader = geo.createFileReader('geojsonReader', {
+        'layer': layer
+      });
+      var footprint = '{{ object.imagesetspatial.footprint.json|escapejs }}'
+      reader.read(footprint, (features) => {
+        features[0].style({
+          strokeColor: '#FF0000',
+          fill: true,
+        })
+        .draw();
+      });
 
-    setBounds(extents.extent)
+      let extent = JSON.parse('{{ object.imagesetspatial.extent_json|escapejs }}');
+      setBounds(extent)
 
-  </script>
+    </script>
+  {% endif %}
 {% endblock %}
 
 {% block detail %}
@@ -54,7 +68,7 @@
 
     {% comment %} Save available bands for each image into a JSON object keyed by the image id {% endcomment %}
     const bands = {
-      {% for image in object.image_set.images.all %}
+      {% for image in object.images.all %}
         "{{image.id}}": [
           {% for bmeta in image.bandmeta_set.all %}
             {

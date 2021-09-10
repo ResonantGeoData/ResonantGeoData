@@ -1,10 +1,10 @@
-from rgd.views import SpatialEntriesListView, _SpatialDetailView
+from rgd.views import PermissionDetailView, SpatialEntriesListView, _SpatialDetailView
 
 from . import filters, models
 
 
-class ImageSetSpatialDetailView(_SpatialDetailView):
-    model = models.ImageSetSpatial
+class ImageSetDetailView(PermissionDetailView):
+    model = models.ImageSet
 
 
 class RasterMetaEntriesListView(SpatialEntriesListView):

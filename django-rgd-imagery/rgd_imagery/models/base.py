@@ -76,7 +76,9 @@ class ImageSet(TimeStampedModel, PermissionPathMixin):
 
     @property
     def image_bands(self):
-        return self.images.aggregate(models.Sum('number_of_bands'))['number_of_bands__sum']
+        return self.images.aggregate(models.Sum('imagemeta__number_of_bands'))[
+            'imagemeta__number_of_bands__sum'
+        ]
 
     @property
     def width(self):
@@ -96,12 +98,15 @@ class ImageSet(TimeStampedModel, PermissionPathMixin):
             annots[image.pk] = image.annotation_set.all()
         return annots
 
+    detail_view_name = 'image-set-detail'
+
 
 class ImageSetSpatial(TimeStampedModel, SpatialEntry, PermissionPathMixin, DetailViewMixin):
     """Arbitrary register an ImageSet to a location."""
 
     permissions_paths = [('image_set', ImageSet)]
-    detail_view_name = 'image-set-spatial-detail'
+    detail_view_name = 'image-set-detail'
+    detail_view_pk = 'image_set__pk'
 
     image_set = models.OneToOneField(ImageSet, on_delete=models.CASCADE)
 
