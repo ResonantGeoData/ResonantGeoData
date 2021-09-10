@@ -38,6 +38,8 @@ def _populate_image_meta_models(image, image_meta):
         meta = tile_source.getMetadata()
         imeta = tile_source.getInternalMetadata()
         bands = tile_source.getBandInformation()
+        if isinstance(bands, list):
+            bands = {i + 1: b for i, b in enumerate(bands)}
 
         image_meta.number_of_bands = len(bands)
         image_meta.driver = (
@@ -49,7 +51,7 @@ def _populate_image_meta_models(image, image_meta):
         image_meta.save()
 
         # TODO: we need `PILFileTileSource` in large_image to support band information
-        if 'bands' in meta:
+        if bands:
             for index, band_info in bands.items():
 
                 def safe_get(key):
