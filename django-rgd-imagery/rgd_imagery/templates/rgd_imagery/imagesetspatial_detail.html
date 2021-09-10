@@ -149,7 +149,7 @@
       bands[image_id].forEach((band) => {
         var opt = document.createElement('option');
         opt.value = band.band_number;
-        opt.innerHTML = `${band.interpretation}: ${band.description}`;
+        opt.innerHTML = `${band.band_number}: ${band.interpretation}`;
         bandSelector.appendChild(opt);
       });
     }
