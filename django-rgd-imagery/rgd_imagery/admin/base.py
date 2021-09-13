@@ -114,6 +114,7 @@ class ImageSetAdmin(OSMGeoAdmin):
         'pk',
         'name',
         'count',
+        'number_of_bands',
         'modified',
         'created',
     )
@@ -176,6 +177,7 @@ class ImageAdmin(OSMGeoAdmin, _FileGetNameMixin):
     list_display = (
         'pk',
         'get_name',
+        'number_of_bands',
         'status',
         'modified',
         'created',

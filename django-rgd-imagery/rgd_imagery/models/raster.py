@@ -33,6 +33,11 @@ class Raster(TimeStampedModel, TaskEventMixin, PermissionPathMixin):
     )
 
     @property
+    def count(self):
+        """Get number of images."""
+        return self.image_set.count
+
+    @property
     def number_of_bands(self):
         """Get number of bands across all images in image set."""
         return self.image_set.number_of_bands
