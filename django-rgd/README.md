@@ -51,7 +51,7 @@ The RGD core app has a few optional settings:
 
 - `RGD_GLOBAL_READ_ACCESS`: option to give all users access to files that lack permissions (otherwise only admin users can access these files)
 - `RGD_FILE_FIELD_PREFIX`: the path prefix when uploading files to the project's S3 storage.
-
+- `RGD_AUTO_APPROVE_SIGN_UP`: automatically approve all user sign ups.
 
 ## Models
 

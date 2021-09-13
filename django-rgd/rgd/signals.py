@@ -1,4 +1,5 @@
 from allauth.account.signals import user_signed_up
+from django.conf import settings
 from django.db import transaction
 from django.db.models.signals import post_save
 from django.dispatch import receiver
@@ -14,6 +15,9 @@ def _post_save_checksum_file(sender, instance, *args, **kwargs):
 
 @receiver(user_signed_up)
 def set_new_user_inactive(sender, **kwargs):
+    if getattr(settings, 'RGD_AUTO_APPROVE_SIGN_UP', None):
+        # Use setting `RGD_AUTO_APPROVE_SIGN_UP` to automatically approve all users
+        return
     user = kwargs.get('user')
     try:
         models.WhitelistedEmail.objects.get(email=user.email)
