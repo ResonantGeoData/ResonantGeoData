@@ -161,7 +161,6 @@ class ImageMetaInline(admin.StackedInline):
         'created',
     )
     readonly_fields = (
-        'number_of_bands',
         'parent_image',
         'height',
         'width',
@@ -169,10 +168,7 @@ class ImageMetaInline(admin.StackedInline):
         'modified',
         'created',
     )
-    list_filter = MODIFIABLE_FILTERS + (
-        'number_of_bands',
-        'driver',
-    )
+    list_filter = MODIFIABLE_FILTERS + ('driver',)
 
 
 @admin.register(Image)

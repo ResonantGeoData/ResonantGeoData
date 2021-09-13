@@ -33,15 +33,9 @@ class Raster(TimeStampedModel, TaskEventMixin, PermissionPathMixin):
     )
 
     @property
-    def count(self):
+    def number_of_bands(self):
         """Get number of bands across all images in image set."""
-        n = (
-            ImageSet.objects.filter(pk=self.image_set.pk)
-            .annotate(num_bands=Sum('images__imagemeta__number_of_bands'))
-            .first()
-            .num_bands
-        )
-        return n
+        return self.image_set.number_of_bands
 
 
 class RasterMeta(TimeStampedModel, SpatialEntry, PermissionPathMixin, DetailViewMixin):

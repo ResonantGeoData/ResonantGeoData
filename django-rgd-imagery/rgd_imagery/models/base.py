@@ -27,6 +27,10 @@ class Image(TimeStampedModel, TaskEventMixin, PermissionPathMixin):
 
     image_data_link.allow_tags = True
 
+    @property
+    def number_of_bands(self):
+        return self.bandmeta_set.count()
+
 
 class ImageMeta(TimeStampedModel, PermissionPathMixin):
     """Single image entry, tracks the original file."""
@@ -37,9 +41,6 @@ class ImageMeta(TimeStampedModel, PermissionPathMixin):
     driver = models.CharField(max_length=100)
     height = models.PositiveIntegerField()
     width = models.PositiveIntegerField()
-    number_of_bands = (
-        models.PositiveIntegerField()
-    )  # TODO: code smell? this can be computed relationally
 
 
 class BandMeta(TimeStampedModel, PermissionPathMixin):
@@ -75,10 +76,8 @@ class ImageSet(TimeStampedModel, PermissionPathMixin):
     images = models.ManyToManyField(Image)
 
     @property
-    def image_bands(self):
-        return self.images.aggregate(models.Sum('imagemeta__number_of_bands'))[
-            'imagemeta__number_of_bands__sum'
-        ]
+    def number_of_bands(self):
+        return sum([im.number_of_bands for im in self.images])
 
     @property
     def width(self):

@@ -1,7 +1,7 @@
 from dateutil.parser import parse as datetimeparse
 from django.contrib.gis import forms
 from django.contrib.gis.geos import Polygon
-from django.db.models import Q, Sum
+from django.db.models import Count, Q
 from django_filters import rest_framework as filters
 from rgd.filters import SpatialEntryFilter
 from rgd.models import SpatialEntry
@@ -50,7 +50,7 @@ class RasterMetaFilter(SpatialEntryFilter):
         """
         if value is not None:
             queryset = queryset.annotate(
-                num_bands=Sum('parent_raster__image_set__images__imagemeta__number_of_bands')
+                num_bands=Count('parent_raster__image_set__images__bandmeta')
             )
             if value.start is not None:
                 queryset = queryset.filter(num_bands__gte=value.start)

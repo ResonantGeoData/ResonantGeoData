@@ -41,7 +41,6 @@ def _populate_image_meta_models(image, image_meta):
         if isinstance(bands, list):
             bands = {i + 1: b for i, b in enumerate(bands)}
 
-        image_meta.number_of_bands = len(bands)
         image_meta.driver = (
             imeta['driverShortName'] if 'driverShortName' in imeta else 'pil'
         )  # NOTE: assumes PIL if not using GDAL
@@ -193,7 +192,7 @@ def _yield_downsampled_raster(raster):
     profile.update(transform=transform, height=height, width=width)
 
     data = raster.read(
-        out_shape=(raster.count, height, width),
+        out_shape=(raster.number_of_bands, height, width),
         resampling=Resampling.bilinear,
     )
 
