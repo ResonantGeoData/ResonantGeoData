@@ -84,7 +84,7 @@ class STACSimpleFilter(filters.FilterSet):
     bbox = NumberCSVFilter(
         help_text=(
             'Only features that have a geometry that intersects the bounding box are selected. '
-            'The bounding box is provided as four comma seperated numbers.'
+            'The bounding box is provided as four comma separated numbers.'
         ),
         label='Bounding Box',
         method='filter_bbox',
