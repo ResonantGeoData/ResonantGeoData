@@ -17,7 +17,7 @@ def _check_conforms_stac(data):
 @pytest.mark.django_db(transaction=True)
 def test_raster_stac_serializer_simple(admin_api_client, sample_raster_url_single):
     id = sample_raster_url_single.pk
-    response = admin_api_client.get(f'/rgd_imagery_test/api/rgd_imagery/raster/{id}/stac')
+    response = admin_api_client.get(f'/api/rgd_imagery/raster/{id}/stac')
     assert response.status_code == 200
     data = response.data
     assert data
@@ -29,7 +29,7 @@ def test_raster_stac_serializer_simple(admin_api_client, sample_raster_url_singl
 @pytest.mark.django_db(transaction=True)
 def test_raster_stac_serializer_multi_file_bands(admin_api_client, sample_raster_url):
     id = sample_raster_url.pk
-    response = admin_api_client.get(f'/rgd_imagery_test/api/rgd_imagery/raster/{id}/stac')
+    response = admin_api_client.get(f'/api/rgd_imagery/raster/{id}/stac')
     assert response.status_code == 200
     data = response.data
     assert data
@@ -41,7 +41,7 @@ def test_raster_stac_serializer_multi_file_bands(admin_api_client, sample_raster
 @pytest.mark.django_db(transaction=True)
 def test_eo_serialize(admin_api_client, sample_raster_url):
     id = sample_raster_url.pk
-    response = admin_api_client.get(f'/rgd_imagery_test/api/rgd_imagery/raster/{id}/stac')
+    response = admin_api_client.get(f'/api/rgd_imagery/raster/{id}/stac')
     data = response.data
     _check_conforms_stac(data)
     for asset in data['assets'].values():

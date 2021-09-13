@@ -4,7 +4,8 @@ from pathlib import Path
 
 from setuptools import find_packages, setup
 
-readme_file = Path(__file__).parent.parent / 'README.md'
+base_dir = Path(__file__).parent
+readme_file = base_dir / 'README.md'
 if readme_file.exists():
     with readme_file.open() as f:
         long_description = f.read()
@@ -14,14 +15,14 @@ else:
 
 __version__ = None
 filepath = os.path.dirname(__file__)
-version_file = os.path.join(filepath, '..', 'version.py')
+version_file = os.path.join(filepath, '..', '..', 'version.py')
 with io_open(version_file, mode='r') as fd:
     exec(fd.read())
 
 setup(
-    name='django-rgd-imagery',
+    name='rgd-client',
     version=__version__,
-    description='',
+    description='Make web requests to a Resonant GeoData instance.',
     long_description=long_description,
     long_description_content_type='text/markdown',
     license='Apache 2.0',
@@ -31,38 +32,19 @@ setup(
     keywords='',
     classifiers=[
         'Development Status :: 3 - Alpha',
-        'Environment :: Web Environment',
-        'Framework :: Django :: 3.0',
-        'Framework :: Django',
-        'Intended Audience :: Developers',
         'License :: OSI Approved :: Apache Software License',
-        'Operating System :: OS Independent',
         'Programming Language :: Python :: 3',
         'Programming Language :: Python :: 3.8',
         'Programming Language :: Python',
     ],
     python_requires='>=3.8',
-    packages=find_packages(exclude=['client']),
-    include_package_data=True,
+    packages=find_packages(exclude=['tests']),
     install_requires=[
-        'bidict',
-        'django-rgd',
-        'large-image>=1.8.1.dev7',
-        'large-image-source-gdal>=1.8.1.dev7',
-        'large-image-source-pil>=1.8.1.dev7',
-        'large-image-source-tiff>=1.8.1.dev7',
-        'tifftools>=1.2.0',
-        'numpy',
-        'pystac',
-        'shapely',
+        'requests',
+        'requests-toolbelt',
+        'geomet',
+        'tqdm',
+        'validators',
     ],
-    extras_require={
-        'worker': [
-            'kwarray>=0.5.10',
-            'kwcoco',
-            'kwimage[headless]>=0.6.7',
-            'large-image-converter',
-            'rasterio',
-        ],
-    },
+    extras_require={'dev': ['ipython']},
 )

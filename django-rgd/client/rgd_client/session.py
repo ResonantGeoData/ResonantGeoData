@@ -1,3 +1,4 @@
+import copy
 from typing import Optional
 
 from requests import Response
@@ -8,7 +9,7 @@ from requests_toolbelt.sessions import BaseUrlSession
 from ._version import __version__
 
 
-class RgdcSession(BaseUrlSession):
+class RgdClientSession(BaseUrlSession):
     def __init__(
         self, base_url: str, auth_header: Optional[str] = None, retries: Optional[int] = 5
     ):
@@ -48,3 +49,17 @@ class RgdcSession(BaseUrlSession):
 
         # Response field is present by default
         self.hooks['response'].append(assert_status_hook)
+
+
+def clone_session(session: RgdClientSession):
+    """
+    Clone an existing RgdClientSession.
+
+    This is necessary as simply calling `copy.deepcopy` won't suffice, due to BaseUrlSession
+    defining `base_url` as a class/static variable. Since copy.deepcopy doesn't copy class
+    variables, `base_url` is `None` in the copied instance.
+    """
+    new_session = copy.deepcopy(session)
+    new_session.base_url = session.base_url
+
+    return new_session

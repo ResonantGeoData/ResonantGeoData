@@ -15,12 +15,12 @@ else:
 
 __version__ = None
 filepath = os.path.dirname(__file__)
-version_file = os.path.join(filepath, '..', 'version.py')
+version_file = os.path.join(filepath, '..', '..', 'version.py')
 with io_open(version_file, mode='r') as fd:
     exec(fd.read())
 
 setup(
-    name='rgd-client',
+    name='rgd-imagery-client',
     version=__version__,
     description='Make web requests to a Resonant GeoData instance.',
     long_description=long_description,
@@ -39,12 +39,7 @@ setup(
     ],
     python_requires='>=3.8',
     packages=find_packages(exclude=['tests']),
-    install_requires=[
-        'requests',
-        'requests-toolbelt',
-        'geomet',
-        'tqdm',
-        'validators',
-    ],
+    install_requires=['rgd_client'],
     extras_require={'dev': ['ipython']},
+    entry_points={'rgd_client.plugin': ['rgd_imagery_client = rgd_imagery_client:ImageryClient']},
 )

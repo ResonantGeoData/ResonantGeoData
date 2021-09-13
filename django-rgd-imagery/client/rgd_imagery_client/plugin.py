@@ -1,22 +1,19 @@
-from base64 import b64encode
 from dataclasses import dataclass
-import getpass
 from pathlib import Path
 import tempfile
 from typing import Dict, Iterable, Iterator, List, Optional, Tuple, Union
 
-from tqdm import tqdm
-import validators
-
-from .session import RgdcSession
-from .types import DATETIME_OR_STR_TUPLE, PROCESSED_IMAGE_TYPES, SEARCH_PREDICATE_CHOICE
-from .utils import (
-    DEFAULT_RGD_API,
+from rgd_client.session import RgdClientSession
+from rgd_client.types import DATETIME_OR_STR_TUPLE, SEARCH_PREDICATE_CHOICE
+from rgd_client.utils import (
     download_checksum_file_to_path,
     limit_offset_pager,
     spatial_search_params,
     spatial_subentry_id,
 )
+from tqdm import tqdm
+
+from .types import PROCESSED_IMAGE_TYPES
 
 
 @dataclass
@@ -26,35 +23,12 @@ class RasterDownload:
     ancillary: List[Path]
 
 
-class Rgdc:
-    def __init__(
-        self,
-        api_url: str = DEFAULT_RGD_API,
-        username: Optional[str] = None,
-        password: Optional[str] = None,
-    ):
-        """
-        Initialize a RGD Client.
+class ImageryPlugin:
+    """The django-rgd-imagery client plugin."""
 
-        Args:
-            api_url: The base url of the RGD API instance.
-            username: The username to authenticate to the instance with, if any.
-            password: The password associated with the provided username. If None, a prompt will be provided.
-
-        Returns:
-            A new Rgdc instance.
-        """
-        auth_header = None
-
-        # Prompt for password if not provided
-        if username is not None and password is None:
-            password = getpass.getpass()
-
-        if username and password:
-            encoded_credentials = b64encode(f'{username}:{password}'.encode('utf-8')).decode()
-            auth_header = f'Basic {encoded_credentials}'
-
-        self.session = RgdcSession(base_url=api_url, auth_header=auth_header)
+    def __init__(self, session: RgdClientSession):
+        # session.base_url not modified due to varying url prefixes
+        self.session = session
 
     def list_image_tiles(self, image_id: Union[str, int]) -> Dict:
         """List geodata imagery tiles."""
@@ -197,56 +171,6 @@ class Rgdc:
 
         return raster_download
 
-    def search(
-        self,
-        query: Optional[Union[Dict, str]] = None,
-        predicate: Optional[SEARCH_PREDICATE_CHOICE] = None,
-        relates: Optional[str] = None,
-        distance: Optional[Tuple[float, float]] = None,
-        acquired: Optional[DATETIME_OR_STR_TUPLE] = None,
-        instrumentation: Optional[str] = None,
-        limit: Optional[int] = None,
-        offset: Optional[int] = None,
-        time_of_day: Optional[DATETIME_OR_STR_TUPLE] = None,
-    ) -> List[Dict]:
-        """
-        Search for geospatial entries based on various criteria.
-
-        For Ranges (Tuples), an entry of `None` means that side of the range is unbounded.
-        E.g. a range of (2, None) is 2 or more, (None, 5) is at most 5, (2, 5) is between 2 and 5.
-
-        Args:
-            query: Either a WKT GeoJSON representation, a GeoJSON string, or a GeoJSON dict.
-            predicate: A named spatial predicate based on the DE-9IM. This spatial predicate will
-                be used to filter data such that predicate(a, b) where b is the queried geometry.
-            relates: Specify exactly how the queried geometry should relate to the data using a
-                DE-9IM string code.
-            distance: The min/max distance around the queried geometry in meters.
-            acquired: The min/max date and time (ISO 8601) when data was acquired.
-            instrumentation: The instrumentation used to acquire at least one of these data.
-            limit: The maximum number of results to return.
-            offset: The number of results to skip.
-
-        Returns:
-            A list of Spatial Entries.
-        """
-        params = spatial_search_params(
-            query=query,
-            predicate=predicate,
-            relates=relates,
-            distance=distance,
-            acquired=acquired,
-            instrumentation=instrumentation,
-            limit=limit,
-            offset=offset,
-            time_of_day=time_of_day,
-        )
-
-        r = self.session.get('rgd/search', params=params)
-        r.raise_for_status()
-
-        return r.json()
-
     def create_raster_stac(self, raster: Dict) -> Dict:
         """Create a raster entry using STAC format."""
         r = self.session.post('rgd_imagery/raster/stac', json=raster)
@@ -319,39 +243,6 @@ class Rgdc:
             params['cloud_cover_max'] = ccmax
 
         return list(limit_offset_pager(self.session, 'rgd_imagery/raster/search', params=params))
-
-    def create_file_from_url(
-        self,
-        url: str,
-        name: Optional[str] = None,
-        collection: Optional[int] = None,
-        description: Optional[str] = None,
-    ) -> Dict:
-        """
-        Create a ChecksumFile from a URL.
-
-        Args:
-            url: The URL to retrieve the file from
-            name: The name of the file
-            collection: The integer collection ID to associate this ChecksumFile with
-            description: The description of the file
-        """
-        # Verify that url is valid in shape, will raise error on failure
-        validators.url(url)
-
-        # Construct payload, leaving out empty arguments
-        payload = {'url': url, 'type': 2}
-        if name is not None:
-            payload['name'] = name
-        if collection is not None:
-            payload['collection'] = collection
-        if description is not None:
-            payload['description'] = description
-
-        r = self.session.post('rgd/checksum_file', json=payload)
-
-        r.raise_for_status()
-        return r.json()
 
     def create_image_from_file(self, checksum_file: Dict) -> Dict:
         """
