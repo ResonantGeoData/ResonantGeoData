@@ -192,7 +192,7 @@ def _yield_downsampled_raster(raster):
     profile.update(transform=transform, height=height, width=width)
 
     data = raster.read(
-        out_shape=(raster.number_of_bands, height, width),
+        out_shape=(raster.count, height, width),
         resampling=Resampling.bilinear,
     )
 
