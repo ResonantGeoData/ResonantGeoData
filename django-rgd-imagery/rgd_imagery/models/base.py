@@ -77,7 +77,7 @@ class ImageSet(TimeStampedModel, PermissionPathMixin):
 
     @property
     def number_of_bands(self):
-        return sum([im.number_of_bands for im in self.images])
+        return sum([im.number_of_bands for im in self.images.all()])
 
     @property
     def width(self):
