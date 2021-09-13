@@ -156,7 +156,7 @@ class _SpatialDetailView(PermissionDetailView):
                     'count': 1,
                     'collect': object.footprint.json,
                     'outline': object.outline.json,
-                    'extent': object.bounds_json,
+                    'extent': object.bounds,
                 }
             )
         return extent
