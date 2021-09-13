@@ -59,3 +59,5 @@ class PointCloudSpatial(TimeStampedModel, SpatialEntry, PermissionPathMixin):
         return self.source.file.name
 
     permissions_paths = [('source', PointCloud)]
+    detail_view_name = 'point-cloud-entry-detail'
+    detail_view_pk = 'source__pointcloudmeta__pk'

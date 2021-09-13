@@ -26,8 +26,8 @@ urlpatterns = [
     ),
     path(
         'rgd_imagery/image_set/<int:pk>/',
-        views.ImageSetSpatialDetailView.as_view(),
-        name=models.ImageSetSpatial.detail_view_name,
+        views.ImageSetDetailView.as_view(),
+        name=models.ImageSet.detail_view_name,
     ),
     #############
     # Search

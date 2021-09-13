@@ -39,7 +39,6 @@ class PointCloudSpatialAdmin(OSMGeoAdmin):
     readonly_fields = (
         'modified',
         'created',
-        'source',
     )
     modifiable = False  # To still show the footprint and outline
 

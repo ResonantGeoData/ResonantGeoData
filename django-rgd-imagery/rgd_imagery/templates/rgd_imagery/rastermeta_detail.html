@@ -12,7 +12,7 @@
   </tr>
   <tr>
     <td>Number of bands</td>
-    <td>{{ object.parent_raster.count }}</td>
+    <td>{{ object.parent_raster.number_of_bands }}</td>
   </tr>
   <tr>
     <td>Resolution</td>
@@ -43,14 +43,14 @@
 
 {% block extra_meta %}
 
-  <select id="band-selector" onchange="updateBandThumbnail()">
+  <select id="image-selector" onchange="updateImage()">
     {% for image in object.parent_raster.image_set.images.all %}
-      <option value="{{ image.id }}.0">{{ image.file.name | truncatechars:36 }}-Default</option>
-      {% for bmeta in image.bandmeta_set.all %}
-        <option value="{{ image.id }}.{{bmeta.band_number}}">{{ image.file.name | truncatechars:36 }}-{{bmeta.band_number}} ({{bmeta.interpretation}}: {{bmeta.description}})</option>
-      {% endfor %}
+      <option value="{{ image.id }}">{{ image.file.name | truncatechars:36 }}</option>
     {% endfor %}
     <option value="-1">-- none --</option>
+  </select>
+
+  <select id="band-selector" onchange="updateBandThumbnail()">
   </select>
 
   <div class="slidecontainer">
@@ -71,6 +71,24 @@
   <script>
     let extents = JSON.parse('{{ extents|escapejs }}');
 
+    var imageSelector = document.getElementById('image-selector')
+    var bandSelector = document.getElementById('band-selector')
+
+    {% comment %} Save available bands for each image into a JSON object keyed by the image id {% endcomment %}
+    const bands = {
+      {% for image in object.parent_raster.image_set.images.all %}
+        "{{image.id}}": [
+          {% for bmeta in image.bandmeta_set.all %}
+            {
+              "interpretation": "{{bmeta.interpretation}}",
+              "band_number": "{{bmeta.band_number}}",
+              "description": "{{bmeta.description}}",
+            },
+          {% endfor %}
+        ],
+    {% endfor %}
+    };
+
     // Make sure regions outside the extent of the raster do not load null tiles
     //   this relieves strain on the tile server
     const dataset_bb = extents.extent;
@@ -83,14 +101,14 @@
     }
 
     function updateBandThumbnail () {
-      selector = document.getElementById('band-selector')
       thumbnail = document.getElementById('thumbnail')
-      var selector_value = Number(selector.value);
-      if (selector_value >= 0) {
-        var str = selector_value.toString();
-        var numarray = str.split('.');
-        image_id = Number(numarray[0])
-        band = Number(numarray[1])
+
+      var imageSelector_value = Number(imageSelector.value)
+      var bandSelector_value = Number(bandSelector.value)
+
+      if (imageSelector_value >= 0) {
+        var image_id = imageSelector_value.toString();
+        var band = bandSelector_value.toString();
         if (Number.isNaN(band)) {
           band = 0
         }
@@ -104,7 +122,35 @@
       }
       // TODO: clear tileLayer when `none` is selected
     }
-    updateBandThumbnail()
+
+    function updateBandOptions(image_id) {
+      while (bandSelector.firstChild) {
+        bandSelector.removeChild(bandSelector.firstChild);
+      }
+      var imageSelector_value = Number(imageSelector.value);
+      var image_id = imageSelector_value.toString();
+
+      var opt = document.createElement('option');
+      opt.value = 0;
+      opt.innerHTML = 'Default';
+      bandSelector.appendChild(opt);
+
+      if (bands[image_id]) {
+        bands[image_id].forEach((band) => {
+          var opt = document.createElement('option');
+          opt.value = band.band_number;
+          opt.innerHTML = `${band.band_number}: ${band.interpretation}`;
+          bandSelector.appendChild(opt);
+        });
+      }
+    }
+
+    function updateImage() {
+      updateBandOptions()
+      updateBandThumbnail()
+    }
+
+    updateImage()
 
     function updateTilesOpacity(e, value) {
       value = Number(value) / 100.0;

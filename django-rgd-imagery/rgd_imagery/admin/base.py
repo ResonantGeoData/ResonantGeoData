@@ -114,6 +114,7 @@ class ImageSetAdmin(OSMGeoAdmin):
         'pk',
         'name',
         'count',
+        'number_of_bands',
         'modified',
         'created',
     )
@@ -161,7 +162,6 @@ class ImageMetaInline(admin.StackedInline):
         'created',
     )
     readonly_fields = (
-        'number_of_bands',
         'parent_image',
         'height',
         'width',
@@ -169,10 +169,7 @@ class ImageMetaInline(admin.StackedInline):
         'modified',
         'created',
     )
-    list_filter = MODIFIABLE_FILTERS + (
-        'number_of_bands',
-        'driver',
-    )
+    list_filter = MODIFIABLE_FILTERS + ('driver',)
 
 
 @admin.register(Image)
@@ -180,6 +177,7 @@ class ImageAdmin(OSMGeoAdmin, _FileGetNameMixin):
     list_display = (
         'pk',
         'get_name',
+        'number_of_bands',
         'status',
         'modified',
         'created',

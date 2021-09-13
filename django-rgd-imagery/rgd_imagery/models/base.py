@@ -27,6 +27,10 @@ class Image(TimeStampedModel, TaskEventMixin, PermissionPathMixin):
 
     image_data_link.allow_tags = True
 
+    @property
+    def number_of_bands(self):
+        return self.bandmeta_set.count()
+
 
 class ImageMeta(TimeStampedModel, PermissionPathMixin):
     """Single image entry, tracks the original file."""
@@ -37,9 +41,6 @@ class ImageMeta(TimeStampedModel, PermissionPathMixin):
     driver = models.CharField(max_length=100)
     height = models.PositiveIntegerField()
     width = models.PositiveIntegerField()
-    number_of_bands = (
-        models.PositiveIntegerField()
-    )  # TODO: code smell? this can be computed relationally
 
 
 class BandMeta(TimeStampedModel, PermissionPathMixin):
@@ -75,8 +76,8 @@ class ImageSet(TimeStampedModel, PermissionPathMixin):
     images = models.ManyToManyField(Image)
 
     @property
-    def image_bands(self):
-        return self.images.aggregate(models.Sum('number_of_bands'))['number_of_bands__sum']
+    def number_of_bands(self):
+        return sum([im.number_of_bands for im in self.images.all()])
 
     @property
     def width(self):
@@ -96,12 +97,15 @@ class ImageSet(TimeStampedModel, PermissionPathMixin):
             annots[image.pk] = image.annotation_set.all()
         return annots
 
+    detail_view_name = 'image-set-detail'
+
 
 class ImageSetSpatial(TimeStampedModel, SpatialEntry, PermissionPathMixin, DetailViewMixin):
     """Arbitrary register an ImageSet to a location."""
 
     permissions_paths = [('image_set', ImageSet)]
-    detail_view_name = 'image-set-spatial-detail'
+    detail_view_name = 'image-set-detail'
+    detail_view_pk = 'image_set__pk'
 
     image_set = models.OneToOneField(ImageSet, on_delete=models.CASCADE)
 

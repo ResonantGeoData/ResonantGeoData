@@ -32,7 +32,32 @@
 {% endblock %}
 
 {% block extra_meta %}
-  <br/>
+  {% if object.source.pointcloudspatial %}
+
+    <br/>
+
+    {% include 'rgd/_include/empty_viewer.html' %}
+
+    <script>
+
+      let reader = geo.createFileReader('geojsonReader', {
+        'layer': layer
+      });
+      var footprint = '{{ object.source.pointcloudspatial.footprint.json|escapejs }}'
+      reader.read(footprint, (features) => {
+        features[0].style({
+          strokeColor: '#FF0000',
+          fill: true,
+        })
+        .draw();
+      });
+
+      let extent = JSON.parse('{{ object.source.pointcloudspatial.bounds_json|escapejs }}');
+      setBounds(extent)
+
+    </script>
+
+  {% endif %}
 {% endblock %}
 
 {% block detail %}

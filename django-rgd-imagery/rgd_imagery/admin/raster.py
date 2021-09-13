@@ -77,6 +77,7 @@ class RasterAdmin(OSMGeoAdmin):
         'name',
         'status',
         'count',
+        'number_of_bands',
         'modified',
         'created',
     )
