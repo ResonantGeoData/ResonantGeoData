@@ -178,10 +178,15 @@ def get_or_create_no_commit(model, defaults=None, **kwargs):
 
 
 @contextmanager
-def url_file_to_local_path(url: str, num_blocks=128, block_size=128) -> Generator[Path, None, None]:
+def url_file_to_local_path(
+    url: str, num_blocks=128, block_size=128, override_name=None
+) -> Generator[Path, None, None]:
     with safe_urlopen(url) as remote:
-        field_file_basename = PurePath(os.path.basename(url)).name
-        with tempfile.NamedTemporaryFile('wb', suffix=field_file_basename) as dest_stream:
+        if override_name:
+            suffix = override_name
+        else:
+            suffix = PurePath(os.path.basename(url)).name
+        with tempfile.NamedTemporaryFile('wb', suffix=suffix) as dest_stream:
             while chunk := remote.read(num_blocks * block_size):
                 dest_stream.write(chunk)
                 dest_stream.flush()

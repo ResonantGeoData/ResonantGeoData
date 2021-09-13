@@ -209,7 +209,7 @@ class ChecksumFile(TimeStampedModel, TaskEventMixin, PermissionPathMixin):
         # Must save the model with the file before accessing it for the checksum
         super(ChecksumFile, self).save(*args, **kwargs)
 
-    def yield_local_path(self, vsi=False):
+    def yield_local_path(self, vsi=False, try_fuse=True, override_name=None):
         """Create a local path for the file to be accessed.
 
         This will first attempt to use httpfs to FUSE mount the file's URL.
@@ -222,9 +222,15 @@ class ChecksumFile(TimeStampedModel, TaskEventMixin, PermissionPathMixin):
             If FUSE fails, fallback to a Virtual File Systems URL. See
             ``get_vsi_path``. This is especially useful if the file
             is being utilized by GDAL and FUSE is not set up.
+        try_fuse : bool
+            Try to use the FUSE interface. If false, use VSI or download to
+            local storage.
+        override_name : str
+            Optional name to override when downloading a URL file to a local
+            path.
 
         """
-        if self.type == FileSourceType.URL and precheck_fuse(self.get_url()):
+        if try_fuse and self.type == FileSourceType.URL and precheck_fuse(self.get_url()):
             return url_file_to_fuse_path(self.get_url(internal=True))
         elif vsi and self.type != FileSourceType.FILE_FIELD:
             logger.info('`yield_local_path` falling back to Virtual File System URL.')
@@ -234,7 +240,7 @@ class ChecksumFile(TimeStampedModel, TaskEventMixin, PermissionPathMixin):
         if self.type == FileSourceType.FILE_FIELD:
             return field_file_to_local_path(self.file)
         elif self.type == FileSourceType.URL:
-            return url_file_to_local_path(self.url)
+            return url_file_to_local_path(self.url, override_name=override_name)
 
     def get_url(self, internal=False):
         """Get the URL of the stored resource.

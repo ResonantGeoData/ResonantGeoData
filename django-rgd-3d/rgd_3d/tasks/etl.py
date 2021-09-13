@@ -13,7 +13,11 @@ logger = get_task_logger(__name__)
 def _file_conversion_helper(source, output_field, method, prefix='', extension='', **kwargs):
     workdir = getattr(settings, 'GEODATA_WORKDIR', None)
     with tempfile.TemporaryDirectory(dir=workdir) as tmpdir:
-        with source.yield_local_path() as file_path:
+        # NOTE: cannot use FUSE with PyntCloud because it checks file extension
+        #       in path. Additionally, override the name just incase.
+        #       The `name` field for the file MUST have the extension
+        with source.yield_local_path(try_fuse=False, override_name=source.name) as file_path:
+            logger.info('bane   ' + str(file_path))
             output_path = os.path.join(tmpdir, prefix + os.path.basename(source.name) + extension)
             method(str(file_path), str(output_path), **kwargs)
         with open(output_path, 'rb') as f:
