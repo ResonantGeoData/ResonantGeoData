@@ -65,7 +65,7 @@ class SpatialEntry(models.Model):
             return super().__str__()
 
     @property
-    def extent(self):
+    def bounds(self):
         extent = {
             'xmin': self.outline.extent[0],
             'ymin': self.outline.extent[1],
@@ -75,8 +75,8 @@ class SpatialEntry(models.Model):
         return extent
 
     @property
-    def extent_json(self):
-        return json.dumps(self.extent)
+    def bounds_json(self):
+        return json.dumps(self.bounds)
 
 
 class FileSourceType(models.IntegerChoices):

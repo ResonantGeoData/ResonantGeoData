@@ -50,7 +50,7 @@
         .draw();
       });
 
-      let extent = JSON.parse('{{ object.imagesetspatial.extent_json|escapejs }}');
+      let extent = JSON.parse('{{ object.imagesetspatial.bounds_json|escapejs }}');
       setBounds(extent)
 
     </script>

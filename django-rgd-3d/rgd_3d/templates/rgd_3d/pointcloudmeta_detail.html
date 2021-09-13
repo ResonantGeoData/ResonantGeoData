@@ -52,7 +52,7 @@
         .draw();
       });
 
-      let extent = JSON.parse('{{ object.source.pointcloudspatial.extent_json|escapejs }}');
+      let extent = JSON.parse('{{ object.source.pointcloudspatial.bounds_json|escapejs }}');
       setBounds(extent)
 
     </script>
