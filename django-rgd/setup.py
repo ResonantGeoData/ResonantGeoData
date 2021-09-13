@@ -62,8 +62,7 @@ setup(
         'djangorestframework',
         'drf-yasg',
         'GDAL',
-        # TODO: Unpin once scikit-image and kwimage are updated
-        'pooch<1.5.0',
+        'pooch',
         'psycopg2',
         'python-magic',
         'flower',
