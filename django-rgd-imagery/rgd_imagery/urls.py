@@ -152,4 +152,24 @@ urlpatterns = [
         rest.get.get_processed_image_group_status,
         name='processed-image-group-status',
     ),
+    path(
+        'api/stac',
+        rest.stac.RootView.as_view(),
+        name='stac-root',
+    ),
+    path(
+        'api/stac/search',
+        rest.stac.SimpleSearchView.as_view(),
+        name='stac-search',
+    ),
+    path(
+        'api/stac/collection/default',
+        rest.stac.FeatureCollectionView.as_view(),
+        name='stac-collection-default',
+    ),
+    path(
+        'api/stac/collection/<int:pk>',
+        rest.stac.FeatureCollectionView.as_view(),
+        name='stac-collection',
+    ),
 ]

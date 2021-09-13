@@ -4,6 +4,7 @@ __all__ = [
     'post',
     'search',
     'tiles',
+    'stac',
 ]
 
-from . import download, get, post, search, tiles
+from . import download, get, post, search, stac, tiles
