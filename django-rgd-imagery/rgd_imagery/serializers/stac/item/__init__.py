@@ -47,6 +47,7 @@ class ItemSerializer(serializers.BaseSerializer):
                 datetime=str(instance.acquisition_date),
                 platform=instance.instrumentation,
                 description=f'STAC Item {instance.pk}',
+                title=(instance.parent_raster.name or f'STAC Item {instance.pk}'),
             ),
             collection=collection_id,
             href=reverse(
