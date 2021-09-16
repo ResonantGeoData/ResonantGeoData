@@ -106,7 +106,7 @@ class ImageSet(TimeStampedModel, PermissionPathMixin):
                 images.add(proc.processed_image)
         # sort:
         images = list(images)
-        d = {im.pk: im for im in images}
+        d = {im.pk: im for im in images if im}
         keys = sorted(list(d.keys()))
         return [d[k] for k in keys]
 
