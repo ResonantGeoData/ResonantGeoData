@@ -104,7 +104,11 @@ class ImageSet(TimeStampedModel, PermissionPathMixin):
             images.add(image)
             for proc in image.processedimage_set.all():
                 images.add(proc.processed_image)
-        return list(images)
+        # sort:
+        images = list(images)
+        d = {im.pk: im for im in images}
+        keys = sorted(list(d.keys()))
+        return [d[k] for k in keys]
 
     detail_view_name = 'image-set-detail'
 
