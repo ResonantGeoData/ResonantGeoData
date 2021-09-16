@@ -45,7 +45,7 @@
 
   <select id="image-selector" onchange="updateImage()">
     {% for image in object.parent_raster.image_set.images.all %}
-      <option value="{{ image.id }}">{{ image.file.name | truncatechars:36 }}</option>
+      <option value="{{ image.id }}">{{ image.file.basename }}</option>
     {% endfor %}
     <option value="-1">-- none --</option>
   </select>
