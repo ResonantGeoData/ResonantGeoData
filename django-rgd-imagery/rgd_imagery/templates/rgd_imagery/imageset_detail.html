@@ -81,9 +81,6 @@
       {% endfor %}
     };
 
-    const imageViewer = geo.map({node: '#imageViewer'});
-    let imageLayer = null;
-
     function updateBandOptions(image_id) {
       while (bandSelector.firstChild) {
         bandSelector.removeChild(bandSelector.firstChild);
@@ -104,15 +101,27 @@
       });
     }
 
-    function updateTiles() {
+    let imageLayer = null;
+
+    async function updateTiles() {
+      const image_id = Number(imageSelector.value).toString();
+      const band = Number(bandSelector.value).toString();
+
+      const tileinfo = await fetch(
+        `${host}/api/image_process/imagery/${image_id}/tiles`
+      ).then(response => response.json());
+
+      const params = geo.util.pixelCoordinateParams(
+        '#imageViewer', tileinfo.sizeX, tileinfo.sizeY, tileinfo.tileWidth, tileinfo.tileHeight);
+      params.layer.url = `${host}/api/image_process/imagery/${image_id}/tiles/{z}/{x}/{y}.png?band=${band}`;
+
+      const imageViewer = geo.map(params.map);
+
+      // remove old layer if it exists
       if (imageLayer) {
         imageViewer.deleteLayer(imageLayer);
       }
-      const image_id = Number(imageSelector.value).toString();
-      const band = Number(bandSelector.value).toString();
-      imageLayer = imageViewer.createLayer('osm', {
-        url: `${host}/api/image_process/imagery/${image_id}/tiles/{z}/{x}/{y}.png?band=${band}`,
-      });
+      imageLayer = imageViewer.createLayer('osm', params.layer);
     }
 
     function updateImage() {
