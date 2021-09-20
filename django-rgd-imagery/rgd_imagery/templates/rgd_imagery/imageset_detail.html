@@ -117,6 +117,12 @@
 
       const imageViewer = geo.map(params.map);
 
+      imageViewer.zoomRange({
+        // do not set a min limit so that bounds clamping determines min
+        min: -Infinity,
+        max: 12,
+      });
+
       // remove old layer if it exists
       if (imageLayer) {
         imageViewer.deleteLayer(imageLayer);
