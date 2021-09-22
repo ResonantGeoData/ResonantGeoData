@@ -32,7 +32,7 @@ class CollectionSerializer(serializers.BaseSerializer):
             'title': collection_title,
             'extent': {
                 'spatial': {
-                    'bbox': [list(items.aggregate(Extent('footprint'))['footprint__extent'])]
+                    'bbox': [list(items.aggregate(Extent('footprint'))['footprint__extent']) if items else []]
                 },
                 'temporal': {'interval': [[None, None]]},
             },
