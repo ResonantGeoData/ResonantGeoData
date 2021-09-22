@@ -1,9 +1,6 @@
 import re
 
-import pystac
 import pytest
-from rgd_imagery import models
-from rgd_imagery.serializers.stac import ItemSerializer
 
 
 @pytest.mark.django_db(transaction=True)
