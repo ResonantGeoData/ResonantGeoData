@@ -1,3 +1,4 @@
+from django.conf import settings
 from django_filters import rest_framework as filters
 from rest_framework.generics import GenericAPIView
 from rest_framework.response import Response
@@ -55,6 +56,14 @@ class ItemCollectionView(BaseSTACView):
         queryset = self.get_queryset().filter(
             parent_raster__image_set__images__file__collection=collection_id
         )
+        # Test if queryset is too large
+        stac_browser_limit = getattr(settings, 'RGD_STAC_BROWSER_LIMIT', 1000)
+        num_items = queryset.count()
+        if num_items > stac_browser_limit:
+            raise ValueError(
+                f"'RGD_STAC_BROWSER_LIMIT' ({stac_browser_limit}) exceeded. "
+                f'Requested collection with {num_items} items.'
+            )
         serializer = self.get_serializer(queryset)
         return Response(serializer.data)
 
