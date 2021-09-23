@@ -45,7 +45,7 @@ class ItemSerializer(serializers.BaseSerializer):
             datetime=(instance.acquisition_date or instance.modified or instance.created),
             properties=dict(
                 datetime=str(instance.acquisition_date),
-                platform=(instance.instrumentation or "unknown"),
+                platform=(instance.instrumentation or 'unknown'),
                 description=f'STAC Item {instance.pk}',
                 title=(instance.parent_raster.name or f'STAC Item {instance.pk}'),
             ),
