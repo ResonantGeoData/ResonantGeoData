@@ -28,7 +28,7 @@
     {% endfor %}
   </select>
 
-  <select id="band-selector" onchange="updateBandThumbnail()">
+  <select id="band-selector" onchange="updateTiles()">
   </select>
 
   {% if object.imagesetspatial %}
@@ -78,75 +78,8 @@
             },
           {% endfor %}
         ],
-    {% endfor %}
+      {% endfor %}
     };
-
-    const params = geo.util.pixelCoordinateParams(containerRef, 200, 200, 200, 200)
-    let imageViewer = geo.map(params.map)
-
-    let imageViewerLayer = imageViewer.createLayer('feature', {
-      features: ['quad']
-    });
-
-    imageViewer.zoomRange({
-      // do not set a min limit so that bounds clamping determines min
-      min: -Infinity,
-      // 4x zoom max
-      max: 4,
-    });
-
-    var frameFootprint = imageViewerLayer.createFeature('quad', {
-        cacheQuads: false,
-      })
-      .style({
-        color: 'red',
-      })
-      .data([{
-        ul: { x: 0, y: 0 },
-        lr: { x: 200, y: 200 },
-      }])
-      .draw()
-
-    function updateBandThumbnail () {
-      var image = document.createElement('img');
-      image.crossOrigin = "";   // ask for CORS permission
-      image.onload = function() {
-        frameFootprint.data([
-          {
-            ul: { x: 0, y: 0 },
-            lr: { x: image.width, y: image.height },
-            image: image,
-          },
-        ]).draw();
-        const params = geo.util.pixelCoordinateParams(
-          containerRef.value, image.width, image.height, image.width, image.height,
-        );
-        const { right, bottom } = params.map.maxBounds;
-        const margin = 0.01
-        imageViewer.maxBounds({
-          left: 0 - (right * margin),
-          top: 0 - (bottom * margin),
-          right: right * (1 + margin),
-          bottom: bottom * (1 + margin),
-        });
-        const zoomAndCenter = imageViewer.zoomAndCenterFromBounds(
-          params.map.maxBounds, 0,
-        );
-        imageViewer.zoom(zoomAndCenter.zoom);
-        imageViewer.center(zoomAndCenter.center);
-
-      }
-      thumbnail = document.getElementById('thumbnail')
-      var imageSelector_value = Number(imageSelector.value);
-      var bandSelector_value = Number(bandSelector.value);
-
-      var image_id = imageSelector_value.toString();
-      var band = bandSelector_value.toString();
-      if (Number.isNaN(band)) {
-        band = 0
-      }
-      image.src = `${host}/api/image_process/imagery/${image_id}/thumbnail?band=${band}`
-    }
 
     function updateBandOptions(image_id) {
       while (bandSelector.firstChild) {
@@ -168,12 +101,35 @@
       });
     }
 
-    function updateImage() {
-      updateBandOptions()
-      updateBandThumbnail()
+    let imageLayer = null;
+
+    async function updateTiles() {
+      const image_id = Number(imageSelector.value).toString();
+      const band = Number(bandSelector.value).toString();
+
+      const tileinfo = await fetch(
+        `${host}/api/image_process/imagery/${image_id}/tiles`
+      ).then(response => response.json());
+
+      const params = geo.util.pixelCoordinateParams(
+        '#imageViewer', tileinfo.sizeX, tileinfo.sizeY, tileinfo.tileWidth, tileinfo.tileHeight);
+      params.layer.url = `${host}/api/image_process/imagery/${image_id}/tiles/{z}/{x}/{y}.png?band=${band}`;
+
+      const imageViewer = geo.map(params.map);
+
+      // remove old layer if it exists
+      if (imageLayer) {
+        imageViewer.deleteLayer(imageLayer);
+      }
+      imageLayer = imageViewer.createLayer('osm', params.layer);
     }
 
-    updateImage()
+    function updateImage() {
+      updateBandOptions()
+      updateTiles();
+    }
+
+    updateImage();
   </script>
 
 {% endblock %}
