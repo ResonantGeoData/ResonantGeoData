@@ -40,7 +40,7 @@ class GetRasterMeta(RetrieveAPIView, _PermissionMixin):
 
 
 class GetRasterMetaSTAC(RetrieveAPIView, _PermissionMixin):
-    serializer_class = serializers.STACRasterFeatureSerializer
+    serializer_class = serializers.stac.ItemSerializer
     lookup_field = 'pk'
     queryset = models.RasterMeta.objects.all()
 

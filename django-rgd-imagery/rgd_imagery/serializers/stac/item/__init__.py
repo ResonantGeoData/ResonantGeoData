@@ -8,16 +8,17 @@ import pystac
 from pystac.extensions.eo import EOExtension
 from pystac.extensions.projection import ProjectionExtension
 from rest_framework import serializers
+from rest_framework.reverse import reverse
 from rgd.models import ChecksumFile, FileSourceType
 from rgd.utility import get_or_create_no_commit
+from rgd_imagery import models
 from rgd_imagery.models.base import Image
 
 from . import bands as band_utils
-from .. import models
-from .utils import non_unique_get_or_create
+from ..utils import non_unique_get_or_create
 
 
-class STACRasterFeatureSerializer(serializers.BaseSerializer):
+class ItemSerializer(serializers.BaseSerializer):
     def _add_image_to_item(self, item, image, asset_type='image', roles=('data',)):
         asset = pystac.Asset(
             href=image.file.get_url(),
@@ -35,6 +36,8 @@ class STACRasterFeatureSerializer(serializers.BaseSerializer):
         item.add_asset(f'{asset_type}-{image.pk}', asset)
 
     def to_representation(self, instance: models.RasterMeta) -> dict:
+        collection = instance.parent_raster.image_set.images.first().file.collection
+        collection_id = collection and str(collection.pk) or 'default'
         item = pystac.Item(
             id=str(instance.pk),
             geometry=json.loads(instance.footprint.json),
@@ -43,6 +46,17 @@ class STACRasterFeatureSerializer(serializers.BaseSerializer):
             properties=dict(
                 datetime=str(instance.acquisition_date),
                 platform=instance.instrumentation,
+                description=f'STAC Item {instance.pk}',
+                title=(instance.parent_raster.name or f'STAC Item {instance.pk}'),
+            ),
+            collection=collection_id,
+            href=reverse(
+                'stac-collection-item',
+                request=self.context.get('request'),
+                args=[
+                    collection_id,
+                    str(instance.pk),
+                ],
             ),
         )
         # 'proj' extension
@@ -61,8 +75,6 @@ class STACRasterFeatureSerializer(serializers.BaseSerializer):
             .select_related('file__collection')
             .all()
         ):
-            if not item.collection_id and image.file.collection:
-                item.collection_id = str(image.file.collection.pk)
             used_images.add(image.pk)
             self._add_image_to_item(item, image, asset_type='image')
             for pim in image.processedimage_set.exclude(processed_image__in=used_images).all():

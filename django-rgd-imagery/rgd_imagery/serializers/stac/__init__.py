@@ -1,9 +1,11 @@
-from .feature import STACRasterFeatureSerializer
-from .featurecollection import STACRasterFeatureCollectionSerializer
-from .root import STACRootSerializer
+from .collection import CollectionSerializer
+from .core import CoreSerializer
+from .item import ItemSerializer
+from .item_collection import ItemCollectionSerializer
 
 __all__ = [
-    'STACRasterFeatureSerializer',
-    'STACRasterFeatureCollectionSerializer',
-    'STACRootSerializer',
+    'ItemSerializer',
+    'ItemCollectionSerializer',
+    'CoreSerializer',
+    'CollectionSerializer',
 ]

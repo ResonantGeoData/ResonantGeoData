@@ -1,3 +1,4 @@
+from django.views.generic.base import TemplateView
 from rgd.views import PermissionDetailView, SpatialEntriesListView, _SpatialDetailView
 
 from . import filters, models
@@ -16,3 +17,7 @@ class RasterMetaEntriesListView(SpatialEntriesListView):
 
 class RasterDetailView(_SpatialDetailView):
     model = models.RasterMeta
+
+
+class STACBrowserView(TemplateView):
+    template_name = 'rgd_imagery/stac_browser.html'

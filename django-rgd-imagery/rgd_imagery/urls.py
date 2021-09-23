@@ -29,6 +29,11 @@ urlpatterns = [
         views.ImageSetDetailView.as_view(),
         name=models.ImageSet.detail_view_name,
     ),
+    path(
+        'rgd_imagery/stac_browser/',
+        views.STACBrowserView.as_view(),
+        name='stac-browser',
+    ),
     #############
     # Search
     path('api/rgd_imagery/raster/search', rest.search.SearchRasterMetaSTACView.as_view()),
@@ -154,8 +159,8 @@ urlpatterns = [
     ),
     path(
         'api/stac',
-        rest.stac.RootView.as_view(),
-        name='stac-root',
+        rest.stac.CoreView.as_view(),
+        name='stac-core',
     ),
     path(
         'api/stac/search',
@@ -163,13 +168,18 @@ urlpatterns = [
         name='stac-search',
     ),
     path(
-        'api/stac/collection/default',
-        rest.stac.FeatureCollectionView.as_view(),
-        name='stac-collection-default',
+        'api/stac/collection/<collection_id>',
+        rest.stac.CollectionView.as_view(),
+        name='stac-collection',
     ),
     path(
-        'api/stac/collection/<int:pk>',
-        rest.stac.FeatureCollectionView.as_view(),
-        name='stac-collection',
+        'api/stac/collection/<collection_id>/items',
+        rest.stac.ItemCollectionView.as_view(),
+        name='stac-collection-items',
+    ),
+    path(
+        'api/stac/collection/<collection_id>/items/<item_id>',
+        rest.stac.ItemView.as_view(),
+        name='stac-collection-item',
     ),
 ]
