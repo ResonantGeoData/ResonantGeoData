@@ -59,6 +59,17 @@ class ItemSerializer(serializers.BaseSerializer):
                 ],
             ),
         )
+        item.add_link(
+            pystac.Link(
+                'collection',
+                reverse(
+                    'stac-collection',
+                    request=self.context.get('request'),
+                    args=[collection_id],
+                ),
+                media_type='application/json',
+            )
+        )
         # 'proj' extension
         proj_ext = ProjectionExtension.ext(item, add_if_missing=True)
         proj_ext.apply(
