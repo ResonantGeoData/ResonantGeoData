@@ -86,7 +86,7 @@ Your plugin features can be accessed the following way
 client.foo.bar()
 ```
 
-Since the defintion of `MyClient` defines the namespace as `foo`, all methods in `MyPlugin` are accessed through this namespace.
+Since the definition of `MyClient` defines the namespace as `foo`, all methods in `MyPlugin` are accessed through this namespace.
 
 
 ### Using the Client
