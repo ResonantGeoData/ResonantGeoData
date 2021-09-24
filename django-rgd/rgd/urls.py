@@ -60,6 +60,12 @@ urlpatterns = [
         rest.get.GetCollection.as_view(),
         name='collection',
     ),
+    # TODO: temporary until viewset refactor
+    path(
+        'api/rgd/collections',
+        rest.get.GetUserCollections.as_view(),
+        name='collections',
+    ),
     path(
         'api/rgd/collection_permission',
         rest.post.CreateCollectionPermission.as_view(),

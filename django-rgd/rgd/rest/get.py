@@ -1,4 +1,4 @@
-from rest_framework.generics import RetrieveAPIView
+from rest_framework.generics import ListAPIView, RetrieveAPIView
 from rgd import models, serializers
 from rgd.permissions import check_read_perm
 
@@ -44,3 +44,14 @@ class GetSpatialAsset(RetrieveAPIView, _PermissionMixin):
     serializer_class = serializers.SpatialAssetSerializer
     lookup_field = 'spatial_id'
     queryset = models.SpatialAsset.objects.all()
+
+
+# TODO: temporary until viewset refactor
+class GetUserCollections(ListAPIView, _PermissionMixin):
+    serializer_class = serializers.CollectionSerializer
+    queryset = models.Collection.objects.all()
+
+    def get_queryset(self):
+        if self.request.user.id is not None:
+            return super().get_queryset().filter(collection_permissions__user=self.request.user)
+        return None
