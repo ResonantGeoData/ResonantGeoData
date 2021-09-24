@@ -113,4 +113,38 @@
     </div>
   </div>
 
+
+  <div class="column is-full field mb-0">
+    <div class="field-label is-normal">
+      <label class="label">Collection</label>
+    </div>
+    <div class="field-body">
+      <div class="field">
+        <div class="control">
+          <select name="collection" id="collection">
+            <option value="0">All</option>
+          </select>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const collectionsSelector = document.getElementById('collection');
+
+    async function updateCollectionsDropdown() {
+      const collections = await fetch(
+        `${host}/api/rgd/collections`
+      ).then(response => response.json());
+
+      collections.forEach(({ id, name }) => {
+        const opt = document.createElement('option');
+        opt.value = id;
+        opt.innerHTML = `${name} (${id})`;
+        collectionsSelector.appendChild(opt);
+      });
+    }
+    updateCollectionsDropdown();
+  </script>
+
 {% endblock %}

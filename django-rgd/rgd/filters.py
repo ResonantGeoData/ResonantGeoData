@@ -144,7 +144,7 @@ class SpatialEntryFilter(filters.FilterSet):
         return queryset
 
     def filter_collection(self, queryset, name, value: int):
-        if value:
+        if value and value > 0:
             queryset = queryset.filter(spatialasset__files__collection__id=value)
         return queryset
 
