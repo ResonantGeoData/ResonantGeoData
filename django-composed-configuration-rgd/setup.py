@@ -1,9 +1,28 @@
+from io import open as io_open
+import os
+from pathlib import Path
+
 from setuptools import find_packages, setup
 
+readme_file = Path(__file__).parent.parent / 'README.md'
+if readme_file.exists():
+    with readme_file.open() as f:
+        long_description = f.read()
+else:
+    # When this is first installed in development Docker, README.md is not available
+    long_description = ''
+
+__version__ = None
+filepath = os.path.dirname(__file__)
+version_file = os.path.join(filepath, '..', 'version.py')
+with io_open(version_file, mode='r') as fd:
+    exec(fd.read())
+
 setup(
-    name='rgd_example',
-    version='0.0.0',
+    name='django-composed-configuration-rgd',
+    version=__version__,
     description='',
+    long_description=long_description,
     long_description_content_type='text/markdown',
     license='Apache 2.0',
     author='Kitware, Inc.',
@@ -26,19 +45,7 @@ setup(
     packages=find_packages(),
     include_package_data=True,
     install_requires=[
-        'django-crispy-forms',
-        'django-debug-toolbar',
-        'django-oauth-toolkit',
-        'django-rest-swagger',
-        'gunicorn',
-        'ipython',
-        # RGD deps are install locally
+        'django-composed-configuration[dev]',
+        'django-configurations[database,email]',
     ],
-    extras_require={
-        'graph': [
-            'pygraphviz',
-            'pyparsing',
-            'pydot',
-        ],
-    },
 )

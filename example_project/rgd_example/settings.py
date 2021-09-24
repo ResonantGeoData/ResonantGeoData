@@ -1,23 +1,54 @@
-from rgd_testing_utils.settings import *  # noqa
+from __future__ import annotations
 
-INSTALLED_APPS += [  # noqa
-    'rgd_3d',
-    'rgd_fmv',
-    'rgd_geometry',
-    'rgd_imagery',
-    # Swagger
-    'drf_yasg',
-    'django_extensions',
-]
+import os
+from pathlib import Path
+from typing import Type
 
-ROOT_URLCONF = 'rgd_example.urls'
-WSGI_APPLICATION = 'rgd_example.wsgi.application'
+from composed_configuration import (
+    ComposedConfiguration,
+    ConfigMixin,
+    DevelopmentBaseConfiguration,
+    HerokuProductionBaseConfiguration,
+    ProductionBaseConfiguration,
+    TestingBaseConfiguration,
+)
+from composed_configuration_rgd import ResonantGeoDataBaseMixin
+from configurations import values
 
 
-# Swagger
-REFETCH_SCHEMA_WITH_AUTH = True
-REFETCH_SCHEMA_ON_LOGOUT = True
-OPERATIONS_SORTER = 'alpha'
-DEEP_LINKING = True
+class CrispyFormsMixin(ConfigMixin):
+    @staticmethod
+    def before_binding(configuration: Type[ComposedConfiguration]):
+        configuration.INSTALLED_APPS += ['crispy_forms']
 
-STATIC_URL = '/static/'
+
+class RGDExampleProjectMixin(CrispyFormsMixin, ResonantGeoDataBaseMixin, ConfigMixin):
+    WSGI_APPLICATION = 'rgd_example.wsgi.application'
+    ROOT_URLCONF = 'rgd_example.urls'
+
+    BASE_DIR = Path(__file__).resolve(strict=True).parent.parent
+
+    @staticmethod
+    def before_binding(configuration: ComposedConfiguration) -> None:
+
+        # Install additional apps
+        configuration.INSTALLED_APPS += [  # noqa
+            'rgd',
+            'rgd_3d',
+            'rgd_fmv',
+            'rgd_geometry',
+            'rgd_imagery',
+        ]
+
+        configuration.REST_FRAMEWORK['DEFAULT_AUTHENTICATION_CLASSES'].append(
+            'rest_framework.authentication.BasicAuthentication'
+        )
+
+
+class DevelopmentConfiguration(RGDExampleProjectMixin, DevelopmentBaseConfiguration):
+    pass
+
+
+class TestingConfiguration(RGDExampleProjectMixin, TestingBaseConfiguration):
+    CELERY_TASK_ALWAYS_EAGER = True
+    CELERY_TASK_EAGER_PROPAGATES = True
