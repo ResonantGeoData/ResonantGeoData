@@ -74,6 +74,12 @@ class SpatialEntryFilter(filters.FilterSet):
         method='filter_time_of_day',
     )
 
+    collection = filters.NumberFilter(
+        help_text='The collection that the data belongs to.',
+        label='Collection',
+        method='filter_collection',
+    )
+
     @property
     def _geometry(self):
         return self.form.cleaned_data['q']
@@ -135,6 +141,11 @@ class SpatialEntryFilter(filters.FilterSet):
                 queryset = queryset.filter(time_of_day__gte=value.start)
             if value.stop is not None:
                 queryset = queryset.filter(time_of_day__lte=value.stop)
+        return queryset
+
+    def filter_collection(self, queryset, name, value: int):
+        if value:
+            queryset = queryset.filter(spatialasset__files__collection__id=value)
         return queryset
 
     class Meta:
