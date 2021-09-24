@@ -1,1 +1,1 @@
-from .configuration import GeoDjangoMixin, ResonantGeoDataBaseMixin, SwaggerMixin
+from .configuration import GeoDjangoMixin, ResonantGeoDataBaseMixin, SwaggerMixin  # noqa
