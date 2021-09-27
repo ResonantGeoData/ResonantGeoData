@@ -121,7 +121,7 @@ def get_or_create_checksumfile(
 
 @contextmanager
 def yield_checksumfiles(queryset: Union[QuerySet, List[ChecksumFile]]):
-    """Checkout a queryset of ChecksumFile records under a single tempdir.txt
+    """Checkout a queryset of ChecksumFile records under a single tempdir.
 
     This will use the `name` field of each of the files as their relative path
     under the temporary directory.

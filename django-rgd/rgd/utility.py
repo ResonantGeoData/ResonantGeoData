@@ -227,7 +227,7 @@ def skip_signal():
 def download_field_file_to_local_path(
     field_file: FieldFile, directory: str, relative_path: str
 ) -> Path:
-    """Custom FieldFile download method.
+    """Download entire FieldFile to disk location.
 
     This overrides `girder_utils.field_file_to_local_path` to download file to local path without a context manager. Cleanup must be handled by caller.
 
