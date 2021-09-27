@@ -14,7 +14,7 @@ class CreateProcessedImageGroup(CreateAPIView):
 
 class CreateRasterSTAC(CreateAPIView):
     queryset = models.RasterMeta.objects.all()
-    serializer_class = serializers.STACRasterFeatureSerializer
+    serializer_class = serializers.stac.ItemSerializer
 
 
 class CreateImage(CreateAPIView):

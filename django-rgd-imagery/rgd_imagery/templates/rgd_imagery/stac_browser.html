@@ -1,0 +1,35 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta http-equiv="Content-Security-Policy" content="upgrade-insecure-requests">
+  <title>STAC Browser</title>
+  <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.0.13/css/all.css"
+    integrity="sha384-DNOHZ68U8hZfKXOrtjWvjxusGo9WQnrNx2sqG0tfsghAvtVlRW3tvkXWZh58N9jp" crossorigin="anonymous">
+  <link href="{% static 'rgd_imagery/stac_browser/css/catalog.72eff2e0.css' %}" rel="prefetch">
+  <link href="{% static 'rgd_imagery/stac_browser/css/item.f1e97330.css' %}" rel="prefetch">
+  <link href="{% static 'rgd_imagery/stac_browser/css/metadata-sidebar.fcfbc03a.css' %}" rel="prefetch">
+  <link href="{% static 'rgd_imagery/stac_browser/js/catalog.d1b04ce7.js' %}" rel="prefetch">
+  <link href="{% static 'rgd_imagery/stac_browser/js/catalog~item.4c640490.js' %}" rel="prefetch">
+  <link href="{% static 'rgd_imagery/stac_browser/js/item.ed3889ff.js' %}" rel="prefetch">
+  <link href="{% static 'rgd_imagery/stac_browser/js/metadata-sidebar.f591a1fc.js' %}" rel="prefetch">
+  <link href="{% static 'rgd_imagery/stac_browser/js/multiselect.9e42f51a.js' %}" rel="prefetch">
+  <link href="{% static 'rgd_imagery/stac_browser/js/zarr-metadata-tab.f8c0fd16.js' %}" rel="prefetch">
+  <link href="{% static 'rgd_imagery/stac_browser/css/chunk-vendors.51c1c9e2.css' %}" rel="preload" as="style">
+  <link href="{% static 'rgd_imagery/stac_browser/js/app.650b92d1.js' %}" rel="preload" as="script">
+  <link href="{% static 'rgd_imagery/stac_browser/js/chunk-vendors.106381a1.js' %}" rel="preload" as="script">
+  <link href="{% static 'rgd_imagery/stac_browser/css/chunk-vendors.51c1c9e2.css' %}" rel="stylesheet">
+</head>
+
+<body><noscript><strong>We're sorry but STAC Browser doesn't work properly without JavaScript enabled. Please enable it
+      to continue.</strong></noscript>
+  <div id="app"></div>
+  <script src="{% static 'rgd_imagery/stac_browser/js/chunk-vendors.106381a1.js' %}"></script>
+  <script src="{% static 'rgd_imagery/stac_browser/js/app.650b92d1.js' %}"></script>
+</body>
+
+</html>

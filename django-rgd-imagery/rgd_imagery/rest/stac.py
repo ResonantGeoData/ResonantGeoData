@@ -1,3 +1,4 @@
+from django.conf import settings
 from django_filters import rest_framework as filters
 from rest_framework.generics import GenericAPIView
 from rest_framework.response import Response
@@ -9,16 +10,17 @@ from ..filters import STACSimpleFilter
 from ..pagination import STACPagination
 
 
-class _PermissionMixin:
+class BaseSTACView(GenericAPIView):
     def get_queryset(self):
+        """Filter the queryset to items visible by the requester."""
         queryset = super().get_queryset()
         return filter_read_perm(self.request.user, queryset)
 
 
-class RootView(GenericAPIView, _PermissionMixin):
+class CoreView(BaseSTACView):
     """See all the Collections a user can see."""
 
-    serializer_class = serializers.stac.STACRootSerializer
+    serializer_class = serializers.stac.CoreSerializer
     queryset = Collection.objects.all()
 
     def get(self, request, *args, **kwargs):
@@ -27,22 +29,49 @@ class RootView(GenericAPIView, _PermissionMixin):
         return Response(serializer.data)
 
 
-class FeatureCollectionView(GenericAPIView, _PermissionMixin):
+class CollectionView(BaseSTACView):
+    """Metadata regarding a collection."""
+
+    serializer_class = serializers.stac.CollectionSerializer
+    queryset = Collection.objects.all()
+
+    def get(self, request, *args, collection_id=None, **kwargs):
+        queryset = self.get_queryset()
+        if collection_id != 'default':
+            collection = queryset.get(pk=collection_id)
+        else:
+            collection = Collection()
+        serializer = self.get_serializer(collection)
+        return Response(serializer.data)
+
+
+class ItemCollectionView(BaseSTACView):
     """See the Items in the Collection."""
 
-    serializer_class = serializers.stac.STACRasterFeatureCollectionSerializer
+    serializer_class = serializers.stac.ItemCollectionSerializer
     queryset = models.RasterMeta.objects.all()
 
-    def get(self, request, *args, pk=None, **kwargs):
-        queryset = self.get_queryset().filter(parent_raster__image_set__images__file__collection=pk)
+    def get(self, request, *args, collection_id=None, **kwargs):
+        collection_id = None if collection_id == 'default' else collection_id
+        queryset = self.get_queryset().filter(
+            parent_raster__image_set__images__file__collection=collection_id
+        )
+        # Test if queryset is too large
+        stac_browser_limit = getattr(settings, 'RGD_STAC_BROWSER_LIMIT', 1000)
+        num_items = queryset.count()
+        if num_items > stac_browser_limit:
+            raise ValueError(
+                f"'RGD_STAC_BROWSER_LIMIT' ({stac_browser_limit}) exceeded. "
+                f'Requested collection with {num_items} items.'
+            )
         serializer = self.get_serializer(queryset)
         return Response(serializer.data)
 
 
-class SimpleSearchView(GenericAPIView, _PermissionMixin):
+class SimpleSearchView(BaseSTACView):
     """Search items."""
 
-    serializer_class = serializers.stac.STACRasterFeatureCollectionSerializer
+    serializer_class = serializers.stac.ItemCollectionSerializer
     queryset = models.RasterMeta.objects.all()
     pagination_class = STACPagination
     filter_backends = (filters.DjangoFilterBackend,)
@@ -55,4 +84,20 @@ class SimpleSearchView(GenericAPIView, _PermissionMixin):
             serializer = self.get_serializer(page)
             return self.get_paginated_response(serializer.data)
         serializer = self.get_serializer(queryset)
+        return Response(serializer.data)
+
+
+class ItemView(BaseSTACView):
+    """See the Items in the Collection."""
+
+    serializer_class = serializers.stac.ItemSerializer
+    queryset = models.RasterMeta.objects.all()
+
+    def get(self, request, *args, collection_id=None, item_id=None, **kwargs):
+        collection_id = None if collection_id == 'default' else collection_id
+        queryset = self.get_queryset().filter(
+            parent_raster__image_set__images__file__collection=collection_id
+        )
+        item = queryset.get(pk=item_id)
+        serializer = self.get_serializer(item)
         return Response(serializer.data)
