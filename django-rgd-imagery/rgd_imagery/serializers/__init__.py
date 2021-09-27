@@ -1,5 +1,10 @@
 from . import stac
-from .base import ImageMetaSerializer, ImageSerializer, ImageSetSerializer
+from .base import (
+    ImageMetaSerializer,
+    ImageSerializer,
+    ImageSetSerializer,
+    ImageSetSpatialSerializer,
+)
 from .processed import ProcessedImageGroupSerializer, ProcessedImageSerializer
 from .raster import RasterMetaSerializer, RasterSerializer
 
