@@ -116,13 +116,12 @@
 
   <div class="column is-full field mb-0">
     <div class="field-label is-normal">
-      <label class="label">Collection</label>
+      <label class="label">Collections</label>
     </div>
     <div class="field-body">
       <div class="field">
         <div class="control">
-          <select name="collection" id="collection">
-            <option value="0">All</option>
+          <select name="collections" id="collections" multiple>
           </select>
         </div>
       </div>
@@ -130,7 +129,7 @@
   </div>
 
   <script>
-    const collectionsSelector = document.getElementById('collection');
+    const collectionsSelector = document.getElementById('collections');
 
     async function updateCollectionsDropdown() {
       const collections = await fetch(
@@ -144,7 +143,24 @@
         collectionsSelector.appendChild(opt);
       });
     }
-    updateCollectionsDropdown();
+
+    $("document").ready(async () => {
+      // populate collections dropdown
+      await updateCollectionsDropdown();
+
+      // Automatically select the collections field based on previously submitted form.
+      // The value is converted to an Array from a Set to avoid having nothing on the
+      // right-hand side of the equal sign when no collections are selected.
+      const selectedCollections = Array.from(new Set({% for key, value in request.GET.lists %}
+        {% if key == 'collections' %}
+          {{ value|safe }}
+        {% endif %}
+      {% endfor %}));
+
+      if (selectedCollections.length > 0) {
+        $("#collections").val(selectedCollections);
+      }
+    });
   </script>
 
 {% endblock %}
