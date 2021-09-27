@@ -15,6 +15,8 @@ from rgd.utility import (
     _link_url,
     compute_checksum_file,
     compute_checksum_url,
+    download_field_file_to_local_path,
+    download_url_file_to_local_path,
     patch_internal_presign,
     precheck_fuse,
     safe_urlopen,
@@ -208,6 +210,16 @@ class ChecksumFile(TimeStampedModel, TaskEventMixin, PermissionPathMixin):
             self.created_by = user
         # Must save the model with the file before accessing it for the checksum
         super(ChecksumFile, self).save(*args, **kwargs)
+
+    def download_to_local_path(self, directory):
+        """Forcibly download this file to a directory on disk.
+
+        Cleanup must be handled by caller.
+        """
+        if self.type == FileSourceType.FILE_FIELD:
+            return download_field_file_to_local_path(self.file, directory, self.name)
+        elif self.type == FileSourceType.URL:
+            return download_url_file_to_local_path(self.url, directory, self.name)
 
     def yield_local_path(self, vsi=False, try_fuse=True, override_name=None):
         """Create a local path for the file to be accessed.

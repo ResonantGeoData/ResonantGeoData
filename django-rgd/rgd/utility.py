@@ -6,6 +6,7 @@ import io
 import logging
 import os
 from pathlib import Path, PurePath
+import shutil
 import tempfile
 from typing import Any, Generator
 from urllib.error import HTTPError
@@ -15,6 +16,7 @@ from uuid import uuid4
 
 from django.conf import settings
 from django.contrib.gis.db.models import Model
+from django.core.files import File
 from django.db.models.fields.files import FieldFile
 from django.utils.safestring import mark_safe
 
@@ -84,6 +86,23 @@ def url_file_to_local_path(
                 dest_stream.write(chunk)
                 dest_stream.flush()
             yield Path(dest_stream.name)
+
+
+def download_url_file_to_local_path(
+    url: str,
+    directory: str,
+    relative_path: str,
+    num_blocks: int = 128,
+    block_size: int = 128,
+) -> Path:
+    dest_path = Path(os.path.join(directory, relative_path))
+    dest_path.parent.mkdir(parents=True, exist_ok=True)
+    with safe_urlopen(url) as remote:
+        with open(dest_path, 'wb') as dest_stream:
+            while chunk := remote.read(num_blocks * block_size):
+                dest_stream.write(chunk)
+                dest_stream.flush()
+    return Path(dest_path)
 
 
 def precheck_fuse(url: str) -> bool:
@@ -203,3 +222,30 @@ def skip_signal():
         return _decorator
 
     return _skip_signal
+
+
+def download_field_file_to_local_path(
+    field_file: FieldFile, directory: str, relative_path: str
+) -> Path:
+    """Custom FieldFile download method.
+
+    This overrides `girder_utils.field_file_to_local_path` to download file to local path without a context manager. Cleanup must be handled by caller.
+
+    """
+    dest_path = Path(os.path.join(directory, relative_path))
+    dest_path.parent.mkdir(parents=True, exist_ok=True)
+    with field_file.open('rb'):
+        file_obj: File = field_file.file
+        if type(file_obj) is File:
+            # When file_obj is an actual File, (typically backed by FileSystemStorage),
+            # it is already at a stable path on disk.
+            # We must symlink it into the desired path
+            os.symlink(file_obj.name, dest_path)
+            return Path(dest_path)
+        else:
+            # When file_obj is actually a subclass of File, it only provides a Python
+            # file-like object API. So, it must be copied to a stable path.
+            with open(dest_path, 'wb') as dest_stream:
+                shutil.copyfileobj(file_obj, dest_stream)
+                dest_stream.flush()
+            return Path(dest_path)

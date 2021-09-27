@@ -1,12 +1,19 @@
+from contextlib import contextmanager
 import io
+import logging
+import tempfile
+from typing import List, Union
 from urllib.parse import urlparse
 
 from django.core.exceptions import ValidationError
+from django.db.models import QuerySet
 
 from ..utility import compute_checksum_url, compute_hash, get_or_create_no_commit
 from .collection import Collection
 from .common import ChecksumFile, FileSourceType
 from .mixins import Status
+
+logger = logging.getLogger(__name__)
 
 
 def get_or_create_checksum_file_url(
@@ -110,3 +117,24 @@ def get_or_create_checksumfile(
     else:
         raise ValidationError('No URL or file contents passed.')
     return file_entry, created
+
+
+@contextmanager
+def yield_checksumfiles(queryset: Union[QuerySet, List[ChecksumFile]]):
+    """Checkout a queryset of ChecksumFile records under a single tempdir.txt
+
+    This will use the `name` field of each of the files as their relative path
+    under the temporary directory.
+
+    """
+    names = set()
+    with tempfile.TemporaryDirectory() as tempdir:
+        for f in queryset.all():
+            if f.name in names:
+                # TODO: should we precheck this and fail to checkout any files if there are duplicate names?
+                logger.error(f'Duplicate `name` for ChecksumFile ({f.pk}: {f.name}). Skipping...')
+                continue
+            # Download each to this directory
+            f.download_to_local_path(tempdir)
+            names.add(f.name)
+        yield tempdir

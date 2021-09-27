@@ -172,3 +172,22 @@ def test_get_or_create_checksumfile_url_permissions():
     file, created = utils.get_or_create_checksumfile(url=url)
     assert created
     assert file.collection is None
+
+
+@pytest.mark.django_db(transaction=True)
+def test_yield_checksumfiles():
+    # Two URL files
+    url = datastore.get_url('afie_1.jpg')
+    file_1, _ = utils.get_or_create_checksumfile(url=url, name='afie_1.jpg')
+    url = datastore.get_url('afie_2.jpg')
+    file_2, _ = utils.get_or_create_checksumfile(url=url, name='the/best/dog/afie_2.jpeg')
+    # One FileField file
+    with open(datastore.fetch('afie_3.jpg'), 'rb') as f:
+        file_3, _ = utils.get_or_create_checksumfile(file=f, name='afie_3.jpg')
+    # Checkout all of these files under a single temporary directory
+    # Note that 2 files are at top level and one file is nested
+    files = common.ChecksumFile.objects.all()
+    with utils.yield_checksumfiles(files) as directory:
+        assert os.path.exists(directory)
+        for f in files.all():
+            assert os.path.exists(os.path.join(directory, f.name))
