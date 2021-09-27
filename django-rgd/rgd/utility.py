@@ -2,7 +2,6 @@ import contextlib
 from contextlib import contextmanager
 from functools import wraps
 import hashlib
-import inspect
 import io
 import logging
 import os
@@ -16,13 +15,8 @@ from uuid import uuid4
 
 from django.conf import settings
 from django.contrib.gis.db.models import Model
-from django.db.models import fields
-from django.db.models.fields import AutoField
-from django.db.models.fields.files import FieldFile, FileField
-from django.http import QueryDict
+from django.db.models.fields.files import FieldFile
 from django.utils.safestring import mark_safe
-from django_filters.rest_framework import DjangoFilterBackend
-from rest_framework import parsers, serializers, viewsets
 
 try:
     from minio_storage.storage import MinioStorage
@@ -64,109 +58,6 @@ def _link_url(obj: Model, field: str):
     else:
         url = attr.url
     return mark_safe(f'<a href="{url}" download>Download</a>')
-
-
-class MultiPartJsonParser(parsers.MultiPartParser):
-    def parse(self, stream, media_type=None, parser_context=None):
-        result = super().parse(stream, media_type=media_type, parser_context=parser_context)
-
-        model = None
-        qdict = QueryDict('', mutable=True)
-        if parser_context and 'view' in parser_context:
-            model = parser_context['view'].get_serializer_class().Meta.model
-        for key, value in result.data.items():
-            # Handle ManytoMany field data, parses lists of comma-separated integers that might be quoted. eg. "1,2"
-            if isinstance(getattr(model, key), fields.related_descriptors.ManyToManyDescriptor):
-                for val in value.split(','):
-                    qdict.update({key: val.strip('"')})
-            else:
-                qdict.update({key: value})
-
-        return parsers.DataAndFiles(qdict, result.files)
-
-
-def create_serializer(model: Model, fields=None):
-    """Dynamically generate serializer class from model class."""
-    if not fields:
-        fields = '__all__'
-
-    meta_class = type('Meta', (), {'model': model, 'fields': fields})
-    serializer_name = model.__name__ + 'Serializer'
-    return type(serializer_name, (serializers.ModelSerializer,), {'Meta': meta_class})
-
-
-def create_serializers(models_file, fields=None):
-    """Return list of serializer classes from all of the models in the given file."""
-    from django.contrib.gis.db import models as base_models
-
-    serializers = []
-    for model_name, model in inspect.getmembers(models_file):
-        if inspect.isclass(model):
-            if model.__bases__[0] == base_models.Model:
-                model_fields = {}
-                if model_name in fields:
-                    model_fields = fields[model_name]
-                serializers.append(create_serializer(model, model_fields))
-    return serializers
-
-
-def get_filter_fields(model: Model):
-    """
-    Return a list of all filterable fields of Model.
-
-    -Takes: Model type
-    -Returns: A list of fields as string (excluding ID and file uploading)
-    """
-    model_fields = model._meta.get_fields()
-    fields = []
-    for field in model_fields:
-        res = str(field).split('.')
-        if res[1] == model.__name__ and not isinstance(field, (AutoField, FileField)):
-            fields.append(field.name)
-    return fields
-
-
-def create_viewset(serializer, parsers=(MultiPartJsonParser,)):
-    """Dynamically create viewset for API router."""
-    model = serializer.Meta.model
-    model_name = model.__name__
-    return type(
-        model_name + 'ViewSet',
-        (viewsets.ModelViewSet,),
-        {
-            'parser_classes': parsers,
-            'queryset': model.objects.all(),
-            'serializer_class': serializer,
-            'filter_backends': [DjangoFilterBackend],
-            'filterset_fields': get_filter_fields(model),
-        },
-    )
-
-
-def make_serializers(serializer_scope, models):
-    """Make serializers for any model that doesn't already have one.
-
-    This should be called after specific serializer classes are created.  Serializers are created named <model_name>Serializer.
-
-    :param serializer_scope: the scope where serializers on the models are defined.  In a serializers.py file, this will be globals().
-    :param models: a namespace with defined models for which to create serializers.  This can be a models module.
-    """
-    from django.contrib.gis.db import models as base_models
-
-    for _model_name, model in inspect.getmembers(models):
-        if not inspect.isclass(model):
-            continue
-        parent = model
-        while len(parent.__bases__):
-            if base_models.Model in parent.__bases__:
-                break
-            parent = parent.__bases__[0]
-        if base_models.Model in parent.__bases__:
-            model_fields = {}
-            serializer_class = create_serializer(model, model_fields)
-            serializer_name = serializer_class.__name__
-            if serializer_name not in serializer_scope:
-                serializer_scope[serializer_name] = serializer_class
 
 
 def get_or_create_no_commit(model: Model, defaults: dict = None, **kwargs):
