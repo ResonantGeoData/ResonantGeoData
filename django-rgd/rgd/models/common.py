@@ -24,7 +24,7 @@ from rgd.utility import (
 )
 from s3_file_field import S3FileField
 
-# from .. import tasks
+from .. import tasks
 from .collection import Collection
 from .constants import DB_SRID
 from .mixins import PermissionPathMixin, TaskEventMixin
@@ -117,9 +117,7 @@ class ChecksumFile(TimeStampedModel, TaskEventMixin, PermissionPathMixin):
     file = S3FileField(null=True, blank=True, upload_to=uuid_prefix_filename)
     url = models.TextField(null=True, blank=True)
 
-    task_funcs = (
-        # tasks.task_checksum_file_post_save,
-    )
+    task_funcs = (tasks.task_checksum_file_post_save,)
     permissions_paths = [('collection', Collection)]
 
     class Meta:
@@ -192,11 +190,13 @@ class ChecksumFile(TimeStampedModel, TaskEventMixin, PermissionPathMixin):
             if self.type == FileSourceType.FILE_FIELD and self.file.name:
                 self.name = os.path.basename(self.file.name)
             elif self.type == FileSourceType.URL:
-                try:
-                    with safe_urlopen(self.url) as r:
-                        self.name = r.info().get_filename()
-                except (AttributeError, ValueError, URLError):
-                    pass
+                parsed = urlparse(self.url)
+                if parsed.scheme in ['https', 'http']:
+                    try:
+                        with safe_urlopen(self.url) as r:
+                            self.name = r.info().get_filename()
+                    except (AttributeError, ValueError, URLError):
+                        pass
                 if not self.name:
                     # Fallback
                     self.name = os.path.basename(urlparse(self.url).path)

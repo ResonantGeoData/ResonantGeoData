@@ -3,7 +3,8 @@ import os
 from django.db import IntegrityError
 import pytest
 from rgd.datastore import datastore, registry
-from rgd.models import common
+from rgd.models import common, utils
+from rgd.models.collection import Collection
 
 FILENAME = 'stars.png'
 
@@ -120,3 +121,54 @@ def test_checksumfile_url_yield_local_path():
         with model.yield_local_path() as path:
             raise ValueError()
     assert not os.path.exists(path)
+
+
+@pytest.mark.django_db(transaction=True)
+def test_get_or_create_checksumfile_file(file_path):
+    with open(file_path, 'rb') as f:
+        file, created = utils.get_or_create_checksumfile(file=f)
+    assert created
+    with open(file_path, 'rb') as f:
+        file, created = utils.get_or_create_checksumfile(file=f)
+    assert not created
+
+
+@pytest.mark.django_db(transaction=True)
+def test_get_or_create_checksumfile_file_permissions(file_path):
+    collection = Collection.objects.create(name='Foo')
+    with open(file_path, 'rb') as f:
+        file, created = utils.get_or_create_checksumfile(collection=collection, file=f)
+    assert created
+    assert file.collection == collection
+    with open(file_path, 'rb') as f:
+        file, created = utils.get_or_create_checksumfile(collection=collection, file=f)
+    assert not created
+    with open(file_path, 'rb') as f:
+        file, created = utils.get_or_create_checksumfile(file=f)
+    # Because this passed collection is None, make sure a new file is created
+    assert created
+    assert file.collection is None
+
+
+@pytest.mark.django_db(transaction=True)
+def test_get_or_create_checksumfile_url():
+    url = datastore.get_url(FILENAME)
+    file, created = utils.get_or_create_checksumfile(url=url)
+    assert created
+    file, created = utils.get_or_create_checksumfile(url=url)
+    assert not created
+
+
+@pytest.mark.django_db(transaction=True)
+def test_get_or_create_checksumfile_url_permissions():
+    url = datastore.get_url(FILENAME)
+    collection = Collection.objects.create(name='Foo')
+    file, created = utils.get_or_create_checksumfile(collection=collection, url=url)
+    assert created
+    assert file.collection == collection
+    file, created = utils.get_or_create_checksumfile(collection=collection, url=url)
+    assert not created
+    # Because this passed collection is None, make sure a new file is created
+    file, created = utils.get_or_create_checksumfile(url=url)
+    assert created
+    assert file.collection is None

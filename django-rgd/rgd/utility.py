@@ -3,6 +3,7 @@ from contextlib import contextmanager
 from functools import wraps
 import hashlib
 import inspect
+import io
 import logging
 import os
 from pathlib import Path, PurePath
@@ -14,6 +15,7 @@ from urllib.request import urlopen
 from uuid import uuid4
 
 from django.conf import settings
+from django.contrib.gis.db.models import Model
 from django.db.models import fields
 from django.db.models.fields import AutoField
 from django.db.models.fields.files import FieldFile, FileField
@@ -31,29 +33,29 @@ logger = logging.getLogger(__name__)
 
 
 @contextmanager
-def safe_urlopen(url, *args, **kwargs):
+def safe_urlopen(url: str, *args, **kwargs):
     with contextlib.closing(urlopen(url, *args, **kwargs)) as remote:
         yield remote
 
 
-def _compute_hash(handle, chunk_num_blocks):
+def compute_hash(handle: io.BufferedIOBase, chunk_num_blocks: int = 128):
     sha = hashlib.sha512()
     while chunk := handle.read(chunk_num_blocks * sha.block_size):
         sha.update(chunk)
     return sha.hexdigest()
 
 
-def compute_checksum_file(field_file: FieldFile, chunk_num_blocks=128):
+def compute_checksum_file(field_file: FieldFile, chunk_num_blocks: int = 128):
     with field_file.open() as f:
-        return _compute_hash(f, chunk_num_blocks)
+        return compute_hash(f, chunk_num_blocks)
 
 
-def compute_checksum_url(url: str, chunk_num_blocks=128):
+def compute_checksum_url(url: str, chunk_num_blocks: int = 128):
     with safe_urlopen(url) as remote:
-        return _compute_hash(remote, chunk_num_blocks)
+        return compute_hash(remote, chunk_num_blocks)
 
 
-def _link_url(obj, field):
+def _link_url(obj: Model, field: str):
     if not getattr(obj, field, None):
         return 'No attachment'
     attr = getattr(obj, field)
@@ -83,7 +85,7 @@ class MultiPartJsonParser(parsers.MultiPartParser):
         return parsers.DataAndFiles(qdict, result.files)
 
 
-def create_serializer(model, fields=None):
+def create_serializer(model: Model, fields=None):
     """Dynamically generate serializer class from model class."""
     if not fields:
         fields = '__all__'
@@ -108,7 +110,7 @@ def create_serializers(models_file, fields=None):
     return serializers
 
 
-def get_filter_fields(model):
+def get_filter_fields(model: Model):
     """
     Return a list of all filterable fields of Model.
 
@@ -167,7 +169,7 @@ def make_serializers(serializer_scope, models):
                 serializer_scope[serializer_name] = serializer_class
 
 
-def get_or_create_no_commit(model, defaults=None, **kwargs):
+def get_or_create_no_commit(model: Model, defaults: dict = None, **kwargs):
     try:
         return model.objects.get(**kwargs), False
     except model.DoesNotExist:
@@ -179,7 +181,7 @@ def get_or_create_no_commit(model, defaults=None, **kwargs):
 
 @contextmanager
 def url_file_to_local_path(
-    url: str, num_blocks=128, block_size=128, override_name=None
+    url: str, num_blocks: int = 128, block_size: int = 128, override_name: str = None
 ) -> Generator[Path, None, None]:
     with safe_urlopen(url) as remote:
         if override_name:
