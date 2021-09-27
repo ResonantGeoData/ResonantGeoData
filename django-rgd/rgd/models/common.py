@@ -211,7 +211,7 @@ class ChecksumFile(TimeStampedModel, TaskEventMixin, PermissionPathMixin):
         # Must save the model with the file before accessing it for the checksum
         super(ChecksumFile, self).save(*args, **kwargs)
 
-    def download_to_local_path(self, directory):
+    def download_to_local_path(self, directory: str):
         """Forcibly download this file to a directory on disk.
 
         Cleanup must be handled by caller.
@@ -221,7 +221,7 @@ class ChecksumFile(TimeStampedModel, TaskEventMixin, PermissionPathMixin):
         elif self.type == FileSourceType.URL:
             return download_url_file_to_local_path(self.url, directory, self.name)
 
-    def yield_local_path(self, vsi=False, try_fuse=True, override_name=None):
+    def yield_local_path(self, vsi: bool = False, try_fuse: bool = True, override_name: str = None):
         """Create a local path for the file to be accessed.
 
         This will first attempt to use httpfs to FUSE mount the file's URL.
@@ -254,7 +254,7 @@ class ChecksumFile(TimeStampedModel, TaskEventMixin, PermissionPathMixin):
         elif self.type == FileSourceType.URL:
             return url_file_to_local_path(self.url, override_name=override_name)
 
-    def get_url(self, internal=False):
+    def get_url(self, internal: bool = False):
         """Get the URL of the stored resource.
 
         Parameters
@@ -281,7 +281,7 @@ class ChecksumFile(TimeStampedModel, TaskEventMixin, PermissionPathMixin):
 
     data_link.allow_tags = True
 
-    def get_vsi_path(self, internal=False) -> str:
+    def get_vsi_path(self, internal: bool = False) -> str:
         """Return the GDAL Virtual File Systems [0] URL.
 
         This currently formulates the `/vsicurl/...` URL [1] for internal and
@@ -326,7 +326,7 @@ class ChecksumFile(TimeStampedModel, TaskEventMixin, PermissionPathMixin):
         return vsi
 
     @contextlib.contextmanager
-    def yield_vsi_path(self, internal=False):
+    def yield_vsi_path(self, internal: bool = False):
         """Wrap ``get_vsi_path`` in a context manager."""
         yield self.get_vsi_path(internal=internal)
 
