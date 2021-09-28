@@ -14,6 +14,9 @@ from urllib.parse import urlparse
 from urllib.request import urlopen
 from uuid import uuid4
 
+import boto3
+from botocore import UNSIGNED
+from botocore.config import Config
 from django.conf import settings
 from django.contrib.gis.db.models import Model
 from django.core.files import File
@@ -72,20 +75,40 @@ def get_or_create_no_commit(model: Model, defaults: dict = None, **kwargs):
         return model(**defaults), True
 
 
+def _get_s3_client():
+    if boto3.session.Session().get_credentials():
+        s3 = boto3.client('s3')
+    else:
+        # No credentials present (often the case in dev), use unsigned requests
+        s3 = boto3.client('s3', config=Config(signature_version=UNSIGNED))
+    return s3
+
+
+def _download_url_file_to_stream(
+    url: str, dest_stream: io.BufferedIOBase, num_blocks: int = 128, block_size: int = 128
+):
+    parsed = urlparse(url)
+    if parsed.scheme == 's3':
+        s3 = _get_s3_client()
+        s3.download_fileobj(parsed.netloc, parsed.path.lstrip('/'), dest_stream)
+    else:
+        with safe_urlopen(url) as remote:
+            while chunk := remote.read(num_blocks * block_size):
+                dest_stream.write(chunk)
+                dest_stream.flush()
+
+
 @contextmanager
 def url_file_to_local_path(
     url: str, num_blocks: int = 128, block_size: int = 128, override_name: str = None
 ) -> Generator[Path, None, None]:
-    with safe_urlopen(url) as remote:
-        if override_name:
-            suffix = override_name
-        else:
-            suffix = PurePath(os.path.basename(url)).name
-        with tempfile.NamedTemporaryFile('wb', suffix=suffix) as dest_stream:
-            while chunk := remote.read(num_blocks * block_size):
-                dest_stream.write(chunk)
-                dest_stream.flush()
-            yield Path(dest_stream.name)
+    if override_name:
+        suffix = override_name
+    else:
+        suffix = PurePath(os.path.basename(url)).name
+    with tempfile.NamedTemporaryFile('wb', suffix=suffix) as dest_stream:
+        _download_url_file_to_stream(url, dest_stream, num_blocks=num_blocks, block_size=block_size)
+        yield Path(dest_stream.name)
 
 
 def download_url_file_to_local_path(
@@ -97,11 +120,8 @@ def download_url_file_to_local_path(
 ) -> Path:
     dest_path = Path(os.path.join(directory, relative_path))
     dest_path.parent.mkdir(parents=True, exist_ok=True)
-    with safe_urlopen(url) as remote:
-        with open(dest_path, 'wb') as dest_stream:
-            while chunk := remote.read(num_blocks * block_size):
-                dest_stream.write(chunk)
-                dest_stream.flush()
+    with open(dest_path, 'wb') as dest_stream:
+        _download_url_file_to_stream(url, dest_stream, num_blocks=num_blocks, block_size=block_size)
     return Path(dest_path)
 
 
@@ -133,7 +153,7 @@ def url_file_to_fuse_path(url: str) -> Generator[Path, None, None]:
     elif parsed.scheme == 'http':
         fuse_path = url.replace('http://', '/tmp/rgd/http/') + '..'
     else:
-        raise ValueError(f'Scheme {parsed.scheme} not currently handled.')
+        raise ValueError(f'Scheme {parsed.scheme} not currently handled by FUSE.')
     logger.info(f'FUSE path: {fuse_path}')
     yield Path(fuse_path)
 
