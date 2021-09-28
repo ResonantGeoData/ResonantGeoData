@@ -28,7 +28,7 @@ class RGDExampleProjectMixin(CrispyFormsMixin, ResonantGeoDataBaseMixin, ConfigM
     def before_binding(configuration: ComposedConfiguration) -> None:
 
         # Install additional apps
-        configuration.INSTALLED_APPS += [  # noqa
+        configuration.INSTALLED_APPS += [
             'rgd',
             'rgd_3d',
             'rgd_fmv',
