@@ -10,7 +10,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        rgd-module: ['django-rgd', 'django-rgd/client', 'django-rgd-3d', 'django-rgd-fmv', 'django-rgd-geometry', 'django-rgd-imagery', 'django-rgd-imagery/client', 'django-composed-configuration-rgd']
+        rgd-module: ['django-rgd', 'django-rgd/client', 'django-rgd-3d', 'django-rgd-fmv', 'django-rgd-geometry', 'django-rgd-imagery', 'django-rgd-imagery/client']
         include:
           - rgd-module: django-rgd
             TWINE_PASSWORD_VAR: PYPI_API_TOKEN_RGD
@@ -26,8 +26,6 @@ jobs:
             TWINE_PASSWORD_VAR: PYPI_API_TOKEN_RGD_IMAGERY
           - rgd-module: django-rgd-imagery/client
             TWINE_PASSWORD_VAR: PYPI_API_TOKEN_RGD_IMAGERY_CLIENT
-          - rgd-module: django-composed-configuration-rgd
-            TWINE_PASSWORD_VAR: PYPI_API_TOKEN_COMPOSED_CONFIGURATION_RGD
 
     steps:
       - uses: actions/checkout@v2

@@ -9,7 +9,7 @@ from composed_configuration import (
     DevelopmentBaseConfiguration,
     TestingBaseConfiguration,
 )
-from composed_configuration_rgd import ResonantGeoDataBaseMixin
+from rgd.configuration import ResonantGeoDataBaseMixin
 
 
 class CrispyFormsMixin(ConfigMixin):

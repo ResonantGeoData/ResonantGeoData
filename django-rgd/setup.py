@@ -74,5 +74,9 @@ setup(
             'numpy',  # requirement of `simple-httpfs`
             'simple-httpfs',
         ],
+        'configuration': [
+            'django-composed-configuration[dev]',
+            'django-configurations[database,email]',
+        ],
     },
 )

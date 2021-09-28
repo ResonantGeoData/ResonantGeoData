@@ -3,8 +3,15 @@ from __future__ import annotations
 import os
 from typing import Type
 
-from composed_configuration import ComposedConfiguration, ConfigMixin
-from configurations import values
+try:
+    from composed_configuration import ComposedConfiguration, ConfigMixin
+    from configurations import values
+except ImportError:
+    raise ImportError(
+        'Please install `django-composed-configuration` and `django-configurations` '
+        'to use the configuration mixins. This can be done through the `configuration` '
+        'extra when installing `django-rgd`.'
+    )
 
 
 class GeoDjangoMixin(ConfigMixin):
@@ -40,7 +47,9 @@ class SwaggerMixin(ConfigMixin):
 class ResonantGeoDataBaseMixin(GeoDjangoMixin, SwaggerMixin, ConfigMixin):
     @staticmethod
     def before_binding(configuration: ComposedConfiguration) -> None:
-        configuration.MIDDLEWARE += ('crum.CurrentRequestUserMiddleware',)
+        configuration.MIDDLEWARE += [
+            'crum.CurrentRequestUserMiddleware',
+        ]
 
     # This cannot have a default value, since the password and database name are always
     # set by the service admin
@@ -57,3 +66,5 @@ class ResonantGeoDataBaseMixin(GeoDjangoMixin, SwaggerMixin, ConfigMixin):
 
     RGD_FILE_FIELD_PREFIX = values.Value(default=None)
     RGD_GLOBAL_READ_ACCESS = values.Value(default=False)
+    RGD_AUTO_APPROVE_SIGN_UP = values.Value(default=False)
+    RGD_STAC_BROWSER_LIMIT = values.Value(default=1000)
