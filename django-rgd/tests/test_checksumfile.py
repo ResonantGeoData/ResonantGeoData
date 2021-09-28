@@ -193,6 +193,15 @@ def test_get_or_create_url_permissions():
 
 
 @pytest.mark.django_db(transaction=True)
+def test_get_or_create_url_checksum():
+    url = datastore.get_url(FILENAME)
+    file, created = utils.get_or_create_checksumfile(url=url)
+    assert created
+    file, created = utils.get_or_create_checksumfile(url=url, precompute_url_checksum=True)
+    assert not created
+
+
+@pytest.mark.django_db(transaction=True)
 def test_yield_checksumfiles(s3_url):
     # Two URL files
     url = datastore.get_url('afie_1.jpg')
