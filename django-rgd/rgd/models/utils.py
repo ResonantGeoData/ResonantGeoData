@@ -132,9 +132,8 @@ def yield_checksumfiles(queryset: Union[QuerySet, List[ChecksumFile]]):
     with tempfile.TemporaryDirectory() as tempdir:
         for f in files:
             if f.name in names:
-                # TODO: should we precheck this and fail to checkout any files if there are duplicate names?
-                logger.error(f'Duplicate `name` for ChecksumFile ({f.pk}: {f.name}). Skipping...')
-                continue
+                # NOTE: caller's responsibility to handle duplicate names
+                logger.error(f'Duplicate `name` for ChecksumFile ({f.pk}: {f.name}). Overriding...')
             # Download each to this directory
             f.download_to_local_path(tempdir)
             names.add(f.name)
