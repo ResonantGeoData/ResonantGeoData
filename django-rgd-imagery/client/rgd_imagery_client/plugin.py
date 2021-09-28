@@ -156,7 +156,9 @@ class ImageryPlugin:
 
         # Download images
         images = parent_raster.get('image_set', {}).get('images', [])
-        for image in tqdm(images, desc='Downloading image files'):
+        processed_images = parent_raster.get('image_set', {}).get('processed_images', [])
+        images += processed_images
+        for image in tqdm(images, desc='Downloading source image files'):
             file = image.get('file', {})
             file_path = download_checksum_file_to_path(file, path, keep_existing=keep_existing)
             if file_path:

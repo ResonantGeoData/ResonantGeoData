@@ -31,6 +31,14 @@ class Image(TimeStampedModel, TaskEventMixin, PermissionPathMixin):
     def number_of_bands(self):
         return self.bandmeta_set.count()
 
+    @property
+    def processed_images(self):
+        images = set()
+        for proc in self.processedimage_set.all():
+            images.add(proc.processed_image)
+            images.update(proc.processed_image.processed_images)
+        return images
+
 
 class ImageMeta(TimeStampedModel, PermissionPathMixin):
     """Single image entry, tracks the original file."""
@@ -98,17 +106,21 @@ class ImageSet(TimeStampedModel, PermissionPathMixin):
         return annots
 
     @property
+    def processed_images(self):
+        images = set()
+        for image in self.images.all():
+            images.update(image.processed_images)
+        pks = [im.pk for im in images]
+        return Image.objects.filter(pk__in=pks).order_by('pk')
+
+    @property
     def all_images(self):
         images = set()
         for image in self.images.all():
             images.add(image)
-            for proc in image.processedimage_set.all():
-                images.add(proc.processed_image)
-        # sort:
-        images = list(images)
-        d = {im.pk: im for im in images if im}
-        keys = sorted(list(d.keys()))
-        return [d[k] for k in keys]
+            images.update(image.processed_images)
+        pks = [im.pk for im in images]
+        return Image.objects.filter(pk__in=pks).order_by('pk')
 
     detail_view_name = 'image-set-detail'
 
