@@ -75,7 +75,7 @@ def get_or_create_no_commit(model: Model, defaults: dict = None, **kwargs):
         return model(**defaults), True
 
 
-def _get_s3_client():
+def get_s3_client():
     if boto3.session.Session().get_credentials():
         s3 = boto3.client('s3')
     else:
@@ -89,7 +89,7 @@ def _download_url_file_to_stream(
 ):
     parsed = urlparse(url)
     if parsed.scheme == 's3':
-        s3 = _get_s3_client()
+        s3 = get_s3_client()
         s3.download_fileobj(parsed.netloc, parsed.path.lstrip('/'), dest_stream)
     else:
         with safe_urlopen(url) as remote:
