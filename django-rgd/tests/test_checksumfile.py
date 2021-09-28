@@ -15,7 +15,7 @@ def file_path():
 
 
 @pytest.mark.django_db(transaction=True)
-def test_checksumfile_file_create(file_path):
+def test_create_local_file(file_path):
     model = common.ChecksumFile()
     model.type = common.FileSourceType.FILE_FIELD
     with open(file_path, 'rb') as f:
@@ -28,7 +28,7 @@ def test_checksumfile_file_create(file_path):
 
 
 @pytest.mark.django_db(transaction=True)
-def test_checksumfile_url_create():
+def test_create_url():
     model = common.ChecksumFile()
     model.type = common.FileSourceType.URL
     model.url = datastore.get_url(FILENAME)
@@ -40,16 +40,12 @@ def test_checksumfile_url_create():
 
 
 @pytest.mark.django_db(transaction=True)
-def test_checksumfile_constraint_mismatch_a():
+def test_constraint_mismatch(file_path):
     with pytest.raises(IntegrityError):
         model = common.ChecksumFile()
         model.type = common.FileSourceType.FILE_FIELD
         model.url = datastore.get_url(FILENAME)
         model.save()
-
-
-@pytest.mark.django_db(transaction=True)
-def test_checksumfile_constraint_mismatch_b(file_path):
     with pytest.raises(IntegrityError):
         model = common.ChecksumFile()
         model.type = common.FileSourceType.URL
@@ -58,7 +54,7 @@ def test_checksumfile_constraint_mismatch_b(file_path):
 
 
 @pytest.mark.django_db(transaction=True)
-def test_checksumfile_constraint_url_null():
+def test_constraint_url_null():
     with pytest.raises(IntegrityError):
         model = common.ChecksumFile()
         model.type = common.FileSourceType.URL
@@ -66,16 +62,16 @@ def test_checksumfile_constraint_url_null():
 
 
 @pytest.mark.django_db(transaction=True)
-def test_checksumfile_constraint_url_empty():
+def test_constraint_url_empty():
     with pytest.raises(IntegrityError):
         model = common.ChecksumFile()
         model.type = common.FileSourceType.URL
-        model.url = ''
+        model.url = ''  # empty string
         model.save()
 
 
 @pytest.mark.django_db(transaction=True)
-def test_checksumfile_constraint_file_with_empty_url(file_path):
+def test_constraint_file_with_empty_url(file_path):
     # Make sure the constraint passes when an empty string URL is given with
     #   the FileField choice. This happens when adding files in the admin interface
     model = common.ChecksumFile()
@@ -88,7 +84,7 @@ def test_checksumfile_constraint_file_with_empty_url(file_path):
 
 
 @pytest.mark.django_db(transaction=True)
-def test_checksumfile_file_yield_local_path(file_path):
+def test_yield_local_path_file(file_path):
     model = common.ChecksumFile()
     model.type = common.FileSourceType.FILE_FIELD
     with open(file_path, 'rb') as f:
@@ -107,7 +103,7 @@ def test_checksumfile_file_yield_local_path(file_path):
 
 
 @pytest.mark.django_db(transaction=True)
-def test_checksumfile_url_yield_local_path():
+def test_yield_local_path_url():
     model = common.ChecksumFile()
     model.type = common.FileSourceType.URL
     model.url = datastore.get_url(FILENAME)
@@ -124,7 +120,7 @@ def test_checksumfile_url_yield_local_path():
 
 
 @pytest.mark.django_db(transaction=True)
-def test_get_or_create_checksumfile_file(file_path):
+def test_get_or_create_file(file_path):
     with open(file_path, 'rb') as f:
         file, created = utils.get_or_create_checksumfile(file=f)
     assert created
@@ -134,7 +130,7 @@ def test_get_or_create_checksumfile_file(file_path):
 
 
 @pytest.mark.django_db(transaction=True)
-def test_get_or_create_checksumfile_file_permissions(file_path):
+def test_get_or_create_file_permissions(file_path):
     collection = Collection.objects.create(name='Foo')
     with open(file_path, 'rb') as f:
         file, created = utils.get_or_create_checksumfile(collection=collection, file=f)
@@ -151,7 +147,7 @@ def test_get_or_create_checksumfile_file_permissions(file_path):
 
 
 @pytest.mark.django_db(transaction=True)
-def test_get_or_create_checksumfile_url():
+def test_get_or_create_url():
     url = datastore.get_url(FILENAME)
     file, created = utils.get_or_create_checksumfile(url=url)
     assert created
@@ -160,7 +156,7 @@ def test_get_or_create_checksumfile_url():
 
 
 @pytest.mark.django_db(transaction=True)
-def test_get_or_create_checksumfile_url_permissions():
+def test_get_or_create_url_permissions():
     url = datastore.get_url(FILENAME)
     collection = Collection.objects.create(name='Foo')
     file, created = utils.get_or_create_checksumfile(collection=collection, url=url)
