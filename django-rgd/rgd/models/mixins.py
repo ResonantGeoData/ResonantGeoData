@@ -14,6 +14,7 @@ class Status(models.TextChoices):
     RUNNING = 'running', _('Processing')
     FAILED = 'failed', _('Failed')
     SUCCEEDED = 'success', _('Succeeded')
+    SKIPPED = 'skipped', _('Skipped')
 
 
 class TaskEventMixin(models.Model):

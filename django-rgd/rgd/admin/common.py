@@ -29,6 +29,12 @@ def make_users_staff(modeladmin, request, queryset):
             user.save(update_fields=['is_staff'])
 
 
+def validate_checksum(modeladmin, request, queryset):
+    for file in queryset.all():
+        file.validate_checksum = True
+        file.save()
+
+
 admin.site.unregister(User)
 
 
@@ -61,18 +67,21 @@ class ChecksumFileAdmin(OSMGeoAdmin):
         'pk',
         'name',
         'type',
+        'status',
         'created',
         'created_by',
         'modified',
         'collection',
-        'status',
         'data_link',
     )
     readonly_fields = (
         'checksum',
         'last_validation',
     ) + TASK_EVENT_READONLY
-    actions = (reprocess,)
+    actions = (
+        reprocess,
+        validate_checksum,
+    )
     list_filter = (
         MODIFIABLE_FILTERS
         + TASK_EVENT_FILTERS
