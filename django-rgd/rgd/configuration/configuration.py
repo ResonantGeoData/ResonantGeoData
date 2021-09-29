@@ -67,4 +67,5 @@ class ResonantGeoDataBaseMixin(GeoDjangoMixin, SwaggerMixin, ConfigMixin):
     RGD_FILE_FIELD_PREFIX = values.Value(default=None)
     RGD_GLOBAL_READ_ACCESS = values.Value(default=False)
     RGD_AUTO_APPROVE_SIGN_UP = values.Value(default=False)
+    RGD_AUTO_COMPUTE_CHECKSUMS = values.Value(default=False)
     RGD_STAC_BROWSER_LIMIT = values.Value(default=1000)
