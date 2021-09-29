@@ -1,17 +1,18 @@
-from rgd import utility
-
 from . import stac
-from .. import models
-from .base import ImageMetaSerializer, ImageSerializer, ImageSetSerializer
+from .base import (
+    ImageMetaSerializer,
+    ImageSerializer,
+    ImageSetSerializer,
+    ImageSetSpatialSerializer,
+)
 from .processed import ProcessedImageGroupSerializer, ProcessedImageSerializer
 from .raster import RasterMetaSerializer, RasterSerializer
-
-utility.make_serializers(globals(), models)
 
 __all__ = [
     'ImageSerializer',
     'ImageMetaSerializer',
     'ImageSetSerializer',
+    'ImageSetSpatialSerializer',
     'ProcessedImageGroupSerializer',
     'ProcessedImageSerializer',
     'RasterMetaSerializer',

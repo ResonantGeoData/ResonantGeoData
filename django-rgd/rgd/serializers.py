@@ -2,7 +2,7 @@ import json
 
 from rest_framework import serializers
 
-from . import models, utility
+from . import models
 
 MODIFIABLE_READ_ONLY_FIELDS = ['modified', 'created']
 TASK_EVENT_READ_ONLY_FIELDS = ['status', 'failure_reason']
@@ -111,6 +111,3 @@ class SpatialAssetSerializer(SpatialEntrySerializer):
     class Meta:
         model = models.SpatialAsset
         exclude = SPATIAL_ENTRY_EXCLUDE
-
-
-utility.make_serializers(globals(), models)

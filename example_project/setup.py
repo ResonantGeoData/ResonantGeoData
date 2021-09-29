@@ -26,10 +26,13 @@ setup(
     packages=find_packages(),
     include_package_data=True,
     install_requires=[
-        'django-extensions',
+        'django-crispy-forms',
         'django-debug-toolbar',
+        'django-oauth-toolkit',
         'django-rest-swagger',
+        'gunicorn',
         'ipython',
+        # RGD deps are install locally
     ],
     extras_require={
         'graph': [

@@ -9,13 +9,13 @@ from rgd import models
 
 
 # get django model via name, regardless of app
-def get_model(model_name):
+def get_model(model_name: str):
     for m in apps.get_models():
         if m.__name__ == model_name:
             return m
 
 
-def get_subclasses(model):
+def get_subclasses(model: Model):
     """Retrieve all model subclasses for the provided class excluding the model class itself."""
     return set(
         [
@@ -28,7 +28,7 @@ def get_subclasses(model):
     )
 
 
-def get_permissions_paths(model, target_model) -> List[str]:
+def get_permissions_paths(model: Model, target_model: Model) -> List[str]:
     """Get all possible paths to the 'target_model'.
 
     Produces relationships represented as 'dunder's ('__').

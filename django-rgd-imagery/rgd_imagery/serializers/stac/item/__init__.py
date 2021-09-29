@@ -45,7 +45,7 @@ class ItemSerializer(serializers.BaseSerializer):
             datetime=(instance.acquisition_date or instance.modified or instance.created),
             properties=dict(
                 datetime=str(instance.acquisition_date),
-                platform=instance.instrumentation,
+                platform=(instance.instrumentation or 'unknown'),
                 description=f'STAC Item {instance.pk}',
                 title=(instance.parent_raster.name or f'STAC Item {instance.pk}'),
             ),
@@ -58,6 +58,17 @@ class ItemSerializer(serializers.BaseSerializer):
                     str(instance.pk),
                 ],
             ),
+        )
+        item.add_link(
+            pystac.Link(
+                'collection',
+                reverse(
+                    'stac-collection',
+                    request=self.context.get('request'),
+                    args=[collection_id],
+                ),
+                media_type='application/json',
+            )
         )
         # 'proj' extension
         proj_ext = ProjectionExtension.ext(item, add_if_missing=True)
