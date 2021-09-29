@@ -13,8 +13,9 @@ from girder_utils.files import field_file_to_local_path
 from model_utils.managers import InheritanceManager
 from rgd.utility import (
     _link_url,
-    compute_checksum_file,
+    compute_checksum_file_field,
     compute_checksum_url,
+    compute_hash,
     download_field_file_to_local_path,
     download_url_file_to_local_path,
     patch_internal_presign,
@@ -143,9 +144,15 @@ class ChecksumFile(TimeStampedModel, TaskEventMixin, PermissionPathMixin):
     def get_checksum(self):
         """Compute a new checksum without saving it."""
         if self.type == FileSourceType.FILE_FIELD:
-            return compute_checksum_file(self.file)
+            return compute_checksum_file_field(self.file)
         elif self.type == FileSourceType.URL:
-            return compute_checksum_url(self.url)
+            parsed = urlparse(self.url)
+            if parsed.scheme in ['https', 'http']:
+                return compute_checksum_url(self.url)
+            else:
+                with self.yield_local_path() as path:
+                    with open(path, 'rb') as f:
+                        return compute_hash(f)
         else:
             raise NotImplementedError(f'Type ({self.type}) not supported.')
 
