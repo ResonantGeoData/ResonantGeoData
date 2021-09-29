@@ -44,7 +44,7 @@ def compute_hash(handle: io.BufferedIOBase, chunk_num_blocks: int = 128):
     return sha.hexdigest()
 
 
-def compute_checksum_file(field_file: FieldFile, chunk_num_blocks: int = 128):
+def compute_checksum_file_field(field_file: FieldFile, chunk_num_blocks: int = 128):
     with field_file.open() as f:
         return compute_hash(f, chunk_num_blocks)
 
