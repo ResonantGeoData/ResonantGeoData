@@ -136,7 +136,7 @@
         `${host}/api/rgd/collections`
       ).then(response => response.json());
 
-      collections.forEach(({ id, name }) => {
+      collections.results.forEach(({ id, name }) => {
         const opt = document.createElement('option');
         opt.value = id;
         opt.innerHTML = `${name} (${id})`;
