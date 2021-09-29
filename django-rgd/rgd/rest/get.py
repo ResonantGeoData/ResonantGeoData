@@ -1,6 +1,6 @@
 from rest_framework.generics import ListAPIView, RetrieveAPIView
 from rgd import models, serializers
-from rgd.permissions import check_read_perm
+from rgd.permissions import check_read_perm, get_user_collections
 
 
 class _PermissionMixin:
@@ -52,6 +52,4 @@ class GetUserCollections(ListAPIView, _PermissionMixin):
     queryset = models.Collection.objects.all()
 
     def get_queryset(self):
-        if self.request.user.id is not None:
-            return super().get_queryset().filter(collection_permissions__user=self.request.user)
-        return None
+        return get_user_collections(self.request.user)

@@ -129,6 +129,21 @@ def check_write_perm(user, obj):
         raise PermissionDenied
 
 
+def get_user_collections(user=None):
+    queryset = models.Collection.objects.all()
+    # Must be logged in
+    if user is None or not user.is_active or user.is_anonymous:
+        return queryset.none()
+    # Superusers can see all (not staff users)
+    if user.is_superuser:
+        return queryset
+    # Else, check user permissions
+    condition = Q(collection_permissions__user=user)
+    if getattr(settings, 'RGD_GLOBAL_READ_ACCESS', False):
+        condition |= Q(**{'collection_permissions__isnull': True})
+    return queryset.filter(condition)
+
+
 class CollectionAuthorizationBackend(BaseBackend):
     def has_perm(self, user, perm, obj=None):
         """Supplement default Django permission backend.
