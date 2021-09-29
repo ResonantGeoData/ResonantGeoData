@@ -1,7 +1,6 @@
 import json
 
 from rest_framework import serializers
-from rgd import utility
 from rgd.serializers import ChecksumFileSerializer, SpatialEntrySerializer
 
 from . import models
@@ -41,6 +40,3 @@ class FMVMetaDataSerializer(FMVMetaSerializer):
     class Meta:
         model = models.FMVMeta
         fields = '__all__'
-
-
-utility.make_serializers(globals(), models)

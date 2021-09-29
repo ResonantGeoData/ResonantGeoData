@@ -1,7 +1,6 @@
 import base64
 
 from rest_framework import serializers
-from rgd import utility
 from rgd.serializers import ChecksumFileSerializer
 from rgd_3d import models
 
@@ -38,6 +37,3 @@ class PointCloudMetaDataSerializer(PointCloudMetaSerializer):
                 base64_content = base64_content.decode().replace('\n', '')
         ret['vtp_data'] = base64_content
         return ret
-
-
-utility.make_serializers(globals(), models)
