@@ -7,6 +7,7 @@ from django.core.validators import RegexValidator
 from django.db.models import F
 from django_filters import rest_framework as filters
 from rgd.models import Collection, SpatialEntry
+from rgd.permissions import filter_collections
 
 
 class GeometryFilter(filters.Filter):
@@ -149,7 +150,7 @@ class SpatialEntryFilter(filters.FilterSet):
 
     def filter_collections(self, queryset, name, value: List[Collection]):
         if value:
-            return queryset.filter(spatialasset__files__collection__in=value)
+            return filter_collections(queryset, value)
         return queryset
 
     class Meta:
