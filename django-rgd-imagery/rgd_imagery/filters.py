@@ -8,11 +8,10 @@ from rgd.models import SpatialEntry
 from rgd_imagery.models import RasterMeta
 
 
-class NumberCSVFilter(filters.BaseCSVFilter, filters.NumberFilter):
+class NumberInFilter(filters.BaseInFilter, filters.NumberFilter):
     pass
 
-
-class NumberInFilter(filters.BaseInFilter, filters.NumberFilter):
+class NumberCSVFilter(filters.BaseCSVFilter, filters.NumberFilter):
     pass
 
 
