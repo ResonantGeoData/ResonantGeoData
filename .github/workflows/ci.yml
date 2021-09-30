@@ -113,6 +113,6 @@ jobs:
           MINIO_STORAGE_SECRET_KEY: minioSecretKey
           CELERY_BROKER_URL: amqp://localhost:5672/
           DATABASE_HOST: localhost
-      # - name: Upload Coverage
-      #   run: |
-      #     codecov
+      - name: Upload Coverage
+        run: |
+          codecov --verbose --file ${{ matrix.rgd-module }}/tests/.coverage -F ${{ matrix.rgd-module }}
