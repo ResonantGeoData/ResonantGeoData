@@ -3,12 +3,16 @@ from django.contrib.gis import forms
 from django.contrib.gis.geos import Polygon
 from django.db.models import Count, Q
 from django_filters import rest_framework as filters
-from rgd.filters import NumberInFilter, SpatialEntryFilter
+from rgd.filters import SpatialEntryFilter
 from rgd.models import SpatialEntry
 from rgd_imagery.models import RasterMeta
 
 
 class NumberCSVFilter(filters.BaseCSVFilter, filters.NumberFilter):
+    pass
+
+
+class NumberInFilter(filters.BaseInFilter, filters.NumberFilter):
     pass
 
 
