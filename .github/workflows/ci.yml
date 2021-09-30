@@ -58,7 +58,7 @@ jobs:
         run: |
           sudo apt update
           sudo apt-get install --no-install-recommends --yes graphviz libgraphviz-dev
-      - name: Run check migrations
+      - name: Run check migrations and graph models
         run: |
           tox -e check-migrations
           tox -e graph-models
@@ -128,6 +128,6 @@ jobs:
         with:
           name: .coverage.${{ matrix.rgd-module }}
           path: django-${{ matrix.rgd-module }}/tests/.coverage
-      - name: Upload Coverage
+      - name: Upload to codecov
         run: |
           codecov --verbose --file django-${{ matrix.rgd-module }}/tests/.coverage -F ${{ matrix.rgd-module }}
