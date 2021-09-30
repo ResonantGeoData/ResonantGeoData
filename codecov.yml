@@ -1,3 +1,5 @@
+fixes:
+    - "/System/Volumes/Data/home/runner/work/ResonantGeoData/ResonantGeoData/::"
 comment: false
 coverage:
   status:
@@ -12,5 +14,3 @@ coverage:
       default:
         threshold: 25
         only_pulls: true
-  fixes:
-    - "/System/Volumes/Data/home/runner/work/ResonantGeoData/ResonantGeoData/::"
