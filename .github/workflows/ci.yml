@@ -115,4 +115,4 @@ jobs:
           DATABASE_HOST: localhost
       - name: Upload Coverage
         run: |
-          codecov --verbose -Z --file django-${{ matrix.rgd-module }}/tests/.coverage -F ${{ matrix.rgd-module }}
+          codecov --verbose --file django-${{ matrix.rgd-module }}/tests/.coverage -F ${{ matrix.rgd-module }}
