@@ -22,7 +22,7 @@ jobs:
       - name: Run linting
         run: |
           tox -e lint
-  check-migrations:
+  check-migrations-graph:
     runs-on: ubuntu-latest
     services:
       postgres:
@@ -54,15 +54,25 @@ jobs:
         run: |
           pip install --upgrade pip
           pip install tox
-      - name: Run check migrations
+      - name: Install graphviz
+        run: |
+          sudo apt update
+          sudo apt-get install --no-install-recommends --yes graphviz libgraphviz-dev
+      - name: Run check migrations and graph models
         run: |
           tox -e check-migrations
+          tox -e graph-models
         env:
           DJANGO_DATABASE_URL: postgres://postgres:postgres@localhost:5432/django
           DJANGO_MINIO_STORAGE_ENDPOINT: localhost:9000
           DJANGO_MINIO_STORAGE_ACCESS_KEY: minioAccessKey
           DJANGO_MINIO_STORAGE_SECRET_KEY: minioSecretKey
           DJANGO_STORAGE_BUCKET_NAME: django-storage
+      - name: Upload model graphs
+        uses: actions/upload-artifact@v2
+        with:
+          name: graphs
+          path: .tox/graphs/*.png
   test:
     runs-on: ubuntu-latest
     services:
@@ -113,6 +123,14 @@ jobs:
           MINIO_STORAGE_SECRET_KEY: minioSecretKey
           CELERY_BROKER_URL: amqp://localhost:5672/
           DATABASE_HOST: localhost
-      # - name: Upload Coverage
-      #   run: |
-      #     codecov
+      - name: Stash coverage
+        uses: actions/upload-artifact@v2
+        with:
+          name: .coverage.${{ matrix.rgd-module }}
+          path: django-${{ matrix.rgd-module }}/tests/coverage.xml
+      - uses: codecov/codecov-action@v2
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          files: django-${{ matrix.rgd-module }}/tests/coverage.xml
+          flags: ${{ matrix.rgd-module }}
+          verbose: true
