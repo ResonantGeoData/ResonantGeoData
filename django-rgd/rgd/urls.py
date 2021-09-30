@@ -1,4 +1,5 @@
 from django.urls import path
+from rest_framework.authtoken.views import obtain_auth_token
 
 from . import rest, views
 
@@ -80,4 +81,5 @@ urlpatterns = [
         rest.get.GetSpatialAsset.as_view(),
         name='spatial-asset',
     ),
+    path('api/rgd/api-token-auth', obtain_auth_token, name='api-token-auth'),
 ]
