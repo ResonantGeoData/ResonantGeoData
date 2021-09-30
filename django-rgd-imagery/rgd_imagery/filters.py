@@ -11,6 +11,7 @@ from rgd_imagery.models import RasterMeta
 class NumberInFilter(filters.BaseInFilter, filters.NumberFilter):
     pass
 
+
 class NumberCSVFilter(filters.BaseCSVFilter, filters.NumberFilter):
     pass
 
