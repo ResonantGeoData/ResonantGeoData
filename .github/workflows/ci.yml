@@ -22,7 +22,7 @@ jobs:
       - name: Run linting
         run: |
           tox -e lint
-  check-migrations:
+  check-migrations-graph:
     runs-on: ubuntu-latest
     services:
       postgres:
@@ -57,12 +57,18 @@ jobs:
       - name: Run check migrations
         run: |
           tox -e check-migrations
+          tox -e graph-models
         env:
           DJANGO_DATABASE_URL: postgres://postgres:postgres@localhost:5432/django
           DJANGO_MINIO_STORAGE_ENDPOINT: localhost:9000
           DJANGO_MINIO_STORAGE_ACCESS_KEY: minioAccessKey
           DJANGO_MINIO_STORAGE_SECRET_KEY: minioSecretKey
           DJANGO_STORAGE_BUCKET_NAME: django-storage
+      - name: Upload model graphs
+        uses: actions/upload-artifact@v2
+        with:
+          name: graphs
+          path: .tox/graphs/*.png
   test:
     runs-on: ubuntu-latest
     services:
