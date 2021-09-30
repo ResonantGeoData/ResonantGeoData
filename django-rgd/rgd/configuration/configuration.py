@@ -18,6 +18,7 @@ class GeoDjangoMixin(ConfigMixin):
     @staticmethod
     def before_binding(configuration: Type[ComposedConfiguration]):
         configuration.INSTALLED_APPS += ['django.contrib.gis']
+        configuration.REST_FRAMEWORK += 'rest_framework.authentication.TokenAuthentication'
         try:
             import re
 
