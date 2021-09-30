@@ -127,10 +127,10 @@ jobs:
         uses: actions/upload-artifact@v2
         with:
           name: .coverage.${{ matrix.rgd-module }}
-          path: django-${{ matrix.rgd-module }}/tests/.coverage
+          path: django-${{ matrix.rgd-module }}/tests/coverage.xml
       - uses: codecov/codecov-action@v2
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
-          files: django-${{ matrix.rgd-module }}/tests/.coverage
+          files: django-${{ matrix.rgd-module }}/tests/coverage.xml
           flags: ${{ matrix.rgd-module }}
           verbose: true
