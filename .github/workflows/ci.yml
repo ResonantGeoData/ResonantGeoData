@@ -114,7 +114,7 @@ jobs:
           CELERY_BROKER_URL: amqp://localhost:5672/
           DATABASE_HOST: localhost
       - name: Stash coverage
-        uses: actions/download-artifact@v2
+        uses: actions/upload-artifact@v2
         with:
           name: .coverage.${{ matrix.rgd-module }}
           path: django-${{ matrix.rgd-module }}/tests/.coverage
