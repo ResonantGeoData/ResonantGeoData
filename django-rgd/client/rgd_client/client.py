@@ -1,13 +1,15 @@
-from base64 import b64encode
 import getpass
 import inspect
+import os
+from pathlib import Path
 from typing import Dict, List, Optional, Type
 
 from pkg_resources import iter_entry_points
+import requests
 
 from .plugin import CorePlugin
 from .session import RgdClientSession, clone_session
-from .utils import DEFAULT_RGD_API
+from .utils import API_KEY_DIR_PATH, API_KEY_FILE_NAME, DEFAULT_RGD_API
 
 _NAMESPACE = 'rgd_client.plugin'
 
@@ -30,14 +32,16 @@ class RgdClient:
         Returns:
             A base RgdClient instance.
         """
-        auth_header = None
+        # Look for an API key in the environment. If it's not there, check username/password
+        api_key = _read_api_key()
+        if api_key is None:
+            if username is not None and password is None:
+                password = getpass.getpass()
 
-        if username is not None and password is None:
-            password = getpass.getpass()
+            # Get an API key for this user and save it to disk
+            api_key = _save_api_key_to_disk(api_url, username, password)
 
-        if username and password:
-            encoded_credentials = b64encode(f'{username}:{password}'.encode('utf-8')).decode()
-            auth_header = f'Basic {encoded_credentials}'
+        auth_header = f'Token {api_key}'
 
         self.session = RgdClientSession(base_url=api_url, auth_header=auth_header)
         self.rgd = CorePlugin(clone_session(self.session))
@@ -54,6 +58,36 @@ def _plugins_dict(extra_plugins: Optional[List] = None) -> Dict:
         members.update({n: v for n, v in inspect.getmembers(cls) if not n.startswith('__')})
 
     return members
+
+
+def _save_api_key_to_disk(api_url: str, username: str, password: str) -> str:
+    """Retrieve an RGD API Key for the given user from the server and save it to disk."""
+    resp = requests.post(f'{api_url}/api-token-auth', {'username': username, 'password': password})
+    resp.raise_for_status()
+    token = resp.json()['token']
+    Path.mkdir(API_KEY_DIR_PATH, parents=True, exist_ok=True)
+    with open(API_KEY_DIR_PATH / API_KEY_FILE_NAME, 'w') as fd:
+        fd.write(token)
+    return token
+
+
+def _read_api_key() -> Optional[str]:
+    """
+    Retrieve an RGD API Key from the users environment.
+
+    This function checks for an environment variable named RGD_API_TOKEN and returns it if it exists.
+    If it does not exist, it looks for a file located at ~/.rgd/token and returns its contents.
+    """
+    token = os.getenv('RGD_API_TOKEN', None)
+    if token is not None:
+        return token
+
+    try:
+        # read the first line of the text file at ~/.rgd/token
+        with open(API_KEY_DIR_PATH / API_KEY_FILE_NAME, 'r') as fd:
+            return fd.readline().strip()
+    except FileNotFoundError:
+        return None
 
 
 def create_rgd_client(
