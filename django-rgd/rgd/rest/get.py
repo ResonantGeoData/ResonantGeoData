@@ -52,4 +52,5 @@ class GetUserCollections(ListAPIView, _PermissionMixin):
     queryset = models.Collection.objects.all()
 
     def get_queryset(self):
-        return get_user_collections(self.request.user)
+        # TODO: add role as a parameter to this endpoint
+        return get_user_collections(self.request.user, models.CollectionPermission.READER)
