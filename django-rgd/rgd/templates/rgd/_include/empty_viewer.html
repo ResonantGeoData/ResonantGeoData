@@ -27,7 +27,7 @@
     for(const option in options){
       var newOption = document.createElement('option');
       newOption.value = option;
-      newOption.text = options[option].name;
+      newOption.text = options[option].name ? options[option].name : option;
     document.getElementById('basemapDropdown').appendChild(newOption)
     }
 
