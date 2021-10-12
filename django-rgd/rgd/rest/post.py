@@ -1,22 +1,23 @@
 from rest_framework.generics import CreateAPIView
 from rgd import models, serializers
+from rgd.mixins import BaseRestViewMixin
 
 
-class CreateCollection(CreateAPIView):
+class CreateCollection(BaseRestViewMixin, CreateAPIView):
     queryset = models.Collection.objects.all()
     serializer_class = serializers.CollectionSerializer
 
 
-class CreateCollectionPermission(CreateAPIView):
+class CreateCollectionPermission(BaseRestViewMixin, CreateAPIView):
     queryset = models.CollectionPermission.objects.all()
     serializer_class = serializers.CollectionPermissionSerializer
 
 
-class CreateChecksumFile(CreateAPIView):
+class CreateChecksumFile(BaseRestViewMixin, CreateAPIView):
     queryset = models.ChecksumFile.objects.all()
     serializer_class = serializers.ChecksumFileSerializer
 
 
-class CreateSpatialAsset(CreateAPIView):
+class CreateSpatialAsset(BaseRestViewMixin, CreateAPIView):
     queryset = models.SpatialAsset.objects.all()
     serializer_class = serializers.SpatialAssetSerializer

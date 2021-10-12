@@ -1,15 +1,15 @@
 from rest_framework.generics import RetrieveAPIView
-from rgd.rest.get import _PermissionMixin
+from rgd.mixins import BaseRestViewMixin
 from rgd_geometry import models, serializers
 
 
-class GetGeometry(RetrieveAPIView, _PermissionMixin):
+class GetGeometry(BaseRestViewMixin, RetrieveAPIView):
     serializer_class = serializers.GeometrySerializer
     lookup_field = 'pk'
     queryset = models.Geometry.objects.all()
 
 
-class GetGeometryData(RetrieveAPIView, _PermissionMixin):
+class GetGeometryData(BaseRestViewMixin, RetrieveAPIView):
     serializer_class = serializers.GeometryDataSerializer
     lookup_field = 'pk'
     queryset = models.Geometry.objects.all()

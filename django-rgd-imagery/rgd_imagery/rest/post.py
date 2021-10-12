@@ -1,37 +1,38 @@
 from rest_framework.generics import CreateAPIView
+from rgd.mixins import BaseRestViewMixin
 from rgd_imagery import models, serializers
 
 
-class CreateProcessedImage(CreateAPIView):
+class CreateProcessedImage(BaseRestViewMixin, CreateAPIView):
     queryset = models.ProcessedImage.objects.all()
     serializer_class = serializers.ProcessedImageSerializer
 
 
-class CreateProcessedImageGroup(CreateAPIView):
+class CreateProcessedImageGroup(BaseRestViewMixin, CreateAPIView):
     queryset = models.ProcessedImageGroup.objects.all()
     serializer_class = serializers.ProcessedImageGroupSerializer
 
 
-class CreateRasterSTAC(CreateAPIView):
+class CreateRasterSTAC(BaseRestViewMixin, CreateAPIView):
     queryset = models.RasterMeta.objects.all()
     serializer_class = serializers.stac.ItemSerializer
 
 
-class CreateImage(CreateAPIView):
+class CreateImage(BaseRestViewMixin, CreateAPIView):
     queryset = models.Image.objects.all()
     serializer_class = serializers.ImageSerializer
 
 
-class CreateImageSet(CreateAPIView):
+class CreateImageSet(BaseRestViewMixin, CreateAPIView):
     queryset = models.ImageSet.objects.all()
     serializer_class = serializers.ImageSetSerializer
 
 
-class CreateImageSetSpatial(CreateAPIView):
+class CreateImageSetSpatial(BaseRestViewMixin, CreateAPIView):
     queryset = models.ImageSetSpatial.objects.all()
     serializer_class = serializers.ImageSetSpatialSerializer
 
 
-class CreateRaster(CreateAPIView):
+class CreateRaster(BaseRestViewMixin, CreateAPIView):
     queryset = models.Raster.objects.all()
     serializer_class = serializers.RasterSerializer
