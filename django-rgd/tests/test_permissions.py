@@ -2,7 +2,10 @@ from django.apps import apps
 from django.conf import settings
 import pytest
 from rgd import models
+from rgd.mixins import BaseRestViewMixin
 from rgd.permissions import filter_read_perm, filter_write_perm
+from rgd.urls import urlpatterns
+from rgd.views import PermissionDetailView, PermissionListView
 from rgd_testing_utils.helpers import check_model_permissions
 
 
@@ -67,3 +70,18 @@ def test_nonadmin_created_by_permissions(user, spatial_asset_a, spatial_asset_b)
 def test_check_permissions_path_rgd():
     for model in apps.get_app_config('rgd').get_models():
         check_model_permissions(model)
+
+
+def test_urls():
+    for pattern in urlpatterns:
+        if hasattr(pattern.callback, 'view_class') and 'WrappedAPIView' not in str(
+            pattern.callback
+        ):
+            assert issubclass(
+                pattern.callback.view_class,
+                (
+                    BaseRestViewMixin,
+                    PermissionDetailView,
+                    PermissionListView,
+                ),
+            )
