@@ -5,7 +5,7 @@ from rgd import models
 from rgd.mixins import BaseRestViewMixin
 from rgd.permissions import filter_read_perm, filter_write_perm
 from rgd.urls import urlpatterns
-from rgd.views import PermissionDetailView, PermissionListView
+from rgd.views import PermissionDetailView, PermissionListView, PermissionTemplateView
 from rgd_testing_utils.helpers import check_model_permissions
 
 
@@ -82,6 +82,7 @@ def test_urls():
                 (
                     BaseRestViewMixin,
                     PermissionDetailView,
+                    PermissionTemplateView,
                     PermissionListView,
                 ),
             )

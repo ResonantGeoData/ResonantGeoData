@@ -1,6 +1,6 @@
 from django.apps import apps
 from rgd.mixins import BaseRestViewMixin
-from rgd.views import PermissionDetailView, PermissionListView
+from rgd.views import PermissionDetailView, PermissionListView, PermissionTemplateView
 from rgd_geometry.urls import urlpatterns
 from rgd_testing_utils.helpers import check_model_permissions
 
@@ -19,6 +19,7 @@ def test_urls():
                 pattern.callback.view_class,
                 (
                     BaseRestViewMixin,
+                    PermissionTemplateView,
                     PermissionDetailView,
                     PermissionListView,
                 ),

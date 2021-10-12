@@ -8,11 +8,15 @@ from django.contrib.postgres.aggregates import ArrayAgg
 from django.db.models import Count, Max, Min, Q
 from django.shortcuts import redirect
 from django.views import generic
-from django.views.generic import DetailView
+from django.views.generic import DetailView, TemplateView
 from rest_framework.reverse import reverse
 from rgd import permissions
 
 from . import filters, models
+
+
+class PermissionTemplateView(LoginRequiredMixin, TemplateView):
+    pass
 
 
 class PermissionDetailView(LoginRequiredMixin, DetailView):

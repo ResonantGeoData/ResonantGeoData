@@ -1,6 +1,6 @@
 from django.apps import apps
 from rgd.mixins import BaseRestViewMixin
-from rgd.views import PermissionDetailView, PermissionListView
+from rgd.views import PermissionDetailView, PermissionListView, PermissionTemplateView
 from rgd_3d.urls import urlpatterns
 from rgd_testing_utils.helpers import check_model_permissions
 
@@ -20,6 +20,7 @@ def test_urls():
                 (
                     BaseRestViewMixin,
                     PermissionDetailView,
+                    PermissionTemplateView,
                     PermissionListView,
                 ),
             )
