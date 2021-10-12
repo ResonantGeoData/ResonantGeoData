@@ -38,10 +38,10 @@ def test_get_checksum_file(admin_api_client, checksum_file):
 
 
 @pytest.mark.django_db(transaction=True)
-def test_get_spatial_entry(api_client, spatial_asset_a):
+def test_get_spatial_entry(admin_api_client, spatial_asset_a):
     """Test individual GET for SpatialEntry model."""
     pk = spatial_asset_a.spatial_id
-    response = api_client.get(f'/api/rgd/spatial_entry/{pk}')
+    response = admin_api_client.get(f'/api/rgd/spatial_entry/{pk}')
     assert response.status_code == 200
     assert response.data
     assert response.data['outline']
