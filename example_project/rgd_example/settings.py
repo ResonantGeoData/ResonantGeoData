@@ -6,9 +6,9 @@ from typing import Type
 from composed_configuration import (
     ComposedConfiguration,
     ConfigMixin,
+    CorsMixin,
     DevelopmentBaseConfiguration,
     TestingBaseConfiguration,
-    CorsMixin,
 )
 from rgd.configuration import ResonantGeoDataBaseMixin
 
@@ -43,6 +43,8 @@ class RGDExampleProjectMixin(CrispyFormsMixin, ResonantGeoDataBaseMixin, CorsMix
 
     # To use endpoints from external origin
     CORS_ORIGIN_ALLOW_ALL = True
+
+
 class DevelopmentConfiguration(RGDExampleProjectMixin, DevelopmentBaseConfiguration):
     pass
 
