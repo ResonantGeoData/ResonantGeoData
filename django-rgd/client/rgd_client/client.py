@@ -65,7 +65,7 @@ def _save_api_key_to_disk(api_url: str, username: str, password: str) -> str:
     resp = requests.post(f'{api_url}/api-token-auth', {'username': username, 'password': password})
     resp.raise_for_status()
     token = resp.json()['token']
-    Path.mkdir(API_KEY_DIR_PATH, parents=True, exist_ok=True)
+    API_KEY_DIR_PATH.mkdir(parents=True, exist_ok=True)
     with open(API_KEY_DIR_PATH / API_KEY_FILE_NAME, 'w') as fd:
         fd.write(token)
     return token
