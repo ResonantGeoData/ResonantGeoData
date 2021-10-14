@@ -1,7 +1,6 @@
 import getpass
 import inspect
 import os
-from pathlib import Path
 from typing import Dict, List, Optional, Type
 
 from pkg_resources import iter_entry_points
@@ -20,6 +19,7 @@ class RgdClient:
         api_url: str = DEFAULT_RGD_API,
         username: Optional[str] = None,
         password: Optional[str] = None,
+        save_api_key_to_disk: Optional[bool] = True,
     ) -> None:
         """
         Initialize the base RGD Client.
@@ -28,6 +28,7 @@ class RgdClient:
             api_url: The base url of the RGD API instance.
             username: The username to authenticate to the instance with, if any.
             password: The password associated with the provided username. If None, a prompt will be provided.
+            save_api_key_to_disk: Whether or not to save the logged-in user's API key to disk for future use.
 
         Returns:
             A base RgdClient instance.
@@ -40,7 +41,7 @@ class RgdClient:
 
             # Get an API key for this user and save it to disk
             if username and password:
-                api_key = _save_api_key_to_disk(api_url, username, password)
+                api_key = _get_api_key(api_url, username, password, save_api_key_to_disk)
 
         auth_header = f'Token {api_key}'
 
@@ -61,14 +62,15 @@ def _plugins_dict(extra_plugins: Optional[List] = None) -> Dict:
     return members
 
 
-def _save_api_key_to_disk(api_url: str, username: str, password: str) -> str:
-    """Retrieve an RGD API Key for the given user from the server and save it to disk."""
+def _get_api_key(api_url: str, username: str, password: str, save_to_disk: bool) -> str:
+    """Get an RGD API Key for the given user from the server, and save it to disk if requested."""
     resp = requests.post(f'{api_url}/api-token-auth', {'username': username, 'password': password})
     resp.raise_for_status()
     token = resp.json()['token']
-    API_KEY_DIR_PATH.mkdir(parents=True, exist_ok=True)
-    with open(API_KEY_DIR_PATH / API_KEY_FILE_NAME, 'w') as fd:
-        fd.write(token)
+    if save_to_disk:
+        API_KEY_DIR_PATH.mkdir(parents=True, exist_ok=True)
+        with open(API_KEY_DIR_PATH / API_KEY_FILE_NAME, 'w') as fd:
+            fd.write(token)
     return token
 
 
@@ -95,10 +97,11 @@ def create_rgd_client(
     api_url: str = DEFAULT_RGD_API,
     username: Optional[str] = None,
     password: Optional[str] = None,
+    save_api_key_to_disk: Optional[bool] = True,
     extra_plugins: Optional[List[Type]] = None,
 ):
     plugins = _plugins_dict(extra_plugins=extra_plugins)
-    client = RgdClient(api_url, username, password)
+    client = RgdClient(api_url, username, password, save_api_key_to_disk)
     for name, cls in plugins.items():
         instance = cls(clone_session(client.session))
         setattr(client, name, instance)
