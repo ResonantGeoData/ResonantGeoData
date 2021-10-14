@@ -107,3 +107,8 @@ def create_rgd_client(
         setattr(client, name, instance)
 
     return client
+
+
+def clear_token():
+    """Delete a locally-stored API key."""
+    (API_KEY_DIR_PATH / API_KEY_FILE_NAME).unlink(missing_ok=True)
