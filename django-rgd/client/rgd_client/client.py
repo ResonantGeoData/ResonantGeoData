@@ -39,7 +39,8 @@ class RgdClient:
                 password = getpass.getpass()
 
             # Get an API key for this user and save it to disk
-            api_key = _save_api_key_to_disk(api_url, username, password)
+            if username and password:
+                api_key = _save_api_key_to_disk(api_url, username, password)
 
         auth_header = f'Token {api_key}'
 
