@@ -66,12 +66,12 @@ def _plugins_dict(extra_plugins: Optional[List] = None) -> Dict:
     return members
 
 
-def _get_api_key(api_url: str, username: str, password: str, save_to_disk: bool) -> str:
-    """Get an RGD API Key for the given user from the server, and save it to disk if requested."""
+def _get_api_key(api_url: str, username: str, password: str, save: bool) -> str:
+    """Get an RGD API Key for the given user from the server, and save it if requested."""
     resp = requests.post(f'{api_url}/api-token-auth', {'username': username, 'password': password})
     resp.raise_for_status()
     token = resp.json()['token']
-    if save_to_disk:
+    if save:
         API_KEY_DIR_PATH.mkdir(parents=True, exist_ok=True)
         with open(API_KEY_DIR_PATH / API_KEY_FILE_NAME, 'w') as fd:
             fd.write(token)
