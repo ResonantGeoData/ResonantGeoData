@@ -25,6 +25,8 @@ INSTALLED_APPS += [
 ]
 
 MIDDLEWARE += ('crum.CurrentRequestUserMiddleware',)
+
+REST_FRAMEWORK['DEFAULT_AUTHENTICATION_CLASSES'] += ('rest_framework.authentication.TokenAuthentication',)
 ```
 
 (note that RGD requires [`django-crum`](https://django-crum.readthedocs.io/en/latest/) middleware.)

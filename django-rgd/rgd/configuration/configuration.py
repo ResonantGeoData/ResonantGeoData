@@ -18,9 +18,6 @@ class GeoDjangoMixin(ConfigMixin):
     @staticmethod
     def before_binding(configuration: Type[ComposedConfiguration]):
         configuration.INSTALLED_APPS += ['django.contrib.gis']
-        configuration.REST_FRAMEWORK['DEFAULT_AUTHENTICATION_CLASSES'] += [
-            'rest_framework.authentication.TokenAuthentication',
-        ]
         try:
             import re
 
@@ -52,6 +49,9 @@ class ResonantGeoDataBaseMixin(GeoDjangoMixin, SwaggerMixin, ConfigMixin):
     def before_binding(configuration: ComposedConfiguration) -> None:
         configuration.MIDDLEWARE += [
             'crum.CurrentRequestUserMiddleware',
+        ]
+        configuration.REST_FRAMEWORK['DEFAULT_AUTHENTICATION_CLASSES'] += [
+            'rest_framework.authentication.TokenAuthentication',
         ]
 
     # This cannot have a default value, since the password and database name are always
