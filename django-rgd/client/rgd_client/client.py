@@ -48,6 +48,10 @@ class RgdClient:
         self.session = RgdClientSession(base_url=api_url, auth_header=auth_header)
         self.rgd = CorePlugin(clone_session(self.session))
 
+    def clear_token(self):
+        """Delete a locally-stored API key."""
+        (API_KEY_DIR_PATH / API_KEY_FILE_NAME).unlink(missing_ok=True)
+
 
 def _plugins_dict(extra_plugins: Optional[List] = None) -> Dict:
     entry_points = iter_entry_points(_NAMESPACE)
@@ -107,8 +111,3 @@ def create_rgd_client(
         setattr(client, name, instance)
 
     return client
-
-
-def clear_token():
-    """Delete a locally-stored API key."""
-    (API_KEY_DIR_PATH / API_KEY_FILE_NAME).unlink(missing_ok=True)
