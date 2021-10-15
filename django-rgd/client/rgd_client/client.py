@@ -19,7 +19,7 @@ class RgdClient:
         api_url: str = DEFAULT_RGD_API,
         username: Optional[str] = None,
         password: Optional[str] = None,
-        save_api_key_to_disk: Optional[bool] = True,
+        save: Optional[bool] = True,
     ) -> None:
         """
         Initialize the base RGD Client.
@@ -28,7 +28,7 @@ class RgdClient:
             api_url: The base url of the RGD API instance.
             username: The username to authenticate to the instance with, if any.
             password: The password associated with the provided username. If None, a prompt will be provided.
-            save_api_key_to_disk: Whether or not to save the logged-in user's API key to disk for future use.
+            save: Whether or not to save the logged-in user's API key to disk for future use.
 
         Returns:
             A base RgdClient instance.
@@ -41,7 +41,7 @@ class RgdClient:
 
             # Get an API key for this user and save it to disk
             if username and password:
-                api_key = _get_api_key(api_url, username, password, save_api_key_to_disk)
+                api_key = _get_api_key(api_url, username, password, save)
 
         auth_header = f'Token {api_key}'
 
@@ -97,11 +97,11 @@ def create_rgd_client(
     api_url: str = DEFAULT_RGD_API,
     username: Optional[str] = None,
     password: Optional[str] = None,
-    save_api_key_to_disk: Optional[bool] = True,
+    save: Optional[bool] = True,
     extra_plugins: Optional[List[Type]] = None,
 ):
     plugins = _plugins_dict(extra_plugins=extra_plugins)
-    client = RgdClient(api_url, username, password, save_api_key_to_disk)
+    client = RgdClient(api_url, username, password, save)
     for name, cls in plugins.items():
         instance = cls(clone_session(client.session))
         setattr(client, name, instance)
