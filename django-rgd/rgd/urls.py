@@ -1,8 +1,11 @@
 from django.urls import path
+from rest_framework.authtoken.views import obtain_auth_token
 
 from . import rest, views
 
 urlpatterns = [
+    # API Key Authentication
+    path('api/api-token-auth', obtain_auth_token, name='api-token-auth'),
     # Pages
     path('rgd', views.SpatialEntriesListView.as_view(), name='rgd-index'),
     path(

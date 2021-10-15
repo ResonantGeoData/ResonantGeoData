@@ -50,6 +50,9 @@ class ResonantGeoDataBaseMixin(GeoDjangoMixin, SwaggerMixin, ConfigMixin):
         configuration.MIDDLEWARE += [
             'crum.CurrentRequestUserMiddleware',
         ]
+        configuration.REST_FRAMEWORK['DEFAULT_AUTHENTICATION_CLASSES'] += [
+            'rest_framework.authentication.TokenAuthentication',
+        ]
 
     # This cannot have a default value, since the password and database name are always
     # set by the service admin
