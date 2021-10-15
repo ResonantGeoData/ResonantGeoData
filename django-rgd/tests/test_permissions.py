@@ -1,6 +1,7 @@
 from django.apps import apps
 from django.conf import settings
 import pytest
+from rest_framework.authtoken.views import ObtainAuthToken
 from rgd import models
 from rgd.mixins import BaseRestViewMixin
 from rgd.permissions import filter_read_perm, filter_write_perm
@@ -84,5 +85,6 @@ def test_urls():
                     PermissionDetailView,
                     PermissionTemplateView,
                     PermissionListView,
+                    ObtainAuthToken,
                 ),
             )
