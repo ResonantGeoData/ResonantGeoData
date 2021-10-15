@@ -4,6 +4,7 @@ from django.contrib.auth.models import User
 import factory
 import pytest
 from pytest_factoryboy import register
+from rest_framework.authtoken.models import Token
 from rgd_client import create_rgd_client
 from rgd_testing_utils import factories as tfactories
 from rgd_testing_utils.api_fixtures import *  # noqa
@@ -28,6 +29,9 @@ def py_client(live_server):
 
     user = User.objects.create_user(is_staff=True, is_superuser=True, **params)
     user.save()
+
+    # use constant value for API key so this client fixture can be reused across multiple tests
+    Token.objects.create(user=user, key='topsecretkey')
 
     client = create_rgd_client(
         username=params['username'], password=params['password'], api_url=f'{live_server.url}/api'

@@ -6,6 +6,7 @@ from typing import Type
 from composed_configuration import (
     ComposedConfiguration,
     ConfigMixin,
+    CorsMixin,
     DevelopmentBaseConfiguration,
     TestingBaseConfiguration,
 )
@@ -18,7 +19,7 @@ class CrispyFormsMixin(ConfigMixin):
         configuration.INSTALLED_APPS += ['crispy_forms']
 
 
-class RGDExampleProjectMixin(CrispyFormsMixin, ResonantGeoDataBaseMixin, ConfigMixin):
+class RGDExampleProjectMixin(CrispyFormsMixin, ResonantGeoDataBaseMixin, CorsMixin, ConfigMixin):
     WSGI_APPLICATION = 'rgd_example.wsgi.application'
     ROOT_URLCONF = 'rgd_example.urls'
 
@@ -39,6 +40,9 @@ class RGDExampleProjectMixin(CrispyFormsMixin, ResonantGeoDataBaseMixin, ConfigM
         configuration.REST_FRAMEWORK['DEFAULT_AUTHENTICATION_CLASSES'].append(
             'rest_framework.authentication.BasicAuthentication'
         )
+
+    # To use endpoints from external origin
+    CORS_ORIGIN_ALLOW_ALL = True
 
 
 class DevelopmentConfiguration(RGDExampleProjectMixin, DevelopmentBaseConfiguration):
