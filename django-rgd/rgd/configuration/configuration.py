@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-import os
+import logging
 from typing import Type
 
 try:
@@ -18,23 +18,18 @@ class GeoDjangoMixin(ConfigMixin):
     @staticmethod
     def before_binding(configuration: Type[ComposedConfiguration]):
         configuration.INSTALLED_APPS += ['django.contrib.gis']
-        try:
-            import re
 
+        try:
             import osgeo
 
-            libsdir = os.path.join(
-                os.path.dirname(os.path.dirname(osgeo._gdal.__file__)), 'GDAL.libs'
+            configuration.GDAL_LIBRARY_PATH = osgeo.GDAL_LIBRARY_PATH
+            configuration.GEOS_LIBRARY_PATH = osgeo.GEOS_LIBRARY_PATH
+        except (ImportError, AttributeError):
+            logging.warning(
+                'GDAL wheel not installed, skipping configuration. If you have not '
+                'installed GDAL manually, please install the wheel with the following command: '
+                'pip install --find-links https://girder.github.io/large_image_wheels GDAL'
             )
-            libs = {
-                re.split(r'-|\.', name)[0]: os.path.join(libsdir, name)
-                for name in os.listdir(libsdir)
-            }
-            configuration.GDAL_LIBRARY_PATH = libs['libgdal']
-            configuration.GEOS_LIBRARY_PATH = libs['libgeos_c']
-        except Exception:
-            # TODO: Log that we aren't using the expected GDAL wheel?
-            pass
 
 
 class SwaggerMixin(ConfigMixin):
