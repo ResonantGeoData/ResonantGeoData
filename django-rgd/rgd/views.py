@@ -87,15 +87,13 @@ class _SpatialListView(PermissionListView):
 
 class SpatialEntriesListView(_SpatialListView):
     model = models.SpatialEntry
+    filter = filters.SpatialEntryFilter
     context_object_name = 'spatial_entries'
     template_name = 'rgd/spatialentry_list.html'
 
-    def get_filter_class(self):
-        return filters.SpatialEntryFilter
-
     def get_queryset(self):
-        filterset = self.get_filterclass()
-        queryset = super().get_queryset().select_subclasses().order_by('spatial_id')
+        filterset = self.filter(data=self.request.GET)
+        queryset = self.model.objects.select_subclasses().order_by('spatial_id')
         if not filterset.is_valid():
             message = 'Filter parameters illformed. Full results returned.'
             all_error_messages_content = [
@@ -107,7 +105,7 @@ class SpatialEntriesListView(_SpatialListView):
                 messages.add_message(self.request, messages.ERROR, message)
             return queryset
         queryset = filterset.filter_queryset(queryset)
-        return queryset
+        return permissions.filter_read_perm(self.request.user, queryset)
 
 
 class StatisticsView(PermissionListView):

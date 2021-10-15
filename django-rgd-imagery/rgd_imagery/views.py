@@ -14,11 +14,9 @@ class ImageSetDetailView(PermissionDetailView):
 
 class RasterMetaEntriesListView(SpatialEntriesListView):
     model = models.RasterMeta
+    filter = filters.RasterMetaFilter
     context_object_name = 'spatial_entries'
     template_name = 'rgd_imagery/rastermeta_list.html'
-
-    def get_filter_class(self):
-        return filters.RasterMetaFilter
 
 
 class RasterDetailView(_SpatialDetailView):
