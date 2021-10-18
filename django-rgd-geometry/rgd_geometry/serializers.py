@@ -1,6 +1,5 @@
 import json
 
-from rgd import utility
 from rgd.serializers import SpatialEntrySerializer
 
 from . import models
@@ -21,6 +20,3 @@ class GeometryDataSerializer(GeometrySerializer):
     class Meta:
         model = models.Geometry
         fields = '__all__'
-
-
-utility.make_serializers(globals(), models)

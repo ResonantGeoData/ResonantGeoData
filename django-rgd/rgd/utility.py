@@ -2,10 +2,11 @@ import contextlib
 from contextlib import contextmanager
 from functools import wraps
 import hashlib
-import inspect
+import io
 import logging
 import os
 from pathlib import Path, PurePath
+import shutil
 import tempfile
 from typing import Any, Generator
 from urllib.error import HTTPError
@@ -13,14 +14,14 @@ from urllib.parse import urlparse
 from urllib.request import urlopen
 from uuid import uuid4
 
+import boto3
+from botocore import UNSIGNED
+from botocore.config import Config
 from django.conf import settings
-from django.db.models import fields
-from django.db.models.fields import AutoField
-from django.db.models.fields.files import FieldFile, FileField
-from django.http import QueryDict
+from django.contrib.gis.db.models import Model
+from django.core.files import File
+from django.db.models.fields.files import FieldFile
 from django.utils.safestring import mark_safe
-from django_filters.rest_framework import DjangoFilterBackend
-from rest_framework import parsers, serializers, viewsets
 
 try:
     from minio_storage.storage import MinioStorage
@@ -31,29 +32,29 @@ logger = logging.getLogger(__name__)
 
 
 @contextmanager
-def safe_urlopen(url, *args, **kwargs):
+def safe_urlopen(url: str, *args, **kwargs):
     with contextlib.closing(urlopen(url, *args, **kwargs)) as remote:
         yield remote
 
 
-def _compute_hash(handle, chunk_num_blocks):
+def compute_hash(handle: io.BufferedIOBase, chunk_num_blocks: int = 128):
     sha = hashlib.sha512()
     while chunk := handle.read(chunk_num_blocks * sha.block_size):
         sha.update(chunk)
     return sha.hexdigest()
 
 
-def compute_checksum_file(field_file: FieldFile, chunk_num_blocks=128):
+def compute_checksum_file_field(field_file: FieldFile, chunk_num_blocks: int = 128):
     with field_file.open() as f:
-        return _compute_hash(f, chunk_num_blocks)
+        return compute_hash(f, chunk_num_blocks)
 
 
-def compute_checksum_url(url: str, chunk_num_blocks=128):
+def compute_checksum_url(url: str, chunk_num_blocks: int = 128):
     with safe_urlopen(url) as remote:
-        return _compute_hash(remote, chunk_num_blocks)
+        return compute_hash(remote, chunk_num_blocks)
 
 
-def _link_url(obj, field):
+def _link_url(obj: Model, field: str):
     if not getattr(obj, field, None):
         return 'No attachment'
     attr = getattr(obj, field)
@@ -64,110 +65,7 @@ def _link_url(obj, field):
     return mark_safe(f'<a href="{url}" download>Download</a>')
 
 
-class MultiPartJsonParser(parsers.MultiPartParser):
-    def parse(self, stream, media_type=None, parser_context=None):
-        result = super().parse(stream, media_type=media_type, parser_context=parser_context)
-
-        model = None
-        qdict = QueryDict('', mutable=True)
-        if parser_context and 'view' in parser_context:
-            model = parser_context['view'].get_serializer_class().Meta.model
-        for key, value in result.data.items():
-            # Handle ManytoMany field data, parses lists of comma-separated integers that might be quoted. eg. "1,2"
-            if isinstance(getattr(model, key), fields.related_descriptors.ManyToManyDescriptor):
-                for val in value.split(','):
-                    qdict.update({key: val.strip('"')})
-            else:
-                qdict.update({key: value})
-
-        return parsers.DataAndFiles(qdict, result.files)
-
-
-def create_serializer(model, fields=None):
-    """Dynamically generate serializer class from model class."""
-    if not fields:
-        fields = '__all__'
-
-    meta_class = type('Meta', (), {'model': model, 'fields': fields})
-    serializer_name = model.__name__ + 'Serializer'
-    return type(serializer_name, (serializers.ModelSerializer,), {'Meta': meta_class})
-
-
-def create_serializers(models_file, fields=None):
-    """Return list of serializer classes from all of the models in the given file."""
-    from django.contrib.gis.db import models as base_models
-
-    serializers = []
-    for model_name, model in inspect.getmembers(models_file):
-        if inspect.isclass(model):
-            if model.__bases__[0] == base_models.Model:
-                model_fields = {}
-                if model_name in fields:
-                    model_fields = fields[model_name]
-                serializers.append(create_serializer(model, model_fields))
-    return serializers
-
-
-def get_filter_fields(model):
-    """
-    Return a list of all filterable fields of Model.
-
-    -Takes: Model type
-    -Returns: A list of fields as string (excluding ID and file uploading)
-    """
-    model_fields = model._meta.get_fields()
-    fields = []
-    for field in model_fields:
-        res = str(field).split('.')
-        if res[1] == model.__name__ and not isinstance(field, (AutoField, FileField)):
-            fields.append(field.name)
-    return fields
-
-
-def create_viewset(serializer, parsers=(MultiPartJsonParser,)):
-    """Dynamically create viewset for API router."""
-    model = serializer.Meta.model
-    model_name = model.__name__
-    return type(
-        model_name + 'ViewSet',
-        (viewsets.ModelViewSet,),
-        {
-            'parser_classes': parsers,
-            'queryset': model.objects.all(),
-            'serializer_class': serializer,
-            'filter_backends': [DjangoFilterBackend],
-            'filterset_fields': get_filter_fields(model),
-        },
-    )
-
-
-def make_serializers(serializer_scope, models):
-    """Make serializers for any model that doesn't already have one.
-
-    This should be called after specific serializer classes are created.  Serializers are created named <model_name>Serializer.
-
-    :param serializer_scope: the scope where serializers on the models are defined.  In a serializers.py file, this will be globals().
-    :param models: a namespace with defined models for which to create serializers.  This can be a models module.
-    """
-    from django.contrib.gis.db import models as base_models
-
-    for _model_name, model in inspect.getmembers(models):
-        if not inspect.isclass(model):
-            continue
-        parent = model
-        while len(parent.__bases__):
-            if base_models.Model in parent.__bases__:
-                break
-            parent = parent.__bases__[0]
-        if base_models.Model in parent.__bases__:
-            model_fields = {}
-            serializer_class = create_serializer(model, model_fields)
-            serializer_name = serializer_class.__name__
-            if serializer_name not in serializer_scope:
-                serializer_scope[serializer_name] = serializer_class
-
-
-def get_or_create_no_commit(model, defaults=None, **kwargs):
+def get_or_create_no_commit(model: Model, defaults: dict = None, **kwargs):
     try:
         return model.objects.get(**kwargs), False
     except model.DoesNotExist:
@@ -177,20 +75,54 @@ def get_or_create_no_commit(model, defaults=None, **kwargs):
         return model(**defaults), True
 
 
-@contextmanager
-def url_file_to_local_path(
-    url: str, num_blocks=128, block_size=128, override_name=None
-) -> Generator[Path, None, None]:
-    with safe_urlopen(url) as remote:
-        if override_name:
-            suffix = override_name
-        else:
-            suffix = PurePath(os.path.basename(url)).name
-        with tempfile.NamedTemporaryFile('wb', suffix=suffix) as dest_stream:
+def get_s3_client():
+    if boto3.session.Session().get_credentials():
+        s3 = boto3.client('s3')
+    else:
+        # No credentials present (often the case in dev), use unsigned requests
+        s3 = boto3.client('s3', config=Config(signature_version=UNSIGNED))
+    return s3
+
+
+def _download_url_file_to_stream(
+    url: str, dest_stream: io.BufferedIOBase, num_blocks: int = 128, block_size: int = 128
+):
+    parsed = urlparse(url)
+    if parsed.scheme == 's3':
+        s3 = get_s3_client()
+        s3.download_fileobj(parsed.netloc, parsed.path.lstrip('/'), dest_stream)
+    else:
+        with safe_urlopen(url) as remote:
             while chunk := remote.read(num_blocks * block_size):
                 dest_stream.write(chunk)
                 dest_stream.flush()
-            yield Path(dest_stream.name)
+
+
+@contextmanager
+def url_file_to_local_path(
+    url: str, num_blocks: int = 128, block_size: int = 128, override_name: str = None
+) -> Generator[Path, None, None]:
+    if override_name:
+        suffix = override_name
+    else:
+        suffix = PurePath(os.path.basename(url)).name
+    with tempfile.NamedTemporaryFile('wb', suffix=suffix) as dest_stream:
+        _download_url_file_to_stream(url, dest_stream, num_blocks=num_blocks, block_size=block_size)
+        yield Path(dest_stream.name)
+
+
+def download_url_file_to_local_path(
+    url: str,
+    directory: str,
+    relative_path: str,
+    num_blocks: int = 128,
+    block_size: int = 128,
+) -> Path:
+    dest_path = Path(os.path.join(directory, relative_path))
+    dest_path.parent.mkdir(parents=True, exist_ok=True)
+    with open(dest_path, 'wb') as dest_stream:
+        _download_url_file_to_stream(url, dest_stream, num_blocks=num_blocks, block_size=block_size)
+    return Path(dest_path)
 
 
 def precheck_fuse(url: str) -> bool:
@@ -221,7 +153,7 @@ def url_file_to_fuse_path(url: str) -> Generator[Path, None, None]:
     elif parsed.scheme == 'http':
         fuse_path = url.replace('http://', '/tmp/rgd/http/') + '..'
     else:
-        raise ValueError(f'Scheme {parsed.scheme} not currently handled.')
+        raise ValueError(f'Scheme {parsed.scheme} not currently handled by FUSE.')
     logger.info(f'FUSE path: {fuse_path}')
     yield Path(fuse_path)
 
@@ -310,3 +242,30 @@ def skip_signal():
         return _decorator
 
     return _skip_signal
+
+
+def download_field_file_to_local_path(
+    field_file: FieldFile, directory: str, relative_path: str
+) -> Path:
+    """Download entire FieldFile to disk location.
+
+    This overrides `girder_utils.field_file_to_local_path` to download file to local path without a context manager. Cleanup must be handled by caller.
+
+    """
+    dest_path = Path(os.path.join(directory, relative_path))
+    dest_path.parent.mkdir(parents=True, exist_ok=True)
+    with field_file.open('rb'):
+        file_obj: File = field_file.file
+        if type(file_obj) is File:
+            # When file_obj is an actual File, (typically backed by FileSystemStorage),
+            # it is already at a stable path on disk.
+            # We must symlink it into the desired path
+            os.symlink(file_obj.name, dest_path)
+            return Path(dest_path)
+        else:
+            # When file_obj is actually a subclass of File, it only provides a Python
+            # file-like object API. So, it must be copied to a stable path.
+            with open(dest_path, 'wb') as dest_stream:
+                shutil.copyfileobj(file_obj, dest_stream)
+                dest_stream.flush()
+            return Path(dest_path)

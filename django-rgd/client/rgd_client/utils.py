@@ -12,6 +12,9 @@ from .types import DATETIME_OR_STR_TUPLE, SEARCH_PREDICATE_CHOICE
 
 DEFAULT_RGD_API = 'https://www.resonantgeodata.com/api'
 
+API_KEY_DIR_PATH = Path('~/.rgd/').expanduser()
+API_KEY_FILE_NAME = 'token'
+
 
 def pager(session: Session, url: str, **kwargs) -> Iterator[Response]:
     """Exhaust a DRF Paginated list."""

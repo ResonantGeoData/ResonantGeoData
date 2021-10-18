@@ -27,10 +27,10 @@
     for(const option in options){
       var newOption = document.createElement('option');
       newOption.value = option;
-      newOption.text = option;
+      newOption.text = options[option].name ? options[option].name : option;
     document.getElementById('basemapDropdown').appendChild(newOption)
     }
-     
+
     // Initialize the map
     let map = geo.map({
       node: '#map',

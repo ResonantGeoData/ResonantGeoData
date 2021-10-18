@@ -13,8 +13,11 @@ from girder_utils.files import field_file_to_local_path
 from model_utils.managers import InheritanceManager
 from rgd.utility import (
     _link_url,
-    compute_checksum_file,
+    compute_checksum_file_field,
     compute_checksum_url,
+    compute_hash,
+    download_field_file_to_local_path,
+    download_url_file_to_local_path,
     patch_internal_presign,
     precheck_fuse,
     safe_urlopen,
@@ -24,7 +27,7 @@ from rgd.utility import (
 )
 from s3_file_field import S3FileField
 
-# from .. import tasks
+from .. import tasks
 from .collection import Collection
 from .constants import DB_SRID
 from .mixins import PermissionPathMixin, TaskEventMixin
@@ -117,9 +120,7 @@ class ChecksumFile(TimeStampedModel, TaskEventMixin, PermissionPathMixin):
     file = S3FileField(null=True, blank=True, upload_to=uuid_prefix_filename)
     url = models.TextField(null=True, blank=True)
 
-    task_funcs = (
-        # tasks.task_checksum_file_post_save,
-    )
+    task_funcs = (tasks.task_checksum_file_post_save,)
     permissions_paths = [('collection', Collection)]
 
     class Meta:
@@ -147,9 +148,15 @@ class ChecksumFile(TimeStampedModel, TaskEventMixin, PermissionPathMixin):
     def get_checksum(self):
         """Compute a new checksum without saving it."""
         if self.type == FileSourceType.FILE_FIELD:
-            return compute_checksum_file(self.file)
+            return compute_checksum_file_field(self.file)
         elif self.type == FileSourceType.URL:
-            return compute_checksum_url(self.url)
+            parsed = urlparse(self.url)
+            if parsed.scheme in ['https', 'http']:
+                return compute_checksum_url(self.url)
+            else:
+                with self.yield_local_path() as path:
+                    with open(path, 'rb') as f:
+                        return compute_hash(f)
         else:
             raise NotImplementedError(f'Type ({self.type}) not supported.')
 
@@ -196,11 +203,13 @@ class ChecksumFile(TimeStampedModel, TaskEventMixin, PermissionPathMixin):
             if self.type == FileSourceType.FILE_FIELD and self.file.name:
                 self.name = os.path.basename(self.file.name)
             elif self.type == FileSourceType.URL:
-                try:
-                    with safe_urlopen(self.url) as r:
-                        self.name = r.info().get_filename()
-                except (AttributeError, ValueError, URLError):
-                    pass
+                parsed = urlparse(self.url)
+                if parsed.scheme in ['https', 'http']:
+                    try:
+                        with safe_urlopen(self.url) as r:
+                            self.name = r.info().get_filename()
+                    except (AttributeError, ValueError, URLError):
+                        pass
                 if not self.name:
                     # Fallback
                     self.name = os.path.basename(urlparse(self.url).path)
@@ -213,7 +222,17 @@ class ChecksumFile(TimeStampedModel, TaskEventMixin, PermissionPathMixin):
         # Must save the model with the file before accessing it for the checksum
         super(ChecksumFile, self).save(*args, **kwargs)
 
-    def yield_local_path(self, vsi=False, try_fuse=True, override_name=None):
+    def download_to_local_path(self, directory: str):
+        """Forcibly download this file to a directory on disk.
+
+        Cleanup must be handled by caller.
+        """
+        if self.type == FileSourceType.FILE_FIELD:
+            return download_field_file_to_local_path(self.file, directory, self.name)
+        elif self.type == FileSourceType.URL:
+            return download_url_file_to_local_path(self.url, directory, self.name)
+
+    def yield_local_path(self, vsi: bool = False, try_fuse: bool = True, override_name: str = None):
         """Create a local path for the file to be accessed.
 
         This will first attempt to use httpfs to FUSE mount the file's URL.
@@ -246,7 +265,7 @@ class ChecksumFile(TimeStampedModel, TaskEventMixin, PermissionPathMixin):
         elif self.type == FileSourceType.URL:
             return url_file_to_local_path(self.url, override_name=override_name)
 
-    def get_url(self, internal=False):
+    def get_url(self, internal: bool = False):
         """Get the URL of the stored resource.
 
         Parameters
@@ -273,7 +292,7 @@ class ChecksumFile(TimeStampedModel, TaskEventMixin, PermissionPathMixin):
 
     data_link.allow_tags = True
 
-    def get_vsi_path(self, internal=False) -> str:
+    def get_vsi_path(self, internal: bool = False) -> str:
         """Return the GDAL Virtual File Systems [0] URL.
 
         This currently formulates the `/vsicurl/...` URL [1] for internal and
@@ -318,7 +337,7 @@ class ChecksumFile(TimeStampedModel, TaskEventMixin, PermissionPathMixin):
         return vsi
 
     @contextlib.contextmanager
-    def yield_vsi_path(self, internal=False):
+    def yield_vsi_path(self, internal: bool = False):
         """Wrap ``get_vsi_path`` in a context manager."""
         yield self.get_vsi_path(internal=internal)
 

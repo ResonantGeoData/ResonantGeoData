@@ -1,6 +1,6 @@
 # [![logo](https://raw.githubusercontent.com/ResonantGeoData/ResonantGeoData/main/logos/RGD_Logo.png)](https://github.com/ResonantGeoData/ResonantGeoData/)
 
-[![codecov](https://codecov.io/gh/ResonantGeoData/ResonantGeoData/branch/master/graph/badge.svg)](https://codecov.io/gh/ResonantGeoData/ResonantGeoData)
+[![codecov](https://codecov.io/gh/ResonantGeoData/ResonantGeoData/branch/main/graph/badge.svg?token=GODOWLJ5JT)](https://codecov.io/gh/ResonantGeoData/ResonantGeoData)
 [![ci](https://github.com/ResonantGeoData/ResonantGeoData/actions/workflows/ci.yml/badge.svg?branch=master)](https://github.com/ResonantGeoData/ResonantGeoData/actions/workflows/ci.yml)
 
 > Geospatial Data API in Django
