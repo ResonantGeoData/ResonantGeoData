@@ -1,4 +1,3 @@
-from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework.generics import ListAPIView
 from rgd import serializers
 from rgd.filters import SpatialEntryFilter
