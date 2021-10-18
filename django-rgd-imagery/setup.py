@@ -53,7 +53,7 @@ setup(
         'large-image-source-tiff>=1.8.1.dev7',
         'tifftools>=1.2.0',
         'numpy',
-        'pystac',
+        'pystac>=1.1.0',
         'shapely',
     ],
     extras_require={
