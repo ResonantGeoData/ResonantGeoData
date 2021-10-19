@@ -13,6 +13,7 @@ class ReadOnlyModelViewSet(
     viewsets.GenericViewSet,
 ):
     """A viewset for read models.
+
     Provides default `list()` and `retrieve()` actions.
     """
 
@@ -28,7 +29,9 @@ class ModelViewSet(
     mixins.ListModelMixin,
     viewsets.GenericViewSet,
 ):
-    """A viewset for read and edit models.
+    """
+    A viewset for read and edit models.
+
     Provides default `create()`, `retrieve()`, `update()`,
     `partial_update()`, `destroy()` and `list()` actions.
     """
