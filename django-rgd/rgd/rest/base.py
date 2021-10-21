@@ -1,13 +1,10 @@
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import mixins, viewsets
-
-
-class BaseViewMixin:
-    filter_backends = [DjangoFilterBackend]
+from rgd.rest.mixins import BaseRestViewMixin
 
 
 class ReadOnlyModelViewSet(
-    BaseViewMixin,
+    BaseRestViewMixin,
     mixins.RetrieveModelMixin,
     mixins.ListModelMixin,
     viewsets.GenericViewSet,
@@ -21,7 +18,7 @@ class ReadOnlyModelViewSet(
 
 
 class ModelViewSet(
-    BaseViewMixin,
+    BaseRestViewMixin,
     mixins.CreateModelMixin,
     mixins.RetrieveModelMixin,
     mixins.UpdateModelMixin,
