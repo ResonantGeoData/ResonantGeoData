@@ -1,12 +1,8 @@
-from django_filters.rest_framework import DjangoFilterBackend
 from drf_yasg.utils import swagger_auto_schema
 from rest_framework import mixins, viewsets
 from rest_framework.decorators import action
 from rest_framework.response import Response
-
-
-class BaseViewMixin:
-    filter_backends = [DjangoFilterBackend]
+from rgd.rest.mixins import BaseRestViewMixin
 
 
 class TaskEventViewMixin:
@@ -35,7 +31,7 @@ class TaskEventViewMixin:
 
 
 class ReadOnlyModelViewSet(
-    BaseViewMixin,
+    BaseRestViewMixin,
     mixins.RetrieveModelMixin,
     mixins.ListModelMixin,
     viewsets.GenericViewSet,
@@ -49,7 +45,7 @@ class ReadOnlyModelViewSet(
 
 
 class ModelViewSet(
-    BaseViewMixin,
+    BaseRestViewMixin,
     mixins.CreateModelMixin,
     mixins.RetrieveModelMixin,
     mixins.UpdateModelMixin,

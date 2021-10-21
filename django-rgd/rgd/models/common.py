@@ -141,6 +141,10 @@ class ChecksumFile(TimeStampedModel, TaskEventMixin, PermissionPathMixin):
             )
         ]
 
+    @property
+    def basename(self):
+        return os.path.basename(self.name)
+
     def get_checksum(self):
         """Compute a new checksum without saving it."""
         if self.type == FileSourceType.FILE_FIELD:
