@@ -1,24 +1,35 @@
 import json
 
 from django.contrib import messages
+from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib.gis.db.models import Collect, Extent
 from django.contrib.gis.db.models.functions import AsGeoJSON, Centroid
 from django.contrib.postgres.aggregates import ArrayAgg
 from django.db.models import Count, Max, Min, Q
 from django.shortcuts import redirect
 from django.views import generic
-from django.views.generic import DetailView
+from django.views.generic import DetailView, TemplateView
 from rest_framework.reverse import reverse
 from rgd import permissions
 
 from . import filters, models
 
 
-class PermissionDetailView(DetailView):
+class PermissionTemplateView(LoginRequiredMixin, TemplateView):
+    pass
+
+
+class PermissionDetailView(LoginRequiredMixin, DetailView):
     def get_object(self):
         obj = super().get_object()
         permissions.check_read_perm(self.request.user, obj)
         return obj
+
+
+class PermissionListView(LoginRequiredMixin, generic.ListView):
+    def get_queryset(self):
+        queryset = super().get_queryset()
+        return permissions.filter_read_perm(self.request.user, queryset)
 
 
 def query_params(params):
@@ -30,12 +41,12 @@ def query_params(params):
     return '&' + query.urlencode() if query.urlencode() else ''
 
 
-class _SpatialListView(generic.ListView):
+class _SpatialListView(PermissionListView):
     paginate_by = 15
 
     def _get_extent_summary(self, object_list):
         ids = [o.spatial_id for o in object_list]
-        queryset = self.model.objects.filter(spatial_id__in=ids)
+        queryset = self.get_queryset().filter(spatial_id__in=ids)
         summary = queryset.aggregate(
             Collect('outline'),
             Extent('outline'),
@@ -97,15 +108,11 @@ class SpatialEntriesListView(_SpatialListView):
         return permissions.filter_read_perm(self.request.user, queryset)
 
 
-class StatisticsView(generic.ListView):
+class StatisticsView(PermissionListView):
     paginate_by = None
     model = models.SpatialEntry
     context_object_name = 'spatial_entries'
     template_name = 'rgd/statistics.html'
-
-    def get_queryset(self):
-        queryset = self.model.objects.all()
-        return permissions.filter_read_perm(self.request.user, queryset)
 
     def get_context_data(self, *args, **kwargs):
         context = super().get_context_data(*args, **kwargs)
@@ -141,11 +148,6 @@ class StatisticsView(generic.ListView):
 
 
 class _SpatialDetailView(PermissionDetailView):
-    def get_object(self):
-        obj = super().get_object()
-        permissions.check_read_perm(self.request.user, obj)
-        return obj
-
     def _get_extent(self, object):
         extent = {
             'count': 0,

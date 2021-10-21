@@ -5,41 +5,41 @@ from rest_framework.generics import RetrieveAPIView
 from rest_framework.response import Response
 from rgd.models.mixins import Status
 from rgd.permissions import check_read_perm
-from rgd.rest.get import _PermissionMixin
+from rgd.rest.mixins import BaseRestViewMixin
 from rgd_imagery import models, serializers
 
 
-class GetProcessedImage(RetrieveAPIView, _PermissionMixin):
+class GetProcessedImage(BaseRestViewMixin, RetrieveAPIView):
     serializer_class = serializers.ProcessedImageSerializer
     lookup_field = 'pk'
     queryset = models.ProcessedImage.objects.all()
 
 
-class GetImageMeta(RetrieveAPIView, _PermissionMixin):
+class GetImageMeta(BaseRestViewMixin, RetrieveAPIView):
     serializer_class = serializers.ImageMetaSerializer
     lookup_field = 'pk'
     queryset = models.ImageMeta.objects.all()
 
 
-class GetImageSet(RetrieveAPIView, _PermissionMixin):
+class GetImageSet(BaseRestViewMixin, RetrieveAPIView):
     serializer_class = serializers.ImageSetSerializer
     lookup_field = 'pk'
     queryset = models.ImageSet.objects.all()
 
 
-class GetImageSetSpatial(RetrieveAPIView, _PermissionMixin):
+class GetImageSetSpatial(BaseRestViewMixin, RetrieveAPIView):
     serializer_class = serializers.ImageSetSpatialSerializer
     lookup_field = 'pk'
     queryset = models.ImageSetSpatial.objects.all()
 
 
-class GetRasterMeta(RetrieveAPIView, _PermissionMixin):
+class GetRasterMeta(BaseRestViewMixin, RetrieveAPIView):
     serializer_class = serializers.RasterMetaSerializer
     lookup_field = 'pk'
     queryset = models.RasterMeta.objects.all()
 
 
-class GetRasterMetaSTAC(RetrieveAPIView, _PermissionMixin):
+class GetRasterMetaSTAC(BaseRestViewMixin, RetrieveAPIView):
     serializer_class = serializers.stac.ItemSerializer
     lookup_field = 'pk'
     queryset = models.RasterMeta.objects.all()

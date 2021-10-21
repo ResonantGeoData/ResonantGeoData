@@ -7,11 +7,12 @@ from large_image_source_gdal import GDALFileTileSource
 from rest_framework.request import Request
 from rest_framework.response import Response
 from rest_framework.views import APIView
+from rgd.rest.mixins import BaseRestViewMixin
 from rgd_imagery import large_image_utilities
 from rgd_imagery.models import Image
 
 
-class BaseTileView(APIView):
+class BaseTileView(BaseRestViewMixin, APIView):
     def get_tile_source(self, request: Request, pk: int) -> FileTileSource:
         """Return the built tile source."""
         image_entry = get_object_or_404(Image, pk=pk)
@@ -71,7 +72,7 @@ class TileCornersView(BaseTileView):
 class TileThumnailView(BaseTileView):
     """Returns tile thumbnail."""
 
-    def get(self, request: Request, pk: int) -> Response:
+    def get(self, request: Request, pk: int) -> HttpResponse:
         tile_source = self.get_tile_source(request, pk)
         thumb_data, mime_type = tile_source.getThumbnail(encoding='PNG')
         return HttpResponse(thumb_data, content_type=mime_type)
