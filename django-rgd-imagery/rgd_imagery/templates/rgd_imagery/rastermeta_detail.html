@@ -44,8 +44,8 @@
 {% block extra_meta %}
 
   <select id="image-selector" onchange="updateImage()">
-    {% for image in object.parent_raster.image_set.images.all %}
-      <option value="{{ image.id }}">{{ image.file.name | truncatechars:36 }}</option>
+    {% for image in object.parent_raster.image_set.all_images.all %}
+      <option value="{{ image.id }}">{{ image.file.basename }}</option>
     {% endfor %}
     <option value="-1">-- none --</option>
   </select>
@@ -76,7 +76,7 @@
 
     {% comment %} Save available bands for each image into a JSON object keyed by the image id {% endcomment %}
     const bands = {
-      {% for image in object.parent_raster.image_set.images.all %}
+      {% for image in object.parent_raster.image_set.all_images.all %}
         "{{image.id}}": [
           {% for bmeta in image.bandmeta_set.all %}
             {
