@@ -1,4 +1,3 @@
-from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import mixins, viewsets
 from rgd.rest.mixins import BaseRestViewMixin
 
