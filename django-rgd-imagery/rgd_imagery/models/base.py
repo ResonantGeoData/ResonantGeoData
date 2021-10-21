@@ -31,13 +31,17 @@ class Image(TimeStampedModel, TaskEventMixin, PermissionPathMixin):
     def number_of_bands(self):
         return self.bandmeta_set.count()
 
+    def get_processed_images(self, images=None):
+        if images is None:
+            images = set()
+        for proc in self.processedimage_set.exclude(processed_image__in=images):
+            images.add(proc.processed_image)
+            images.update(proc.processed_image.get_processed_images(images))
+        return images
+
     @property
     def processed_images(self):
-        images = set()
-        for proc in self.processedimage_set.all():
-            images.add(proc.processed_image)
-            images.update(proc.processed_image.processed_images)
-        return images
+        return self.get_processed_images(self)
 
 
 class ImageMeta(TimeStampedModel, PermissionPathMixin):
@@ -109,7 +113,7 @@ class ImageSet(TimeStampedModel, PermissionPathMixin):
     def processed_images(self):
         images = set()
         for image in self.images.all():
-            images.update(image.processed_images)
+            images.update(image.get_processed_images(images))
         pks = [im.pk for im in images]
         return Image.objects.filter(pk__in=pks).order_by('pk')
 
@@ -118,7 +122,7 @@ class ImageSet(TimeStampedModel, PermissionPathMixin):
         images = set()
         for image in self.images.all():
             images.add(image)
-            images.update(image.processed_images)
+            images.update(image.get_processed_images(images))
         pks = [im.pk for im in images]
         return Image.objects.filter(pk__in=pks).order_by('pk')
 
