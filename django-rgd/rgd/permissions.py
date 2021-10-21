@@ -5,6 +5,7 @@ from django.conf import settings
 from django.contrib.auth.backends import BaseBackend
 from django.core.exceptions import PermissionDenied
 from django.db.models import Model, Q
+from rest_framework import filters, permissions
 from rgd import models
 
 
@@ -150,3 +151,42 @@ class CollectionAuthorizationBackend(BaseBackend):
                 or codename.startswith('change')
             ):
                 check_write_perm(user, obj)
+
+
+class CollectionAuthorization(permissions.BasePermission):
+    """A custom Django REST Framework permission backend.
+
+    Object-level permission to only allow owners of an object to edit it
+    and readers to view it. This will not filter the queryset in 'list' views.
+    You should use this in combination with the `CollectionAuthorizationFilter` to
+    also filter the queryset in 'list' views.
+
+    https://www.django-rest-framework.org/api-guide/permissions/#custom-permissions
+    """
+
+    def has_object_permission(self, request, view, obj):
+        # Check read permissions for GET, HEAD or OPTIONS requests.
+        if request.method in permissions.SAFE_METHODS:
+            check_read_perm(request.user, obj)
+        else:
+            check_write_perm(request.user, obj)
+        # The above calls should raise an exception if the user does not have permissions.
+        return True
+
+
+class CollectionAuthorizationFilter(filters.BaseFilterBackend):
+    """A custom Django REST Framework filter backend for permissions.
+
+    As a result of applying this filter, objects that the user does not have persmissions
+    to view will return a '404' since the queryset is filtered before object-level
+    permissions are checked.
+
+    https://www.django-rest-framework.org/api-guide/permissions/#custom-permissions
+    """
+
+    def filter_queryset(self, request, queryset, view):
+        # Check read permissions for GET, HEAD or OPTIONS requests.
+        if request.method in permissions.SAFE_METHODS:
+            return filter_read_perm(request.user, queryset)
+        # Otherwise, assume this is a writable query.
+        return filter_write_perm(request.user, queryset)
