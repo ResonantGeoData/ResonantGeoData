@@ -5,7 +5,7 @@ from rest_framework.response import Response
 from rgd.rest.mixins import BaseRestViewMixin
 
 
-class TaskEventViewMixin:
+class TaskEventViewSetMixin:
     """
     Mixin for any TaskEventMixin model.
 
