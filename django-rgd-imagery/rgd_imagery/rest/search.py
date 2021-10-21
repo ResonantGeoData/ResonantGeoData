@@ -1,5 +1,5 @@
 from rest_framework.generics import ListAPIView
-from rgd.mixins import BaseRestViewMixin
+from rgd.rest.mixins import BaseRestViewMixin
 from rgd_imagery import serializers
 from rgd_imagery.filters import RasterMetaFilter
 from rgd_imagery.models import RasterMeta

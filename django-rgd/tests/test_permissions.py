@@ -3,8 +3,8 @@ from django.conf import settings
 import pytest
 from rest_framework.authtoken.views import ObtainAuthToken
 from rgd import models
-from rgd.mixins import BaseRestViewMixin
 from rgd.permissions import filter_read_perm, filter_write_perm
+from rgd.rest.mixins import BaseRestViewMixin
 from rgd.urls import urlpatterns
 from rgd.views import PermissionDetailView, PermissionListView, PermissionTemplateView
 from rgd_testing_utils.helpers import check_model_permissions

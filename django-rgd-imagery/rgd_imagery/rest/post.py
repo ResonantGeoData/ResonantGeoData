@@ -1,5 +1,5 @@
 from rest_framework.generics import CreateAPIView
-from rgd.mixins import BaseRestViewMixin
+from rgd.rest.mixins import BaseRestViewMixin
 from rgd_imagery import models, serializers
 
 

@@ -7,7 +7,7 @@ from large_image_source_gdal import GDALFileTileSource
 from rest_framework.request import Request
 from rest_framework.response import Response
 from rest_framework.views import APIView
-from rgd.mixins import BaseRestViewMixin
+from rgd.rest.mixins import BaseRestViewMixin
 from rgd_imagery import large_image_utilities
 from rgd_imagery.models import Image
 

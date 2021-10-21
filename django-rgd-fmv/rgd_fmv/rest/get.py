@@ -1,5 +1,5 @@
 from rest_framework.generics import RetrieveAPIView
-from rgd.mixins import BaseRestViewMixin
+from rgd.rest.mixins import BaseRestViewMixin
 from rgd_fmv import models, serializers
 
 

@@ -1,8 +1,8 @@
 from rest_framework.generics import ListAPIView
 from rgd import serializers
 from rgd.filters import SpatialEntryFilter
-from rgd.mixins import BaseRestViewMixin
 from rgd.models import SpatialEntry
+from rgd.rest.mixins import BaseRestViewMixin
 
 
 class SearchSpatialEntryView(BaseRestViewMixin, ListAPIView):

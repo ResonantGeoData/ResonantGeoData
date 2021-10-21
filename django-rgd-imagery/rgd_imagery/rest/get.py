@@ -3,9 +3,9 @@ from drf_yasg.utils import swagger_auto_schema
 from rest_framework.decorators import api_view
 from rest_framework.generics import RetrieveAPIView
 from rest_framework.response import Response
-from rgd.mixins import BaseRestViewMixin
 from rgd.models.mixins import Status
 from rgd.permissions import check_read_perm
+from rgd.rest.mixins import BaseRestViewMixin
 from rgd_imagery import models, serializers
 
 

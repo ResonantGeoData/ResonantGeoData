@@ -1,6 +1,6 @@
 from rest_framework.generics import CreateAPIView
 from rgd import models, serializers
-from rgd.mixins import BaseRestViewMixin
+from rgd.rest.mixins import BaseRestViewMixin
 
 
 class CreateCollection(BaseRestViewMixin, CreateAPIView):

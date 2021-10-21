@@ -1,8 +1,8 @@
 from django.conf import settings
 from rest_framework.generics import GenericAPIView
 from rest_framework.response import Response
-from rgd.mixins import BaseRestViewMixin
 from rgd.models import Collection
+from rgd.rest.mixins import BaseRestViewMixin
 from rgd_imagery import models, serializers
 
 from ..filters import STACSimpleFilter

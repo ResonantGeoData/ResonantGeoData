@@ -1,5 +1,5 @@
 from django.apps import apps
-from rgd.mixins import BaseRestViewMixin
+from rgd.rest.mixins import BaseRestViewMixin
 from rgd.views import PermissionDetailView, PermissionListView, PermissionTemplateView
 from rgd_fmv.urls import urlpatterns
 from rgd_testing_utils.helpers import check_model_permissions
