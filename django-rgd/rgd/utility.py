@@ -32,11 +32,15 @@ logger = logging.getLogger(__name__)
 
 
 def get_temp_dir():
-    return getattr(settings, 'RGD_TEMP_DIR', os.path.join(tempfile.gettempdir(), 'rgd'))
+    path = Path(getattr(settings, 'RGD_TEMP_DIR', os.path.join(tempfile.gettempdir(), 'rgd')))
+    path.mkdir(parents=True, exist_ok=True)
+    return path
 
 
 def get_cache_dir():
-    return os.path.join(get_temp_dir(), 'file_cache')
+    path = Path(os.path.join(get_temp_dir(), 'file_cache'))
+    path.mkdir(parents=True, exist_ok=True)
+    return path
 
 
 @contextmanager
