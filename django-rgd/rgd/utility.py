@@ -5,7 +5,7 @@ import hashlib
 import io
 import logging
 import os
-from pathlib import Path, PurePath
+from pathlib import Path
 import shutil
 import tempfile
 from typing import Any, Generator
