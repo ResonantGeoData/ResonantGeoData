@@ -1,7 +1,10 @@
 import contextlib
+from datetime import datetime
 import json
 import logging
 import os
+from pathlib import Path
+import tempfile
 from urllib.error import URLError
 from urllib.parse import urlencode, urlparse
 
@@ -9,7 +12,7 @@ from crum import get_current_user
 from django.conf import settings
 from django.contrib.gis.db import models
 from django_extensions.db.models import TimeStampedModel
-from girder_utils.files import field_file_to_local_path
+from filelock import FileLock
 from model_utils.managers import InheritanceManager
 from rgd.utility import (
     _link_url,
@@ -22,7 +25,6 @@ from rgd.utility import (
     precheck_fuse,
     safe_urlopen,
     url_file_to_fuse_path,
-    url_file_to_local_path,
     uuid_prefix_filename,
 )
 from s3_file_field import S3FileField
@@ -226,13 +228,39 @@ class ChecksumFile(TimeStampedModel, TaskEventMixin, PermissionPathMixin):
         """Forcibly download this file to a directory on disk.
 
         Cleanup must be handled by caller.
-        """
-        if self.type == FileSourceType.FILE_FIELD:
-            return download_field_file_to_local_path(self.file, directory, self.name)
-        elif self.type == FileSourceType.URL:
-            return download_url_file_to_local_path(self.url, directory, self.name)
 
-    def yield_local_path(self, vsi: bool = False, try_fuse: bool = True, override_name: str = None):
+        This will handle thread locking to prevent multiple processes/threads
+        from trying to download the file at the same time -- only one thread
+        will perfrom the download and the rest will yield the its result.
+
+        """
+        # Thread/process safe locking for file access
+        dest_path = Path(os.path.join(directory, self.name))
+        dest_path.parent.mkdir(parents=True, exist_ok=True)
+        lock_file_path = f'{dest_path}.lock'
+        lock = FileLock(
+            lock_file_path
+        )  # timeout=getattr(settings, 'RGD_FILE_LOCK_TIMEOUT', 10000))
+
+        with lock:  # TODO: handle timeouts in condition
+            # Files older than 7 days will be re-downloaded
+            if (
+                os.path.exists(dest_path)
+                and os.path.getsize(dest_path) > 0
+                and (datetime.now() - datetime.fromtimestamp(os.path.getmtime(dest_path))).days
+                <= getattr(settings, 'RGD_FILE_CACHE_MAX_DAYS', 7)
+            ):
+                # File already exists (is cached)
+                logger.info(f'Found cached file ({self.pk}) at: {dest_path}')
+                return dest_path
+            else:
+                logger.info(f'Downloading file ({self.pk}) to: {dest_path}')
+                if self.type == FileSourceType.FILE_FIELD:
+                    return download_field_file_to_local_path(self.file, dest_path)
+                elif self.type == FileSourceType.URL:
+                    return download_url_file_to_local_path(self.url, dest_path)
+
+    def yield_local_path(self, vsi: bool = False, try_fuse: bool = True):
         """Create a local path for the file to be accessed.
 
         This will first attempt to use httpfs to FUSE mount the file's URL.
@@ -248,9 +276,6 @@ class ChecksumFile(TimeStampedModel, TaskEventMixin, PermissionPathMixin):
         try_fuse : bool
             Try to use the FUSE interface. If false, use VSI or download to
             local storage.
-        override_name : str
-            Optional name to override when downloading a URL file to a local
-            path.
 
         """
         if try_fuse and self.type == FileSourceType.URL and precheck_fuse(self.get_url()):
@@ -258,12 +283,10 @@ class ChecksumFile(TimeStampedModel, TaskEventMixin, PermissionPathMixin):
         elif vsi and self.type != FileSourceType.FILE_FIELD:
             logger.info('`yield_local_path` falling back to Virtual File System URL.')
             return self.yield_vsi_path(internal=True)
-        # Fallback to loading entire file locally
+        # Fallback to loading entire file locally - this uses `get_temp_path`
         logger.info('`yield_local_path` falling back to downloading entire file to local storage.')
-        if self.type == FileSourceType.FILE_FIELD:
-            return field_file_to_local_path(self.file)
-        elif self.type == FileSourceType.URL:
-            return url_file_to_local_path(self.url, override_name=override_name)
+        # TODO: should we periodically clean up the tempdir?
+        return self.download_to_local_path(os.path.join(tempfile.gettempdir(), 'rgd_file_cache', f'{self.pk}'))
 
     def get_url(self, internal: bool = False):
         """Get the URL of the stored resource.

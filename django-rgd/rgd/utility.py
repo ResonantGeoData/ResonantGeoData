@@ -108,17 +108,18 @@ def url_file_to_local_path(
         suffix = PurePath(os.path.basename(url)).name
     with tempfile.NamedTemporaryFile('wb', suffix=suffix) as dest_stream:
         _download_url_file_to_stream(url, dest_stream, num_blocks=num_blocks, block_size=block_size)
-        yield Path(dest_stream.name)
+        path = Path(dest_stream.name)
+        logger.info(f'URL ({url}) local file path: {path}')
+        yield path
 
 
 def download_url_file_to_local_path(
     url: str,
-    directory: str,
-    relative_path: str,
+    path: str,
     num_blocks: int = 128,
     block_size: int = 128,
 ) -> Path:
-    dest_path = Path(os.path.join(directory, relative_path))
+    dest_path = Path(path)
     dest_path.parent.mkdir(parents=True, exist_ok=True)
     with open(dest_path, 'wb') as dest_stream:
         _download_url_file_to_stream(url, dest_stream, num_blocks=num_blocks, block_size=block_size)
@@ -244,16 +245,16 @@ def skip_signal():
     return _skip_signal
 
 
-def download_field_file_to_local_path(
-    field_file: FieldFile, directory: str, relative_path: str
-) -> Path:
+def download_field_file_to_local_path(field_file: FieldFile, path: str) -> Path:
     """Download entire FieldFile to disk location.
 
-    This overrides `girder_utils.field_file_to_local_path` to download file to local path without a context manager. Cleanup must be handled by caller.
+    This overrides `girder_utils.field_file_to_local_path` to download file to
+    local path without a context manager. Cleanup must be handled by caller.
 
     """
-    dest_path = Path(os.path.join(directory, relative_path))
+    dest_path = Path(path)
     dest_path.parent.mkdir(parents=True, exist_ok=True)
+    the_path = Path(dest_path)
     with field_file.open('rb'):
         file_obj: File = field_file.file
         if type(file_obj) is File:
@@ -261,11 +262,11 @@ def download_field_file_to_local_path(
             # it is already at a stable path on disk.
             # We must symlink it into the desired path
             os.symlink(file_obj.name, dest_path)
-            return Path(dest_path)
+            return the_path
         else:
             # When file_obj is actually a subclass of File, it only provides a Python
             # file-like object API. So, it must be copied to a stable path.
             with open(dest_path, 'wb') as dest_stream:
                 shutil.copyfileobj(file_obj, dest_stream)
                 dest_stream.flush()
-            return Path(dest_path)
+            return the_path

@@ -61,6 +61,7 @@ setup(
         'django-oauth-toolkit',
         'djangorestframework',
         'drf-yasg',
+        'filelock',
         'GDAL',
         'pooch',
         'psycopg2',

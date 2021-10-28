@@ -14,10 +14,9 @@ def _file_conversion_helper(source, output_field, method, prefix='', extension='
     workdir = getattr(settings, 'GEODATA_WORKDIR', None)
     with tempfile.TemporaryDirectory(dir=workdir) as tmpdir:
         # NOTE: cannot use FUSE with PyntCloud because it checks file extension
-        #       in path. Additionally, override the name just in case.
-        #       The `name` field for the file MUST have the extension
-        with source.yield_local_path(try_fuse=False, override_name=source.name) as file_path:
-            logger.info('bane   ' + str(file_path))
+        #       in path. Additionally, The `name` field for the file MUST have
+        #       the extension.
+        with source.yield_local_path(try_fuse=False) as file_path:
             output_path = os.path.join(tmpdir, prefix + os.path.basename(source.name) + extension)
             method(str(file_path), str(output_path), **kwargs)
         with open(output_path, 'rb') as f:
