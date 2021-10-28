@@ -110,21 +110,6 @@ def _download_url_file_to_stream(
                 dest_stream.flush()
 
 
-@contextmanager
-def url_file_to_local_path(
-    url: str, num_blocks: int = 128, block_size: int = 128, override_name: str = None
-) -> Generator[Path, None, None]:
-    if override_name:
-        suffix = override_name
-    else:
-        suffix = PurePath(os.path.basename(url)).name
-    with tempfile.NamedTemporaryFile('wb', suffix=suffix) as dest_stream:
-        _download_url_file_to_stream(url, dest_stream, num_blocks=num_blocks, block_size=block_size)
-        path = Path(dest_stream.name)
-        logger.info(f'URL ({url}) local file path: {path}')
-        yield path
-
-
 def download_url_file_to_local_path(
     url: str,
     path: str,
