@@ -98,10 +98,6 @@ def test_yield_local_path_file(file_path):
     path = model.yield_local_path()
     with model.yield_local_path() as path:
         assert os.path.exists(path)
-    # Now test that is gets cleaned up during an exception
-    with pytest.raises(ValueError):
-        with model.yield_local_path() as path:
-            raise ValueError()
 
 
 @pytest.mark.django_db(transaction=True)
@@ -112,10 +108,6 @@ def test_yield_local_path_url_http():
     model.save()
     with model.yield_local_path() as path:
         assert os.path.exists(path)
-    # Now test that is gets cleaned up during an exception
-    with pytest.raises(ValueError):
-        with model.yield_local_path() as path:
-            raise ValueError()
 
 
 @pytest.mark.django_db(transaction=True)
@@ -126,10 +118,6 @@ def test_yield_local_path_url_s3(s3_url):
     model.save()
     with model.yield_local_path() as path:
         assert os.path.exists(path)
-    # Now test that is gets cleaned up during an exception
-    with pytest.raises(ValueError):
-        with model.yield_local_path() as path:
-            raise ValueError()
 
 
 @pytest.mark.django_db(transaction=True)
