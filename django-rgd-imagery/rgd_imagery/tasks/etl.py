@@ -163,7 +163,8 @@ def _get_valid_data_footprint(src, band_num):
             geoms.append(shape(geom))
     if geoms:
         geom = unary_union(geoms)
-        return GEOSGeometry(geom.to_wkt()).convex_hull
+        # NOTE: shapely 1.8 deprecated `to_wkt()`
+        return GEOSGeometry(geom.wkt).convex_hull
 
     raise ValueError('No valid raster footprint found.')
 
