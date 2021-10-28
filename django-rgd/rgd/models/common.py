@@ -235,7 +235,7 @@ class ChecksumFile(TimeStampedModel, TaskEventMixin, PermissionPathMixin):
 
         """
         # Thread/process safe locking for file access
-        dest_path = Path(os.path.join(directory, self.name))
+        dest_path = Path(directory, self.name)
         dest_path.parent.mkdir(parents=True, exist_ok=True)
         lock_file_path = f'{dest_path}.lock'
         lock = FileLock(
