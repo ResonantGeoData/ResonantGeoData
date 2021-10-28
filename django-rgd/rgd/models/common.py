@@ -286,7 +286,9 @@ class ChecksumFile(TimeStampedModel, TaskEventMixin, PermissionPathMixin):
         # Fallback to loading entire file locally - this uses `get_temp_path`
         logger.info('`yield_local_path` falling back to downloading entire file to local storage.')
         # TODO: should we periodically clean up the tempdir?
-        return self.download_to_local_path(os.path.join(tempfile.gettempdir(), 'rgd_file_cache', f'{self.pk}'))
+        return self.download_to_local_path(
+            os.path.join(tempfile.gettempdir(), 'rgd_file_cache', f'{self.pk}')
+        )
 
     def get_url(self, internal: bool = False):
         """Get the URL of the stored resource.
