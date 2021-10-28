@@ -245,7 +245,7 @@ class ChecksumFile(TimeStampedModel, TaskEventMixin, PermissionPathMixin):
         with lock:  # TODO: handle timeouts in condition
             # Files older than 7 days will be re-downloaded
             if (
-                os.path.exists(dest_path)
+                dest_path.exists()
                 and os.path.getsize(dest_path) > 0
                 and (datetime.now() - datetime.fromtimestamp(os.path.getmtime(dest_path))).days
                 <= getattr(settings, 'RGD_FILE_CACHE_MAX_DAYS', 7)
