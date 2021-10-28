@@ -38,7 +38,7 @@ def get_temp_dir():
 
 
 def get_cache_dir():
-    path = Path(os.path.join(get_temp_dir(), 'file_cache'))
+    path = Path(get_temp_dir(), 'file_cache')
     path.mkdir(parents=True, exist_ok=True)
     return path
 
