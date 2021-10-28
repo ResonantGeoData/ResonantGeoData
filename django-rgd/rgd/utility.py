@@ -36,7 +36,7 @@ def get_temp_dir():
 
 
 def get_cache_dir():
-    return getattr(settings, 'RGD_FILE_CACHE_DIR', os.path.join(get_temp_dir(), 'file_cache'))
+    return os.path.join(get_temp_dir(), 'file_cache')
 
 
 @contextmanager
