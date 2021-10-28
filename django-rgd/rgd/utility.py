@@ -31,6 +31,14 @@ except ImportError:
 logger = logging.getLogger(__name__)
 
 
+def get_temp_dir():
+    return getattr(settings, 'RGD_TEMP_DIR', os.path.join(tempfile.gettempdir(), 'rgd'))
+
+
+def get_cache_dir():
+    return getattr(settings, 'RGD_FILE_CACHE_DIR', os.path.join(get_temp_dir(), 'file_cache'))
+
+
 @contextmanager
 def safe_urlopen(url: str, *args, **kwargs):
     with contextlib.closing(urlopen(url, *args, **kwargs)) as remote:
@@ -184,7 +192,7 @@ def patch_internal_presign(f: FieldFile):
 
 @contextmanager
 def output_path_helper(filename: str, output: FieldFile):
-    workdir = getattr(settings, 'GEODATA_WORKDIR', None)
+    workdir = get_temp_dir()
     with tempfile.TemporaryDirectory(dir=workdir) as tmpdir:
         output_path = os.path.join(tmpdir, filename)
         try:

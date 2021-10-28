@@ -2,16 +2,15 @@ import os
 import tempfile
 
 from celery.utils.log import get_task_logger
-from django.conf import settings
 from rgd.models import ChecksumFile
-from rgd.utility import get_or_create_no_commit
+from rgd.utility import get_or_create_no_commit, get_temp_dir
 from rgd_3d.models import PointCloud, PointCloudMeta
 
 logger = get_task_logger(__name__)
 
 
 def _file_conversion_helper(source, output_field, method, prefix='', extension='', **kwargs):
-    workdir = getattr(settings, 'GEODATA_WORKDIR', None)
+    workdir = get_temp_dir()
     with tempfile.TemporaryDirectory(dir=workdir) as tmpdir:
         # NOTE: cannot use FUSE with PyntCloud because it checks file extension
         #       in path. Additionally, The `name` field for the file MUST have

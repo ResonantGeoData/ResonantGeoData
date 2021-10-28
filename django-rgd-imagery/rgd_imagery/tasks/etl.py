@@ -5,7 +5,6 @@ import tempfile
 
 from celery.utils.log import get_task_logger
 import dateutil.parser
-from django.conf import settings
 from django.contrib.gis.geos import GEOSGeometry, Polygon
 from django.utils.timezone import make_aware
 import numpy as np
@@ -17,7 +16,7 @@ import rasterio.shutil
 import rasterio.warp
 from rasterio.warp import Resampling, calculate_default_transform, reproject
 from rgd.models.constants import DB_SRID
-from rgd.utility import get_or_create_no_commit
+from rgd.utility import get_or_create_no_commit, get_temp_dir
 from rgd_imagery.large_image_utilities import get_tile_bounds, yeild_tilesource_from_image
 from rgd_imagery.models import BandMeta, Image, ImageMeta, Raster, RasterMeta
 from shapely.geometry import shape
@@ -143,7 +142,7 @@ def _get_valid_data_footprint(src, band_num):
     # TODO: fix transform to match this resampling
     nodata = 0
     if not src.nodata:
-        workdir = getattr(settings, 'GEODATA_WORKDIR', None)
+        workdir = get_temp_dir()
         with tempfile.TemporaryDirectory(dir=workdir) as tmpdir:
             output_path = os.path.join(tmpdir, 'temp')
             rasterio.shutil.copy(src, output_path, driver=src.driver)
@@ -218,7 +217,7 @@ def _reproject_raster(file_path, epsg):
             # If raster already in desired CRS, return itself
             yield src
             return
-        workdir = getattr(settings, 'GEODATA_WORKDIR', None)
+        workdir = get_temp_dir()
         with tempfile.TemporaryDirectory(dir=workdir) as tmpdir:
             # Get a downsampled version of the original raster
             with _yield_downsampled_raster(src) as dsrc:

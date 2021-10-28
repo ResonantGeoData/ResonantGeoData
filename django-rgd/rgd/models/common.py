@@ -4,7 +4,6 @@ import json
 import logging
 import os
 from pathlib import Path
-import tempfile
 from urllib.error import URLError
 from urllib.parse import urlencode, urlparse
 
@@ -21,6 +20,7 @@ from rgd.utility import (
     compute_hash,
     download_field_file_to_local_path,
     download_url_file_to_local_path,
+    get_cache_dir,
     patch_internal_presign,
     precheck_fuse,
     safe_urlopen,
@@ -285,10 +285,7 @@ class ChecksumFile(TimeStampedModel, TaskEventMixin, PermissionPathMixin):
             return self.yield_vsi_path(internal=True)
         # Fallback to loading entire file locally - this uses `get_temp_path`
         logger.info('`yield_local_path` falling back to downloading entire file to local storage.')
-        # TODO: should we periodically clean up the tempdir?
-        return self.download_to_local_path(
-            os.path.join(tempfile.gettempdir(), 'rgd_file_cache', f'{self.pk}')
-        )
+        return self.download_to_local_path(os.path.join(get_cache_dir(), f'{self.pk}'))
 
     def get_url(self, internal: bool = False):
         """Get the URL of the stored resource.
