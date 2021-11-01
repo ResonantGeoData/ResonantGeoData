@@ -1,5 +1,8 @@
+import json
+
 import pystac
 import pytest
+from rgd.datastore import datastore
 from rgd_imagery import models
 from rgd_imagery.serializers.stac import ItemSerializer
 
@@ -89,3 +92,15 @@ def test_raster_stac_export_import(admin_api_client, sample_raster_url):
 
     # assert that bands were made
     assert models.BandMeta.objects.count() == models.BandMeta.objects.count() > 0
+
+
+@pytest.mark.django_db(transaction=True)
+def test_raster_stac_new_files():
+    # Test `ItemSerializer.create` with files not already existing in DB
+    path = datastore.fetch('LC08_L1TP_034032_20200429_20200509_01_T1_sr_band3.json')
+    with open(path, 'r') as f:
+        data = json.load(f)
+
+    instance = ItemSerializer().create(data)
+    assert instance.pk
+    assert instance.parent_raster.image_set.images.count() == 1
