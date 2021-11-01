@@ -70,15 +70,18 @@ def to_model(eo_band: Band, image: models.Image):
         eo_band_spectral_lower, eo_band_spectral_upper = BAND_RANGE_BY_COMMON_NAMES[
             eo_band.common_name
         ]
+        bandmeta.band_range = (
+            eo_band_spectral_lower,
+            eo_band_spectral_upper,
+        )
     elif eo_band.center_wavelength and eo_band.full_width_half_max:
         eo_band_spectral_upper = (
             Decimal(eo_band.center_wavelength) + Decimal(eo_band.full_width_half_max) / 2
         )
         eo_band_spectral_lower = eo_band_spectral_upper - Decimal(eo_band.full_width_half_max) / 2
-    # TODO: 'eo_band_spectral_lower' referenced before assignment
-    bandmeta.band_range = (
-        eo_band_spectral_lower,
-        eo_band_spectral_upper,
-    )
+        bandmeta.band_range = (
+            eo_band_spectral_lower,
+            eo_band_spectral_upper,
+        )
     bandmeta.save()
     return bandmeta
