@@ -19,6 +19,9 @@ from ..utils import non_unique_get_or_create
 
 
 class ItemSerializer(serializers.BaseSerializer):
+    def to_internal_value(self, data):
+        return data
+
     def _add_image_to_item(self, item, image, asset_type='image', roles=('data',)):
         asset = pystac.Asset(
             href=image.file.get_url(),

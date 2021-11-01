@@ -3,4 +3,6 @@ def non_unique_get_or_create(model, **kwargs):
     query = model.objects.filter(**kwargs)
     if query.exists():
         return query.first()
-    return model(**kwargs).save()
+    instance = model(**kwargs)
+    instance.save()
+    return instance

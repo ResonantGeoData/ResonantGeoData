@@ -75,6 +75,7 @@ def to_model(eo_band: Band, image: models.Image):
             Decimal(eo_band.center_wavelength) + Decimal(eo_band.full_width_half_max) / 2
         )
         eo_band_spectral_lower = eo_band_spectral_upper - Decimal(eo_band.full_width_half_max) / 2
+    # TODO: 'eo_band_spectral_lower' referenced before assignment
     bandmeta.band_range = (
         eo_band_spectral_lower,
         eo_band_spectral_upper,
