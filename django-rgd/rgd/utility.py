@@ -290,7 +290,7 @@ def clean_file_cache(override_target=None):
         if not len(paths):
             # If we delete everything and still cannot acheive target, warn
             logger.error(
-                f'Target cache free space of {target * 1e9} bytes not achieved when empty. Available free space is {psutil.disk_usage(cache).free} bytes.'
+                f'Target cache free space of {target * 1e9} bytes not achieved when empty.'
             )
             break
         path = paths.pop(0)
