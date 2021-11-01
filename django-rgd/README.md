@@ -55,6 +55,8 @@ The RGD core app has a few optional settings:
 - `RGD_FILE_FIELD_PREFIX`: the path prefix when uploading files to the project's S3 storage.
 - `RGD_AUTO_APPROVE_SIGN_UP`: automatically approve all user sign ups.
 - `RGD_AUTO_COMPUTE_CHECKSUMS`: automatically compute checksums for all ChecksumFile records (default False)
+- `RGD_TEMP_DIR`: A temporary directory for working files
+- `RGD_TARGET_AVAILABLE_CACHE`: The target free space to remain for the cache in Gigabytes (default 2).
 
 ## Models
 

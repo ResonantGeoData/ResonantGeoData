@@ -32,11 +32,8 @@ services:
     tty: false
     privileged: true
     env_file: ./dev/.env.docker-compose
-    environment:
-      - TMPDIR=/tmp/rgd_worker
     volumes:
       - .:/opt/django-project
-      - /tmp/rgd_worker:/tmp/rgd_worker
     depends_on:
       - postgres
       - rabbitmq
