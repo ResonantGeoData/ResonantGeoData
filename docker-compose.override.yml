@@ -34,7 +34,6 @@ services:
     env_file: ./dev/.env.docker-compose
     volumes:
       - .:/opt/django-project
-      - /tmp/rgd_worker:/tmp/rgd_worker
     depends_on:
       - postgres
       - rabbitmq
