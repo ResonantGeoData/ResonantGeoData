@@ -22,6 +22,7 @@ from django.contrib.gis.db.models import Model
 from django.core.files import File
 from django.db.models.fields.files import FieldFile
 from django.utils.safestring import mark_safe
+import psutil
 
 try:
     from minio_storage.storage import MinioStorage
@@ -267,3 +268,45 @@ def download_field_file_to_local_path(field_file: FieldFile, path: str) -> Path:
                 shutil.copyfileobj(file_obj, dest_stream)
                 dest_stream.flush()
             return the_path
+
+
+def clean_file_cache(override_target=None):
+    """Clean the file cache to achieve RGD_TARGET_AVAILABLE_CACHE (Gb).
+
+    Return
+    ------
+    A tuple of the starting and ending free space in bytes.
+
+    """
+    cache = get_cache_dir()
+    # Sort each directory by mtime
+    # TODO: this may not capture the mtime of nested files... and we may need to do this recursively
+    paths = sorted(Path(cache).iterdir(), key=os.path.getmtime)  # This sorts oldest to latest
+    # While free space is not enough, remove directories until all ar gone
+    initial = psutil.disk_usage(cache).free
+    target = override_target or getattr(settings, 'RGD_TARGET_AVAILABLE_CACHE', 2)
+    logger.debug(f'Cleaning file cache... Starting free space is {initial} bytes.')
+    while psutil.disk_usage(cache).free * 1e-9 < target:
+        if not len(paths):
+            # If we delete everything and still cannot acheive target, warn
+            logger.error(
+                f'Target cache free space of {target * 1e9} bytes not achieved when empty. Available free space is {psutil.disk_usage(cache).free} bytes.'
+            )
+            break
+        path = paths.pop(0)
+        if os.path.isdir(path):
+            shutil.rmtree(path)
+        else:
+            os.remove(path)
+    free = psutil.disk_usage(cache).free
+    logger.debug(f'Finished cleaning file cache. Available free space is {free} bytes.')
+    return initial, free
+
+
+def purge_file_cache():
+    """Completely purge all files from the file cache."""
+    cache = get_cache_dir()
+    shutil.rmtree(cache)
+    cache = get_cache_dir()  # Return the cache dir so that a fresh directory is created.
+    logger.debug(f'Purged file cache. Available free space is {psutil.disk_usage(cache).free} bytes.')
+    return cache

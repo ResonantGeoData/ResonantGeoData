@@ -56,7 +56,7 @@ The RGD core app has a few optional settings:
 - `RGD_AUTO_APPROVE_SIGN_UP`: automatically approve all user sign ups.
 - `RGD_AUTO_COMPUTE_CHECKSUMS`: automatically compute checksums for all ChecksumFile records (default False)
 - `RGD_TEMP_DIR`: A temporary directory for working files
-- `RGD_FILE_CACHE_MAX_DAYS`: Max age in days for temporary files.
+- `RGD_TARGET_AVAILABLE_CACHE`: The target free space to remain for the cache in Gigabytes (default 2).
 
 ## Models
 
