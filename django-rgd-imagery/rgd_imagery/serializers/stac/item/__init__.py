@@ -126,9 +126,10 @@ class ItemSerializer(serializers.BaseSerializer):
             if len(item.assets) == 1 or (asset.roles and 'data' in asset.roles):
                 image = non_unique_get_or_create(Image, file=checksum_file)
                 image_ids.append(image.pk)
-                for eo_band in item_eo_ext.bands:
-                    bandmeta = band_utils.to_model(eo_band, image)
-                    bandmeta.save()
+                if item_eo_ext.bands:
+                    for eo_band in item_eo_ext.bands:
+                        bandmeta = band_utils.to_model(eo_band, image)
+                        bandmeta.save()
             else:
                 ancillary.append(checksum_file)
 
