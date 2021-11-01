@@ -42,7 +42,7 @@
 {% endblock %}
 
 {% block extra_meta %}
-
+  <div id="toast">Loading...</div>
   <select id="image-selector" onchange="updateImage()">
     {% for image in object.parent_raster.image_set.all_images.all %}
       <option value="{{ image.id }}">{{ image.file.basename }}</option>
@@ -99,10 +99,13 @@
         tileBounds.top >= dataset_bb.ymin &&
         tileBounds.bottom <= dataset_bb.ymax;
     }
+    tileLayer.idleAfter = 'all';
 
     function updateBandThumbnail () {
-      thumbnail = document.getElementById('thumbnail')
-
+      thumbnail = document.getElementById('thumbnail');
+      toast = document.getElementById('toast');
+      toast.className ="show"
+      console.log(toast.className)
       var imageSelector_value = Number(imageSelector.value)
       var bandSelector_value = Number(bandSelector.value)
 
@@ -112,14 +115,15 @@
         if (Number.isNaN(band)) {
           band = 0
         }
-        tileLayer.visible(true)
+        tileLayer.visible(true);
         tileLayer.url(`${host}/api/image_process/imagery/${image_id}/tiles/{z}/{x}/{y}.png?projection=EPSG:3857&band=${band}`)
         thumbnail.src = `${host}/api/image_process/imagery/${image_id}/thumbnail?band=${band}`
         thumbnail.hidden = false
       } else {
-        tileLayer.visible(false)
+        tileLayer.visible(false);
         thumbnail.hidden = true
       }
+      tileLayer.onIdle(()=>toast.className = toast.className.replace("show", ""))
       // TODO: clear tileLayer when `none` is selected
     }
 
