@@ -5,7 +5,7 @@ import hashlib
 import io
 import logging
 import os
-from pathlib import Path, PurePath
+from pathlib import Path
 import shutil
 import tempfile
 from typing import Any, Generator
@@ -22,6 +22,7 @@ from django.contrib.gis.db.models import Model
 from django.core.files import File
 from django.db.models.fields.files import FieldFile
 from django.utils.safestring import mark_safe
+import psutil
 
 try:
     from minio_storage.storage import MinioStorage
@@ -29,6 +30,18 @@ except ImportError:
     MinioStorage = None
 
 logger = logging.getLogger(__name__)
+
+
+def get_temp_dir():
+    path = Path(getattr(settings, 'RGD_TEMP_DIR', os.path.join(tempfile.gettempdir(), 'rgd')))
+    path.mkdir(parents=True, exist_ok=True)
+    return path
+
+
+def get_cache_dir():
+    path = Path(get_temp_dir(), 'file_cache')
+    path.mkdir(parents=True, exist_ok=True)
+    return path
 
 
 @contextmanager
@@ -98,27 +111,13 @@ def _download_url_file_to_stream(
                 dest_stream.flush()
 
 
-@contextmanager
-def url_file_to_local_path(
-    url: str, num_blocks: int = 128, block_size: int = 128, override_name: str = None
-) -> Generator[Path, None, None]:
-    if override_name:
-        suffix = override_name
-    else:
-        suffix = PurePath(os.path.basename(url)).name
-    with tempfile.NamedTemporaryFile('wb', suffix=suffix) as dest_stream:
-        _download_url_file_to_stream(url, dest_stream, num_blocks=num_blocks, block_size=block_size)
-        yield Path(dest_stream.name)
-
-
 def download_url_file_to_local_path(
     url: str,
-    directory: str,
-    relative_path: str,
+    path: str,
     num_blocks: int = 128,
     block_size: int = 128,
 ) -> Path:
-    dest_path = Path(os.path.join(directory, relative_path))
+    dest_path = Path(path)
     dest_path.parent.mkdir(parents=True, exist_ok=True)
     with open(dest_path, 'wb') as dest_stream:
         _download_url_file_to_stream(url, dest_stream, num_blocks=num_blocks, block_size=block_size)
@@ -183,7 +182,7 @@ def patch_internal_presign(f: FieldFile):
 
 @contextmanager
 def output_path_helper(filename: str, output: FieldFile):
-    workdir = getattr(settings, 'GEODATA_WORKDIR', None)
+    workdir = get_temp_dir()
     with tempfile.TemporaryDirectory(dir=workdir) as tmpdir:
         output_path = os.path.join(tmpdir, filename)
         try:
@@ -244,16 +243,16 @@ def skip_signal():
     return _skip_signal
 
 
-def download_field_file_to_local_path(
-    field_file: FieldFile, directory: str, relative_path: str
-) -> Path:
+def download_field_file_to_local_path(field_file: FieldFile, path: str) -> Path:
     """Download entire FieldFile to disk location.
 
-    This overrides `girder_utils.field_file_to_local_path` to download file to local path without a context manager. Cleanup must be handled by caller.
+    This overrides `girder_utils.field_file_to_local_path` to download file to
+    local path without a context manager. Cleanup must be handled by caller.
 
     """
-    dest_path = Path(os.path.join(directory, relative_path))
+    dest_path = Path(path)
     dest_path.parent.mkdir(parents=True, exist_ok=True)
+    the_path = Path(dest_path)
     with field_file.open('rb'):
         file_obj: File = field_file.file
         if type(file_obj) is File:
@@ -261,11 +260,55 @@ def download_field_file_to_local_path(
             # it is already at a stable path on disk.
             # We must symlink it into the desired path
             os.symlink(file_obj.name, dest_path)
-            return Path(dest_path)
+            return the_path
         else:
             # When file_obj is actually a subclass of File, it only provides a Python
             # file-like object API. So, it must be copied to a stable path.
             with open(dest_path, 'wb') as dest_stream:
                 shutil.copyfileobj(file_obj, dest_stream)
                 dest_stream.flush()
-            return Path(dest_path)
+            return the_path
+
+
+def clean_file_cache(override_target=None):
+    """Clean the file cache to achieve RGD_TARGET_AVAILABLE_CACHE (Gb).
+
+    Return
+    ------
+    A tuple of the starting and ending free space in bytes.
+
+    """
+    cache = get_cache_dir()
+    # Sort each directory by mtime
+    # TODO: this may not capture the mtime of nested files... and we may need to do this recursively
+    paths = sorted(Path(cache).iterdir(), key=os.path.getmtime)  # This sorts oldest to latest
+    # While free space is not enough, remove directories until all ar gone
+    initial = psutil.disk_usage(cache).free
+    target = override_target or getattr(settings, 'RGD_TARGET_AVAILABLE_CACHE', 2)
+    logger.debug(f'Cleaning file cache... Starting free space is {initial} bytes.')
+    while psutil.disk_usage(cache).free * 1e-9 < target:
+        if not len(paths):
+            # If we delete everything and still cannot acheive target, warn
+            logger.error(
+                f'Target cache free space of {target * 1e9} bytes not achieved when empty.'
+            )
+            break
+        path = paths.pop(0)
+        if os.path.isdir(path):
+            shutil.rmtree(path)
+        else:
+            os.remove(path)
+    free = psutil.disk_usage(cache).free
+    logger.debug(f'Finished cleaning file cache. Available free space is {free} bytes.')
+    return initial, free
+
+
+def purge_file_cache():
+    """Completely purge all files from the file cache."""
+    cache = get_cache_dir()
+    shutil.rmtree(cache)
+    cache = get_cache_dir()  # Return the cache dir so that a fresh directory is created.
+    logger.debug(
+        f'Purged file cache. Available free space is {psutil.disk_usage(cache).free} bytes.'
+    )
+    return cache

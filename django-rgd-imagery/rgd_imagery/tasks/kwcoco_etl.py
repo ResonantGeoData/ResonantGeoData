@@ -3,12 +3,12 @@ import tempfile
 import zipfile
 
 from celery.utils.log import get_task_logger
-from django.conf import settings
 from django.contrib.gis.geos import LineString, MultiPoint, MultiPolygon, Point, Polygon
 import kwcoco
 import kwimage
 import numpy as np
 from rgd.models import ChecksumFile
+from rgd.utility import get_temp_dir
 from rgd_imagery.models import (
     Annotation,
     Image,
@@ -87,7 +87,7 @@ def load_kwcoco_dataset(kwcoco_dataset_id):
         )
 
     # TODO: add a setting like this:
-    workdir = getattr(settings, 'GEODATA_WORKDIR', None)
+    workdir = get_temp_dir()
     with tempfile.TemporaryDirectory(dir=workdir) as tmpdir:
 
         if ds_entry.image_set:

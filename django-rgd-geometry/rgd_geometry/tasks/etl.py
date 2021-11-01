@@ -5,13 +5,12 @@ import tempfile
 import zipfile
 
 from celery.utils.log import get_task_logger
-from django.conf import settings
 from django.contrib.gis.gdal import SpatialReference
 from django.contrib.gis.geos import GeometryCollection, GEOSGeometry, Polygon
 from django.core.exceptions import ValidationError
 import fiona
 from rgd.models.transform import transform_geometry
-from rgd.utility import get_or_create_no_commit
+from rgd.utility import get_or_create_no_commit, get_temp_dir
 from rgd_geometry.models import Geometry, GeometryArchive
 from shapely.geometry import shape
 from shapely.wkb import dumps
@@ -39,7 +38,7 @@ def read_geometry_archive(archive_pk):
     archive = GeometryArchive.objects.get(pk=archive_pk)
 
     # TODO: add a setting like this:
-    workdir = getattr(settings, 'GEODATA_WORKDIR', None)
+    workdir = get_temp_dir()
     with tempfile.TemporaryDirectory(dir=workdir) as tmpdir:
         with archive.file.yield_local_path() as archive_path:
             logger.info(f'The geometry archive: {archive_path}')

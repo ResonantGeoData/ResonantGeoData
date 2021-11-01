@@ -1,22 +1,19 @@
 from contextlib import contextmanager
 
 import large_image
-from large_image.exceptions import TileSourceException
 from large_image.tilesource import FileTileSource
-from large_image_source_gdal import GDALFileTileSource
 from rgd_imagery.models import Image
 
 
 def get_tilesource_from_image(
     image: Image, projection: str = None, style: str = None
 ) -> FileTileSource:
-    # Make sure projection is None by default to use source projection
-    try:
-        file_path = image.file.get_vsi_path(internal=True)
-        return GDALFileTileSource(file_path, projection=projection, encoding='PNG', style=style)
-    except TileSourceException:
-        with image.file.yield_local_path() as file_path:
-            return large_image.open(str(file_path), style=style)
+    # NOTE: We ran into issues using VSI paths with some image formats (NITF)
+    #       this now requires the images be a local path on the file system.
+    #       For URL files, this is done through FUSE but for S3FileField
+    #       files, we must download the entire file to the local disk.
+    with image.file.yield_local_path() as file_path:
+        return large_image.open(str(file_path), projection=projection, style=style, encoding='PNG')
 
 
 @contextmanager
