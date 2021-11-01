@@ -308,5 +308,7 @@ def purge_file_cache():
     cache = get_cache_dir()
     shutil.rmtree(cache)
     cache = get_cache_dir()  # Return the cache dir so that a fresh directory is created.
-    logger.debug(f'Purged file cache. Available free space is {psutil.disk_usage(cache).free} bytes.')
+    logger.debug(
+        f'Purged file cache. Available free space is {psutil.disk_usage(cache).free} bytes.'
+    )
     return cache
