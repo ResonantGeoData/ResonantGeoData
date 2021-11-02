@@ -298,7 +298,7 @@ def clean_file_cache(override_target=None):
         lock_path = Path(f'{path}.lock')
         lock = FileLock(lock_path)
         try:
-            with lock.acquire(timeout=0.000000001):
+            with lock.acquire(timeout=0):
                 if os.path.isdir(path):
                     shutil.rmtree(path)
                 else:
