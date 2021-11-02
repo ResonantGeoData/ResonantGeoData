@@ -310,11 +310,16 @@ class ChecksumFile(TimeStampedModel, TaskEventMixin, PermissionPathMixin):
         # Fallback to loading entire file locally - this uses `get_temp_path`
         logger.debug('`yield_local_path` falling back to downloading entire file to local storage.')
         if self.folder:
-            # NOTE: This is messy and should be improved
+            # NOTE: This is messy and should be improved but it ensures the directory remains locked
             with self.folder.yield_all_to_local_path() as _:
                 yield self.get_cache_path()
             return
-        yield self.download_to_local_path()
+        # Not in folder. Download to cache dir
+        path = self.download_to_local_path()
+        # provide a lock on this file while yielding
+        lock = FileLock(f'{path}.lock')
+        with lock:
+            yield path
 
     def get_url(self, internal: bool = False):
         """Get the URL of the stored resource.

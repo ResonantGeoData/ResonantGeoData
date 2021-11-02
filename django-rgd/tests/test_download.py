@@ -1,7 +1,9 @@
 import os
 import tempfile
 
+import psutil
 import pytest
+from rgd import utility
 from rgd.datastore import datastore
 from rgd.models import common, folder, utils
 
@@ -96,3 +98,35 @@ def test_yield_checksumfiles_folder(s3_url):
         assert os.path.exists(directory)
         for f in files.all():
             assert os.path.exists(os.path.join(directory, f.name))
+
+
+@pytest.mark.django_db(transaction=True)
+def test_clean_file_cache(checksum_file, checksum_file_url):
+    f = folder.Folder.objects.create()
+    checksum_file.folder = f
+    checksum_file.save(
+        update_fields=[
+            'folder',
+        ]
+    )
+    f.refresh_from_db()
+
+    # Make sure clean_file_cache does not clean files in use
+    with checksum_file_url.yield_local_path() as path:
+        assert os.path.exists(path)  # Make sure the file was checked out
+        # Set target to size of drive to delete entire cache
+        utility.clean_file_cache(override_target=psutil.disk_usage('/').total)
+        assert os.path.exists(path)  # Make sure file is still present
+
+    # Make sure the same works for `Folder`s
+    with f.yield_all_to_local_path() as directory:
+        assert os.path.exists(directory)
+        assert os.path.exists(checksum_file.get_cache_path())
+        utility.clean_file_cache(override_target=psutil.disk_usage('/').total)
+        assert os.path.exists(directory)
+        assert os.path.exists(checksum_file.get_cache_path())
+    # Checkout the folder through a contained file
+    with checksum_file.yield_local_path() as path:
+        assert os.path.exists(path)
+        utility.clean_file_cache(override_target=psutil.disk_usage('/').total)
+        assert os.path.exists(path)
