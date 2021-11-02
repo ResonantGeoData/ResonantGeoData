@@ -1,6 +1,6 @@
 import pytest
 from rgd.datastore import datastore
-from rgd.models import ChecksumFile, Folder, FileSourceType
+from rgd.models import ChecksumFile, FileSourceType, Folder
 from rgd_imagery.tasks.etl import load_image, populate_raster_footprint
 
 from . import factories
@@ -107,8 +107,12 @@ def test_raster_footprint(name):
 def test_raster_with_header_file():
     # Download the two files for the image: envi_rgbsmall_bip
     folder = Folder.objects.create()
-    img = ChecksumFile.objects.create(folder=folder, type=FileSourceType.URL, url=datastore.get_url('envi_rgbsmall_bip.img'))
-    _ = ChecksumFile.objects.create(folder=folder, type=FileSourceType.URL, url=datastore.get_url('envi_rgbsmall_bip.hdr'))
+    img = ChecksumFile.objects.create(
+        folder=folder, type=FileSourceType.URL, url=datastore.get_url('envi_rgbsmall_bip.img')
+    )
+    _ = ChecksumFile.objects.create(
+        folder=folder, type=FileSourceType.URL, url=datastore.get_url('envi_rgbsmall_bip.hdr')
+    )
     image = factories.ImageFactory(
         file=img,
     )
