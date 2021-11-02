@@ -1,13 +1,8 @@
 from django_extensions.db.models import TimeStampedModel
 from rgd.utility import get_cache_dir
 
-from .mixins import PermissionPathMixin
 
-
-class Folder(TimeStampedModel, PermissionPathMixin):
-
-    permissions_paths = [('checksumfile_set', 'ChecksumFile')]
-
+class Folder(TimeStampedModel):
     @property
     def files(self):
         return self.checksumfile_set.all()
