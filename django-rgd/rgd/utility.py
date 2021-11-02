@@ -197,16 +197,14 @@ def output_path_helper(filename: str, output: FieldFile):
 
 
 @contextmanager
-def input_output_path_helper(
-    source, output: FieldFile, prefix: str = '', suffix: str = '', vsi: bool = False
-):
+def input_output_path_helper(source, output: FieldFile, prefix: str = '', suffix: str = ''):
     """Yield source and output paths between a ChecksumFile and a FileFeild.
 
     The output path is saved to the output field after yielding.
 
     """
     filename = prefix + os.path.basename(source.name) + suffix
-    with source.yield_local_path(vsi=vsi) as file_path:
+    with source.yield_local_path() as file_path:
         filename = prefix + os.path.basename(source.name) + suffix
         with output_path_helper(filename, output) as output_path:
             try:
@@ -294,6 +292,8 @@ def clean_file_cache(override_target=None):
             )
             break
         path = paths.pop(0)
+        # TODO: check if resource is locked
+
         if os.path.isdir(path):
             shutil.rmtree(path)
         else:

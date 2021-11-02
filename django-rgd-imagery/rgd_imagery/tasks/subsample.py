@@ -54,7 +54,7 @@ def convert_to_cog(param_model):
     """Convert Image to Cloud Optimized GeoTIFF."""
     with _processed_image_helper(param_model, single_input=True) as (image, output):
 
-        with input_output_path_helper(image.file, output.file, prefix='cog_', vsi=True) as (
+        with input_output_path_helper(image.file, output.file, prefix='cog_') as (
             input_path,
             output_path,
         ):
@@ -142,7 +142,7 @@ def resample_image(processed_image):
     with _processed_image_helper(processed_image, single_input=True) as (image, output):
 
         with input_output_path_helper(
-            image.file, output.file, prefix='resampled_{:.2f}_'.format(factor), vsi=True
+            image.file, output.file, prefix='resampled_{:.2f}_'.format(factor)
         ) as (
             input_path,
             output_path,
@@ -186,8 +186,8 @@ def mosaic_images(processed_image):
 
         src_files_to_mosaic = []
         for image in images:
-            file_path = image.file.get_vsi_path(internal=True)
-            src_files_to_mosaic.append(rasterio.open(file_path))
+            with image.file.yield_local_path() as file_path:
+                src_files_to_mosaic.append(rasterio.open(file_path))
 
         with output_path_helper('mosaic.tif', output.file) as output_path:
             mosaic, out_trans = merge(src_files_to_mosaic)
