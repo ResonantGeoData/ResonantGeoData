@@ -1,8 +1,12 @@
+from django.contrib.gis.db import models
 from django_extensions.db.models import TimeStampedModel
 from rgd.utility import get_cache_dir
 
 
 class FileSet(TimeStampedModel):
+
+    description = models.TextField(null=True, blank=True)
+
     @property
     def files(self):
         return self.checksumfile_set.all()
