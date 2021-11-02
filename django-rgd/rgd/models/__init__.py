@@ -7,6 +7,6 @@ from .common import (  # noqa
     WhitelistedEmail,
 )
 from .constants import *  # noqa
-from .folder import Folder  # noqa
+from .fileset import FileSet  # noqa
 from .mixins import *  # noqa
 from .transform import transform_geometry  # noqa

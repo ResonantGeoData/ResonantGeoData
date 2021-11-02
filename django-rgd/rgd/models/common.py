@@ -32,7 +32,7 @@ from s3_file_field import S3FileField
 from .. import tasks
 from .collection import Collection
 from .constants import DB_SRID
-from .folder import Folder
+from .fileset import FileSet
 from .mixins import PermissionPathMixin, TaskEventMixin
 
 logger = logging.getLogger(__name__)
@@ -118,7 +118,7 @@ class ChecksumFile(TimeStampedModel, TaskEventMixin, PermissionPathMixin):
     created_by = models.ForeignKey(
         settings.AUTH_USER_MODEL, null=True, blank=True, default=None, on_delete=models.SET_NULL
     )
-    folder = models.ForeignKey(Folder, null=True, blank=True, on_delete=models.SET_NULL)
+    file_set = models.ForeignKey(FileSet, null=True, blank=True, on_delete=models.SET_NULL)
 
     type = models.IntegerField(choices=FileSourceType.choices, default=FileSourceType.FILE_FIELD)
     file = S3FileField(null=True, blank=True, upload_to=uuid_prefix_filename)
@@ -269,28 +269,28 @@ class ChecksumFile(TimeStampedModel, TaskEventMixin, PermissionPathMixin):
     def get_cache_path(self):
         """Generate a predetermined path in the cache directory.
 
-        This will use the associated Folder's cache path if this resource
-        has a folder, otherwise it will place in the top of the cache
+        This will use the associated FileSet's cache path if this resource
+        has a file_set, otherwise it will place in the top of the cache
         directory.
 
         """
-        if self.folder is None:
-            # If no folder, place in the main cache directory
+        if self.file_set is None:
+            # If no file_set, place in the main cache directory
             directory = get_cache_dir()
         else:
-            directory = self.folder.get_cache_path()
+            directory = self.file_set.get_cache_path()
         return directory / f'{self.name}'
 
     @contextmanager
     def yield_local_path(self, try_fuse: bool = True):
-        """Create a local path for this file and all other files in its folder.
+        """Create a local path for this file and all other files in its file_set.
 
         This will first attempt to use httpfs to FUSE mount the file's URL if
-        and only if the file does not belong to a Folder. FUSE with multiple
-        files in a Folder is not yet supported.
+        and only if the file does not belong to a FileSet. FUSE with multiple
+        files in a FileSet is not yet supported.
 
         If FUSE is unavailable, this will fallback to downloading the entire
-        file (and the other files in this item's Folder) to local storage.
+        file (and the other files in this item's FileSet) to local storage.
 
         Parameters
         ----------
@@ -301,7 +301,7 @@ class ChecksumFile(TimeStampedModel, TaskEventMixin, PermissionPathMixin):
         """
         # TODO: fix FUSE to handle adjacent files
         if (
-            self.folder is None
+            self.file_set is None
             and try_fuse
             and self.type == FileSourceType.URL
             and precheck_fuse(self.get_url())
@@ -309,12 +309,12 @@ class ChecksumFile(TimeStampedModel, TaskEventMixin, PermissionPathMixin):
             return url_file_to_fuse_path(self.get_url(internal=True))
         # Fallback to loading entire file locally - this uses `get_temp_path`
         logger.debug('`yield_local_path` falling back to downloading entire file to local storage.')
-        if self.folder:
+        if self.file_set:
             # NOTE: This is messy and should be improved but it ensures the directory remains locked
-            with self.folder.yield_all_to_local_path() as _:
+            with self.file_set.yield_all_to_local_path() as _:
                 yield self.get_cache_path()
             return
-        # Not in folder. Download to cache dir
+        # Not in file_set. Download to cache dir
         path = self.download_to_local_path()
         # provide a lock on this file while yielding
         lock = FileLock(f'{path}.lock')

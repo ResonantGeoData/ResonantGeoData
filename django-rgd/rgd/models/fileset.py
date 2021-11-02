@@ -2,7 +2,7 @@ from django_extensions.db.models import TimeStampedModel
 from rgd.utility import get_cache_dir
 
 
-class Folder(TimeStampedModel):
+class FileSet(TimeStampedModel):
     @property
     def files(self):
         return self.checksumfile_set.all()

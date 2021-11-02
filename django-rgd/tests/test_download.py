@@ -5,7 +5,7 @@ import psutil
 import pytest
 from rgd import utility
 from rgd.datastore import datastore
-from rgd.models import common, folder, utils
+from rgd.models import common, fileset, utils
 
 FILENAME = 'stars.png'
 
@@ -21,7 +21,7 @@ def test_yield_local_path_file(file_path):
     model.type = common.FileSourceType.FILE_FIELD
     with open(file_path, 'rb') as f:
         model.file.save(FILENAME, f)
-    model.folder = folder.Folder.objects.create()
+    model.file_set = fileset.FileSet.objects.create()
     model.save()
     path = model.yield_local_path()
     with model.yield_local_path() as path:
@@ -50,7 +50,7 @@ def test_yield_local_path_url_s3(s3_url):
 
 @pytest.mark.django_db(transaction=True)
 def test_yield_checksumfiles(s3_url):
-    # This tests downloading ChecksumFiles not in a Folder to the same directory
+    # This tests downloading ChecksumFiles not in a FileSet to the same directory
     # Two URL files
     url = datastore.get_url('afie_1.jpg')
     file_1, _ = utils.get_or_create_checksumfile(url=url, name='afie_1.jpg')
@@ -73,28 +73,28 @@ def test_yield_checksumfiles(s3_url):
 
 
 @pytest.mark.django_db(transaction=True)
-def test_yield_checksumfiles_folder(s3_url):
-    folder = common.Folder.objects.create()
+def test_yield_checksumfiles_file_set(s3_url):
+    file_set = common.FileSet.objects.create()
     # Two URL files
     url = datastore.get_url('afie_1.jpg')
-    file_1, _ = utils.get_or_create_checksumfile(url=url, name='afie_1.jpg', folder=folder)
+    file_1, _ = utils.get_or_create_checksumfile(url=url, name='afie_1.jpg', file_set=file_set)
     url = datastore.get_url('afie_2.jpg')
     file_2, _ = utils.get_or_create_checksumfile(
-        url=url, name='the/best/dog/afie_2.jpeg', folder=folder
+        url=url, name='the/best/dog/afie_2.jpeg', file_set=file_set
     )
     # One S3 URL file
     file_3, _ = utils.get_or_create_checksumfile(
-        url=s3_url, name='s3/file/stuff.json', folder=folder
+        url=s3_url, name='s3/file/stuff.json', file_set=file_set
     )
     # One FileField file
     with open(datastore.fetch('afie_3.jpg'), 'rb') as f:
-        file_4, _ = utils.get_or_create_checksumfile(file=f, name='afie_3.jpg', folder=folder)
+        file_4, _ = utils.get_or_create_checksumfile(file=f, name='afie_3.jpg', file_set=file_set)
 
-    # Checkout all of these files under a single temporary directory through the folder
+    # Checkout all of these files under a single temporary directory through the file_set
     # Note that 2 files are at top level and one file is nested
     files = common.ChecksumFile.objects.all()
     assert files.count() == 4
-    with folder.yield_all_to_local_path() as directory:
+    with file_set.yield_all_to_local_path() as directory:
         assert os.path.exists(directory)
         for f in files.all():
             assert os.path.exists(os.path.join(directory, f.name))
@@ -102,11 +102,11 @@ def test_yield_checksumfiles_folder(s3_url):
 
 @pytest.mark.django_db(transaction=True)
 def test_clean_file_cache(checksum_file, checksum_file_url):
-    f = folder.Folder.objects.create()
-    checksum_file.folder = f
+    f = fileset.FileSet.objects.create()
+    checksum_file.file_set = f
     checksum_file.save(
         update_fields=[
-            'folder',
+            'file_set',
         ]
     )
     f.refresh_from_db()
@@ -118,14 +118,14 @@ def test_clean_file_cache(checksum_file, checksum_file_url):
         utility.clean_file_cache(override_target=psutil.disk_usage('/').total)
         assert os.path.exists(path)  # Make sure file is still present
 
-    # Make sure the same works for `Folder`s
+    # Make sure the same works for `FileSet`s
     with f.yield_all_to_local_path() as directory:
         assert os.path.exists(directory)
         assert os.path.exists(checksum_file.get_cache_path())
         utility.clean_file_cache(override_target=psutil.disk_usage('/').total)
         assert os.path.exists(directory)
         assert os.path.exists(checksum_file.get_cache_path())
-    # Checkout the folder through a contained file
+    # Checkout the file_set through a contained file
     with checksum_file.yield_local_path() as path:
         assert os.path.exists(path)
         utility.clean_file_cache(override_target=psutil.disk_usage('/').total)
