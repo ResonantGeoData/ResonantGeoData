@@ -23,7 +23,7 @@ class FileSet(TimeStampedModel):
         return p
 
     def yield_all_to_local_path(self, directory: str = None):
-        """Download all the files in this folder to a local path.
+        """Download all the files in this file set to a local path.
 
         Please note that this uses a contextmanager to acquire a lock on the
         directory to make sure the files are not automatically cleaned up by

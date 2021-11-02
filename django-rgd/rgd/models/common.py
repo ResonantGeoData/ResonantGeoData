@@ -142,7 +142,11 @@ class ChecksumFile(TimeStampedModel, TaskEventMixin, PermissionPathMixin):
                         & models.Q(models.Q(file__in=['', None]) | models.Q(file__isnull=True))
                     )
                 ),
-            )
+            ),
+            models.UniqueConstraint(
+                fields=['file_set', 'name'],
+                name='unique_name',
+            ),
         ]
 
     @property
