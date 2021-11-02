@@ -11,7 +11,7 @@ from filelock import FileLock
 
 from ..utility import compute_checksum_url, compute_hash, get_or_create_no_commit
 from .collection import Collection
-from .common import ChecksumFile, FileSourceType
+from .file import ChecksumFile, FileSourceType
 from .mixins import Status
 
 logger = logging.getLogger(__name__)

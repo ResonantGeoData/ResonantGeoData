@@ -5,7 +5,7 @@ import psutil
 import pytest
 from rgd import utility
 from rgd.datastore import datastore
-from rgd.models import common, fileset, utils
+from rgd.models import ChecksumFile, FileSet, FileSourceType, utils
 
 FILENAME = 'stars.png'
 
@@ -17,11 +17,11 @@ def file_path():
 
 @pytest.mark.django_db(transaction=True)
 def test_yield_local_path_file(file_path):
-    model = common.ChecksumFile()
-    model.type = common.FileSourceType.FILE_FIELD
+    model = ChecksumFile()
+    model.type = FileSourceType.FILE_FIELD
     with open(file_path, 'rb') as f:
         model.file.save(FILENAME, f)
-    model.file_set = fileset.FileSet.objects.create()
+    model.file_set = FileSet.objects.create()
     model.save()
     path = model.yield_local_path()
     with model.yield_local_path() as path:
@@ -30,8 +30,8 @@ def test_yield_local_path_file(file_path):
 
 @pytest.mark.django_db(transaction=True)
 def test_yield_local_path_url_http():
-    model = common.ChecksumFile()
-    model.type = common.FileSourceType.URL
+    model = ChecksumFile()
+    model.type = FileSourceType.URL
     model.url = datastore.get_url(FILENAME)
     model.save()
     with model.yield_local_path() as path:
@@ -40,8 +40,8 @@ def test_yield_local_path_url_http():
 
 @pytest.mark.django_db(transaction=True)
 def test_yield_local_path_url_s3(s3_url):
-    model = common.ChecksumFile()
-    model.type = common.FileSourceType.URL
+    model = ChecksumFile()
+    model.type = FileSourceType.URL
     model.url = s3_url
     model.save()
     with model.yield_local_path() as path:
@@ -63,7 +63,7 @@ def test_yield_checksumfiles(s3_url):
         file_4, _ = utils.get_or_create_checksumfile(file=f, name='afie_3.jpg')
     # Checkout all of these files under a single temporary directory
     # Note that 2 files are at top level and one file is nested
-    files = common.ChecksumFile.objects.all()
+    files = ChecksumFile.objects.all()
     assert files.count() == 4
     with tempfile.TemporaryDirectory() as tempdir:
         with utils.yield_checksumfiles(files, tempdir) as directory:
@@ -74,7 +74,7 @@ def test_yield_checksumfiles(s3_url):
 
 @pytest.mark.django_db(transaction=True)
 def test_yield_checksumfiles_file_set(s3_url):
-    file_set = common.FileSet.objects.create()
+    file_set = FileSet.objects.create()
     # Two URL files
     url = datastore.get_url('afie_1.jpg')
     file_1, _ = utils.get_or_create_checksumfile(url=url, name='afie_1.jpg', file_set=file_set)
@@ -92,7 +92,7 @@ def test_yield_checksumfiles_file_set(s3_url):
 
     # Checkout all of these files under a single temporary directory through the file_set
     # Note that 2 files are at top level and one file is nested
-    files = common.ChecksumFile.objects.all()
+    files = ChecksumFile.objects.all()
     assert files.count() == 4
     with file_set.yield_all_to_local_path() as directory:
         assert os.path.exists(directory)
@@ -102,7 +102,7 @@ def test_yield_checksumfiles_file_set(s3_url):
 
 @pytest.mark.django_db(transaction=True)
 def test_clean_file_cache(checksum_file, checksum_file_url):
-    f = fileset.FileSet.objects.create()
+    f = FileSet.objects.create()
     checksum_file.file_set = f
     checksum_file.save(
         update_fields=[
