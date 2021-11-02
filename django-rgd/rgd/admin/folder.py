@@ -4,5 +4,5 @@ from rgd.models import Folder
 
 
 @admin.register(Folder)
-class CollectionAdmin(OSMGeoAdmin):
+class FolderAdmin(OSMGeoAdmin):
     pass
