@@ -32,8 +32,8 @@ urlpatterns = [
         'api/rgd/search',
         viewsets.SpatialEntryViewSet.as_view({'get': 'list'}),
     ),
-    #############
-    # Other
+    # Deprecated
+    # TODO: remove route once all endpoints use 'rgd.rest.mixins.TaskEventViewSetMixin'
     path(
         'api/rgd/status/<model>/<int:pk>',
         rest.download.get_status,
