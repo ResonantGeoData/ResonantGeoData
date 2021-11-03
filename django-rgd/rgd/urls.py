@@ -9,6 +9,7 @@ router.register(r'api/rgd/collection', viewsets.CollectionViewSet)
 router.register(r'api/rgd/collection_permission', viewsets.CollectionPermissionViewSet)
 router.register(r'api/rgd/checksum_file', viewsets.ChecksumFileViewSet)
 router.register(r'api/rgd/spatial_entry', viewsets.SpatialEntryViewSet)
+router.register(r'api/rgd/spatial_asset', viewsets.SpatialAssetViewSet)
 
 urlpatterns = [
     # API Key Authentication
@@ -34,15 +35,5 @@ urlpatterns = [
         'api/rgd/status/<model>/<int:pk>',
         rest.download.get_status,
         name='get-status',
-    ),
-    path(
-        'api/rgd/spatial_asset',
-        rest.post.CreateSpatialAsset.as_view(),
-        name='spatial-asset-create',
-    ),
-    path(
-        'api/rgd/spatial_asset/<int:pk>',
-        rest.get.GetSpatialAsset.as_view(),
-        name='spatial-asset',
     ),
 ] + router.urls

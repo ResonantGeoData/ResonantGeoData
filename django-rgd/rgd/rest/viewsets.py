@@ -42,3 +42,8 @@ class SpatialEntryViewSet(ReadOnlyModelViewSet):
     @action(detail=True, serializer_class=serializers.SpatialEntryFootprintSerializer)
     def footprint(self, request, pk=None):
         return self.retrieve(request, pk=pk)
+
+
+class SpatialAssetViewSet(ModelViewSet):
+    serializer_class = serializers.SpatialAssetSerializer
+    queryset = models.SpatialAsset.objects.all()
