@@ -7,6 +7,7 @@ from rgd.rest import viewsets
 router = SimpleRouter(trailing_slash=False)
 router.register(r'api/rgd/collection', viewsets.CollectionViewSet)
 router.register(r'api/rgd/collection_permission', viewsets.CollectionPermissionViewSet)
+router.register(r'api/rgd/checksum_file', viewsets.ChecksumFileViewSet)
 
 urlpatterns = [
     # API Key Authentication
@@ -42,21 +43,6 @@ urlpatterns = [
         'api/rgd/spatial_entry/<int:spatial_id>/footprint',
         rest.get.GetSpatialEntryFootprint.as_view(),
         name='spatial-entry-footprint',
-    ),
-    path(
-        'api/rgd/checksum_file/<int:pk>',
-        rest.get.GetChecksumFile.as_view(),
-        name='checksum-file',
-    ),
-    path(
-        'api/rgd/checksum_file/<int:pk>/data',
-        rest.download.download_checksum_file,
-        name='checksum-file-data',
-    ),
-    path(
-        'api/rgd/checksum_file',
-        rest.post.CreateChecksumFile.as_view(),
-        name='checksum-create',
     ),
     path(
         'api/rgd/spatial_asset',

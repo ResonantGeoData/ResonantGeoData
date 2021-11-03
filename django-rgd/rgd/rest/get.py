@@ -3,12 +3,6 @@ from rgd import models, serializers
 from rgd.rest.mixins import BaseRestViewMixin
 
 
-class GetChecksumFile(BaseRestViewMixin, RetrieveAPIView):
-    serializer_class = serializers.ChecksumFileSerializer
-    lookup_field = 'pk'
-    queryset = models.ChecksumFile.objects.all()
-
-
 class GetSpatialEntry(BaseRestViewMixin, RetrieveAPIView):
     serializer_class = serializers.SpatialEntrySerializer
     lookup_field = 'spatial_id'
