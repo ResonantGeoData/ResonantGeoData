@@ -3,12 +3,6 @@ from rgd import models, serializers
 from rgd.rest.mixins import BaseRestViewMixin
 
 
-class GetCollection(BaseRestViewMixin, RetrieveAPIView):
-    serializer_class = serializers.CollectionSerializer
-    lookup_field = 'pk'
-    queryset = models.Collection.objects.all()
-
-
 class GetCollectionPermission(BaseRestViewMixin, RetrieveAPIView):
     serializer_class = serializers.CollectionPermissionSerializer
     lookup_field = 'pk'

@@ -1,7 +1,11 @@
 from django.urls import path
 from rest_framework.authtoken.views import obtain_auth_token
+from rest_framework.routers import SimpleRouter
+from rgd import rest, views
+from rgd.rest import viewsets
 
-from . import rest, views
+router = SimpleRouter(trailing_slash=False)
+router.register(r'api/rgd/collection', viewsets.CollectionViewSet)
 
 urlpatterns = [
     # API Key Authentication
@@ -54,16 +58,6 @@ urlpatterns = [
         name='checksum-create',
     ),
     path(
-        'api/rgd/collection',
-        rest.post.CreateCollection.as_view(),
-        name='collection-create',
-    ),
-    path(
-        'api/rgd/collection/<int:pk>',
-        rest.get.GetCollection.as_view(),
-        name='collection',
-    ),
-    path(
         'api/rgd/collection_permission',
         rest.post.CreateCollectionPermission.as_view(),
         name='collection-permission-create',
@@ -83,4 +77,4 @@ urlpatterns = [
         rest.get.GetSpatialAsset.as_view(),
         name='spatial-asset',
     ),
-]
+] + router.urls
