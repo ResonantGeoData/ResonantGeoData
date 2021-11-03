@@ -28,7 +28,10 @@ urlpatterns = [
     ),
     #############
     # Search
-    path('api/rgd/search', rest.search.SearchSpatialEntryView.as_view()),
+    path(
+        'api/rgd/search',
+        viewsets.SpatialEntryViewSet.as_view({'get': 'list'}),
+    ),
     #############
     # Other
     path(
