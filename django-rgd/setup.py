@@ -67,6 +67,7 @@ setup(
         'psycopg2',
         'python-magic',
         'flower',
+        'psutil',
         # Production-only
         'django-s3-file-field[minio]',
     ],
