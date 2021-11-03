@@ -3,12 +3,6 @@ from rgd import models, serializers
 from rgd.rest.mixins import BaseRestViewMixin
 
 
-class GetCollectionPermission(BaseRestViewMixin, RetrieveAPIView):
-    serializer_class = serializers.CollectionPermissionSerializer
-    lookup_field = 'pk'
-    queryset = models.CollectionPermission.objects.all()
-
-
 class GetChecksumFile(BaseRestViewMixin, RetrieveAPIView):
     serializer_class = serializers.ChecksumFileSerializer
     lookup_field = 'pk'

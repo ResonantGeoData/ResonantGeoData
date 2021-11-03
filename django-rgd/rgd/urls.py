@@ -6,6 +6,7 @@ from rgd.rest import viewsets
 
 router = SimpleRouter(trailing_slash=False)
 router.register(r'api/rgd/collection', viewsets.CollectionViewSet)
+router.register(r'api/rgd/collection_permission', viewsets.CollectionPermissionViewSet)
 
 urlpatterns = [
     # API Key Authentication
@@ -56,16 +57,6 @@ urlpatterns = [
         'api/rgd/checksum_file',
         rest.post.CreateChecksumFile.as_view(),
         name='checksum-create',
-    ),
-    path(
-        'api/rgd/collection_permission',
-        rest.post.CreateCollectionPermission.as_view(),
-        name='collection-permission-create',
-    ),
-    path(
-        'api/rgd/collection_permission/<int:pk>',
-        rest.get.GetCollectionPermission.as_view(),
-        name='collection-permission',
     ),
     path(
         'api/rgd/spatial_asset',
