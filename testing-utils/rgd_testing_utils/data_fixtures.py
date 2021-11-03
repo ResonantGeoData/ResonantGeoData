@@ -29,7 +29,7 @@ def spatial_asset_a():
     e.footprint = geom
     e.outline = geom
     e.save()
-    e.files.add(factories.ChecksumFileFactory())
+    e.files.add(factories.ChecksumFileFactory(file__filename='spatial_asset_a.dat'))
     e.save()
     return e
 
@@ -43,7 +43,7 @@ def spatial_asset_b():
     e.footprint = geom
     e.outline = geom
     e.save()
-    e.files.add(factories.ChecksumFileFactory())
+    e.files.add(factories.ChecksumFileFactory(file__filename='spatial_asset_b.dat'))
     e.save()
     return e
 
