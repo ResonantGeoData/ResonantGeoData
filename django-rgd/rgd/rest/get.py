@@ -3,18 +3,6 @@ from rgd import models, serializers
 from rgd.rest.mixins import BaseRestViewMixin
 
 
-class GetSpatialEntry(BaseRestViewMixin, RetrieveAPIView):
-    serializer_class = serializers.SpatialEntrySerializer
-    lookup_field = 'spatial_id'
-    queryset = models.SpatialEntry.objects.all()
-
-
-class GetSpatialEntryFootprint(BaseRestViewMixin, RetrieveAPIView):
-    serializer_class = serializers.SpatialEntryFootprintSerializer
-    lookup_field = 'spatial_id'
-    queryset = models.SpatialEntry.objects.all()
-
-
 class GetSpatialAsset(BaseRestViewMixin, RetrieveAPIView):
     serializer_class = serializers.SpatialAssetSerializer
     lookup_field = 'spatial_id'

@@ -8,6 +8,7 @@ router = SimpleRouter(trailing_slash=False)
 router.register(r'api/rgd/collection', viewsets.CollectionViewSet)
 router.register(r'api/rgd/collection_permission', viewsets.CollectionPermissionViewSet)
 router.register(r'api/rgd/checksum_file', viewsets.ChecksumFileViewSet)
+router.register(r'api/rgd/spatial_entry', viewsets.SpatialEntryViewSet)
 
 urlpatterns = [
     # API Key Authentication
@@ -33,16 +34,6 @@ urlpatterns = [
         'api/rgd/status/<model>/<int:pk>',
         rest.download.get_status,
         name='get-status',
-    ),
-    path(
-        'api/rgd/spatial_entry/<int:spatial_id>',
-        rest.get.GetSpatialEntry.as_view(),
-        name='spatial-entry',
-    ),
-    path(
-        'api/rgd/spatial_entry/<int:spatial_id>/footprint',
-        rest.get.GetSpatialEntryFootprint.as_view(),
-        name='spatial-entry-footprint',
     ),
     path(
         'api/rgd/spatial_asset',

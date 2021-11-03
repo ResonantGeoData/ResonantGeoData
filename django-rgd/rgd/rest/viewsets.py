@@ -2,7 +2,8 @@ from django.http import HttpResponseRedirect
 from drf_yasg.utils import swagger_auto_schema
 from rest_framework.decorators import action
 from rgd import models, serializers
-from rgd.rest.base import ModelViewSet
+from rgd.filters import SpatialEntryFilter
+from rgd.rest.base import ModelViewSet, ReadOnlyModelViewSet
 
 
 class CollectionViewSet(ModelViewSet):
@@ -27,3 +28,17 @@ class ChecksumFileViewSet(ModelViewSet):
     def data(self, request, pk=None):
         obj = self.get_object()
         return HttpResponseRedirect(obj.get_url())
+
+
+class SpatialEntryViewSet(ReadOnlyModelViewSet):
+    serializer_class = serializers.SpatialEntrySerializer
+    queryset = models.SpatialEntry.objects.all()
+    filterset_class = SpatialEntryFilter
+
+    @swagger_auto_schema(
+        method='GET',
+        operation_summary='Get the footprint of this SpatialEntry.',
+    )
+    @action(detail=True, serializer_class=serializers.SpatialEntryFootprintSerializer)
+    def footprint(self, request, pk=None):
+        return self.retrieve(request, pk=pk)
