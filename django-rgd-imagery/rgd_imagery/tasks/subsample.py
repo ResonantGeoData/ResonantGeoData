@@ -186,7 +186,7 @@ def mosaic_images(processed_image):
 
         src_files_to_mosaic = []
         for image in images:
-            with image.file.yield_local_path() as file_path:
+            with image.file.yield_local_path(yield_file_set=True) as file_path:
                 src_files_to_mosaic.append(rasterio.open(file_path))
 
         with output_path_helper('mosaic.tif', output.file) as output_path:

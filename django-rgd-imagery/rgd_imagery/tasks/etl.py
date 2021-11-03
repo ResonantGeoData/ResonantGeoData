@@ -262,7 +262,7 @@ def _extract_raster_footprint(image):
     This operates on the assumption that the Image is a valid raster.
 
     """
-    with image.file.yield_local_path() as file_path:
+    with image.file.yield_local_path(yield_file_set=True) as file_path:
         # Reproject the raster to the DB SRID using rasterio directly rather
         #  than transforming the extracted geometry which had issues.
         with _reproject_raster(file_path, DB_SRID) as src:

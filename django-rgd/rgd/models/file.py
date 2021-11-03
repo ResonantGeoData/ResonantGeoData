@@ -236,7 +236,7 @@ class ChecksumFile(TimeStampedModel, TaskEventMixin, PermissionPathMixin):
         return directory / f'{self.name}'
 
     @contextmanager
-    def yield_local_path(self, try_fuse: bool = True):
+    def yield_local_path(self, try_fuse: bool = True, yield_file_set: bool = False):
         """Create a local path for this file and all other files in its file_set.
 
         This will first attempt to use httpfs to FUSE mount the file's URL if
@@ -252,6 +252,9 @@ class ChecksumFile(TimeStampedModel, TaskEventMixin, PermissionPathMixin):
             Try to use the FUSE interface. If false, use VSI or download to
             local storage.
 
+        yield_file_set : bool
+            Yield all of the files in this file's file_set if available.
+
         """
         # TODO: fix FUSE to handle adjacent files
         if (
@@ -263,7 +266,7 @@ class ChecksumFile(TimeStampedModel, TaskEventMixin, PermissionPathMixin):
             return url_file_to_fuse_path(self.get_url(internal=True))
         # Fallback to loading entire file locally - this uses `get_temp_path`
         logger.debug('`yield_local_path` falling back to downloading entire file to local storage.')
-        if self.file_set:
+        if yield_file_set and self.file_set:
             # NOTE: This is messy and should be improved but it ensures the directory remains locked
             with self.file_set.yield_all_to_local_path() as _:
                 yield self.get_cache_path()
