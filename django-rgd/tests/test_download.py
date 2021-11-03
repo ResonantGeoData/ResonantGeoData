@@ -112,7 +112,7 @@ def test_clean_file_cache(checksum_file, checksum_file_url):
     f.refresh_from_db()
 
     # Make sure clean_file_cache does not clean files in use
-    with checksum_file_url.yield_local_path() as path:
+    with checksum_file_url.yield_local_path(yield_file_set=True) as path:
         assert os.path.exists(path)  # Make sure the file was checked out
         # Set target to size of drive to delete entire cache
         utility.clean_file_cache(override_target=psutil.disk_usage('/').total)
@@ -126,7 +126,7 @@ def test_clean_file_cache(checksum_file, checksum_file_url):
         assert os.path.exists(directory)
         assert os.path.exists(checksum_file.get_cache_path())
     # Checkout the file_set through a contained file
-    with checksum_file.yield_local_path() as path:
+    with checksum_file.yield_local_path(yield_file_set=True) as path:
         assert os.path.exists(path)
         utility.clean_file_cache(override_target=psutil.disk_usage('/').total)
         assert os.path.exists(path)
