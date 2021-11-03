@@ -26,8 +26,8 @@ urlpatterns = [
         views.spatial_entry_redirect_view,
         name='spatial-entry-detail',
     ),
-    #############
-    # Search
+    # Deprecated
+    # TODO: remove route. duplicated functionality in 'rgd.viewsets.SpatialEntryViewSet'
     path(
         'api/rgd/search',
         viewsets.SpatialEntryViewSet.as_view({'get': 'list'}),
