@@ -68,3 +68,17 @@ class ImageViewSet(ModelViewSet):
         obj = self.get_object()
         url = obj.file.get_url()
         return HttpResponseRedirect(url)
+
+
+class RasterViewSet(ModelViewSet):
+    # TODO: consolidate 'RasterSerializer' and 'RasterMetaSerializer'
+
+    def get_serializer_class(self):
+        if self.action in {'list', 'retrieve'}:
+            return serializers.RasterMetaSerializer
+        return serializers.RasterSerializer
+
+    def get_queryset(self):
+        if self.action in {'list', 'retrieve'}:
+            return models.RasterMeta.objects.all()
+        return models.Raster.objects.all()
