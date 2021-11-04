@@ -7,12 +7,14 @@ from .types import DATETIME_OR_STR_TUPLE, SEARCH_PREDICATE_CHOICE
 from .utils import spatial_search_params
 
 
-class RGDPlugin:
+class RgdPlugin:
+    """The base plugin that all other plugins must inherit from."""
+
     def __init__(self, session: RgdClientSession):
         self.session = session
 
 
-class CorePlugin(RGDPlugin):
+class CorePlugin(RgdPlugin):
     """The core django-rgd client plugin."""
 
     def __init__(self, *args, **kwargs):

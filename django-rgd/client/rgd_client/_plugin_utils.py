@@ -4,13 +4,13 @@ from typing import Dict, List, Optional, Type
 from pkg_resources import iter_entry_points
 from rgd_client.client import RgdClient
 
-from rgd_client.plugin import CorePlugin, RGDPlugin
+from rgd_client.plugin import CorePlugin, RgdPlugin
 from rgd_client.session import clone_session
 
 
 _NAMESPACE = 'rgd_client.plugin'
-_PLUGIN_CLASS_DICT = Dict[str, Type[RGDPlugin]]
-_PLUGIN_INSTANCE_DICT = Dict[Type[RGDPlugin], RGDPlugin]
+_PLUGIN_CLASS_DICT = Dict[str, Type[RgdPlugin]]
+_PLUGIN_INSTANCE_DICT = Dict[Type[RgdPlugin], RgdPlugin]
 
 
 def _plugin_classes(extra_plugins: Optional[List] = None) -> _PLUGIN_CLASS_DICT:
@@ -26,7 +26,7 @@ def _plugin_classes(extra_plugins: Optional[List] = None) -> _PLUGIN_CLASS_DICT:
             {
                 n: v
                 for n, v in inspect.getmembers(cls)
-                if inspect.isclass(v) and issubclass(v, RGDPlugin)
+                if inspect.isclass(v) and issubclass(v, RgdPlugin)
             }
         )
 
@@ -52,7 +52,7 @@ def _inject_plugin_deps(plugin_instances: _PLUGIN_INSTANCE_DICT):
         deps = [
             (name, val)
             for name, val in inspect.getmembers(plugin_class)
-            if inspect.isclass(val) and issubclass(val, RGDPlugin)
+            if inspect.isclass(val) and issubclass(val, RgdPlugin)
         ]
 
         for name, cls in deps:

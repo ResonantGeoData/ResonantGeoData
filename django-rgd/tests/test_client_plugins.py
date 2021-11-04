@@ -1,9 +1,9 @@
 from rgd_client import create_rgd_client
-from rgd_client.plugin import CorePlugin, RGDPlugin
+from rgd_client.plugin import CorePlugin, RgdPlugin
 
 
 # Plugin A
-class PluginA(RGDPlugin):
+class PluginA(RgdPlugin):
     rgd = CorePlugin
 
 
@@ -12,7 +12,7 @@ class ClientA:
 
 
 # Plugin B
-class PluginB(RGDPlugin):
+class PluginB(RgdPlugin):
     a = PluginA
     rgd = CorePlugin
 
