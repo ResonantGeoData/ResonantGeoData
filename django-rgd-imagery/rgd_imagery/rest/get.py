@@ -9,12 +9,6 @@ from rgd.rest.mixins import BaseRestViewMixin
 from rgd_imagery import models, serializers
 
 
-class GetProcessedImage(BaseRestViewMixin, RetrieveAPIView):
-    serializer_class = serializers.ProcessedImageSerializer
-    lookup_field = 'pk'
-    queryset = models.ProcessedImage.objects.all()
-
-
 class GetImageMeta(BaseRestViewMixin, RetrieveAPIView):
     serializer_class = serializers.ImageMetaSerializer
     lookup_field = 'pk'

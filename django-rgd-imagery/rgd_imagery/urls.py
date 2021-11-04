@@ -1,6 +1,10 @@
 from django.urls import path, register_converter
+from rest_framework.routers import SimpleRouter
+from rgd_imagery import models, rest, views
+from rgd_imagery.rest import viewsets
 
-from . import models, rest, views
+router = SimpleRouter(trailing_slash=False)
+router.register(r'api/rgd_imagery/image_process', viewsets.ProcessedImageViewSet)
 
 
 class FloatUrlParameterConverter:
@@ -141,16 +145,10 @@ urlpatterns = [
         rest.tiles.TileSingleBandInfoView.as_view(),
         name='image-bands-single',
     ),
-    path('api/image_process', rest.post.CreateProcessedImage.as_view(), name='processed-image'),
     path(
         'api/image_process/group',
         rest.post.CreateProcessedImageGroup.as_view(),
         name='processed-image-group',
-    ),
-    path(
-        'api/image_process/<int:pk>',
-        rest.get.GetProcessedImage.as_view(),
-        name='get-processed-image',
     ),
     path(
         'api/image_process/group/<int:pk>/status',
@@ -182,4 +180,4 @@ urlpatterns = [
         rest.stac.ItemView.as_view(),
         name='stac-collection-item',
     ),
-]
+] + router.urls

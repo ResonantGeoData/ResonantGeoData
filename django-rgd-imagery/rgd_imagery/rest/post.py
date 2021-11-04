@@ -3,11 +3,6 @@ from rgd.rest.mixins import BaseRestViewMixin
 from rgd_imagery import models, serializers
 
 
-class CreateProcessedImage(BaseRestViewMixin, CreateAPIView):
-    queryset = models.ProcessedImage.objects.all()
-    serializer_class = serializers.ProcessedImageSerializer
-
-
 class CreateProcessedImageGroup(BaseRestViewMixin, CreateAPIView):
     queryset = models.ProcessedImageGroup.objects.all()
     serializer_class = serializers.ProcessedImageGroupSerializer
