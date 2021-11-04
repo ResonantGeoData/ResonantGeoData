@@ -6,6 +6,7 @@ from rgd_imagery.rest import viewsets
 router = SimpleRouter(trailing_slash=False)
 router.register(r'api/rgd_imagery/image_process', viewsets.ProcessedImageViewSet)
 router.register(r'api/rgd_imagery/image_process/group', viewsets.ProcessedImageGroupViewSet)
+router.register(r'api/rgd_imagery/image_set', viewsets.ImageSetViewSet)
 
 
 class FloatUrlParameterConverter:
@@ -58,16 +59,6 @@ urlpatterns = [
         'api/rgd_imagery/<int:pk>/data',
         rest.download.download_image_file,
         name='image-entry-data',
-    ),
-    path(
-        'api/rgd_imagery/image_set',
-        rest.post.CreateImageSet.as_view(),
-        name='image-set-create',
-    ),
-    path(
-        'api/rgd_imagery/image_set/<int:pk>',
-        rest.get.GetImageSet.as_view(),
-        name='image-set',
     ),
     path(
         'api/rgd_imagery/image_set_spatial',

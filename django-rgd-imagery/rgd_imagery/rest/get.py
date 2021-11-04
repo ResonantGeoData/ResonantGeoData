@@ -9,12 +9,6 @@ class GetImageMeta(BaseRestViewMixin, RetrieveAPIView):
     queryset = models.ImageMeta.objects.all()
 
 
-class GetImageSet(BaseRestViewMixin, RetrieveAPIView):
-    serializer_class = serializers.ImageSetSerializer
-    lookup_field = 'pk'
-    queryset = models.ImageSet.objects.all()
-
-
 class GetImageSetSpatial(BaseRestViewMixin, RetrieveAPIView):
     serializer_class = serializers.ImageSetSpatialSerializer
     lookup_field = 'pk'

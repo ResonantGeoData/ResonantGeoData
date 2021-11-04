@@ -33,3 +33,8 @@ class ProcessedImageGroupViewSet(ModelViewSet):
             Status.SUCCEEDED: images.filter(status=Status.SUCCEEDED).count(),
         }
         return Response(data)
+
+
+class ImageSetViewSet(ModelViewSet):
+    serializer_class = serializers.ImageSetSerializer
+    queryset = models.ImageSet.objects.all()
