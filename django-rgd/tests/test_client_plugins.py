@@ -32,3 +32,8 @@ def test_plugin_dependency_inject():
     assert isinstance(client.a.rgd, CorePlugin)
     assert isinstance(client.b.rgd, CorePlugin)
     assert isinstance(client.b.a, PluginA)
+
+    # Assert underlying class is not modified
+    assert not isinstance(PluginA.rgd, CorePlugin)
+    assert not isinstance(PluginB.rgd, CorePlugin)
+    assert not isinstance(PluginB.a, PluginA)
