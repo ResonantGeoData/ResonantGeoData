@@ -5,6 +5,7 @@ from rgd_imagery.rest import viewsets
 
 router = SimpleRouter(trailing_slash=False)
 router.register(r'api/rgd_imagery/image_process', viewsets.ProcessedImageViewSet)
+router.register(r'api/rgd_imagery/image_process/group', viewsets.ProcessedImageGroupViewSet)
 
 
 class FloatUrlParameterConverter:
@@ -144,16 +145,6 @@ urlpatterns = [
         'api/image_process/imagery/<int:pk>/bands/<int:band>',
         rest.tiles.TileSingleBandInfoView.as_view(),
         name='image-bands-single',
-    ),
-    path(
-        'api/image_process/group',
-        rest.post.CreateProcessedImageGroup.as_view(),
-        name='processed-image-group',
-    ),
-    path(
-        'api/image_process/group/<int:pk>/status',
-        rest.get.get_processed_image_group_status,
-        name='processed-image-group-status',
     ),
     path(
         'api/stac',
