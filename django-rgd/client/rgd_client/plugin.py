@@ -1,4 +1,4 @@
-from typing import Dict, List, Optional, Tuple, Union
+from typing import Dict, List, Optional, Tuple, Type, Union
 
 import validators
 
@@ -7,11 +7,18 @@ from .types import DATETIME_OR_STR_TUPLE, SEARCH_PREDICATE_CHOICE
 from .utils import spatial_search_params
 
 
-class CorePlugin:
-    """The core django-rgd client plugin."""
+class RGDPlugin:
+    plugins: Optional[Type] = None
 
     def __init__(self, session: RgdClientSession):
         self.session = session
+
+
+class CorePlugin(RGDPlugin):
+    """The core django-rgd client plugin."""
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
         self.session.base_url += 'rgd/'
 
     def search(

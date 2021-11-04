@@ -6,7 +6,7 @@ from typing import Dict, List, Optional, Type
 from pkg_resources import iter_entry_points
 import requests
 
-from .plugin import CorePlugin
+from .plugin import CorePlugin, RGDPlugin
 from .session import RgdClientSession, clone_session
 from .utils import API_KEY_DIR_PATH, API_KEY_FILE_NAME, DEFAULT_RGD_API
 
@@ -53,7 +53,7 @@ class RgdClient:
         (API_KEY_DIR_PATH / API_KEY_FILE_NAME).unlink(missing_ok=True)
 
 
-def _plugins_dict(extra_plugins: Optional[List] = None) -> Dict:
+def _plugins_dict(extra_plugins: Optional[List] = None) -> Dict[str, Type[RGDPlugin]]:
     entry_points = iter_entry_points(_NAMESPACE)
     plugins_classes = [ep.load() for ep in entry_points]
     if extra_plugins is not None:
@@ -61,7 +61,13 @@ def _plugins_dict(extra_plugins: Optional[List] = None) -> Dict:
 
     members = {}
     for cls in plugins_classes:
-        members.update({n: v for n, v in inspect.getmembers(cls) if not n.startswith('__')})
+        members.update(
+            {
+                n: v
+                for n, v in inspect.getmembers(cls)
+                if inspect.isclass(v) and issubclass(v, RGDPlugin)
+            }
+        )
 
     return members
 
@@ -104,10 +110,36 @@ def create_rgd_client(
     save: Optional[bool] = True,
     extra_plugins: Optional[List[Type]] = None,
 ):
-    plugins = _plugins_dict(extra_plugins=extra_plugins)
+    # Create initial client
     client = RgdClient(api_url, username, password, save)
-    for name, cls in plugins.items():
+
+    # A dict to map a plugin namespace to its class
+    plugins_dict = _plugins_dict(extra_plugins=extra_plugins)
+
+    # A dict to map a plugin class to its instance
+    instance_dict: Dict[Type[RGDPlugin], RGDPlugin] = {CorePlugin: client.rgd}
+
+    # Create plugin instances
+    for name, cls in plugins_dict.items():
         instance = cls(clone_session(client.session))
         setattr(client, name, instance)
+        instance_dict[cls] = instance
+
+    # Inject plugins dependencies for each plugin instance
+    for plugin_class, plugin_instance in instance_dict.items():
+        # Ensure plugins class is defined
+        if not inspect.isclass(getattr(plugin_class, 'plugins', None)):
+            continue
+
+        # Retrieve deps
+        deps = [
+            (name, val)
+            for name, val in inspect.getmembers(plugin_class.plugins)
+            if inspect.isclass(val) and issubclass(val, RGDPlugin)
+        ]
+
+        for name, cls in deps:
+            if cls in instance_dict:
+                setattr(plugin_instance.plugins, name, instance_dict[cls])
 
     return client
