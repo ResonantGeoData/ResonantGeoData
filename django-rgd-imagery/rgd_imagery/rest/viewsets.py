@@ -38,3 +38,8 @@ class ProcessedImageGroupViewSet(ModelViewSet):
 class ImageSetViewSet(ModelViewSet):
     serializer_class = serializers.ImageSetSerializer
     queryset = models.ImageSet.objects.all()
+
+
+class ImageSetSpatialViewSet(ModelViewSet):
+    serializer_class = serializers.ImageSetSpatialSerializer
+    queryset = models.ImageSetSpatial.objects.all()

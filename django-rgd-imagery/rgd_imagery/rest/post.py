@@ -13,11 +13,6 @@ class CreateImage(BaseRestViewMixin, CreateAPIView):
     serializer_class = serializers.ImageSerializer
 
 
-class CreateImageSetSpatial(BaseRestViewMixin, CreateAPIView):
-    queryset = models.ImageSetSpatial.objects.all()
-    serializer_class = serializers.ImageSetSpatialSerializer
-
-
 class CreateRaster(BaseRestViewMixin, CreateAPIView):
     queryset = models.Raster.objects.all()
     serializer_class = serializers.RasterSerializer
