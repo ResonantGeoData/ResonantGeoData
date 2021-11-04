@@ -113,3 +113,29 @@ client: Client = create_rgd_client()
 ```
 
 Now, all plugin namespaces and methods will be shown in your IDE.
+
+
+### Sibling plugins
+There may be a circumstance where you'd like to make use of another plugin from within your own plugin. For example, if you wanted to wrap the core `search` method in your own `my_search` function. This can be done by defining a *plugin dependency*.
+
+This is very simple to do, just place a definition of the plugin you'd like to use within your own plugin definition. Here's an example that illustrates the situation metioned above
+
+```python
+from rgd_client.plugin import CorePlugin
+
+
+class MyPlugin(RgdPlugin):
+    rgd = CorePlugin
+
+    def my_search(self, *args, **kwargs):
+        res = self.rgd.search(*args, **kwargs)
+
+        print('Search Performed!')
+        return res
+
+class MyClient:
+    foo = MyPlugin
+
+```
+
+When `create_rgd_client` is called, it searches all registered plugins for members that inherit `RgdPlugin`, and instantiates them if it does. So, as long as the plugin you want to use is installed with `pip`, or is provided in `extra_plugins`, it will be injected into your plugin.
