@@ -8,6 +8,7 @@ router.register(r'api/rgd_imagery/image_process', viewsets.ProcessedImageViewSet
 router.register(r'api/rgd_imagery/image_process/group', viewsets.ProcessedImageGroupViewSet)
 router.register(r'api/rgd_imagery/image_set', viewsets.ImageSetViewSet)
 router.register(r'api/rgd_imagery/image_set_spatial', viewsets.ImageSetSpatialViewSet)
+router.register(r'api/rgd_imagery', viewsets.ImageViewSet, basename='imagery')
 
 
 class FloatUrlParameterConverter:
@@ -46,21 +47,6 @@ urlpatterns = [
     path('api/rgd_imagery/raster/search', rest.search.SearchRasterMetaSTACView.as_view()),
     #############
     # Other
-    path(
-        'api/rgd_imagery',
-        rest.post.CreateImage.as_view(),
-        name='image-create',
-    ),
-    path(
-        'api/rgd_imagery/<int:pk>',
-        rest.get.GetImageMeta.as_view(),
-        name='image-entry',
-    ),
-    path(
-        'api/rgd_imagery/<int:pk>/data',
-        rest.download.download_image_file,
-        name='image-entry-data',
-    ),
     path(
         'api/rgd_imagery/raster',
         rest.post.CreateRaster.as_view(),

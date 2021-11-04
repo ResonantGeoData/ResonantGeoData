@@ -1,3 +1,4 @@
+from django.http import HttpResponseRedirect
 from drf_yasg.utils import swagger_auto_schema
 from rest_framework.decorators import action
 from rest_framework.response import Response
@@ -43,3 +44,27 @@ class ImageSetViewSet(ModelViewSet):
 class ImageSetSpatialViewSet(ModelViewSet):
     serializer_class = serializers.ImageSetSpatialSerializer
     queryset = models.ImageSetSpatial.objects.all()
+
+
+class ImageViewSet(ModelViewSet):
+    # TODO: consolidate 'ImageSerializer' and 'ImageMetaSerializer'
+
+    def get_serializer_class(self):
+        if self.action in {'list', 'retrieve'}:
+            return serializers.ImageMetaSerializer
+        return serializers.ImageSerializer
+
+    def get_queryset(self):
+        if self.action in {'list', 'retrieve'}:
+            return models.ImageMeta.objects.all()
+        return models.Image.objects.all()
+
+    @swagger_auto_schema(
+        method='GET',
+        operation_summary='Download the associated Image data for this Image directly from S3.',
+    )
+    @action(detail=True)
+    def data(self, *args, **kwargs):
+        obj = self.get_object()
+        url = obj.file.get_url()
+        return HttpResponseRedirect(url)

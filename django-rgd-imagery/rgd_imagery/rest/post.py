@@ -8,11 +8,6 @@ class CreateRasterSTAC(BaseRestViewMixin, CreateAPIView):
     serializer_class = serializers.stac.ItemSerializer
 
 
-class CreateImage(BaseRestViewMixin, CreateAPIView):
-    queryset = models.Image.objects.all()
-    serializer_class = serializers.ImageSerializer
-
-
 class CreateRaster(BaseRestViewMixin, CreateAPIView):
     queryset = models.Raster.objects.all()
     serializer_class = serializers.RasterSerializer
