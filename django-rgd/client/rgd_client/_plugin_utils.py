@@ -49,17 +49,12 @@ def _plugin_instances(
 def _inject_plugin_deps(plugin_instances: _PLUGIN_INSTANCE_DICT):
     """Inject plugin dependencies for each plugin instance."""
     for plugin_class, plugin_instance in plugin_instances.items():
-        # Ensure plugins class is defined
-        if not inspect.isclass(getattr(plugin_class, 'plugins', None)):
-            continue
-
-        # Retrieve deps
         deps = [
             (name, val)
-            for name, val in inspect.getmembers(plugin_class.plugins)
+            for name, val in inspect.getmembers(plugin_class)
             if inspect.isclass(val) and issubclass(val, RGDPlugin)
         ]
 
         for name, cls in deps:
             if cls in plugin_instances:
-                setattr(plugin_instance.plugins, name, plugin_instances[cls])
+                setattr(plugin_instance, name, plugin_instances[cls])

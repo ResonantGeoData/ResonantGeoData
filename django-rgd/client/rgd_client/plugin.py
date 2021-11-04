@@ -1,4 +1,4 @@
-from typing import Dict, List, Optional, Tuple, Type, Union
+from typing import Dict, List, Optional, Tuple, Union
 
 import validators
 
@@ -8,8 +8,6 @@ from .utils import spatial_search_params
 
 
 class RGDPlugin:
-    plugins: Optional[Type] = None
-
     def __init__(self, session: RgdClientSession):
         self.session = session
 
