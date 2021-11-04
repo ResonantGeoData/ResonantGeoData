@@ -3,7 +3,7 @@ from pathlib import Path
 import tempfile
 from typing import Dict, Iterable, Iterator, List, Optional, Tuple, Union
 
-from rgd_client.plugin import CorePlugin, RGDPlugin
+from rgd_client.plugin import RGDPlugin
 from rgd_client.types import DATETIME_OR_STR_TUPLE, SEARCH_PREDICATE_CHOICE
 from rgd_client.utils import (
     download_checksum_file_to_path,
@@ -23,15 +23,8 @@ class RasterDownload:
     ancillary: List[Path]
 
 
-class PluginDependencies:
-    rgd = CorePlugin
-
-
 class ImageryPlugin(RGDPlugin):
     """The django-rgd-imagery client plugin."""
-
-    # Declare plugins
-    plugins = PluginDependencies
 
     def list_image_tiles(self, image_id: Union[str, int]) -> Dict:
         """List geodata imagery tiles."""
