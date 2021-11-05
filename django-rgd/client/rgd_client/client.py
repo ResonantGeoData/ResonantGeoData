@@ -88,7 +88,7 @@ def create_rgd_client(
     extra_plugins: Optional[List[Type]] = None,
 ):
     # Avoid circular import
-    from ._plugin_utils import _plugin_classes, _plugin_instances, _inject_plugin_deps
+    from ._plugin_utils import _inject_plugin_deps, _plugin_classes, _plugin_instances
 
     # Create initial client
     client = RgdClient(api_url, username, password, save)

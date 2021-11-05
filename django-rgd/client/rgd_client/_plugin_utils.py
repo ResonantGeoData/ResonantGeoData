@@ -3,10 +3,8 @@ from typing import Dict, List, Optional, Type
 
 from pkg_resources import iter_entry_points
 from rgd_client.client import RgdClient
-
 from rgd_client.plugin import CorePlugin, RgdPlugin
 from rgd_client.session import clone_session
-
 
 _NAMESPACE = 'rgd_client.plugin'
 _PLUGIN_CLASS_DICT = Dict[str, Type[RgdPlugin]]
