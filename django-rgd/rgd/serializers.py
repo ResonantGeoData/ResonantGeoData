@@ -47,6 +47,13 @@ class CollectionPermissionSerializer(serializers.ModelSerializer):
         fields = '__all__'
 
 
+class ChecksumFileFolderSerializer(serializers.Serializer):
+    size = serializers.IntegerField()
+    num_files = serializers.IntegerField()
+    created = serializers.DateTimeField()
+    modified = serializers.DateTimeField()
+
+
 class ChecksumFileSerializer(serializers.ModelSerializer):
     """Serializer for ChecksumFiles.
 
@@ -69,6 +76,15 @@ class ChecksumFileSerializer(serializers.ModelSerializer):
             + MODIFIABLE_READ_ONLY_FIELDS
             + TASK_EVENT_READ_ONLY_FIELDS
         )
+
+
+class ChecksumFilePathQuerySerializer(serializers.Serializer):
+    path_prefix = serializers.CharField(required=False)
+
+
+class ChecksumFilePathsSerializer(serializers.Serializer):
+    folders = serializers.DictField(child=ChecksumFileFolderSerializer())
+    files = serializers.DictField(child=ChecksumFileSerializer())
 
 
 class SpatialEntrySerializer(serializers.ModelSerializer):
