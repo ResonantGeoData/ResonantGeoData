@@ -25,7 +25,7 @@ def move_collection_to_file_set(apps, schema_editor):
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('rgd', '0005_auto_20211105_1651'),
+        ('rgd', '0005_auto_20211105_1715'),
     ]
 
     operations = [
