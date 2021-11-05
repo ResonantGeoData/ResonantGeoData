@@ -10,15 +10,16 @@ def move_collection_to_file_set(apps, schema_editor):
     ChecksumFile = apps.get_model('rgd', 'ChecksumFile')
     FileSet = apps.get_model('rgd', 'FileSet')
     for file in ChecksumFile.objects.all():
-        if not file.file_set:
-            file.file_set = FileSet.objects.create()
-        file.file_set.collection = file.collection
-        file.file_set.save()
-        file.save(
-            update_fields=[
-                'file_set',
-            ]
-        )
+        if file.collection:
+            if not file.file_set:
+                file.file_set = FileSet.objects.create()
+            file.file_set.collection = file.collection
+            file.file_set.save()
+            file.save(
+                update_fields=[
+                    'file_set',
+                ]
+            )
 
 
 class Migration(migrations.Migration):
