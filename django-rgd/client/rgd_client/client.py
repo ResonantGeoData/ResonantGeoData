@@ -1,16 +1,12 @@
 import getpass
-import inspect
 import os
-from typing import Dict, List, Optional, Type
+from typing import List, Optional, Type
 
-from pkg_resources import iter_entry_points
 import requests
 
 from .plugin import CorePlugin
 from .session import RgdClientSession, clone_session
 from .utils import API_KEY_DIR_PATH, API_KEY_FILE_NAME, DEFAULT_RGD_API
-
-_NAMESPACE = 'rgd_client.plugin'
 
 
 class RgdClient:
@@ -53,19 +49,6 @@ class RgdClient:
         (API_KEY_DIR_PATH / API_KEY_FILE_NAME).unlink(missing_ok=True)
 
 
-def _plugins_dict(extra_plugins: Optional[List] = None) -> Dict:
-    entry_points = iter_entry_points(_NAMESPACE)
-    plugins_classes = [ep.load() for ep in entry_points]
-    if extra_plugins is not None:
-        plugins_classes.extend(extra_plugins)
-
-    members = {}
-    for cls in plugins_classes:
-        members.update({n: v for n, v in inspect.getmembers(cls) if not n.startswith('__')})
-
-    return members
-
-
 def _get_api_key(api_url: str, username: str, password: str, save: bool) -> str:
     """Get an RGD API Key for the given user from the server, and save it if requested."""
     resp = requests.post(f'{api_url}/api-token-auth', {'username': username, 'password': password})
@@ -104,10 +87,15 @@ def create_rgd_client(
     save: Optional[bool] = True,
     extra_plugins: Optional[List[Type]] = None,
 ):
-    plugins = _plugins_dict(extra_plugins=extra_plugins)
+    # Avoid circular import
+    from ._plugin_utils import _inject_plugin_deps, _plugin_classes, _plugin_instances
+
+    # Create initial client
     client = RgdClient(api_url, username, password, save)
-    for name, cls in plugins.items():
-        instance = cls(clone_session(client.session))
-        setattr(client, name, instance)
+
+    # Perform plugin initialization
+    plugin_classes = _plugin_classes(extra_plugins=extra_plugins)
+    plugin_instances = _plugin_instances(client, plugin_classes)
+    _inject_plugin_deps(plugin_instances)
 
     return client
