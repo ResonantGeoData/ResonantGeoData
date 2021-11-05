@@ -35,11 +35,12 @@ def test_nonadmin_user_permissions(user, spatial_asset_a, spatial_asset_b):
     assert basic_q.count() == 0
     # Set collection on files and make sure both return
     collection = models.Collection.objects.create(name='test')
+    file_set = models.FileSet.objects.create(collection=collection)
     permission = models.CollectionPermission.objects.create(
         collection=collection, user=user, role=models.CollectionPermission.READER
     )
-    spatial_asset_a.files.update(collection=collection)
-    spatial_asset_b.files.update(collection=collection)
+    spatial_asset_a.files.update(file_set=file_set)
+    spatial_asset_b.files.update(file_set=file_set)
     read_q = filter_read_perm(user, models.SpatialEntry.objects.all())
     assert read_q.count() == 2
     # Now make sure this user does not have write access

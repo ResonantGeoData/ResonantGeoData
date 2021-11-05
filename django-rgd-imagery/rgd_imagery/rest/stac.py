@@ -46,7 +46,7 @@ class ItemCollectionView(BaseRestViewMixin, GenericAPIView):
     def get(self, request, *args, collection_id=None, **kwargs):
         collection_id = None if collection_id == 'default' else collection_id
         queryset = self.get_queryset().filter(
-            parent_raster__image_set__images__file__collection=collection_id
+            parent_raster__image_set__images__file__file_set__collection=collection_id
         )
         # Test if queryset is too large
         stac_browser_limit = getattr(settings, 'RGD_STAC_BROWSER_LIMIT', 1000)
@@ -87,7 +87,7 @@ class ItemView(BaseRestViewMixin, GenericAPIView):
     def get(self, request, *args, collection_id=None, item_id=None, **kwargs):
         collection_id = None if collection_id == 'default' else collection_id
         queryset = self.get_queryset().filter(
-            parent_raster__image_set__images__file__collection=collection_id
+            parent_raster__image_set__images__file__file_set__collection=collection_id
         )
         item = queryset.get(pk=item_id)
         serializer = self.get_serializer(item)

@@ -73,8 +73,8 @@ def read_point_cloud_file(pc_file):
         pc_entry.vtp_data
     except ChecksumFile.DoesNotExist:
         pc_entry.vtp_data = ChecksumFile()
-    if not pc_entry.vtp_data.collection:
-        pc_entry.vtp_data.collection = pc_file.file.collection
+    if not pc_entry.vtp_data.file_set:
+        pc_entry.vtp_data.file_set = pc_file.file.file_set
     _file_conversion_helper(pc_file.file, pc_entry.vtp_data.file, method, extension='.vtp')
     # Save the record
     pc_entry.save()

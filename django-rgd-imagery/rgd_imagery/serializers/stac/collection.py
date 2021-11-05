@@ -20,7 +20,7 @@ class CollectionSerializer(serializers.BaseSerializer):
         items = filter_read_perm(
             user,
             RasterMeta.objects.filter(
-                parent_raster__image_set__images__file__collection=collection.pk
+                parent_raster__image_set__images__file__file_set__collection=collection.pk
             ),
         )
         return {

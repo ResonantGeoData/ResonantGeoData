@@ -57,14 +57,6 @@ class ChecksumFile(TimeStampedModel, TaskEventMixin, PermissionPathMixin):
         default=False
     )  # a flag to validate the checksum against the saved checksum
     last_validation = models.BooleanField(default=True)
-    collection = models.ForeignKey(
-        Collection,
-        on_delete=models.SET_NULL,
-        related_name='%(class)ss',
-        related_query_name='%(class)ss',
-        null=True,
-        blank=True,
-    )
     created_by = models.ForeignKey(
         settings.AUTH_USER_MODEL, null=True, blank=True, default=None, on_delete=models.SET_NULL
     )
@@ -75,7 +67,7 @@ class ChecksumFile(TimeStampedModel, TaskEventMixin, PermissionPathMixin):
     url = models.TextField(null=True, blank=True)
 
     task_funcs = (tasks.task_checksum_file_post_save,)
-    permissions_paths = [('collection', Collection)]
+    permissions_paths = [('file_set', FileSet)]
 
     class Meta:
         constraints = [

@@ -17,11 +17,11 @@ class ChecksumFileAdmin(OSMGeoAdmin):
         'pk',
         'name',
         'type',
+        'file_set',
         'status',
         'created',
         'created_by',
         'modified',
-        'collection',
         'data_link',
     )
     readonly_fields = (
@@ -37,7 +37,6 @@ class ChecksumFileAdmin(OSMGeoAdmin):
         + TASK_EVENT_FILTERS
         + (
             'type',
-            'collection',
             'created_by',
         )
     )

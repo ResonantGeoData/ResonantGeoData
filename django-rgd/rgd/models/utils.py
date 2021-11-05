@@ -10,8 +10,8 @@ from django.db.models import QuerySet
 from filelock import FileLock
 
 from ..utility import compute_checksum_url, compute_hash, get_or_create_no_commit
-from .collection import Collection
 from .file import ChecksumFile, FileSourceType
+from .fileset import FileSet
 from .mixins import Status
 
 logger = logging.getLogger(__name__)
@@ -19,12 +19,12 @@ logger = logging.getLogger(__name__)
 
 def get_or_create_checksum_file_url(
     url: str,
-    collection: Collection = None,
+    file_set: FileSet = None,
     precompute_url_checksum: bool = False,
     defaults: dict = None,
     **kwargs,
 ):
-    """Get or create ChecksumFile from unique URL and Collection.
+    """Get or create ChecksumFile from unique URL and FileSet.
 
     Parameters
     ----------
@@ -41,7 +41,7 @@ def get_or_create_checksum_file_url(
         checksum = compute_checksum_url(url)
         kwargs.setdefault('checksum', checksum)
     try:
-        file_entry = ChecksumFile.objects.get(url=url, collection=collection, **kwargs)
+        file_entry = ChecksumFile.objects.get(url=url, file_set=file_set, **kwargs)
         if file_entry.status != Status.SUCCEEDED and file_entry.status != Status.SKIPPED:
             # If in a failed state, rerun tasks
             file_entry.save()
@@ -52,21 +52,21 @@ def get_or_create_checksum_file_url(
         file_entry = ChecksumFile(**defaults)
         file_entry.url = url
         file_entry.type = FileSourceType.URL
-        file_entry.collection = collection
+        file_entry.file_set = file_set
         file_entry.save()
         return file_entry, True
 
 
 def get_or_create_checksumfile_file_field(
-    file_handle: io.BufferedIOBase, collection: Collection = None, defaults: dict = None, **kwargs
+    file_handle: io.BufferedIOBase, file_set: FileSet = None, defaults: dict = None, **kwargs
 ):
-    """Get or create ChecksumFile from an open file handle and Collection."""
+    """Get or create ChecksumFile from an open file handle and FileSet."""
     if 'checksum' not in kwargs:
         file_handle.seek(0)
         checksum = compute_hash(file_handle)
         kwargs.setdefault('checksum', checksum)
     file_entry, created = get_or_create_no_commit(
-        ChecksumFile, collection=collection, defaults=defaults, **kwargs
+        ChecksumFile, file_set=file_set, defaults=defaults, **kwargs
     )
     if created:
         # Since we already computed the checksum, prevent tasks from recomputing
@@ -79,7 +79,7 @@ def get_or_create_checksumfile_file_field(
 
 
 def get_or_create_checksumfile(
-    collection: Collection = None, precompute_url_checksum=False, defaults: dict = None, **kwargs
+    file_set: FileSet = None, precompute_url_checksum=False, defaults: dict = None, **kwargs
 ):
     """Get or create a ChecksumFile.
 
@@ -90,24 +90,24 @@ def get_or_create_checksumfile(
 
     Notes
     -----
-    * URL files are only evaluated by their URL and Collection. Use the `url` keyword argument.
-    * FILE_FIELD files are evaluated by their checksum value and Collection. Use the `file` keyword argument.
+    * URL files are only evaluated by their URL and FileSet. Use the `url` keyword argument.
+    * FILE_FIELD files are evaluated by their checksum value and FileSet. Use the `file` keyword argument.
 
-    Since files cannot belong to multiple Collections, we have to validate
-    against a Collection. If no Collection is given, then the Collection
+    Since files cannot belong to multiple FileSets, we have to validate
+    against a FileSet. If no FileSet is given, then the FileSet
     of any existing duplicate file must be None. Otherwise, the file will be
-    created to prevent cross-collection permission issues.
+    created to prevent cross-fileset/collection permission issues.
 
     """
     if defaults is None:
         defaults = {}
-    if 'collection' in kwargs or 'collection' in defaults:
-        raise ValueError('Multiple values of `collection` given.')
+    if 'file_set' in kwargs or 'file_set' in defaults:
+        raise ValueError('Multiple values of `file_set` given.')
     if 'url' in kwargs:
         url = kwargs.pop('url')
         file_entry, created = get_or_create_checksum_file_url(
             url,
-            collection=collection,
+            file_set=file_set,
             precompute_url_checksum=precompute_url_checksum,
             defaults=defaults,
             **kwargs,
@@ -115,7 +115,7 @@ def get_or_create_checksumfile(
     elif 'file' in kwargs:
         file_handle = kwargs.pop('file')
         file_entry, created = get_or_create_checksumfile_file_field(
-            file_handle, collection=collection, defaults=defaults, **kwargs
+            file_handle, file_set=file_set, defaults=defaults, **kwargs
         )
     else:
         raise ValidationError('No URL or file contents passed.')

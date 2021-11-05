@@ -1,8 +1,7 @@
 from django.db import IntegrityError
 import pytest
 from rgd.datastore import datastore, registry
-from rgd.models import ChecksumFile, FileSourceType, utils
-from rgd.models.collection import Collection
+from rgd.models import ChecksumFile, Collection, FileSet, FileSourceType, utils
 
 FILENAME = 'stars.png'
 
@@ -94,18 +93,19 @@ def test_get_or_create_file(file_path):
 @pytest.mark.django_db(transaction=True)
 def test_get_or_create_file_permissions(file_path):
     collection = Collection.objects.create(name='Foo')
+    file_set = FileSet.objects.create(collection=collection)
     with open(file_path, 'rb') as f:
-        file, created = utils.get_or_create_checksumfile(collection=collection, file=f)
+        file, created = utils.get_or_create_checksumfile(file_set=file_set, file=f)
     assert created
-    assert file.collection == collection
+    assert file.file_set == file_set
     with open(file_path, 'rb') as f:
-        file, created = utils.get_or_create_checksumfile(collection=collection, file=f)
+        file, created = utils.get_or_create_checksumfile(file_set=file_set, file=f)
     assert not created
     with open(file_path, 'rb') as f:
         file, created = utils.get_or_create_checksumfile(file=f)
-    # Because this passed collection is None, make sure a new file is created
+    # Because this passed file_set is None, make sure a new file is created
     assert created
-    assert file.collection is None
+    assert file.file_set is None
 
 
 @pytest.mark.django_db(transaction=True)
@@ -121,15 +121,16 @@ def test_get_or_create_url():
 def test_get_or_create_url_permissions():
     url = datastore.get_url(FILENAME)
     collection = Collection.objects.create(name='Foo')
-    file, created = utils.get_or_create_checksumfile(collection=collection, url=url)
+    file_set = FileSet.objects.create(collection=collection)
+    file, created = utils.get_or_create_checksumfile(file_set=file_set, url=url)
     assert created
-    assert file.collection == collection
-    file, created = utils.get_or_create_checksumfile(collection=collection, url=url)
+    assert file.file_set == file_set
+    file, created = utils.get_or_create_checksumfile(file_set=file_set, url=url)
     assert not created
-    # Because this passed collection is None, make sure a new file is created
+    # Because this passed file_set is None, make sure a new file is created
     file, created = utils.get_or_create_checksumfile(url=url)
     assert created
-    assert file.collection is None
+    assert file.file_set is None
 
 
 @pytest.mark.django_db(transaction=True)

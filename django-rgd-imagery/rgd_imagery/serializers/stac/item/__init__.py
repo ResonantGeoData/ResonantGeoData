@@ -39,7 +39,10 @@ class ItemSerializer(serializers.BaseSerializer):
         item.add_asset(f'{asset_type}-{image.pk}', asset)
 
     def to_representation(self, instance: models.RasterMeta) -> dict:
-        collection = instance.parent_raster.image_set.images.first().file.collection
+        if instance.parent_raster.image_set.images.first().file.file_set:
+            collection = instance.parent_raster.image_set.images.first().file.file_set.collection
+        else:
+            collection = None
         collection_id = collection and str(collection.pk) or 'default'
         item = pystac.Item(
             id=str(instance.pk),
@@ -86,7 +89,7 @@ class ItemSerializer(serializers.BaseSerializer):
         used_images = set()
         for image in (
             instance.parent_raster.image_set.images.exclude(pk__in=used_images)
-            .select_related('file__collection')
+            .select_related('file__file_set__collection')
             .all()
         ):
             used_images.add(image.pk)

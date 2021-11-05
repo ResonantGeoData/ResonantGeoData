@@ -69,7 +69,7 @@ class CorePlugin:
         self,
         url: str,
         name: Optional[str] = None,
-        collection: Optional[int] = None,
+        file_set: Optional[int] = None,
         description: Optional[str] = None,
     ) -> Dict:
         """
@@ -78,7 +78,7 @@ class CorePlugin:
         Args:
             url: The URL to retrieve the file from
             name: The name of the file
-            collection: The integer collection ID to associate this ChecksumFile with
+            file_set: The integer file set ID to associate this ChecksumFile with
             description: The description of the file
         """
         # Verify that url is valid in shape, will raise error on failure
@@ -88,8 +88,8 @@ class CorePlugin:
         payload = {'url': url, 'type': 2}
         if name is not None:
             payload['name'] = name
-        if collection is not None:
-            payload['collection'] = collection
+        if file_set is not None:
+            payload['file_set'] = file_set
         if description is not None:
             payload['description'] = description
 

@@ -2,11 +2,25 @@ from django.contrib.gis.db import models
 from django_extensions.db.models import TimeStampedModel
 from rgd.utility import get_cache_dir
 
+from .collection import Collection
+from .mixins import PermissionPathMixin
 
-class FileSet(TimeStampedModel):
+
+class FileSet(TimeStampedModel, PermissionPathMixin):
 
     name = models.CharField(max_length=1000, blank=True, null=True)
     description = models.TextField(null=True, blank=True)
+
+    collection = models.ForeignKey(
+        Collection,
+        on_delete=models.SET_NULL,
+        related_name='%(class)ss',
+        related_query_name='%(class)ss',
+        null=True,
+        blank=True,
+    )
+
+    permissions_paths = [('collection', Collection)]
 
     @property
     def files(self):
