@@ -5,6 +5,7 @@ from rgd.utility import get_cache_dir
 
 class FileSet(TimeStampedModel):
 
+    name = models.CharField(max_length=1000, blank=True, null=True)
     description = models.TextField(null=True, blank=True)
 
     @property
