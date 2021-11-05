@@ -31,6 +31,8 @@ def get_or_create_checksum_file_url(
         Precompute the checksum of URL files to prevent duplicate files at different addresses.
 
     """
+    if defaults is None:
+        defaults = {}
     parsed = urlparse(url)
     if parsed.scheme not in ['https', 'http', 's3']:
         raise ValidationError(f'Not a supported URL scheme ({parsed.scheme}) for URL: {url}')
