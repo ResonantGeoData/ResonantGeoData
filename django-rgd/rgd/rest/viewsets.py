@@ -36,9 +36,7 @@ class ChecksumFileViewSet(ModelViewSet):
     )
     @action(detail=False, methods=['GET'])
     def tree(self, request, **kwargs):
-        """
-        View all ChecksumFiles in a native folder/file structure, specifying folder/file name with path_prefix.
-        """
+        """View ChecksumFiles in a hierarchy, specifying folder/file name with path_prefix."""
         path_prefix: str = self.request.query_params.get('path_prefix') or ''
         qs = self.get_queryset().filter(name__startswith=path_prefix)
 
