@@ -45,6 +45,20 @@ def get_cache_dir():
     return path
 
 
+def get_lock_dir():
+    path = Path(get_temp_dir(), 'file_locks')
+    path.mkdir(parents=True, exist_ok=True)
+    return path
+
+
+def get_file_lock(path):
+    """Create a file lock under the lock directory."""
+    hash = hashlib.sha512(str(path).encode('utf-8')).hexdigest()
+    lock_path = Path(get_lock_dir(), f'{hash}.lock')
+    lock = FileLock(lock_path)
+    return lock
+
+
 @contextmanager
 def safe_urlopen(url: str, *args, **kwargs):
     with contextlib.closing(urlopen(url, *args, **kwargs)) as remote:
@@ -280,7 +294,7 @@ def clean_file_cache(override_target=None):
     cache = get_cache_dir()
     # Sort each directory by mtime
     paths = sorted(
-        [f for f in Path(cache).iterdir() if not str(f).endswith('.lock')], key=os.path.getmtime
+        [f for f in Path(cache).iterdir()], key=os.path.getmtime
     )  # This sorts oldest to latest
     # While free space is not enough, remove directories until all ar gone
     initial = psutil.disk_usage(cache).free
@@ -295,8 +309,7 @@ def clean_file_cache(override_target=None):
             break
         path = paths.pop(0)
         # Check if resource is locked and skip if so
-        lock_path = Path(f'{path}.lock')
-        lock = FileLock(lock_path)
+        lock = get_file_lock(path)
         try:
             with lock.acquire(timeout=0):
                 if os.path.isdir(path):
@@ -304,7 +317,7 @@ def clean_file_cache(override_target=None):
                 else:
                     os.remove(path)
             # Remove the lockfile as well
-            os.remove(lock_path)
+            os.remove(lock.lock_file)
             logger.info(f'removed: {path}')
         except Timeout:
             # Another task holds the lock on this file/directory: do not delete

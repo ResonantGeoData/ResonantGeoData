@@ -9,7 +9,7 @@ from django.core.exceptions import ValidationError
 from django.db.models import QuerySet
 from filelock import FileLock
 
-from ..utility import compute_checksum_url, compute_hash, get_or_create_no_commit
+from ..utility import compute_checksum_url, compute_hash, get_file_lock, get_or_create_no_commit
 from .collection import Collection
 from .file import ChecksumFile, FileSourceType
 from .mixins import Status
@@ -139,8 +139,7 @@ def yield_checksumfiles(queryset: Union[QuerySet, List[ChecksumFile]], directory
     directory = Path(directory)
     directory.touch()
     # Acquire a lock on the directory so that it isn't cleaned up
-    lock_file_path = f'{directory}.lock'
-    lock = FileLock(lock_file_path)
+    lock = get_file_lock(directory)
     lock.acquire()
     # Download each file to the directory and yeild it so that the lock can be released when done
     try:
