@@ -9,7 +9,6 @@ from crum import get_current_user
 from django.conf import settings
 from django.contrib.gis.db import models
 from django_extensions.db.models import TimeStampedModel
-from filelock import FileLock
 from rgd.utility import (
     _link_url,
     clean_file_cache,
@@ -19,6 +18,7 @@ from rgd.utility import (
     download_field_file_to_local_path,
     download_url_file_to_local_path,
     get_cache_dir,
+    get_file_lock,
     patch_internal_presign,
     precheck_fuse,
     safe_urlopen,
@@ -197,9 +197,7 @@ class ChecksumFile(TimeStampedModel, TaskEventMixin, PermissionPathMixin):
             dest_path = Path(directory, self.name)
         dest_path.parent.mkdir(parents=True, exist_ok=True)
         # Thread/process safe locking for file access
-        lock = FileLock(
-            f'{dest_path}.lock'
-        )  # timeout=getattr(settings, 'RGD_FILE_LOCK_TIMEOUT', 10000))
+        lock = get_file_lock(dest_path)
 
         with lock:  # TODO: handle timeouts in condition
             if dest_path.exists() and dest_path.stat().st_size > 0:
@@ -274,7 +272,7 @@ class ChecksumFile(TimeStampedModel, TaskEventMixin, PermissionPathMixin):
         # Not in file_set. Download to cache dir
         path = self.download_to_local_path()
         # provide a lock on this file while yielding
-        lock = FileLock(f'{path}.lock')
+        lock = get_file_lock(path)
         with lock:
             yield path
 
