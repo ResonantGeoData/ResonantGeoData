@@ -9,7 +9,6 @@ from crum import get_current_user
 from django.conf import settings
 from django.contrib.gis.db import models
 from django_extensions.db.models import TimeStampedModel
-from filelock import FileLock
 from rgd.utility import (
     _link_url,
     clean_file_cache,

@@ -7,7 +7,6 @@ from urllib.parse import urlparse
 
 from django.core.exceptions import ValidationError
 from django.db.models import QuerySet
-from filelock import FileLock
 
 from ..utility import compute_checksum_url, compute_hash, get_file_lock, get_or_create_no_commit
 from .collection import Collection
