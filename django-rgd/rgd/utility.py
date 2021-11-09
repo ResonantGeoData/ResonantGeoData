@@ -294,9 +294,7 @@ def clean_file_cache(override_target=None):
     """
     cache = get_cache_dir()
     # Sort each directory by mtime
-    paths = sorted(
-        [f for f in Path(cache).iterdir()], key=os.path.getmtime
-    )  # This sorts oldest to latest
+    paths = sorted(Path(cache).iterdir(), key=os.path.getmtime)  # This sorts oldest to latest
     # While free space is not enough, remove directories until all ar gone
     initial = psutil.disk_usage(cache).free
     target = override_target or getattr(settings, 'RGD_TARGET_AVAILABLE_CACHE', 2)
