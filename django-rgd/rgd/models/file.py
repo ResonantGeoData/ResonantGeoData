@@ -219,10 +219,12 @@ class ChecksumFile(TimeStampedModel, TaskEventMixin, PermissionPathMixin):
                 if self.type == FileSourceType.FILE_FIELD:
                     return download_field_file_to_local_path(self.file, dest_path)
                 elif self.type == FileSourceType.URL:
+                    s3_client = None
                     try:
-                        s3_client = self.collection.s3credentials.get_s3_client()
+                        if self.collection:
+                            s3_client = self.collection.s3credentials.get_s3_client()
                     except ObjectDoesNotExist:
-                        s3_client = None
+                        pass
                     return download_url_file_to_local_path(self.url, dest_path, s3_client=s3_client)
 
     def get_cache_path(self):
