@@ -89,7 +89,8 @@ def get_or_create_no_commit(model: Model, defaults: dict = None, **kwargs):
         return model(**defaults), True
 
 
-def get_s3_client():
+def get_default_s3_client():
+    """Get S3 client using environment configuration."""
     if boto3.session.Session().get_credentials():
         s3 = boto3.client('s3')
     else:
@@ -99,12 +100,17 @@ def get_s3_client():
 
 
 def _download_url_file_to_stream(
-    url: str, dest_stream: io.BufferedIOBase, num_blocks: int = 128, block_size: int = 128
+    url: str,
+    dest_stream: io.BufferedIOBase,
+    num_blocks: int = 128,
+    block_size: int = 128,
+    s3_client: Any = None,
 ):
     parsed = urlparse(url)
     if parsed.scheme == 's3':
-        s3 = get_s3_client()
-        s3.download_fileobj(parsed.netloc, parsed.path.lstrip('/'), dest_stream)
+        if not s3_client:
+            s3_client = get_default_s3_client()
+        s3_client.download_fileobj(parsed.netloc, parsed.path.lstrip('/'), dest_stream)
     else:
         with safe_urlopen(url) as remote:
             while chunk := remote.read(num_blocks * block_size):
@@ -117,11 +123,14 @@ def download_url_file_to_local_path(
     path: str,
     num_blocks: int = 128,
     block_size: int = 128,
+    s3_client: Any = None,
 ) -> Path:
     dest_path = Path(path)
     dest_path.parent.mkdir(parents=True, exist_ok=True)
     with open(dest_path, 'wb') as dest_stream:
-        _download_url_file_to_stream(url, dest_stream, num_blocks=num_blocks, block_size=block_size)
+        _download_url_file_to_stream(
+            url, dest_stream, num_blocks=num_blocks, block_size=block_size, s3_client=s3_client
+        )
     return Path(dest_path)
 
 

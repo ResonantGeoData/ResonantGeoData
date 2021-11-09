@@ -1,6 +1,6 @@
 from django.contrib import admin
 from django.contrib.gis.admin import OSMGeoAdmin
-from rgd.models import Collection, CollectionPermission
+from rgd.models import Collection, CollectionPermission, S3Credentials
 
 
 class CollectionPermissionInline(admin.TabularInline):
@@ -14,3 +14,8 @@ class CollectionPermissionInline(admin.TabularInline):
 class CollectionAdmin(OSMGeoAdmin):
     fields = ('name',)
     inlines = (CollectionPermissionInline,)
+
+
+@admin.register(S3Credentials)
+class S3CredentialsAdmin(OSMGeoAdmin):
+    list_display = ('name', 'region')

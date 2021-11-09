@@ -1,5 +1,8 @@
+import boto3
+import botocore
 from django.conf import settings
 from django.db import models
+from django_extensions.db.models import TimeStampedModel
 
 from .mixins import PermissionPathMixin
 
@@ -45,3 +48,24 @@ class CollectionPermission(models.Model, PermissionPathMixin):
             )
         ]
         default_related_name = 'collection_permissions'
+
+
+class S3Credentials(TimeStampedModel, PermissionPathMixin):
+
+    name = models.CharField(max_length=127)
+    collection = models.OneToOneField(Collection, on_delete=models.CASCADE)
+    aws_access_key_id = models.CharField(max_length=128)
+    aws_secret_access_key = models.CharField(max_length=255)
+    region = models.CharField(max_length=63, default='us-east-1')
+
+    permissions_paths = [('collection', Collection)]
+
+    def get_s3_client(self):
+        """Override any environment configuration to create an S3 client."""
+        s3 = boto3.client(
+            's3',
+            aws_access_key_id=self.aws_access_key_id,
+            aws_secret_access_key=self.aws_secret_access_key,
+            config=botocore.client.Config(signature_version='s3v4', region_name=self.region),
+        )
+        return s3

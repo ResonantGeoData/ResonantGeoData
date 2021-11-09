@@ -8,6 +8,7 @@ from urllib.parse import urlparse
 from crum import get_current_user
 from django.conf import settings
 from django.contrib.gis.db import models
+from django.core.exceptions import ObjectDoesNotExist
 from django_extensions.db.models import TimeStampedModel
 from filelock import FileLock
 from rgd.utility import (
@@ -218,7 +219,11 @@ class ChecksumFile(TimeStampedModel, TaskEventMixin, PermissionPathMixin):
                 if self.type == FileSourceType.FILE_FIELD:
                     return download_field_file_to_local_path(self.file, dest_path)
                 elif self.type == FileSourceType.URL:
-                    return download_url_file_to_local_path(self.url, dest_path)
+                    try:
+                        s3_client = self.collection.s3credentials.get_s3_client()
+                    except ObjectDoesNotExist:
+                        s3_client = None
+                    return download_url_file_to_local_path(self.url, dest_path, s3_client=s3_client)
 
     def get_cache_path(self):
         """Generate a predetermined path in the cache directory.
