@@ -51,10 +51,11 @@ def get_lock_dir():
     return path
 
 
-def get_file_lock(path):
+def get_file_lock(path: Path):
     """Create a file lock under the lock directory."""
-    hash = hashlib.sha512(str(path).encode('utf-8')).hexdigest()
-    lock_path = Path(get_lock_dir(), f'{hash}.lock')
+    # Computes the hash using Pathlib's hash implementation on absolute path
+    sha = hash(path.absolute())
+    lock_path = Path(get_lock_dir(), f'{sha}.lock')
     lock = FileLock(lock_path)
     return lock
 
