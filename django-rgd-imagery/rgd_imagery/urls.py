@@ -1,4 +1,4 @@
-from django.urls import path, register_converter
+from django.urls import include, path, register_converter
 
 from . import models, rest, views
 
@@ -146,27 +146,6 @@ urlpatterns = [
     ),
     path(
         'api/stac',
-        rest.stac.CoreView.as_view(),
-        name='stac-core',
-    ),
-    path(
-        'api/stac/search',
-        rest.stac.SimpleSearchView.as_view(),
-        name='stac-search',
-    ),
-    path(
-        'api/stac/collection/<collection_id>',
-        rest.stac.CollectionView.as_view(),
-        name='stac-collection',
-    ),
-    path(
-        'api/stac/collection/<collection_id>/items',
-        rest.stac.ItemCollectionView.as_view(),
-        name='stac-collection-items',
-    ),
-    path(
-        'api/stac/collection/<collection_id>/items/<item_id>',
-        rest.stac.ItemView.as_view(),
-        name='stac-collection-item',
+        include('stac.urls'),
     ),
 ]
