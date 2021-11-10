@@ -5,8 +5,8 @@ from rgd.models import Collection
 from rgd.rest.mixins import BaseRestViewMixin
 from rgd_imagery import models, serializers
 
-from ..filters import STACSimpleFilter
-from ..pagination import STACPagination
+from .filters import STACSimpleFilter
+from .pagination import STACPagination
 
 
 class CoreView(BaseRestViewMixin, GenericAPIView):
