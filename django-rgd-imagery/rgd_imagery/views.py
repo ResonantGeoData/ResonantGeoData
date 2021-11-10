@@ -24,4 +24,4 @@ class RasterDetailView(_SpatialDetailView):
 
 
 class STACBrowserView(PermissionTemplateView):
-    template_name = 'rgd_imagery/stac_browser.html'
+    template_name = 'rgd_imagery/stac/stac_browser.html'
