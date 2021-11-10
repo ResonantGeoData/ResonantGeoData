@@ -1,6 +1,6 @@
 from rest_framework.decorators import action
-from rgd.rest.mixins import TaskEventViewSetMixin
 from rgd.rest.base import ReadOnlyModelViewSet
+from rgd.rest.mixins import TaskEventViewSetMixin
 from rgd_3d import models, serializers
 
 
