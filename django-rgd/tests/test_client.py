@@ -1,8 +1,11 @@
 import json
 
+from django.contrib.auth.models import User
 import pytest
+from rest_framework.authtoken.models import Token
 from rgd.models import ChecksumFile
-from rgd_client import RgdClient
+from rgd_client import RgdClient, create_rgd_client
+from rgd_client.utils import API_KEY_DIR_PATH, API_KEY_FILE_NAME
 
 
 @pytest.mark.django_db(transaction=True)
@@ -30,3 +33,25 @@ def test_create_file_from_url(py_client: RgdClient, checksum_file_url: ChecksumF
     file_dict = py_client.rgd.create_file_from_url(checksum_file_url.get_url())
     assert file_dict['url'] == checksum_file_url.get_url()
     assert file_dict['type'] == 2
+
+
+@pytest.mark.django_db(transaction=True)
+def test_save_api_key(live_server, faker):
+    """Test that saving an API key works correctly."""
+    # Create a fake user just for this test
+    email = faker.email()
+    params = {'username': email, 'email': email, 'password': 'password'}
+    user = User.objects.create_user(is_staff=True, is_superuser=True, **params)
+    user.save()
+    api_token = 'topsecretkey'
+    Token.objects.create(user=user, key=api_token)
+
+    create_rgd_client(
+        username=params['username'],
+        password=params['password'],
+        api_url=f'{live_server.url}/api',
+        save=True,  # save the API key
+    )
+
+    # Ensure ~/.rgd/token exists and contains the user's API key
+    assert (API_KEY_DIR_PATH / API_KEY_FILE_NAME).read_text() == api_token
