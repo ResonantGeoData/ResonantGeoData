@@ -39,12 +39,6 @@ class GetRasterMeta(BaseRestViewMixin, RetrieveAPIView):
     queryset = models.RasterMeta.objects.all()
 
 
-class GetRasterMetaSTAC(BaseRestViewMixin, RetrieveAPIView):
-    serializer_class = serializers.stac.ItemSerializer
-    lookup_field = 'pk'
-    queryset = models.RasterMeta.objects.all()
-
-
 @swagger_auto_schema(
     method='GET',
     operation_summary='Get status counts of each ProcessedImage in the group.',

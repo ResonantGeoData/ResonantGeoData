@@ -13,11 +13,6 @@ class CreateProcessedImageGroup(BaseRestViewMixin, CreateAPIView):
     serializer_class = serializers.ProcessedImageGroupSerializer
 
 
-class CreateRasterSTAC(BaseRestViewMixin, CreateAPIView):
-    queryset = models.RasterMeta.objects.all()
-    serializer_class = serializers.stac.ItemSerializer
-
-
 class CreateImage(BaseRestViewMixin, CreateAPIView):
     queryset = models.Image.objects.all()
     serializer_class = serializers.ImageSerializer
