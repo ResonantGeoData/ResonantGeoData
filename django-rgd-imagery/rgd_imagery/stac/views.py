@@ -3,7 +3,7 @@ from rest_framework.generics import GenericAPIView
 from rest_framework.response import Response
 from rgd.models import Collection
 from rgd.rest.mixins import BaseRestViewMixin
-from rgd_imagery import models, serializers
+from rgd_imagery import models
 
 from . import serializers
 from .filters import STACSimpleFilter
