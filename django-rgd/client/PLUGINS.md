@@ -4,14 +4,17 @@ The behavior of `rgd_client` can be extended through plugins. A plugin is python
 
 
 ## Defining a Plugin
-A plugin is defined by creating two classes. The first is the definition of the core plugin itself
+A plugin is defined by creating two classes. The first is the definition of the plugin itself, which must extend the base `RgdPlugin` class
 
 
 ### The Plugin Class
 ```python
-class MyPlugin:
-    def __init__(self, session: RgdClientSession):
-        self.session = session
+from rgd_client.plugin import RgdPlugin
+
+
+class MyPlugin(RgdPlugin):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
 
         # Optionally extend the existing base url
         self.session.base_url += 'foo/'
@@ -20,7 +23,7 @@ class MyPlugin:
         return self.session.get('bar')
 ```
 
-Each plugin is instantiated with a `RgdClientSession` instance. This is a copy of the core client session, which is instantiated once and copied to all loaded plugins. The core client session is instantiated with the base url of the RGD API you're trying to access, as well as authentication if `username` and `password` are supplied to `create_rgd_client`. This session copy is supplied to the plugin for it's own use, as well as possible modification. Since it's common for plugins to urls under a specific prefix, the session base url can be extended, as shown in the example. The session can be modified in any desired way, as it's a copy and will not affect the core client session.
+Each plugin is instantiated with a `RgdClientSession` instance at `self.session`. This is a copy of the core client session, which is instantiated once and copied to all loaded plugins. The core client session is instantiated with the base url of the RGD API you're trying to access, as well as authentication if `username` and `password` are supplied to `create_rgd_client`. This session copy is supplied to the plugin for it's own use, as well as possible modification. Since it's common for plugins to urls under a specific prefix, the session base url can be extended, as shown in the example. The session can be modified in any desired way, as it's a copy and will not affect the core client session.
 
 
 ### The Client Class
@@ -113,3 +116,31 @@ client: Client = create_rgd_client()
 ```
 
 Now, all plugin namespaces and methods will be shown in your IDE.
+
+
+### Sibling plugins
+There may be a circumstance where you'd like to make use of another plugin from within your own plugin. For example, if you wanted to wrap the core `search` method in your own `my_search` method. This can be done by defining a *plugin dependency*.
+
+This is very simple to do, just place a definition of the plugin you'd like to use within your own plugin definition. Here's an example that illustrates the situation metioned above
+
+```python
+from rgd_client.plugin import CorePlugin
+
+
+class MyPlugin(RgdPlugin):
+    rgd = CorePlugin
+
+    def my_search(self, *args, **kwargs):
+        res = self.rgd.search(*args, **kwargs)
+
+        print('Search Performed!')
+        return res
+
+class MyClient:
+    foo = MyPlugin
+
+```
+
+When `create_rgd_client` is called, it searches all registered plugins for members that inherit `RgdPlugin`, and instantiates them. In this case, it sees that `MyPlugin.rgd` is set to `CorePlugin`, which inherits `RgdPlugin`, so it replaces `MyPlugin.rgd` with an *instance* of `CorePlugin`, instead of the class `CorePlugin` itself. This is only done on the plugin instances within the client, not the plugin classes themselves, so each plugin class remains untouched.
+
+As long as the plugin you want to use is installed with `pip`, or is provided in `extra_plugins`, it will be injected into your plugin.

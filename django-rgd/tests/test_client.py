@@ -1,7 +1,7 @@
 import json
 
 import pytest
-from rgd.models.common import ChecksumFile
+from rgd.models import ChecksumFile
 from rgd_client import RgdClient
 
 

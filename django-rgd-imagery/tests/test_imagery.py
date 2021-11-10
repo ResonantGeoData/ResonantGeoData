@@ -1,6 +1,6 @@
 import pytest
 from rgd.datastore import datastore
-from rgd.models import FileSourceType
+from rgd.models import ChecksumFile, FileSet, FileSourceType
 from rgd_imagery.tasks.etl import load_image, populate_raster_footprint
 
 from . import factories
@@ -101,3 +101,29 @@ def test_raster_footprint(name):
     meta = raster.rastermeta
     assert meta.footprint
     assert meta.footprint != meta.outline
+
+
+@pytest.mark.django_db(transaction=True)
+def test_raster_with_header_file():
+    # Download the two files for the image: envi_rgbsmall_bip
+    file_set = FileSet.objects.create()
+    img = ChecksumFile.objects.create(
+        file_set=file_set, type=FileSourceType.URL, url=datastore.get_url('envi_rgbsmall_bip.img')
+    )
+    _ = ChecksumFile.objects.create(
+        file_set=file_set, type=FileSourceType.URL, url=datastore.get_url('envi_rgbsmall_bip.hdr')
+    )
+    image = factories.ImageFactory(
+        file=img,
+    )
+    image_set = factories.ImageSetFactory(
+        images=[image.id],
+    )
+    raster = factories.RasterFactory(
+        name='envi_rgbsmall_bip',
+        image_set=image_set,
+    )
+    meta = raster.rastermeta
+    centroid = meta.outline.centroid
+    assert centroid.x == pytest.approx(-44.75, abs=TOLERANCE)
+    assert centroid.y == pytest.approx(-23.02, abs=TOLERANCE)

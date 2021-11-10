@@ -22,6 +22,7 @@ from django.contrib.gis.db.models import Model
 from django.core.files import File
 from django.db.models.fields.files import FieldFile
 from django.utils.safestring import mark_safe
+from filelock import FileLock, Timeout
 import psutil
 
 try:
@@ -42,6 +43,21 @@ def get_cache_dir():
     path = Path(get_temp_dir(), 'file_cache')
     path.mkdir(parents=True, exist_ok=True)
     return path
+
+
+def get_lock_dir():
+    path = Path(get_temp_dir(), 'file_locks')
+    path.mkdir(parents=True, exist_ok=True)
+    return path
+
+
+def get_file_lock(path: Path):
+    """Create a file lock under the lock directory."""
+    # Computes the hash using Pathlib's hash implementation on absolute path
+    sha = hash(path.absolute())
+    lock_path = Path(get_lock_dir(), f'{sha}.lock')
+    lock = FileLock(lock_path)
+    return lock
 
 
 @contextmanager
@@ -197,16 +213,14 @@ def output_path_helper(filename: str, output: FieldFile):
 
 
 @contextmanager
-def input_output_path_helper(
-    source, output: FieldFile, prefix: str = '', suffix: str = '', vsi: bool = False
-):
+def input_output_path_helper(source, output: FieldFile, prefix: str = '', suffix: str = ''):
     """Yield source and output paths between a ChecksumFile and a FileFeild.
 
     The output path is saved to the output field after yielding.
 
     """
     filename = prefix + os.path.basename(source.name) + suffix
-    with source.yield_local_path(vsi=vsi) as file_path:
+    with source.yield_local_path() as file_path:
         filename = prefix + os.path.basename(source.name) + suffix
         with output_path_helper(filename, output) as output_path:
             try:
@@ -280,12 +294,11 @@ def clean_file_cache(override_target=None):
     """
     cache = get_cache_dir()
     # Sort each directory by mtime
-    # TODO: this may not capture the mtime of nested files... and we may need to do this recursively
     paths = sorted(Path(cache).iterdir(), key=os.path.getmtime)  # This sorts oldest to latest
     # While free space is not enough, remove directories until all ar gone
     initial = psutil.disk_usage(cache).free
     target = override_target or getattr(settings, 'RGD_TARGET_AVAILABLE_CACHE', 2)
-    logger.debug(f'Cleaning file cache... Starting free space is {initial} bytes.')
+    logger.info(f'Cleaning file cache... Starting free space is {initial} bytes.')
     while psutil.disk_usage(cache).free * 1e-9 < target:
         if not len(paths):
             # If we delete everything and still cannot acheive target, warn
@@ -294,17 +307,33 @@ def clean_file_cache(override_target=None):
             )
             break
         path = paths.pop(0)
-        if os.path.isdir(path):
-            shutil.rmtree(path)
-        else:
-            os.remove(path)
+        # Check if resource is locked and skip if so
+        lock = get_file_lock(path)
+        try:
+            with lock.acquire(timeout=0):
+                if os.path.isdir(path):
+                    shutil.rmtree(path)
+                else:
+                    os.remove(path)
+            # Remove the lockfile as well
+            os.remove(lock.lock_file)
+            logger.info(f'removed: {path}')
+        except Timeout:
+            # Another task holds the lock on this file/directory: do not delete
+            logger.info(f'File is locked, skipping: {path}')
+            pass
     free = psutil.disk_usage(cache).free
     logger.debug(f'Finished cleaning file cache. Available free space is {free} bytes.')
     return initial, free
 
 
 def purge_file_cache():
-    """Completely purge all files from the file cache."""
+    """Completely purge all files from the file cache.
+
+    This should be used with extreme caution, it will delete files that could
+    be in use.
+
+    """
     cache = get_cache_dir()
     shutil.rmtree(cache)
     cache = get_cache_dir()  # Return the cache dir so that a fresh directory is created.

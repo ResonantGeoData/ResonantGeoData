@@ -2,15 +2,9 @@ from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin
 from django.contrib.auth.models import User
 from django.contrib.gis.admin import OSMGeoAdmin
-from rgd.models import ChecksumFile, SpatialAsset, WhitelistedEmail
+from rgd.models import SpatialAsset, WhitelistedEmail
 
-from .mixins import (
-    MODIFIABLE_FILTERS,
-    TASK_EVENT_FILTERS,
-    TASK_EVENT_READONLY,
-    _FileGetNameMixin,
-    reprocess,
-)
+from .mixins import MODIFIABLE_FILTERS, _FileGetNameMixin
 
 
 def make_users_active(modeladmin, request, queryset):
@@ -27,12 +21,6 @@ def make_users_staff(modeladmin, request, queryset):
         if not user.is_staff:
             user.is_staff = True
             user.save(update_fields=['is_staff'])
-
-
-def validate_checksum(modeladmin, request, queryset):
-    for file in queryset.all():
-        file.validate_checksum = True
-        file.save()
 
 
 admin.site.unregister(User)
@@ -58,38 +46,6 @@ class WhitelistedEmailAdmin(OSMGeoAdmin):
     list_display = (
         'pk',
         'email',
-    )
-
-
-@admin.register(ChecksumFile)
-class ChecksumFileAdmin(OSMGeoAdmin):
-    list_display = (
-        'pk',
-        'name',
-        'type',
-        'status',
-        'created',
-        'created_by',
-        'modified',
-        'collection',
-        'data_link',
-    )
-    readonly_fields = (
-        'checksum',
-        'last_validation',
-    ) + TASK_EVENT_READONLY
-    actions = (
-        reprocess,
-        validate_checksum,
-    )
-    list_filter = (
-        MODIFIABLE_FILTERS
-        + TASK_EVENT_FILTERS
-        + (
-            'type',
-            'collection',
-            'created_by',
-        )
     )
 
 

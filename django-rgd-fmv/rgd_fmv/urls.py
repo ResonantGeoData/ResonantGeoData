@@ -1,6 +1,10 @@
 from django.urls import path
+from rest_framework.routers import SimpleRouter
+from rgd_fmv import models, views
+from rgd_fmv.rest import viewsets
 
-from . import models, rest, views
+router = SimpleRouter(trailing_slash=False)
+router.register(r'api/rgd_fmv', viewsets.FMVMetaViewSet)
 
 urlpatterns = [
     # Pages
@@ -9,16 +13,4 @@ urlpatterns = [
         views.FMVMetaDetailView.as_view(),
         name=models.FMVMeta.detail_view_name,
     ),
-    #############
-    # Other
-    path(
-        'api/rgd_fmv/<int:pk>',
-        rest.get.GetFMVMeta.as_view(),
-        name='fmv-entry',
-    ),
-    path(
-        'api/rgd_fmv/<int:pk>/data',
-        rest.get.GetFMVDataEntry.as_view(),
-        name='fmv-entry-data',
-    ),
-]
+] + router.urls

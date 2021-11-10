@@ -1,6 +1,10 @@
 from django.urls import path
+from rest_framework.routers import SimpleRouter
+from rgd_geometry import models, views
+from rgd_geometry.rest import viewsets
 
-from . import models, rest, views
+router = SimpleRouter(trailing_slash=False)
+router.register(r'api/rgd_geometry', viewsets.GeometryViewSet)
 
 urlpatterns = [
     # Pages
@@ -9,16 +13,4 @@ urlpatterns = [
         views.GeometryDetailView.as_view(),
         name=models.Geometry.detail_view_name,
     ),
-    #############
-    # Other
-    path(
-        'api/rgd_geometry/<int:pk>',
-        rest.get.GetGeometry.as_view(),
-        name='geometry-entry',
-    ),
-    path(
-        'api/rgd_geometry/<int:pk>/data',
-        rest.get.GetGeometryData.as_view(),
-        name='geometry-entry-data',
-    ),
-]
+] + router.urls
