@@ -5,6 +5,7 @@ from rgd.models import Collection
 from rgd.rest.mixins import BaseRestViewMixin
 from rgd_imagery import models, serializers
 
+from . import serializers
 from .filters import STACSimpleFilter
 from .pagination import STACPagination
 
@@ -12,7 +13,7 @@ from .pagination import STACPagination
 class CoreView(BaseRestViewMixin, GenericAPIView):
     """See all the Collections a user can see."""
 
-    serializer_class = serializers.stac.CoreSerializer
+    serializer_class = serializers.CoreSerializer
     queryset = Collection.objects.all()
 
     def get(self, request, *args, **kwargs):
@@ -24,7 +25,7 @@ class CoreView(BaseRestViewMixin, GenericAPIView):
 class CollectionView(BaseRestViewMixin, GenericAPIView):
     """Metadata regarding a collection."""
 
-    serializer_class = serializers.stac.CollectionSerializer
+    serializer_class = serializers.CollectionSerializer
     queryset = Collection.objects.all()
 
     def get(self, request, *args, collection_id=None, **kwargs):
@@ -40,7 +41,7 @@ class CollectionView(BaseRestViewMixin, GenericAPIView):
 class ItemCollectionView(BaseRestViewMixin, GenericAPIView):
     """See the Items in the Collection."""
 
-    serializer_class = serializers.stac.ItemCollectionSerializer
+    serializer_class = serializers.ItemCollectionSerializer
     queryset = models.RasterMeta.objects.all()
 
     def get(self, request, *args, collection_id=None, **kwargs):
@@ -63,7 +64,7 @@ class ItemCollectionView(BaseRestViewMixin, GenericAPIView):
 class SimpleSearchView(BaseRestViewMixin, GenericAPIView):
     """Search items."""
 
-    serializer_class = serializers.stac.ItemCollectionSerializer
+    serializer_class = serializers.ItemCollectionSerializer
     queryset = models.RasterMeta.objects.all()
     pagination_class = STACPagination
     filterset_class = STACSimpleFilter
@@ -81,7 +82,7 @@ class SimpleSearchView(BaseRestViewMixin, GenericAPIView):
 class ItemView(BaseRestViewMixin, GenericAPIView):
     """See the Items in the Collection."""
 
-    serializer_class = serializers.stac.ItemSerializer
+    serializer_class = serializers.ItemSerializer
     queryset = models.RasterMeta.objects.all()
 
     def get(self, request, *args, collection_id=None, item_id=None, **kwargs):
