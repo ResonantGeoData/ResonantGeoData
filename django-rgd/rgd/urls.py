@@ -1,7 +1,7 @@
 from django.urls import path
 from rest_framework.authtoken.views import obtain_auth_token
 from rest_framework.routers import SimpleRouter
-from rgd import rest, views
+from rgd import views
 from rgd.rest import viewsets
 
 router = SimpleRouter(trailing_slash=False)
