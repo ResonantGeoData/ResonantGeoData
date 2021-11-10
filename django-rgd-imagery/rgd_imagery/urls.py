@@ -145,7 +145,7 @@ urlpatterns = [
         name='processed-image-group-status',
     ),
     path(
-        'api/stac',
-        include('stac.urls'),
+        'api/stac/',
+        include('rgd_imagery.stac.urls'),
     ),
 ]
