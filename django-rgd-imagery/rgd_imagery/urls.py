@@ -35,9 +35,6 @@ urlpatterns = [
         name='stac-browser',
     ),
     #############
-    # Search
-    path('api/rgd_imagery/raster/search', rest.search.SearchRasterMetaSTACView.as_view()),
-    #############
     # Other
     path(
         'api/rgd_imagery',
@@ -83,16 +80,6 @@ urlpatterns = [
         'api/rgd_imagery/raster/<int:pk>',
         rest.get.GetRasterMeta.as_view(),
         name='raster-meta-entry',
-    ),
-    path(
-        'api/rgd_imagery/raster/<int:pk>/stac',
-        rest.get.GetRasterMetaSTAC.as_view(),
-        name='raster-meta-entry-stac',
-    ),
-    path(
-        'api/rgd_imagery/raster/stac',
-        rest.post.CreateRasterSTAC.as_view(),
-        name='raster-meta-entry-stac-post',
     ),
     #############
     # Geoprocessing
