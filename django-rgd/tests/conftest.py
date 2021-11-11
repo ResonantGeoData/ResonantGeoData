@@ -34,7 +34,6 @@ def py_client(live_server):
 
 @pytest.fixture
 def user_with_api_key(faker):
-    """A user with an associated API key."""
     email = faker.email()
     password = 'password'
     params = {'username': email, 'email': email, 'password': password}

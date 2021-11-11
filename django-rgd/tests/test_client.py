@@ -1,8 +1,6 @@
 import json
 
-from django.contrib.auth.models import User
 import pytest
-from rest_framework.authtoken.models import Token
 from rgd.models import ChecksumFile
 from rgd_client import RgdClient, create_rgd_client
 from rgd_client.utils import API_KEY_DIR_PATH, API_KEY_FILE_NAME
