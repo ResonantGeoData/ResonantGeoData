@@ -49,3 +49,22 @@ def test_save_api_key(live_server, user_with_api_key):
 
     # Ensure ~/.rgd/token exists and contains the user's API key
     assert (API_KEY_DIR_PATH / API_KEY_FILE_NAME).read_text() == api_token
+
+
+@pytest.mark.django_db(transaction=True)
+def test_invalid_local_api_key(live_server, user_with_api_key):
+    """Test that a new API key is fetched when the one on disk is invalid."""
+    username, password, api_token = user_with_api_key
+
+    # Save invalid API key to disk so `create_rgd_client` attempts to use it
+    (API_KEY_DIR_PATH / API_KEY_FILE_NAME).write_text(f'{api_token}_bad')
+
+    create_rgd_client(
+        username=username,
+        password=password,
+        api_url=f'{live_server.url}/api',
+        save=True,  # save the API key
+    )
+
+    # Ensure that `create_rgd_client` overwrote the invalid key with a fresh one
+    assert (API_KEY_DIR_PATH / API_KEY_FILE_NAME).read_text() == api_token
