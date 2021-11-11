@@ -36,19 +36,13 @@ def test_create_file_from_url(py_client: RgdClient, checksum_file_url: ChecksumF
 
 
 @pytest.mark.django_db(transaction=True)
-def test_save_api_key(live_server, faker):
+def test_save_api_key(live_server, user_with_api_key):
     """Test that saving an API key works correctly."""
-    # Create a fake user just for this test
-    email = faker.email()
-    params = {'username': email, 'email': email, 'password': 'password'}
-    user = User.objects.create_user(is_staff=True, is_superuser=True, **params)
-    user.save()
-    api_token = 'topsecretkey'
-    Token.objects.create(user=user, key=api_token)
+    username, password, api_token = user_with_api_key
 
     create_rgd_client(
-        username=params['username'],
-        password=params['password'],
+        username=username,
+        password=password,
         api_url=f'{live_server.url}/api',
         save=True,  # save the API key
     )
