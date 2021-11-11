@@ -4,6 +4,7 @@ from rest_framework.decorators import action
 from rest_framework.response import Response
 from rgd.models.mixins import Status
 from rgd.rest.base import ModelViewSet
+from rgd.rest.mixins import TaskEventViewSetMixin
 from rgd_imagery import models, serializers
 
 
@@ -70,7 +71,7 @@ class ImageViewSet(ModelViewSet):
         return HttpResponseRedirect(url)
 
 
-class RasterViewSet(ModelViewSet):
+class RasterViewSet(ModelViewSet, TaskEventViewSetMixin):
     # TODO: consolidate 'RasterSerializer' and 'RasterMetaSerializer'
 
     def get_serializer_class(self):

@@ -5,6 +5,8 @@ from rgd import models, serializers
 from rgd.filters import SpatialEntryFilter
 from rgd.rest.base import ModelViewSet, ReadOnlyModelViewSet
 
+from .mixins import TaskEventViewSetMixin
+
 
 class CollectionViewSet(ModelViewSet):
     serializer_class = serializers.CollectionSerializer
@@ -16,7 +18,7 @@ class CollectionPermissionViewSet(ModelViewSet):
     queryset = models.CollectionPermission.objects.all()
 
 
-class ChecksumFileViewSet(ModelViewSet):
+class ChecksumFileViewSet(ModelViewSet, TaskEventViewSetMixin):
     serializer_class = serializers.ChecksumFileSerializer
     queryset = models.ChecksumFile.objects.all()
 

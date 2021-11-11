@@ -3,17 +3,6 @@ from rest_framework import status
 
 
 @pytest.mark.django_db(transaction=True)
-def test_get_status(admin_api_client, checksum_file):
-    model = 'ChecksumFile'
-    id = checksum_file.id
-    response = admin_api_client.get(f'/api/rgd/status/{model}/{id}')
-    assert response.status_code == 200
-    assert response.data
-    with pytest.raises(AttributeError):
-        admin_api_client.get(f'/api/rgd/status/Foo/{id}')
-
-
-@pytest.mark.django_db(transaction=True)
 def test_download_checksum_file(admin_api_client, checksum_file):
     pk = checksum_file.pk
     response = admin_api_client.get(f'/api/rgd/checksum_file/{pk}/data')
