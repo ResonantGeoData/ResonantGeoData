@@ -56,7 +56,7 @@ class RgdClient:
         (API_KEY_DIR_PATH / API_KEY_FILE_NAME).unlink(missing_ok=True)
 
 
-def _get_api_key(api_url: str, username: str, password: str, save: bool) -> str:
+def _get_api_key(api_url: str, username: str, password: str, save: bool) -> Optional[str]:
     """Get an RGD API Key for the given user from the server, and save it if requested."""
     resp = requests.post(f'{api_url}/api-token-auth', {'username': username, 'password': password})
     token = resp.json().get('token')
