@@ -1,4 +1,4 @@
-from django.urls import path, register_converter
+from django.urls import include, path, register_converter
 from rest_framework.routers import SimpleRouter
 from rgd_imagery import models, rest, views
 from rgd_imagery.rest import viewsets
@@ -42,21 +42,6 @@ urlpatterns = [
         'rgd_imagery/stac_browser/',
         views.STACBrowserView.as_view(),
         name='stac-browser',
-    ),
-    #############
-    # Search
-    path('api/rgd_imagery/raster/search', rest.search.SearchRasterMetaSTACView.as_view()),
-    #############
-    # Other
-    path(
-        'api/rgd_imagery/raster/<int:pk>/stac',
-        rest.get.GetRasterMetaSTAC.as_view(),
-        name='raster-meta-entry-stac',
-    ),
-    path(
-        'api/rgd_imagery/raster/stac',
-        rest.post.CreateRasterSTAC.as_view(),
-        name='raster-meta-entry-stac-post',
     ),
     #############
     # Geoprocessing
@@ -106,28 +91,7 @@ urlpatterns = [
         name='image-bands-single',
     ),
     path(
-        'api/stac',
-        rest.stac.CoreView.as_view(),
-        name='stac-core',
-    ),
-    path(
-        'api/stac/search',
-        rest.stac.SimpleSearchView.as_view(),
-        name='stac-search',
-    ),
-    path(
-        'api/stac/collection/<collection_id>',
-        rest.stac.CollectionView.as_view(),
-        name='stac-collection',
-    ),
-    path(
-        'api/stac/collection/<collection_id>/items',
-        rest.stac.ItemCollectionView.as_view(),
-        name='stac-collection-items',
-    ),
-    path(
-        'api/stac/collection/<collection_id>/items/<item_id>',
-        rest.stac.ItemView.as_view(),
-        name='stac-collection-item',
+        'api/stac/',
+        include('rgd_imagery.stac.urls'),
     ),
 ] + router.urls

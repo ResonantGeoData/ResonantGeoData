@@ -5,8 +5,6 @@ from bidict import bidict
 from pystac.extensions.eo import Band
 from rgd_imagery import models
 
-from ..utils import non_unique_get_or_create
-
 BAND_RANGE_BY_COMMON_NAMES = bidict(
     {
         'coastal': (Decimal(0.40), Decimal(0.45)),
@@ -53,35 +51,3 @@ def to_pystac(bandmeta: models.BandMeta):
             )
             band.full_width_half_max = float(bandmeta.band_range.upper - bandmeta.band_range.lower)
     return band
-
-
-def to_model(eo_band: Band, image: models.Image):
-    if eo_band.name.startswith('B') and eo_band.name[1:].isdigit():
-        eo_band_number = int(eo_band.name[1:])
-    else:
-        eo_band_number = 0  # TODO: confirm reasonable default here
-    bandmeta = non_unique_get_or_create(
-        models.BandMeta,
-        parent_image=image,
-        band_number=eo_band_number,
-    )
-    bandmeta.description = eo_band.description
-    if eo_band.common_name and eo_band.common_name in BAND_RANGE_BY_COMMON_NAMES:
-        eo_band_spectral_lower, eo_band_spectral_upper = BAND_RANGE_BY_COMMON_NAMES[
-            eo_band.common_name
-        ]
-        bandmeta.band_range = (
-            eo_band_spectral_lower,
-            eo_band_spectral_upper,
-        )
-    elif eo_band.center_wavelength and eo_band.full_width_half_max:
-        eo_band_spectral_upper = (
-            Decimal(eo_band.center_wavelength) + Decimal(eo_band.full_width_half_max) / 2
-        )
-        eo_band_spectral_lower = eo_band_spectral_upper - Decimal(eo_band.full_width_half_max) / 2
-        bandmeta.band_range = (
-            eo_band_spectral_lower,
-            eo_band_spectral_upper,
-        )
-    bandmeta.save()
-    return bandmeta

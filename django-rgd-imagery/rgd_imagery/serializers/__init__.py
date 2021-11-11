@@ -1,4 +1,3 @@
-from . import stac
 from .base import (
     ImageMetaSerializer,
     ImageSerializer,
@@ -18,5 +17,4 @@ __all__ = [
     'RasterMetaSerializer',
     'RasterSerializer',
     'RegionImageSerializer',
-    'stac',
 ]
