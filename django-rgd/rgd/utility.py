@@ -180,6 +180,11 @@ def patch_internal_presign(f: FieldFile):
     Sometimes the external host differs from the internal host for Minio files (e.g. in development).
     Getting the URL in this context ensures that the presigned URL returns the correct host for the
     odd situation of accessing the file locally.
+
+    Note
+    ----
+    If concerned regarding concurrent access, see https://github.com/ResonantGeoData/ResonantGeoData/issues/287
+
     """
     if (
         MinioStorage is not None
