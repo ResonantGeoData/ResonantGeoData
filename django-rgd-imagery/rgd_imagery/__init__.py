@@ -16,7 +16,12 @@ logger = logging.getLogger(__name__)
 # Set config options for large_image
 if hasattr(settings, 'RGD_MEMCACHED_URL') and settings.RGD_MEMCACHED_URL:
     large_image.config.setConfig('cache_memcached_url', settings.RGD_MEMCACHED_URL)
-    if hasattr(settings, 'RGD_MEMCACHED_USERNAME') and settings.RGD_MEMCACHED_USERNAME:
+    if (
+        hasattr(settings, 'RGD_MEMCACHED_USERNAME')
+        and settings.RGD_MEMCACHED_USERNAME
+        and hasattr(settings, 'RGD_MEMCACHED_PASSWORD')
+        and settings.RGD_MEMCACHED_PASSWORD
+    ):
         large_image.config.setConfig('cache_memcached_username', settings.RGD_MEMCACHED_USERNAME)
         large_image.config.setConfig('cache_memcached_password', settings.RGD_MEMCACHED_PASSWORD)
     large_image.config.setConfig('cache_backend', 'memcached')
