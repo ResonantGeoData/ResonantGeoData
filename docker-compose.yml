@@ -29,6 +29,15 @@ services:
     volumes:
       - fsdata:/data
 
+  memcached:
+    image: bitnami/memcached:latest
+    environment:
+      - MEMCACHED_USERNAME=my_user
+      - MEMCACHED_PASSWORD=my_password
+    ports:
+      - 11211:11211
+
+
 volumes:
   dbdata:
   fsdata:

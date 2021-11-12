@@ -16,6 +16,7 @@ services:
       - postgres
       - rabbitmq
       - minio
+      - memcached
 
   celery:
     build:
@@ -38,6 +39,7 @@ services:
       - postgres
       - rabbitmq
       - minio
+      - memcached
 
   flower:
     image: mher/flower
