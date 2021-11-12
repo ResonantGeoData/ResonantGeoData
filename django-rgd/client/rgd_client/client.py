@@ -102,6 +102,7 @@ def _read_api_key(api_url: str, username: str = None, password: str = None) -> O
             return api_key
         else:
             logger.error('Provide your username and password next time to fetch a new one.')
+            return None
 
     return api_key
 
