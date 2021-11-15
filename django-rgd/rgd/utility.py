@@ -157,8 +157,7 @@ def precheck_fuse(url: str) -> bool:
     return True
 
 
-@contextmanager
-def url_file_to_fuse_path(url: str) -> Generator[Path, None, None]:
+def url_file_to_fuse_path(url: str) -> Path:
     # Could raise ValueError within context
     # Assumes `precheck_fuse` was verified prior
     # See https://github.com/ResonantGeoData/ResonantGeoData/issues/237
@@ -170,7 +169,7 @@ def url_file_to_fuse_path(url: str) -> Generator[Path, None, None]:
     else:
         raise ValueError(f'Scheme {parsed.scheme} not currently handled by FUSE.')
     logger.info(f'FUSE path: {fuse_path}')
-    yield Path(fuse_path)
+    return Path(fuse_path)
 
 
 @contextmanager
