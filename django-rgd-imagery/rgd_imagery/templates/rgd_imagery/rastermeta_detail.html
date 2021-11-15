@@ -196,6 +196,9 @@
       <div class="control">
         <input class="button is-secondary" type="button" id="extractROIButton" onclick="downloadROI()" value="Download" disabled="true">
       </div>
+      <div class="control">
+        <input class="button is-secondary" type="button" value="Clear" id="clearROIButton" onclick="clearROI()" disabled="true">
+      </div>
     </div>
   </div>
 
@@ -205,6 +208,7 @@
     basemapTool.canvas().appendChild(document.getElementById("roiTool"))
     var b1 = document.getElementById("drawROIButton")
     var b2 = document.getElementById("extractROIButton")
+    var b3 = document.getElementById("clearROIButton")
     var roi;
 
     // Add callback to annotation layer
@@ -246,6 +250,8 @@
       // Disable button until completed
       b1.disabled = true
       b2.disabled = true
+      // Make sure clear button is enabled
+      b3.disabled = false
       // Clear any previous annotations
       annotationLayer.removeAllAnnotations()
       // Start new annotation
@@ -272,6 +278,13 @@
       // Build a URL for extracting that ROI
       var url = `${host}/api/image_process/imagery/${image_id}/tiles/region/world/${roi.left}/${roi.right}/${roi.bottom}/${roi.top}/region.tif?units=EPSG:4326`;
       download(url, 'region.tif')
+    }
+
+    function clearROI() {
+      annotationLayer.removeAllAnnotations()
+      b1.disabled = false
+      b2.disabled = true
+      b3.disabled = true
     }
 
 
