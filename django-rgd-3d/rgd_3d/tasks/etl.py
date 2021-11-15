@@ -26,7 +26,7 @@ def _save_pyvista(mesh, output_path):
     import pyvista as pv
 
     points = pv.PolyData(mesh.points)
-    points.point_arrays.update(mesh.point_arrays)
+    points.point_data.update(mesh.point_data)
     points.save(output_path)
 
 
