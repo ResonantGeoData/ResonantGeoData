@@ -121,8 +121,15 @@ class TileRegionView(BaseTileView):
         if not isinstance(tile_source, GDALFileTileSource):
             raise TypeError('Souce image must have geospatial reference.')
         units = request.query_params.get('units', 'EPSG:4326')
+        encoding = request.query_params.get('encoding', 'TILED')
         path, mime_type = large_image_utilities.get_region_world(
-            tile_source, left, right, bottom, top, units
+            tile_source,
+            left,
+            right,
+            bottom,
+            top,
+            units,
+            encoding,
         )
         if not path:
             # TODO: should this raise error status?
@@ -138,8 +145,14 @@ class TileRegionPixelView(BaseTileView):
         self, request: Request, pk: int, left: float, right: float, bottom: float, top: float
     ) -> HttpResponse:
         tile_source = self.get_tile_source(request, pk)
+        encoding = request.query_params.get('encoding', None)
         path, mime_type = large_image_utilities.get_region_pixel(
-            tile_source, left, right, bottom, top
+            tile_source,
+            left,
+            right,
+            bottom,
+            top,
+            encoding,
         )
         tile_binary = open(path, 'rb')
         return HttpResponse(tile_binary, content_type=mime_type)
