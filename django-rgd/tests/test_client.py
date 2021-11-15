@@ -1,8 +1,6 @@
 import json
 
-from django.contrib.auth.models import User
 import pytest
-from rest_framework.authtoken.models import Token
 from rgd.models import ChecksumFile
 from rgd_client import RgdClient, create_rgd_client
 from rgd_client.utils import API_KEY_DIR_PATH, API_KEY_FILE_NAME
@@ -36,22 +34,35 @@ def test_create_file_from_url(py_client: RgdClient, checksum_file_url: ChecksumF
 
 
 @pytest.mark.django_db(transaction=True)
-def test_save_api_key(live_server, faker):
+def test_save_api_key(live_server, user_with_api_key):
     """Test that saving an API key works correctly."""
-    # Create a fake user just for this test
-    email = faker.email()
-    params = {'username': email, 'email': email, 'password': 'password'}
-    user = User.objects.create_user(is_staff=True, is_superuser=True, **params)
-    user.save()
-    api_token = 'topsecretkey'
-    Token.objects.create(user=user, key=api_token)
+    username, password, api_token = user_with_api_key
 
     create_rgd_client(
-        username=params['username'],
-        password=params['password'],
+        username=username,
+        password=password,
         api_url=f'{live_server.url}/api',
         save=True,  # save the API key
     )
 
     # Ensure ~/.rgd/token exists and contains the user's API key
+    assert (API_KEY_DIR_PATH / API_KEY_FILE_NAME).read_text() == api_token
+
+
+@pytest.mark.django_db(transaction=True)
+def test_invalid_local_api_key(live_server, user_with_api_key):
+    """Test that a new API key is fetched when the one on disk is invalid."""
+    username, password, api_token = user_with_api_key
+
+    # Save invalid API key to disk so `create_rgd_client` attempts to use it
+    (API_KEY_DIR_PATH / API_KEY_FILE_NAME).write_text(f'{api_token}_bad')
+
+    create_rgd_client(
+        username=username,
+        password=password,
+        api_url=f'{live_server.url}/api',
+        save=True,  # save the API key
+    )
+
+    # Ensure that `create_rgd_client` overwrote the invalid key with a fresh one
     assert (API_KEY_DIR_PATH / API_KEY_FILE_NAME).read_text() == api_token
