@@ -51,6 +51,7 @@ setup(
         'large-image-source-gdal>=1.8.1.dev7',
         'large-image-source-pil>=1.8.1.dev7',
         'large-image-source-tiff>=1.8.1.dev7',
+        'pyvips',
         'tifftools>=1.2.0',
         'numpy',
         'pystac>=1.1.0',

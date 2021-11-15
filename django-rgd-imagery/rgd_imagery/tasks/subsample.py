@@ -126,7 +126,7 @@ def extract_region(processed_image):
                 SampleTypes.GEO_BOX,
             ):
                 path, mime_type = large_image_utilities.get_region_world(
-                    tile_source, l, r, b, t, projection=projection
+                    tile_source, l, r, b, t, units=projection
                 )
             else:
                 path, mime_type = large_image_utilities.get_region_pixel(tile_source, l, r, b, t)
