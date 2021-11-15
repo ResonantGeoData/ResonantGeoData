@@ -175,4 +175,96 @@
 
   </script>
 
+
+  <!-- Section for extracting ROIs -->
+
+  <style>
+    .roiTool {
+      background-color: #DCDCDC;
+      padding: 2px;
+      border: 2px solid #000;
+      text-align: left;
+      border-radius: 10px;
+    }
+  </style>
+
+  <div id="roiTool" class="roiTool">
+    <div class="column is-full field is-grouped">
+      <div class="control">
+        <input class="button is-secondary" type="button" value="Draw ROI" id="drawROIButton" onclick="enableDrawROI()">
+      </div>
+      <a class="button has-icon is-flex is-justify-content-space-between is-secondary" id="extractROIButton">
+        <span>Download ROI</span>
+        <span class="icon is-small">
+          <i class="material-icons">download</i>
+        </span>
+      </a>
+    </div>
+  </div>
+
+  <script>
+    // Add ROI Tool to the GeoJS UI layer
+    var basemapTool = ui.createWidget('dom', {position: {right: 20, top: 60}});
+    basemapTool.canvas().appendChild(document.getElementById("roiTool"))
+
+    var roi;
+    function enableDrawROI() {
+      // Disable button until completed
+      var b1 = document.getElementById("drawROIButton")
+      var b2 = document.getElementById("extractROIButton")
+      b1.disabled = true
+      b2.disabled = true
+      // Clear any previous annotations
+      annotationLayer.removeAllAnnotations()
+      // Start new annotation
+      annotationLayer.mode('rectangle');
+      annotationLayer.geoOn(geo.event.annotation.state, (e) => {
+        if (e.annotation.state() === "done") {
+          var coords = e.annotation.coordinates();
+          // Re-enable button
+          b1.disabled = false
+          b2.disabled = false
+          // Get the bounding box
+          roi = {
+            left: coords[0].x,
+            right: coords[1].x,
+            bottom: coords[1].y,
+            top: coords[2].y
+          };
+          var xx = coords.forEach((p) => {
+            if (p.x < roi.left) {
+              roi.left = p.x
+            }
+            if (p.x > roi.right) {
+              roi.right = p.x
+            }
+            if (p.y < roi.bottom) {
+              roi.bottom = p.y
+            }
+            if (p.y > roi.top) {
+              roi.top = p.y
+            }
+          });
+        }
+        // Check if ROI is outside of the bounds of raster as this will
+        //   yield invalid results
+        if (roi.left < dataset_bb.xmin |
+          roi.right > dataset_bb.xmax |
+          roi.top > dataset_bb.ymax |
+          roi.bottom < dataset_bb.ymin) {
+            console.log('ROI exceeds the boundary of the source raster.')
+            // TODO: show toast with error message
+            b2.href = '#';
+        } else {
+          // Build a URL for extracting that ROI
+          var image_id = Number(imageSelector.value)
+          b2.href = `${host}/api/image_process/imagery/${image_id}/tiles/region/world/${roi.left}/${roi.right}/${roi.bottom}/${roi.top}/region.tif?units=EPSG:4326`
+        }
+
+      });
+    }
+
+
+  </script>
+
 {% endblock %}
