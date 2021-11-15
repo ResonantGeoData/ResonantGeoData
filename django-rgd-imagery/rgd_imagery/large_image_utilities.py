@@ -27,6 +27,22 @@ def yeild_tilesource_from_image(image: Image, projection: str = None) -> FileTil
     yield get_tilesource_from_image(image, projection)
 
 
+def _get_region(tile_source: FileTileSource, region: dict, encoding: str):
+    result, mime_type = tile_source.getRegion(region=region, encoding=encoding)
+    if encoding == 'TILED':
+        path = result
+    else:
+        # Write content to temporary file
+        fd, path = tempfile.mkstemp(
+            suffix=f'.{encoding}', prefix='pixelRegion_', dir=str(get_cache_dir())
+        )
+        os.close(fd)
+        path = pathlib.Path(path)
+        with open(path, 'wb') as f:
+            f.write(result)
+    return path, mime_type
+
+
 def get_region_world(
     tile_source: FileTileSource,
     left: float,
@@ -37,8 +53,7 @@ def get_region_world(
     encoding: str = 'TILED',
 ):
     region = dict(left=left, right=right, bottom=bottom, top=top, units=units)
-    path, mime_type = tile_source.getRegion(region=region, encoding=encoding)
-    return path, mime_type
+    return _get_region(tile_source, region, encoding)
 
 
 def get_region_pixel(
@@ -53,7 +68,6 @@ def get_region_pixel(
     left, right = min(left, right), max(left, right)
     top, bottom = min(top, bottom), max(top, bottom)
     region = dict(left=left, right=right, bottom=bottom, top=top, units=units)
-
     if isinstance(tile_source, GDALFileTileSource) and encoding is None:
         # Use tiled encoding by default for geospatial rasters
         #   output will be a tiled TIF
@@ -61,20 +75,7 @@ def get_region_pixel(
     elif encoding is None:
         # Otherwise use JPEG encoding by default
         encoding = 'JPEG'
-    result, mime_type = tile_source.getRegion(region=region, encoding=encoding)
-
-    if encoding == 'TILED':
-        path = result
-    else:
-        # Write content to temporary file
-        fd, path = tempfile.mkstemp(
-            suffix=f'.{encoding}', prefix='pixelRegion_', dir=str(get_cache_dir())
-        )
-        os.close(fd)
-        path = pathlib.Path(path)
-        with open(path, 'wb') as f:
-            f.write(result)
-    return path, mime_type
+    return _get_region(tile_source, region, encoding)
 
 
 def get_tile_bounds(
