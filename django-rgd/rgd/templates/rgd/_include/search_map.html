@@ -5,7 +5,7 @@
   <script>
     // script to add search parameters to the map
     let searchParams = JSON.parse('{{ search_params|escapejs }}');
-    if (!_.isEmpty(searchParams)) {
+    if (!_.isEmpty(searchParams.q)) {
       let searchGeometry = JSON.parse(searchParams.q)
       // Add search parameters as markers
       if (searchGeometry.type == 'Point') {
