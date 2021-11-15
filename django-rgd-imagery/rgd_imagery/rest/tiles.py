@@ -97,7 +97,15 @@ class TileSingleBandInfoView(BaseTileView):
 
 
 class TileRegionView(BaseTileView):
-    """Returns region tile binary from world coordinates in given EPSG."""
+    """Returns region tile binary from world coordinates in given EPSG.
+
+    Note
+    ----
+    Use the `units` query parameter to inidicate the projection of the given
+    coordinates. This can be different than the `projection` parameter used
+    to open the tile source. `units` defaults to `EPSG:4326`.
+
+    """
 
     def get(
         self, request: Request, pk: int, left: float, right: float, bottom: float, top: float
@@ -105,10 +113,13 @@ class TileRegionView(BaseTileView):
         tile_source = self.get_tile_source(request, pk)
         if not isinstance(tile_source, GDALFileTileSource):
             raise TypeError('Souce image must have geospatial reference.')
-        projection = request.query_params.get('projection', 'EPSG:3857')
+        units = request.query_params.get('units', 'EPSG:4326')
         path, mime_type = large_image_utilities.get_region_world(
-            tile_source, left, right, bottom, top, projection
+            tile_source, left, right, bottom, top, units
         )
+        if not path:
+            # TODO: should this raise error status?
+            return HttpResponse(b'', content_type=mime_type)
         tile_binary = open(path, 'rb')
         return HttpResponse(tile_binary, content_type=mime_type)
 
@@ -120,7 +131,7 @@ class TileRegionPixelView(BaseTileView):
         self, request: Request, pk: int, left: float, right: float, bottom: float, top: float
     ) -> HttpResponse:
         tile_source = self.get_tile_source(request, pk)
-        path, mime_type = large_image_utilities.get_region_world(
+        path, mime_type = large_image_utilities.get_region_pixel(
             tile_source, left, right, bottom, top
         )
         tile_binary = open(path, 'rb')

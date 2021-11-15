@@ -28,9 +28,9 @@ def get_region_world(
     right: float,
     bottom: float,
     top: float,
-    projection: str = 'EPSG:4326',
+    units: str = 'EPSG:4326',
 ):
-    region = dict(left=left, right=right, bottom=bottom, top=top, units=projection)
+    region = dict(left=left, right=right, bottom=bottom, top=top, units=units)
     path, mime_type = tile_source.getRegion(region=region, encoding='TILED')
     return path, mime_type
 
