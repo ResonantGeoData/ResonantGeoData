@@ -21,7 +21,14 @@ class BaseTileView(BaseRestViewMixin, APIView):
         band = int(request.query_params.get('band', 0))
         style = None
         if band:
-            style = json.dumps({'band': band})
+            style = {'band': band}
+            bmin = request.query_params.get('min', None)
+            bmax = request.query_params.get('max', None)
+            if bmin is not None:
+                style['min'] = bmin
+            if bmax is not None:
+                style['max'] = bmax
+            style = json.dumps(style)
         return large_image_utilities.get_tilesource_from_image(image_entry, projection, style=style)
 
 
