@@ -1,8 +1,15 @@
 from contextlib import contextmanager
+import logging
+import os
+import pathlib
+import tempfile
 
 import large_image
 from large_image.tilesource import FileTileSource
+from rgd.utility import get_temp_dir
 from rgd_imagery.models import Image
+
+logger = logging.getLogger(__name__)
 
 
 def get_tilesource_from_image(
@@ -29,9 +36,10 @@ def get_region_world(
     bottom: float,
     top: float,
     units: str = 'EPSG:4326',
+    encoding: str = 'TILED',
 ):
     region = dict(left=left, right=right, bottom=bottom, top=top, units=units)
-    path, mime_type = tile_source.getRegion(region=region, encoding='TILED')
+    path, mime_type = tile_source.getRegion(region=region, encoding=encoding)
     return path, mime_type
 
 
@@ -42,11 +50,25 @@ def get_region_pixel(
     bottom: int,
     top: int,
     units: str = 'pixels',
+    encoding: str = None,
 ):
     left, right = min(left, right), max(left, right)
     top, bottom = min(top, bottom), max(top, bottom)
     region = dict(left=left, right=right, bottom=bottom, top=top, units=units)
-    path, mime_type = tile_source.getRegion(region=region, encoding='TILED')
+    if hasattr(tile_source, 'geospatial'):
+        if not encoding:
+            encoding = 'TILED'
+        path, mime_type = tile_source.getRegion(region=region, encoding=encoding)
+    else:
+        if not encoding:
+            encoding = 'JPEG'
+        content, mime_type = tile_source.getRegion(region=region, encoding=encoding)
+        # Write content to temporary file
+        fd, path = tempfile.mkstemp(suffix='.tiff', prefix='pixelRegion_', dir=str(get_temp_dir()))
+        os.close(fd)
+        path = pathlib.Path(path)
+        with open(path, 'wb') as f:
+            f.write(content)
     return path, mime_type
 
 
