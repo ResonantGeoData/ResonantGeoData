@@ -8,7 +8,7 @@ import os
 from pathlib import Path
 import shutil
 import tempfile
-from typing import Any, Generator
+from typing import Any
 from urllib.error import HTTPError
 from urllib.parse import urlparse
 from urllib.request import urlopen
