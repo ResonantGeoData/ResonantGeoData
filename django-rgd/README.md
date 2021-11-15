@@ -2,6 +2,8 @@
 
 # Resonant GeoData Core Application
 
+[![PyPI](https://img.shields.io/pypi/v/django-rgd.svg?logo=python&logoColor=white)](https://pypi.org/project/django-rgd/)
+
 The core Resonant GeoData (RGD) app containing file and permissions management
 as well as spatial models. Each of the other RGD apps depend on the core
 functionality built here.

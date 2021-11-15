@@ -2,6 +2,8 @@
 
 # Resonant GeoData Imagery
 
+[![PyPI](https://img.shields.io/pypi/v/django-rgd-imagery.svg?logo=python&logoColor=white)](https://pypi.org/project/django-rgd-imagery/)
+
 A submodule of Resonant GeoData for storing imagery supporting annotations and spatial reference.
 
 
