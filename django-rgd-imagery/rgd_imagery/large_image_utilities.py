@@ -1,5 +1,4 @@
 from contextlib import contextmanager
-import logging
 import os
 import pathlib
 import tempfile
@@ -9,8 +8,6 @@ from large_image.tilesource import FileTileSource
 from large_image_source_gdal import GDALFileTileSource
 from rgd.utility import get_cache_dir
 from rgd_imagery.models import Image
-
-logger = logging.getLogger(__name__)
 
 
 def get_tilesource_from_image(
