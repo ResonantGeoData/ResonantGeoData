@@ -193,12 +193,9 @@
       <div class="control">
         <input class="button is-secondary" type="button" value="Draw ROI" id="drawROIButton" onclick="enableDrawROI()">
       </div>
-      <a class="button has-icon is-flex is-justify-content-space-between is-secondary" id="extractROIButton">
-        <span>Download ROI</span>
-        <span class="icon is-small">
-          <i class="material-icons">download</i>
-        </span>
-      </a>
+      <div class="control">
+        <input class="button is-secondary" type="button" id="extractROIButton" onclick="downloadROI()" value="Download" disabled="true">
+      </div>
     </div>
   </div>
 
@@ -246,22 +243,29 @@
             }
           });
         }
-        // Check if ROI is outside of the bounds of raster as this will
-        //   yield invalid results
-        if (roi.left < dataset_bb.xmin |
-          roi.right > dataset_bb.xmax |
-          roi.top > dataset_bb.ymax |
-          roi.bottom < dataset_bb.ymin) {
-            console.log('ROI exceeds the boundary of the source raster.')
-            // TODO: show toast with error message
-            b2.href = '#';
-        } else {
-          // Build a URL for extracting that ROI
-          var image_id = Number(imageSelector.value)
-          b2.href = `${host}/api/image_process/imagery/${image_id}/tiles/region/world/${roi.left}/${roi.right}/${roi.bottom}/${roi.top}/region.tif?units=EPSG:4326`
-        }
-
       });
+    }
+
+    function downloadROI() {
+      var image_id = Number(imageSelector.value)
+      if (image_id < 0) {
+        // No valid image selected
+        console.log('No valid image selected.')
+        return
+      }
+      // Check if ROI is outside of the bounds of raster as this will
+      //   yield invalid results
+      if (roi.left < dataset_bb.xmin |
+        roi.right > dataset_bb.xmax |
+        roi.top > dataset_bb.ymax |
+        roi.bottom < dataset_bb.ymin) {
+          console.log('ROI exceeds the boundary of the source raster.')
+          // TODO: show toast with error message
+          return
+      }
+      // Build a URL for extracting that ROI
+      var url = `${host}/api/image_process/imagery/${image_id}/tiles/region/world/${roi.left}/${roi.right}/${roi.bottom}/${roi.top}/region.tif?units=EPSG:4326`;
+      download(url, 'region.tif')
     }
 
 
