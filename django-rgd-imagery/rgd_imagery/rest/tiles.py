@@ -152,7 +152,7 @@ class TileRegionPixelView(BaseTileView):
             right,
             bottom,
             top,
-            encoding,
+            encoding=encoding,
         )
         tile_binary = open(path, 'rb')
         return HttpResponse(tile_binary, content_type=mime_type)
