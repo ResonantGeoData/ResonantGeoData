@@ -49,6 +49,10 @@ class DevelopmentConfiguration(RGDExampleProjectMixin, DevelopmentBaseConfigurat
     pass
 
 
+class NonDebugDevConfiguration(DevelopmentConfiguration):
+    DEBUG = False
+
+
 class TestingConfiguration(RGDExampleProjectMixin, TestingBaseConfiguration):
     CELERY_TASK_ALWAYS_EAGER = True
     CELERY_TASK_EAGER_PROPAGATES = True
