@@ -4,7 +4,7 @@ import tempfile
 from celery.utils.log import get_task_logger
 from rgd.models import ChecksumFile
 from rgd.utility import get_or_create_no_commit, get_temp_dir
-from rgd_3d.models import PointCloud, PointCloudMeta
+from rgd_3d.models import Mesh3D, Mesh3DMeta
 
 logger = get_task_logger(__name__)
 
@@ -54,11 +54,11 @@ def _get_readers():
     return methods
 
 
-def read_point_cloud_file(pc_file):
-    """Read a PointCloud object and create a new PointCloudMeta."""
-    if not isinstance(pc_file, PointCloud):
-        pc_file = PointCloud.objects.get(pk=pc_file)
-    pc_entry, _ = get_or_create_no_commit(PointCloudMeta, source=pc_file)
+def read_mesh_3d_file(pc_file):
+    """Read a Mesh3D object and create a new Mesh3DMeta."""
+    if not isinstance(pc_file, Mesh3D):
+        pc_file = Mesh3D.objects.get(pk=pc_file)
+    pc_entry, _ = get_or_create_no_commit(Mesh3DMeta, source=pc_file)
     pc_entry.name = pc_file.file.name
     # Parse the point cloud file format and convert
     ext = pc_file.file.name.split('.')[-1].strip().lower()

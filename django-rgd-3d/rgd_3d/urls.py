@@ -4,13 +4,13 @@ from rgd_3d import models, views
 from rgd_3d.rest import viewsets
 
 router = SimpleRouter(trailing_slash=False)
-router.register(r'api/rgd_3d/point_cloud', viewsets.PointCloudMetaViewSet, basename='point-cloud')
+router.register(r'api/rgd_3d/mesh', viewsets.Mesh3DMetaViewSet, basename='mesh-3d')
 
 urlpatterns = [
     # Pages
     path(
-        'rgd_3d/point_cloud/<int:pk>/',
-        views.PointCloudMetaDetailView.as_view(),
-        name=models.PointCloudMeta.detail_view_name,
+        'rgd_3d/mesh/<int:pk>/',
+        views.Mesh3DMetaDetailView.as_view(),
+        name=models.Mesh3DMeta.detail_view_name,
     ),
 ] + router.urls

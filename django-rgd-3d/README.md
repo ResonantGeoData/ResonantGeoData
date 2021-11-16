@@ -31,9 +31,9 @@ INSTALLED_APPS += [
 
 This app adds a few additional models on top of the core app for storign 3D data
 
-- `PointCloud`: the base 3D data model for ingesting data. This will convert many popular formats to the VTP format and automatically produce a `PointCloudMeta` record.
-- `PointCloudMeta`: the model containing the 3D data. This is either automatically generated or manually geerated by uploaded 3D data in the VTP format. A 3D viewer is included for previewing these data on the front-end.
-- `PointCloudSpatial`: A way to link a geospatial context with `PointCloudMeta`.
+- `Mesh3D`: the base 3D data model for ingesting data. This will convert many popular formats to the VTP format and automatically produce a `Mesh3DMeta` record.
+- `Mesh3DMeta`: the model containing the 3D data. This is either automatically generated or manually geerated by uploaded 3D data in the VTP format. A 3D viewer is included for previewing these data on the front-end.
+- `Mesh3DSpatial`: A way to link a geospatial context with `Mesh3DMeta`.
 
 
 ## Management Commands

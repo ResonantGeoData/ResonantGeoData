@@ -7,11 +7,11 @@ from rgd.admin.mixins import (
     _FileGetNameMixin,
     reprocess,
 )
-from rgd_3d.models import PointCloud, PointCloudMeta, PointCloudSpatial
+from rgd_3d.models import Mesh3D, Mesh3DMeta, Mesh3DSpatial
 
 
-@admin.register(PointCloud)
-class PointCloudAdmin(OSMGeoAdmin, _FileGetNameMixin):
+@admin.register(Mesh3D)
+class Mesh3DAdmin(OSMGeoAdmin, _FileGetNameMixin):
     list_display = (
         'pk',
         'get_name',
@@ -28,8 +28,8 @@ class PointCloudAdmin(OSMGeoAdmin, _FileGetNameMixin):
     list_filter = MODIFIABLE_FILTERS + TASK_EVENT_FILTERS
 
 
-@admin.register(PointCloudSpatial)
-class PointCloudSpatialAdmin(OSMGeoAdmin):
+@admin.register(Mesh3DSpatial)
+class Mesh3DSpatialAdmin(OSMGeoAdmin):
     list_display = (
         'pk',
         'modified',
@@ -43,8 +43,8 @@ class PointCloudSpatialAdmin(OSMGeoAdmin):
     modifiable = False  # To still show the footprint and outline
 
 
-@admin.register(PointCloudMeta)
-class PointCloudMetaAdmin(OSMGeoAdmin):
+@admin.register(Mesh3DMeta)
+class Mesh3DMetaAdmin(OSMGeoAdmin):
     list_display = (
         'pk',
         'modified',
