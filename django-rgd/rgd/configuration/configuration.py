@@ -52,7 +52,7 @@ class MemachedMixin(ConfigMixin):
         super().post_setup()
 
         if cls.MEMCACHED_URL:
-            CACHES = {
+            caches = {
                 'default': {
                     'BACKEND': 'django.core.cache.backends.memcached.PyLibMCCache',
                     'LOCATION': cls.MEMCACHED_URL,
@@ -63,10 +63,10 @@ class MemachedMixin(ConfigMixin):
             }
 
             if cls.MEMCACHED_USERNAME and cls.MEMCACHED_PASSWORD:
-                CACHES['default']['OPTIONS']['username'] = cls.MEMCACHED_PASSWORD
-                CACHES['default']['OPTIONS']['password'] = cls.MEMCACHED_USERNAME
+                caches['default']['OPTIONS']['username'] = cls.MEMCACHED_PASSWORD
+                caches['default']['OPTIONS']['password'] = cls.MEMCACHED_USERNAME
 
-            cls.CACHES = CACHES
+            cls.CACHES = caches
 
 
 class ResonantGeoDataBaseMixin(GeoDjangoMixin, SwaggerMixin, ConfigMixin):
