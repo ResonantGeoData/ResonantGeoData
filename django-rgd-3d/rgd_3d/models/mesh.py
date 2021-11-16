@@ -6,47 +6,36 @@ from rgd.models.mixins import DetailViewMixin, PermissionPathMixin, TaskEventMix
 from rgd_3d.tasks import jobs
 
 
-class Mesh3D(TimeStampedModel, TaskEventMixin, PermissionPathMixin):
+class Mesh3D(TimeStampedModel, TaskEventMixin, PermissionPathMixin, DetailViewMixin):
     """Container for point cloud file."""
-
-    task_funcs = (jobs.task_read_mesh_3d_file,)
-    file = models.ForeignKey(ChecksumFile, on_delete=models.CASCADE, related_name='+')
-
-    def data_link(self):
-        return self.file.data_link()
-
-    data_link.allow_tags = True
-
-    permissions_paths = [('file', ChecksumFile)]
-
-
-class Mesh3DMeta(TimeStampedModel, PermissionPathMixin, DetailViewMixin):
-    """Container for converted point cloud data.
-
-    The data here must be stored in VTP format. This can be manually uploaded
-    or created automatically via a Mesh3D upload.
-    """
 
     name = models.CharField(max_length=1000, blank=True)
     description = models.TextField(null=True, blank=True)
 
-    # Can be null if not generated from uploaded file
-    source = models.OneToOneField(Mesh3D, null=True, blank=True, on_delete=models.CASCADE)
+    # Source data uploaded by user in just about any format
+    file = models.ForeignKey(ChecksumFile, on_delete=models.CASCADE, related_name='+')
 
     # A place to store converted file - must be in VTP format
-    vtp_data = models.ForeignKey(ChecksumFile, on_delete=models.DO_NOTHING, related_name='+')
+    vtp_data = models.ForeignKey(
+        ChecksumFile, on_delete=models.DO_NOTHING, related_name='+', null=True, blank=True
+    )
 
     def data_link(self):
+        return self.file.data_link()
+
+    def data_link_vtp(self):
         return self.vtp_data.data_link()
 
     data_link.allow_tags = True
+    data_link_vtp.allow_tags = True
 
-    permissions_paths = [('source', Mesh3D), ('vtp_data', ChecksumFile)]
-    detail_view_name = 'point-cloud-entry-detail'
+    task_funcs = (jobs.task_read_mesh_3d_file,)
+    permissions_paths = [('file', ChecksumFile), ('vtp_data', ChecksumFile)]
+    detail_view_name = 'mesh-3d-detail'
 
 
 class Mesh3DSpatial(TimeStampedModel, SpatialEntry, PermissionPathMixin):
-    """Optionally register a Mesh3DMeta as a SpatialEntry."""
+    """Optionally register a Mesh3D as a SpatialEntry."""
 
     source = models.OneToOneField(Mesh3D, on_delete=models.CASCADE)
 
@@ -59,5 +48,5 @@ class Mesh3DSpatial(TimeStampedModel, SpatialEntry, PermissionPathMixin):
         return self.source.file.name
 
     permissions_paths = [('source', Mesh3D)]
-    detail_view_name = 'point-cloud-entry-detail'
-    detail_view_pk = 'source__pointcloudmeta__pk'
+    detail_view_name = 'mesh-3d-detail'
+    detail_view_pk = 'source__pk'

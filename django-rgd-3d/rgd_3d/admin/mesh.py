@@ -4,32 +4,15 @@ from rgd.admin.mixins import (
     MODIFIABLE_FILTERS,
     TASK_EVENT_FILTERS,
     TASK_EVENT_READONLY,
-    _FileGetNameMixin,
+    GeoAdminInline,
     reprocess,
 )
-from rgd_3d.models import Mesh3D, Mesh3DMeta, Mesh3DSpatial
+from rgd_3d.models import Mesh3D, Mesh3DSpatial
 
 
-@admin.register(Mesh3D)
-class Mesh3DAdmin(OSMGeoAdmin, _FileGetNameMixin):
-    list_display = (
-        'pk',
-        'get_name',
-        'status',
-        'modified',
-        'created',
-        'data_link',
-    )
-    readonly_fields = (
-        'modified',
-        'created',
-    ) + TASK_EVENT_READONLY
-    actions = (reprocess,)
-    list_filter = MODIFIABLE_FILTERS + TASK_EVENT_FILTERS
-
-
-@admin.register(Mesh3DSpatial)
-class Mesh3DSpatialAdmin(OSMGeoAdmin):
+class Mesh3DSpatialInline(GeoAdminInline):
+    model = Mesh3DSpatial
+    fk_name = 'source'
     list_display = (
         'pk',
         'modified',
@@ -43,17 +26,22 @@ class Mesh3DSpatialAdmin(OSMGeoAdmin):
     modifiable = False  # To still show the footprint and outline
 
 
-@admin.register(Mesh3DMeta)
-class Mesh3DMetaAdmin(OSMGeoAdmin):
+@admin.register(Mesh3D)
+class Mesh3DAdmin(OSMGeoAdmin):
     list_display = (
         'pk',
+        'name',
+        'status',
         'modified',
         'created',
-        'data_link',
+        # 'data_link',
+        # 'data_link_vtp',
     )
     readonly_fields = (
-        'source',
         'modified',
         'created',
-    )
-    list_filter = MODIFIABLE_FILTERS
+    ) + TASK_EVENT_READONLY
+    actions = (reprocess,)
+    list_filter = MODIFIABLE_FILTERS + TASK_EVENT_FILTERS
+    inlines = (Mesh3DSpatialInline,)
+    extra = 0

@@ -7,14 +7,6 @@ from rgd_3d import models
 
 class Mesh3DSerializer(serializers.ModelSerializer):
     file = ChecksumFileSerializer()
-
-    class Meta:
-        model = models.Mesh3D
-        fields = '__all__'
-
-
-class Mesh3DMetaSerializer(serializers.ModelSerializer):
-    source = Mesh3DSerializer()
     vtp_data = ChecksumFileSerializer(required=False)
 
     def to_representation(self, value):
@@ -22,11 +14,11 @@ class Mesh3DMetaSerializer(serializers.ModelSerializer):
         return ret
 
     class Meta:
-        model = models.Mesh3DMeta
+        model = models.Mesh3D
         fields = '__all__'
 
 
-class Mesh3DMetaDataSerializer(Mesh3DMetaSerializer):
+class Mesh3DDataSerializer(Mesh3DSerializer):
     def to_representation(self, value):
         ret = super().to_representation(value)
         # Extract data as base64

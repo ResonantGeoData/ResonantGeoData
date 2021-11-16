@@ -4,13 +4,13 @@ from rgd.rest.mixins import TaskEventViewSetMixin
 from rgd_3d import models, serializers
 
 
-class Mesh3DMetaViewSet(ReadOnlyModelViewSet, TaskEventViewSetMixin):
-    serializer_class = serializers.Mesh3DMetaSerializer
-    queryset = models.Mesh3DMeta.objects.all()
+class Mesh3DViewSet(ReadOnlyModelViewSet, TaskEventViewSetMixin):
+    serializer_class = serializers.Mesh3DSerializer
+    queryset = models.Mesh3D.objects.all()
 
     @action(
         detail=True,
-        serializer_class=serializers.Mesh3DMetaDataSerializer,
+        serializer_class=serializers.Mesh3DDataSerializer,
     )
     def base64(self, request, *args, **kwargs):
         return self.retrieve(request, *args, **kwargs)
