@@ -71,3 +71,6 @@ class ResonantGeoDataBaseMixin(GeoDjangoMixin, SwaggerMixin, ConfigMixin):
     RGD_STAC_BROWSER_LIMIT = values.Value(default=1000)
     RGD_TEMP_DIR = values.Value(default=os.path.join(tempfile.gettempdir(), 'rgd'))
     RGD_TARGET_AVAILABLE_CACHE = values.Value(default=2)
+    RGD_MEMCACHED_USERNAME = values.Value(default=None)
+    RGD_MEMCACHED_PASSWORD = values.Value(default=None)
+    RGD_MEMCACHED_URL = values.Value(default=None)
