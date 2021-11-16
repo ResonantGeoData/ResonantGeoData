@@ -30,6 +30,4 @@ class RGDImageryConfig(AppConfig):
                     'cache_memcached_password', settings.MEMCACHED_PASSWORD
                 )
             large_image.config.setConfig('cache_backend', 'memcached')
-            logger.info('Configured for memcached.')
-        else:
-            logger.info('Settings not properly configured for memcached.')
+            logger.info('large_image is configured for memcached.')
