@@ -82,6 +82,7 @@ class TileCornersView(BaseTileView):
 class TileThumnailView(BaseTileView):
     """Returns tile thumbnail."""
 
+    @method_decorator(cache_page(60 * 60 * 2))
     def get(self, request: Request, pk: int) -> HttpResponse:
         tile_source = self.get_tile_source(request, pk)
         thumb_data, mime_type = tile_source.getThumbnail(encoding='PNG')
