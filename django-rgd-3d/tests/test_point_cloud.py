@@ -1,6 +1,5 @@
 import pytest
 from rgd.datastore import datastore
-from rgd_3d import models
 from rgd_3d.tasks.etl import read_mesh_3d_file
 
 from . import factories

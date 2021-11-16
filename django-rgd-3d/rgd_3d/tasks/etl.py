@@ -3,7 +3,7 @@ import tempfile
 
 from celery.utils.log import get_task_logger
 from rgd.models import ChecksumFile
-from rgd.utility import get_or_create_no_commit, get_temp_dir
+from rgd.utility import get_temp_dir
 from rgd_3d.models import Mesh3D
 
 logger = get_task_logger(__name__)

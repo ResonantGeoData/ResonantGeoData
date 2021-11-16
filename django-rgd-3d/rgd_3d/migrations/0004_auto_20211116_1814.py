@@ -5,7 +5,7 @@ import django.db.models.deletion
 
 
 def migrate_mesh3dmeta_to_mesh3d(apps, schema_editor):
-    Mesh3DMeta = apps.get_model('rgd_3d', 'Mesh3DMeta')
+    Mesh3DMeta = apps.get_model('rgd_3d', 'Mesh3DMeta')  # noqa
     for meta in Mesh3DMeta.objects.all():
         meta.source.name = meta.name
         meta.source.description = meta.description
