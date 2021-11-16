@@ -261,7 +261,8 @@ class ChecksumFile(TimeStampedModel, TaskEventMixin, PermissionPathMixin):
             and self.type == FileSourceType.URL
             and precheck_fuse(self.get_url())
         ):
-            return url_file_to_fuse_path(self.get_url(internal=True))
+            yield url_file_to_fuse_path(self.get_url(internal=True))
+            return
         # Fallback to loading entire file locally - this uses `get_temp_path`
         logger.debug('`yield_local_path` falling back to downloading entire file to local storage.')
         if yield_file_set and self.file_set:

@@ -1,0 +1,7 @@
+#  To get better performance during local demos
+version: '3'
+services:
+  django:
+    command: ["gunicorn", "-k", "gthread", "--threads", "8", "--bind", "0.0.0.0:8000", "rgd_example.wsgi"]
+    environment:
+      - DJANGO_CONFIGURATION=NonDebugDevConfiguration

@@ -2,6 +2,8 @@
 
 # Resonant GeoData 3D
 
+[![PyPI](https://img.shields.io/pypi/v/django-rgd-3d.svg?logo=python&logoColor=white)](https://pypi.org/project/django-rgd-3d/)
+
 A subapplication of Resonant GeoData for storing 3D data with an optional
 spatial reference.
 

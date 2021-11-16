@@ -8,7 +8,7 @@ import os
 from pathlib import Path
 import shutil
 import tempfile
-from typing import Any, Generator
+from typing import Any
 from urllib.error import HTTPError
 from urllib.parse import urlparse
 from urllib.request import urlopen
@@ -157,8 +157,7 @@ def precheck_fuse(url: str) -> bool:
     return True
 
 
-@contextmanager
-def url_file_to_fuse_path(url: str) -> Generator[Path, None, None]:
+def url_file_to_fuse_path(url: str) -> Path:
     # Could raise ValueError within context
     # Assumes `precheck_fuse` was verified prior
     # See https://github.com/ResonantGeoData/ResonantGeoData/issues/237
@@ -170,7 +169,7 @@ def url_file_to_fuse_path(url: str) -> Generator[Path, None, None]:
     else:
         raise ValueError(f'Scheme {parsed.scheme} not currently handled by FUSE.')
     logger.info(f'FUSE path: {fuse_path}')
-    yield Path(fuse_path)
+    return Path(fuse_path)
 
 
 @contextmanager
@@ -180,6 +179,11 @@ def patch_internal_presign(f: FieldFile):
     Sometimes the external host differs from the internal host for Minio files (e.g. in development).
     Getting the URL in this context ensures that the presigned URL returns the correct host for the
     odd situation of accessing the file locally.
+
+    Note
+    ----
+    If concerned regarding concurrent access, see https://github.com/ResonantGeoData/ResonantGeoData/issues/287
+
     """
     if (
         MinioStorage is not None

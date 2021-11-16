@@ -30,7 +30,7 @@ setup(
         'django-debug-toolbar',
         'django-oauth-toolkit',
         'django-rest-swagger',
-        'gunicorn',
+        'gunicorn[gthread]',
         'ipython',
         # RGD deps are install locally
     ],

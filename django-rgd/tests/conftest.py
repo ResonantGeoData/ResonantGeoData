@@ -30,3 +30,18 @@ def py_client(live_server):
     )
 
     return client
+
+
+@pytest.fixture
+def user_with_api_key(faker):
+    email = faker.email()
+    password = 'password'
+    params = {'username': email, 'email': email, 'password': password}
+
+    user = User.objects.create_user(is_staff=True, is_superuser=True, **params)
+    user.save()
+
+    api_token = 'topsecretkey'
+    Token.objects.create(user=user, key=api_token)
+
+    return email, password, api_token
