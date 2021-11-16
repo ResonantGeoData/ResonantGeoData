@@ -23,11 +23,8 @@ def _file_conversion_helper(source, output_field, method, prefix='', extension='
 
 
 def _save_pyvista(mesh, output_path):
-    import pyvista as pv
-
-    points = pv.PolyData(mesh.points)
-    points.point_data.update(mesh.point_data)
-    points.save(output_path)
+    surf = mesh.extract_surface()
+    surf.save(output_path)
 
 
 def _use_pyntcloud_pyvista(input_path, output_path):
