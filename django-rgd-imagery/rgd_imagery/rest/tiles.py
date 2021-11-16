@@ -2,6 +2,8 @@ import json
 
 from django.http import HttpResponse
 from django.shortcuts import get_object_or_404
+from django.utils.decorators import method_decorator
+from django.views.decorators.cache import cache_page
 from large_image.tilesource import FileTileSource
 from large_image_source_gdal import GDALFileTileSource
 from rest_framework.request import Request
@@ -53,6 +55,7 @@ class TileInternalMetadataView(BaseTileView):
 class TileView(BaseTileView):
     """Returns tile binary."""
 
+    @method_decorator(cache_page(60 * 60 * 2))
     def get(self, request: Request, pk: int, x: int, y: int, z: int) -> HttpResponse:
         tile_source = self.get_tile_source(request, pk)
         tile_binary = tile_source.getTile(x, y, z)
