@@ -9,6 +9,7 @@ from large_image_source_gdal import GDALFileTileSource
 from rest_framework.request import Request
 from rest_framework.response import Response
 from rest_framework.views import APIView
+from rgd.rest import CACHE_TIMEOUT
 from rgd.rest.mixins import BaseRestViewMixin
 from rgd_imagery import large_image_utilities
 from rgd_imagery.models import Image
@@ -55,7 +56,7 @@ class TileInternalMetadataView(BaseTileView):
 class TileView(BaseTileView):
     """Returns tile binary."""
 
-    @method_decorator(cache_page(60 * 60 * 2))
+    @method_decorator(cache_page(CACHE_TIMEOUT))
     def get(self, request: Request, pk: int, x: int, y: int, z: int) -> HttpResponse:
         tile_source = self.get_tile_source(request, pk)
         tile_binary = tile_source.getTile(x, y, z)
@@ -82,7 +83,7 @@ class TileCornersView(BaseTileView):
 class TileThumnailView(BaseTileView):
     """Returns tile thumbnail."""
 
-    @method_decorator(cache_page(60 * 60 * 2))
+    @method_decorator(cache_page(CACHE_TIMEOUT))
     def get(self, request: Request, pk: int) -> HttpResponse:
         tile_source = self.get_tile_source(request, pk)
         thumb_data, mime_type = tile_source.getThumbnail(encoding='PNG')

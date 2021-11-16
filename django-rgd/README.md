@@ -59,6 +59,8 @@ The RGD core app has a few optional settings:
 - `RGD_AUTO_COMPUTE_CHECKSUMS`: automatically compute checksums for all ChecksumFile records (default False)
 - `RGD_TEMP_DIR`: A temporary directory for working files
 - `RGD_TARGET_AVAILABLE_CACHE`: The target free space to remain for the cache in Gigabytes (default 2).
+- `RGD_REST_CACHE_TIMEOUT`: the time in seconds for the REST views cache (for endpoints that are cached).
+- `MEMCACHED_USERNAME`, `MEMCACHED_PASSWORD`, and `MEMCACHED_URL`: use if hosting a memcached server to set the `default` django cache.
 
 ## Models
 
