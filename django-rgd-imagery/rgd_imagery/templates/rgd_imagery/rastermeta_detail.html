@@ -105,7 +105,6 @@
       thumbnail = document.getElementById('thumbnail');
       toast = document.getElementById('toast');
       toast.className ="show"
-      console.log(toast.className)
       var imageSelector_value = Number(imageSelector.value)
       var bandSelector_value = Number(bandSelector.value)
 
@@ -176,6 +175,11 @@
     });
 
     setBounds(extents.extent, false)
+    map.geoOn(geo.event.pan, function(event){
+      toast = document.getElementById('toast');
+      toast.className ="show"
+      tileLayer.onIdle(()=>toast.className = toast.className.replace("show", ""))
+    })
 
   </script>
 
