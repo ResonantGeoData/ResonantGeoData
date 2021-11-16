@@ -18,6 +18,7 @@ def test_mesh_3d_etl(sample_file):
         file__file__filename=sample_file,
         file__file__from_path=datastore.fetch(sample_file),
     )
+    entry.refresh_from_db()
     assert entry.vtp_data is not None
     # Testing that we can repopulate a point cloud entry
     read_mesh_3d_file(entry.id)
