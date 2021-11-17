@@ -28,6 +28,12 @@ class BaseTileView(BaseRestViewMixin, APIView):
                 style['min'] = bmin
             if bmax is not None:
                 style['max'] = bmax
+            palette = request.query_params.get('palette', None)
+            if palette:
+                style['palette'] = palette
+            nodata = request.query_params.get('nodata', None)
+            if nodata:
+                style['nodata'] = nodata
             style = json.dumps(style)
         return large_image_utilities.get_tilesource_from_image(image_entry, projection, style=style)
 
