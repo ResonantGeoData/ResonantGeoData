@@ -42,7 +42,7 @@
 {% endblock %}
 
 {% block extra_meta %}
-  <div id="toast">Loading...</div>
+  <div id="toast">Loading image tiles...</div>
   <select id="image-selector" onchange="updateImage()">
     {% for image in object.parent_raster.image_set.all_images.all %}
       <option value="{{ image.id }}">{{ image.file.basename }}</option>
