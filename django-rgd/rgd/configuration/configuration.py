@@ -1,6 +1,8 @@
 from __future__ import annotations
 
+import logging
 import os
+import tempfile
 from typing import Type
 
 try:
@@ -18,23 +20,18 @@ class GeoDjangoMixin(ConfigMixin):
     @staticmethod
     def before_binding(configuration: Type[ComposedConfiguration]):
         configuration.INSTALLED_APPS += ['django.contrib.gis']
-        try:
-            import re
 
+        try:
             import osgeo
 
-            libsdir = os.path.join(
-                os.path.dirname(os.path.dirname(osgeo._gdal.__file__)), 'GDAL.libs'
+            configuration.GDAL_LIBRARY_PATH = osgeo.GDAL_LIBRARY_PATH
+            configuration.GEOS_LIBRARY_PATH = osgeo.GEOS_LIBRARY_PATH
+        except (ImportError, AttributeError):
+            logging.warning(
+                'GDAL wheel not installed, skipping configuration. If you have not '
+                'installed GDAL manually, please install the wheel with the following command: '
+                'pip install --find-links https://girder.github.io/large_image_wheels GDAL'
             )
-            libs = {
-                re.split(r'-|\.', name)[0]: os.path.join(libsdir, name)
-                for name in os.listdir(libsdir)
-            }
-            configuration.GDAL_LIBRARY_PATH = libs['libgdal']
-            configuration.GEOS_LIBRARY_PATH = libs['libgeos_c']
-        except Exception:
-            # TODO: Log that we aren't using the expected GDAL wheel?
-            pass
 
 
 class SwaggerMixin(ConfigMixin):
@@ -49,6 +46,9 @@ class ResonantGeoDataBaseMixin(GeoDjangoMixin, SwaggerMixin, ConfigMixin):
     def before_binding(configuration: ComposedConfiguration) -> None:
         configuration.MIDDLEWARE += [
             'crum.CurrentRequestUserMiddleware',
+        ]
+        configuration.REST_FRAMEWORK['DEFAULT_AUTHENTICATION_CLASSES'] += [
+            'rest_framework.authentication.TokenAuthentication',
         ]
 
     # This cannot have a default value, since the password and database name are always
@@ -69,3 +69,8 @@ class ResonantGeoDataBaseMixin(GeoDjangoMixin, SwaggerMixin, ConfigMixin):
     RGD_AUTO_APPROVE_SIGN_UP = values.Value(default=False)
     RGD_AUTO_COMPUTE_CHECKSUMS = values.Value(default=False)
     RGD_STAC_BROWSER_LIMIT = values.Value(default=1000)
+    RGD_TEMP_DIR = values.Value(default=os.path.join(tempfile.gettempdir(), 'rgd'))
+    RGD_TARGET_AVAILABLE_CACHE = values.Value(default=2)
+    RGD_MEMCACHED_USERNAME = values.Value(default=None)
+    RGD_MEMCACHED_PASSWORD = values.Value(default=None)
+    RGD_MEMCACHED_URL = values.Value(default=None)

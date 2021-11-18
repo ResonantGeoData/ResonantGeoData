@@ -1,6 +1,15 @@
-from django.urls import path, register_converter
+from django.urls import include, path, register_converter
+from rest_framework.routers import SimpleRouter
+from rgd_imagery import models, rest, views
+from rgd_imagery.rest import viewsets
 
-from . import models, rest, views
+router = SimpleRouter(trailing_slash=False)
+router.register(r'api/image_process', viewsets.ProcessedImageViewSet)
+router.register(r'api/image_process/group', viewsets.ProcessedImageGroupViewSet)
+router.register(r'api/rgd_imagery/image_set', viewsets.ImageSetViewSet)
+router.register(r'api/rgd_imagery/image_set_spatial', viewsets.ImageSetSpatialViewSet)
+router.register(r'api/rgd_imagery/raster', viewsets.RasterViewSet, basename='raster')
+router.register(r'api/rgd_imagery', viewsets.ImageViewSet, basename='imagery')
 
 
 class FloatUrlParameterConverter:
@@ -33,66 +42,6 @@ urlpatterns = [
         'rgd_imagery/stac_browser/',
         views.STACBrowserView.as_view(),
         name='stac-browser',
-    ),
-    #############
-    # Search
-    path('api/rgd_imagery/raster/search', rest.search.SearchRasterMetaSTACView.as_view()),
-    #############
-    # Other
-    path(
-        'api/rgd_imagery',
-        rest.post.CreateImage.as_view(),
-        name='image-create',
-    ),
-    path(
-        'api/rgd_imagery/<int:pk>',
-        rest.get.GetImageMeta.as_view(),
-        name='image-entry',
-    ),
-    path(
-        'api/rgd_imagery/<int:pk>/data',
-        rest.download.download_image_file,
-        name='image-entry-data',
-    ),
-    path(
-        'api/rgd_imagery/image_set',
-        rest.post.CreateImageSet.as_view(),
-        name='image-set-create',
-    ),
-    path(
-        'api/rgd_imagery/image_set/<int:pk>',
-        rest.get.GetImageSet.as_view(),
-        name='image-set',
-    ),
-    path(
-        'api/rgd_imagery/image_set_spatial',
-        rest.post.CreateImageSetSpatial.as_view(),
-        name='image-set-spatial-create',
-    ),
-    path(
-        'api/rgd_imagery/image_set_spatial/<int:pk>',
-        rest.get.GetImageSetSpatial.as_view(),
-        name='image-set-spatial',
-    ),
-    path(
-        'api/rgd_imagery/raster',
-        rest.post.CreateRaster.as_view(),
-        name='raster-create',
-    ),
-    path(
-        'api/rgd_imagery/raster/<int:pk>',
-        rest.get.GetRasterMeta.as_view(),
-        name='raster-meta-entry',
-    ),
-    path(
-        'api/rgd_imagery/raster/<int:pk>/stac',
-        rest.get.GetRasterMetaSTAC.as_view(),
-        name='raster-meta-entry-stac',
-    ),
-    path(
-        'api/rgd_imagery/raster/stac',
-        rest.post.CreateRasterSTAC.as_view(),
-        name='raster-meta-entry-stac-post',
     ),
     #############
     # Geoprocessing
@@ -141,45 +90,8 @@ urlpatterns = [
         rest.tiles.TileSingleBandInfoView.as_view(),
         name='image-bands-single',
     ),
-    path('api/image_process', rest.post.CreateProcessedImage.as_view(), name='processed-image'),
     path(
-        'api/image_process/group',
-        rest.post.CreateProcessedImageGroup.as_view(),
-        name='processed-image-group',
+        'api/stac/',
+        include('rgd_imagery.stac.urls'),
     ),
-    path(
-        'api/image_process/<int:pk>',
-        rest.get.GetProcessedImage.as_view(),
-        name='get-processed-image',
-    ),
-    path(
-        'api/image_process/group/<int:pk>/status',
-        rest.get.get_processed_image_group_status,
-        name='processed-image-group-status',
-    ),
-    path(
-        'api/stac',
-        rest.stac.CoreView.as_view(),
-        name='stac-core',
-    ),
-    path(
-        'api/stac/search',
-        rest.stac.SimpleSearchView.as_view(),
-        name='stac-search',
-    ),
-    path(
-        'api/stac/collection/<collection_id>',
-        rest.stac.CollectionView.as_view(),
-        name='stac-collection',
-    ),
-    path(
-        'api/stac/collection/<collection_id>/items',
-        rest.stac.ItemCollectionView.as_view(),
-        name='stac-collection-items',
-    ),
-    path(
-        'api/stac/collection/<collection_id>/items/<item_id>',
-        rest.stac.ItemView.as_view(),
-        name='stac-collection-item',
-    ),
-]
+] + router.urls

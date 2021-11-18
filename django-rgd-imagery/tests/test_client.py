@@ -2,7 +2,7 @@ import json
 
 from django.forms.models import model_to_dict
 import pytest
-from rgd.models.common import ChecksumFile
+from rgd.models import ChecksumFile
 from rgd_imagery.models.base import Image, ImageSet
 from rgd_imagery.models.raster import RasterMeta
 from rgd_imagery_client import ImageryClient

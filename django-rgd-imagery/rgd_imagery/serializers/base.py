@@ -52,6 +52,12 @@ class ImageSetSerializer(serializers.ModelSerializer):
         fields = '__all__'
         read_only_fields = MODIFIABLE_READ_ONLY_FIELDS
 
+    def to_representation(self, value):
+        ret = super().to_representation(value)
+        # Add processed images
+        ret['processed_images'] = [ImageSerializer(im).data for im in value.processed_images.all()]
+        return ret
+
 
 class ImageSetSpatialSerializer(SpatialEntrySerializer):
     image_set = RelatedField(queryset=models.ImageSet.objects.all(), serializer=ImageSetSerializer)

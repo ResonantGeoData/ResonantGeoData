@@ -47,13 +47,14 @@ setup(
     install_requires=[
         'bidict',
         'django-rgd',
-        'large-image>=1.8.1.dev7',
+        'large-image[memcached]>=1.8.1.dev7',
         'large-image-source-gdal>=1.8.1.dev7',
         'large-image-source-pil>=1.8.1.dev7',
         'large-image-source-tiff>=1.8.1.dev7',
+        'pyvips',
         'tifftools>=1.2.0',
         'numpy',
-        'pystac',
+        'pystac>=1.1.0',
         'shapely',
     ],
     extras_require={

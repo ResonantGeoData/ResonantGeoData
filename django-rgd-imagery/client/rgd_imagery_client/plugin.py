@@ -3,7 +3,7 @@ from pathlib import Path
 import tempfile
 from typing import Dict, Iterable, Iterator, List, Optional, Tuple, Union
 
-from rgd_client.session import RgdClientSession
+from rgd_client.plugin import RgdPlugin
 from rgd_client.types import DATETIME_OR_STR_TUPLE, SEARCH_PREDICATE_CHOICE
 from rgd_client.utils import (
     download_checksum_file_to_path,
@@ -23,12 +23,8 @@ class RasterDownload:
     ancillary: List[Path]
 
 
-class ImageryPlugin:
+class ImageryPlugin(RgdPlugin):
     """The django-rgd-imagery client plugin."""
-
-    def __init__(self, session: RgdClientSession):
-        # session.base_url not modified due to varying url prefixes
-        self.session = session
 
     def list_image_tiles(self, image_id: Union[str, int]) -> Dict:
         """List geodata imagery tiles."""
@@ -156,6 +152,8 @@ class ImageryPlugin:
 
         # Download images
         images = parent_raster.get('image_set', {}).get('images', [])
+        processed_images = parent_raster.get('image_set', {}).get('processed_images', [])
+        images += processed_images
         for image in tqdm(images, desc='Downloading image files'):
             file = image.get('file', {})
             file_path = download_checksum_file_to_path(file, path, keep_existing=keep_existing)

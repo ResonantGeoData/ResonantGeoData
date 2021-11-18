@@ -2,6 +2,8 @@
 
 # Resonant GeoData Geometry
 
+[![PyPI](https://img.shields.io/pypi/v/django-rgd-geometry.svg?logo=python&logoColor=white)](https://pypi.org/project/django-rgd-geometry/)
+
 A submodule of Resonant GeoData for storing shapefiles.
 
 

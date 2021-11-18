@@ -7,7 +7,7 @@
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bulma@0.9.1/css/bulma.min.css">
 
     <script src="https://code.jquery.com/jquery-3.4.1.min.js" integrity="sha256-CSXorXvZcTkaix6Yvo6HppcZGetbYMGWSFlBw8HfCJo=" crossorigin="anonymous"></script>
-    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/geojs/0.20.0/geo.min.js"></script>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/geojs/1.4.3/geo.min.js"></script>
 
     <script>
       var host = window.location.protocol + "//" + window.location.host;
@@ -33,6 +33,18 @@
         var ind1=theCookie.indexOf(";",ind);
         if (ind1==-1) { ind1=theCookie.length; }
         return unescape(theCookie.substring(ind+cookieName.length+1,ind1));
+      }
+
+      function download(url, filename) {
+        fetch(url)
+          .then(response => response.blob())
+          .then(blob => {
+            const link = document.createElement("a");
+            link.href = URL.createObjectURL(blob);
+            link.download = filename;
+            link.click();
+        })
+        .catch(console.error);
       }
     </script>
 

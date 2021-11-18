@@ -2,6 +2,8 @@
 
 # Resonant GeoData Core Application
 
+[![PyPI](https://img.shields.io/pypi/v/django-rgd.svg?logo=python&logoColor=white)](https://pypi.org/project/django-rgd/)
+
 The core Resonant GeoData (RGD) app containing file and permissions management
 as well as spatial models. Each of the other RGD apps depend on the core
 functionality built here.
@@ -25,6 +27,8 @@ INSTALLED_APPS += [
 ]
 
 MIDDLEWARE += ('crum.CurrentRequestUserMiddleware',)
+
+REST_FRAMEWORK['DEFAULT_AUTHENTICATION_CLASSES'] += ('rest_framework.authentication.TokenAuthentication',)
 ```
 
 (note that RGD requires [`django-crum`](https://django-crum.readthedocs.io/en/latest/) middleware.)
@@ -53,6 +57,8 @@ The RGD core app has a few optional settings:
 - `RGD_FILE_FIELD_PREFIX`: the path prefix when uploading files to the project's S3 storage.
 - `RGD_AUTO_APPROVE_SIGN_UP`: automatically approve all user sign ups.
 - `RGD_AUTO_COMPUTE_CHECKSUMS`: automatically compute checksums for all ChecksumFile records (default False)
+- `RGD_TEMP_DIR`: A temporary directory for working files
+- `RGD_TARGET_AVAILABLE_CACHE`: The target free space to remain for the cache in Gigabytes (default 2).
 
 ## Models
 

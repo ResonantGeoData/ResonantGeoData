@@ -5,10 +5,10 @@ import hashlib
 import io
 import logging
 import os
-from pathlib import Path, PurePath
+from pathlib import Path
 import shutil
 import tempfile
-from typing import Any, Generator
+from typing import Any
 from urllib.error import HTTPError
 from urllib.parse import urlparse
 from urllib.request import urlopen
@@ -22,6 +22,8 @@ from django.contrib.gis.db.models import Model
 from django.core.files import File
 from django.db.models.fields.files import FieldFile
 from django.utils.safestring import mark_safe
+from filelock import FileLock, Timeout
+import psutil
 
 try:
     from minio_storage.storage import MinioStorage
@@ -29,6 +31,33 @@ except ImportError:
     MinioStorage = None
 
 logger = logging.getLogger(__name__)
+
+
+def get_temp_dir():
+    path = Path(getattr(settings, 'RGD_TEMP_DIR', os.path.join(tempfile.gettempdir(), 'rgd')))
+    path.mkdir(parents=True, exist_ok=True)
+    return path
+
+
+def get_cache_dir():
+    path = Path(get_temp_dir(), 'file_cache')
+    path.mkdir(parents=True, exist_ok=True)
+    return path
+
+
+def get_lock_dir():
+    path = Path(get_temp_dir(), 'file_locks')
+    path.mkdir(parents=True, exist_ok=True)
+    return path
+
+
+def get_file_lock(path: Path):
+    """Create a file lock under the lock directory."""
+    # Computes the hash using Pathlib's hash implementation on absolute path
+    sha = hash(path.absolute())
+    lock_path = Path(get_lock_dir(), f'{sha}.lock')
+    lock = FileLock(lock_path)
+    return lock
 
 
 @contextmanager
@@ -98,27 +127,13 @@ def _download_url_file_to_stream(
                 dest_stream.flush()
 
 
-@contextmanager
-def url_file_to_local_path(
-    url: str, num_blocks: int = 128, block_size: int = 128, override_name: str = None
-) -> Generator[Path, None, None]:
-    if override_name:
-        suffix = override_name
-    else:
-        suffix = PurePath(os.path.basename(url)).name
-    with tempfile.NamedTemporaryFile('wb', suffix=suffix) as dest_stream:
-        _download_url_file_to_stream(url, dest_stream, num_blocks=num_blocks, block_size=block_size)
-        yield Path(dest_stream.name)
-
-
 def download_url_file_to_local_path(
     url: str,
-    directory: str,
-    relative_path: str,
+    path: str,
     num_blocks: int = 128,
     block_size: int = 128,
 ) -> Path:
-    dest_path = Path(os.path.join(directory, relative_path))
+    dest_path = Path(path)
     dest_path.parent.mkdir(parents=True, exist_ok=True)
     with open(dest_path, 'wb') as dest_stream:
         _download_url_file_to_stream(url, dest_stream, num_blocks=num_blocks, block_size=block_size)
@@ -142,8 +157,7 @@ def precheck_fuse(url: str) -> bool:
     return True
 
 
-@contextmanager
-def url_file_to_fuse_path(url: str) -> Generator[Path, None, None]:
+def url_file_to_fuse_path(url: str) -> Path:
     # Could raise ValueError within context
     # Assumes `precheck_fuse` was verified prior
     # See https://github.com/ResonantGeoData/ResonantGeoData/issues/237
@@ -155,7 +169,7 @@ def url_file_to_fuse_path(url: str) -> Generator[Path, None, None]:
     else:
         raise ValueError(f'Scheme {parsed.scheme} not currently handled by FUSE.')
     logger.info(f'FUSE path: {fuse_path}')
-    yield Path(fuse_path)
+    return Path(fuse_path)
 
 
 @contextmanager
@@ -165,6 +179,11 @@ def patch_internal_presign(f: FieldFile):
     Sometimes the external host differs from the internal host for Minio files (e.g. in development).
     Getting the URL in this context ensures that the presigned URL returns the correct host for the
     odd situation of accessing the file locally.
+
+    Note
+    ----
+    If concerned regarding concurrent access, see https://github.com/ResonantGeoData/ResonantGeoData/issues/287
+
     """
     if (
         MinioStorage is not None
@@ -183,7 +202,7 @@ def patch_internal_presign(f: FieldFile):
 
 @contextmanager
 def output_path_helper(filename: str, output: FieldFile):
-    workdir = getattr(settings, 'GEODATA_WORKDIR', None)
+    workdir = get_temp_dir()
     with tempfile.TemporaryDirectory(dir=workdir) as tmpdir:
         output_path = os.path.join(tmpdir, filename)
         try:
@@ -198,16 +217,14 @@ def output_path_helper(filename: str, output: FieldFile):
 
 
 @contextmanager
-def input_output_path_helper(
-    source, output: FieldFile, prefix: str = '', suffix: str = '', vsi: bool = False
-):
+def input_output_path_helper(source, output: FieldFile, prefix: str = '', suffix: str = ''):
     """Yield source and output paths between a ChecksumFile and a FileFeild.
 
     The output path is saved to the output field after yielding.
 
     """
     filename = prefix + os.path.basename(source.name) + suffix
-    with source.yield_local_path(vsi=vsi) as file_path:
+    with source.yield_local_path() as file_path:
         filename = prefix + os.path.basename(source.name) + suffix
         with output_path_helper(filename, output) as output_path:
             try:
@@ -244,16 +261,16 @@ def skip_signal():
     return _skip_signal
 
 
-def download_field_file_to_local_path(
-    field_file: FieldFile, directory: str, relative_path: str
-) -> Path:
+def download_field_file_to_local_path(field_file: FieldFile, path: str) -> Path:
     """Download entire FieldFile to disk location.
 
-    This overrides `girder_utils.field_file_to_local_path` to download file to local path without a context manager. Cleanup must be handled by caller.
+    This overrides `girder_utils.field_file_to_local_path` to download file to
+    local path without a context manager. Cleanup must be handled by caller.
 
     """
-    dest_path = Path(os.path.join(directory, relative_path))
+    dest_path = Path(path)
     dest_path.parent.mkdir(parents=True, exist_ok=True)
+    the_path = Path(dest_path)
     with field_file.open('rb'):
         file_obj: File = field_file.file
         if type(file_obj) is File:
@@ -261,11 +278,70 @@ def download_field_file_to_local_path(
             # it is already at a stable path on disk.
             # We must symlink it into the desired path
             os.symlink(file_obj.name, dest_path)
-            return Path(dest_path)
+            return the_path
         else:
             # When file_obj is actually a subclass of File, it only provides a Python
             # file-like object API. So, it must be copied to a stable path.
             with open(dest_path, 'wb') as dest_stream:
                 shutil.copyfileobj(file_obj, dest_stream)
                 dest_stream.flush()
-            return Path(dest_path)
+            return the_path
+
+
+def clean_file_cache(override_target=None):
+    """Clean the file cache to achieve RGD_TARGET_AVAILABLE_CACHE (Gb).
+
+    Return
+    ------
+    A tuple of the starting and ending free space in bytes.
+
+    """
+    cache = get_cache_dir()
+    # Sort each directory by mtime
+    paths = sorted(Path(cache).iterdir(), key=os.path.getmtime)  # This sorts oldest to latest
+    # While free space is not enough, remove directories until all ar gone
+    initial = psutil.disk_usage(cache).free
+    target = override_target or getattr(settings, 'RGD_TARGET_AVAILABLE_CACHE', 2)
+    logger.info(f'Cleaning file cache... Starting free space is {initial} bytes.')
+    while psutil.disk_usage(cache).free * 1e-9 < target:
+        if not len(paths):
+            # If we delete everything and still cannot acheive target, warn
+            logger.error(
+                f'Target cache free space of {target * 1e9} bytes not achieved when empty.'
+            )
+            break
+        path = paths.pop(0)
+        # Check if resource is locked and skip if so
+        lock = get_file_lock(path)
+        try:
+            with lock.acquire(timeout=0):
+                if os.path.isdir(path):
+                    shutil.rmtree(path)
+                else:
+                    os.remove(path)
+            # Remove the lockfile as well
+            os.remove(lock.lock_file)
+            logger.info(f'removed: {path}')
+        except Timeout:
+            # Another task holds the lock on this file/directory: do not delete
+            logger.info(f'File is locked, skipping: {path}')
+            pass
+    free = psutil.disk_usage(cache).free
+    logger.debug(f'Finished cleaning file cache. Available free space is {free} bytes.')
+    return initial, free
+
+
+def purge_file_cache():
+    """Completely purge all files from the file cache.
+
+    This should be used with extreme caution, it will delete files that could
+    be in use.
+
+    """
+    cache = get_cache_dir()
+    shutil.rmtree(cache)
+    cache = get_cache_dir()  # Return the cache dir so that a fresh directory is created.
+    logger.debug(
+        f'Purged file cache. Available free space is {psutil.disk_usage(cache).free} bytes.'
+    )
+    return cache

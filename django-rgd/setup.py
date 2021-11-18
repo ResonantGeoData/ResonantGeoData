@@ -61,11 +61,13 @@ setup(
         'django-oauth-toolkit',
         'djangorestframework',
         'drf-yasg',
+        'filelock',
         'GDAL',
         'pooch',
         'psycopg2',
         'python-magic',
         'flower',
+        'psutil',
         # Production-only
         'django-s3-file-field[minio]',
     ],

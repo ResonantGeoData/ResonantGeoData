@@ -2,22 +2,20 @@ import os
 import tempfile
 
 from celery.utils.log import get_task_logger
-from django.conf import settings
 from rgd.models import ChecksumFile
-from rgd.utility import get_or_create_no_commit
+from rgd.utility import get_or_create_no_commit, get_temp_dir
 from rgd_3d.models import PointCloud, PointCloudMeta
 
 logger = get_task_logger(__name__)
 
 
 def _file_conversion_helper(source, output_field, method, prefix='', extension='', **kwargs):
-    workdir = getattr(settings, 'GEODATA_WORKDIR', None)
+    workdir = get_temp_dir()
     with tempfile.TemporaryDirectory(dir=workdir) as tmpdir:
         # NOTE: cannot use FUSE with PyntCloud because it checks file extension
-        #       in path. Additionally, override the name just in case.
-        #       The `name` field for the file MUST have the extension
-        with source.yield_local_path(try_fuse=False, override_name=source.name) as file_path:
-            logger.info('bane   ' + str(file_path))
+        #       in path. Additionally, The `name` field for the file MUST have
+        #       the extension.
+        with source.yield_local_path(try_fuse=False) as file_path:
             output_path = os.path.join(tmpdir, prefix + os.path.basename(source.name) + extension)
             method(str(file_path), str(output_path), **kwargs)
         with open(output_path, 'rb') as f:
@@ -28,7 +26,7 @@ def _save_pyvista(mesh, output_path):
     import pyvista as pv
 
     points = pv.PolyData(mesh.points)
-    points.point_arrays.update(mesh.point_arrays)
+    points.point_data.update(mesh.point_data)
     points.save(output_path)
 
 

@@ -29,7 +29,7 @@ def spatial_asset_a():
     e.footprint = geom
     e.outline = geom
     e.save()
-    e.files.add(factories.ChecksumFileFactory())
+    e.files.add(factories.ChecksumFileFactory(file__filename='spatial_asset_a.dat'))
     e.save()
     return e
 
@@ -43,6 +43,11 @@ def spatial_asset_b():
     e.footprint = geom
     e.outline = geom
     e.save()
-    e.files.add(factories.ChecksumFileFactory())
+    e.files.add(factories.ChecksumFileFactory(file__filename='spatial_asset_b.dat'))
     e.save()
     return e
+
+
+@pytest.fixture
+def s3_url():
+    return 's3://sentinel-cogs/sentinel-s2-l2a-cogs/2020/S2A_31QHU_20200714_0_L2A/S2A_31QHU_20200714_0_L2A.json'
