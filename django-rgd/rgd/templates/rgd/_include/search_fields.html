@@ -133,7 +133,7 @@
 
     async function updateCollectionsDropdown() {
       const collections = await fetch(
-        `${host}/api/rgd/collections`
+        `${host}/api/rgd/collection`
       ).then(response => response.json());
 
       collections.results.forEach(({ id, name }) => {
