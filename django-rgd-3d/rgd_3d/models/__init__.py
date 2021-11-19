@@ -1,1 +1,1 @@
-from .point_cloud import PointCloud, PointCloudMeta, PointCloudSpatial  # noqa
+from .mesh import Mesh3D, Mesh3DSpatial  # noqa

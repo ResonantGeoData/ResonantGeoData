@@ -5,16 +5,8 @@ from rgd.serializers import ChecksumFileSerializer
 from rgd_3d import models
 
 
-class PointCloudSerializer(serializers.ModelSerializer):
+class Mesh3DSerializer(serializers.ModelSerializer):
     file = ChecksumFileSerializer()
-
-    class Meta:
-        model = models.PointCloud
-        fields = '__all__'
-
-
-class PointCloudMetaSerializer(serializers.ModelSerializer):
-    source = PointCloudSerializer()
     vtp_data = ChecksumFileSerializer(required=False)
 
     def to_representation(self, value):
@@ -22,11 +14,11 @@ class PointCloudMetaSerializer(serializers.ModelSerializer):
         return ret
 
     class Meta:
-        model = models.PointCloudMeta
+        model = models.Mesh3D
         fields = '__all__'
 
 
-class PointCloudMetaDataSerializer(PointCloudMetaSerializer):
+class Mesh3DDataSerializer(Mesh3DSerializer):
     def to_representation(self, value):
         ret = super().to_representation(value)
         # Extract data as base64

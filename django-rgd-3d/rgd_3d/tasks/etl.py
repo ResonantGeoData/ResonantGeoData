@@ -3,8 +3,8 @@ import tempfile
 
 from celery.utils.log import get_task_logger
 from rgd.models import ChecksumFile
-from rgd.utility import get_or_create_no_commit, get_temp_dir
-from rgd_3d.models import PointCloud, PointCloudMeta
+from rgd.utility import get_temp_dir
+from rgd_3d.models import Mesh3D
 
 logger = get_task_logger(__name__)
 
@@ -23,11 +23,8 @@ def _file_conversion_helper(source, output_field, method, prefix='', extension='
 
 
 def _save_pyvista(mesh, output_path):
-    import pyvista as pv
-
-    points = pv.PolyData(mesh.points)
-    points.point_data.update(mesh.point_data)
-    points.save(output_path)
+    surf = mesh.extract_surface()
+    surf.save(output_path)
 
 
 def _use_pyntcloud_pyvista(input_path, output_path):
@@ -57,24 +54,27 @@ def _get_readers():
     return methods
 
 
-def read_point_cloud_file(pc_file):
-    """Read a PointCloud object and create a new PointCloudMeta."""
-    if not isinstance(pc_file, PointCloud):
-        pc_file = PointCloud.objects.get(pk=pc_file)
-    pc_entry, _ = get_or_create_no_commit(PointCloudMeta, source=pc_file)
-    pc_entry.name = pc_file.file.name
+def read_mesh_3d_file(mesh_3d):
+    """Read a Mesh3D object and populate the vtp_data field."""
+    if not isinstance(mesh_3d, Mesh3D):
+        mesh_3d = Mesh3D.objects.get(pk=mesh_3d)
+    if not mesh_3d.name:
+        mesh_3d.name = mesh_3d.file.name
     # Parse the point cloud file format and convert
-    ext = pc_file.file.name.split('.')[-1].strip().lower()
+    ext = mesh_3d.file.name.split('.')[-1].strip().lower()
     try:
         method = _get_readers()[ext]
     except KeyError:
         raise ValueError(f'Extension `{ext}` unsupported for point cloud conversion.')
-    try:
-        pc_entry.vtp_data
-    except ChecksumFile.DoesNotExist:
-        pc_entry.vtp_data = ChecksumFile()
-    if not pc_entry.vtp_data.collection:
-        pc_entry.vtp_data.collection = pc_file.file.collection
-    _file_conversion_helper(pc_file.file, pc_entry.vtp_data.file, method, extension='.vtp')
+    if not mesh_3d.vtp_data:
+        mesh_3d.vtp_data = ChecksumFile()
+    if not mesh_3d.vtp_data.collection:
+        mesh_3d.vtp_data.collection = mesh_3d.file.collection
+    _file_conversion_helper(mesh_3d.file, mesh_3d.vtp_data.file, method, extension='.vtp')
     # Save the record
-    pc_entry.save()
+    mesh_3d.save(
+        update_fields=[
+            'name',
+            'vtp_data',
+        ]
+    )

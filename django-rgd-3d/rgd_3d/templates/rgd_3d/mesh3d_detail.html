@@ -11,7 +11,7 @@
   </tr>
   <tr>
     <td>Source Data</td>
-    <td>{{ object.source.data_link }}</td>
+    <td>{{ object.data_link }}</td>
   </tr>
 
   {% if object.pointcloudspatial %}
@@ -32,7 +32,7 @@
 {% endblock %}
 
 {% block extra_meta %}
-  {% if object.source.pointcloudspatial %}
+  {% if object.pointcloudspatial %}
 
     <br/>
 
@@ -66,7 +66,7 @@
 
     <script>
 
-      load(vtkContainer, `{% url 'point-cloud-base64' object.id %}`)
+      load(vtkContainer, `{% url 'mesh-3d-base64' object.id %}`)
 
     </script>
 
