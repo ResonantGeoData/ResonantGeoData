@@ -79,6 +79,13 @@ class ResonantGeoDataBaseMixin(GeoDjangoMixin, SwaggerMixin, ConfigMixin):
             'rest_framework.authentication.TokenAuthentication',
         ]
 
+        if getattr(configuration, 'DEBUG', False):
+            configuration.LOGGING['loggers']['rgd'] = {
+                'level': 'DEBUG',
+                'handlers': ['console'],
+                'propagate': False,
+            }
+
     # This cannot have a default value, since the password and database name are always
     # set by the service admin
     DATABASES = values.DatabaseURLValue(
