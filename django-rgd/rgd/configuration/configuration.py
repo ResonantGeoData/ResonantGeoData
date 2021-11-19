@@ -41,6 +41,34 @@ class SwaggerMixin(ConfigMixin):
     DEEP_LINKING = True
 
 
+class MemachedMixin(ConfigMixin):
+    MEMCACHED_URL = values.Value(default=None)
+    MEMCACHED_USERNAME = values.Value(default=None)
+    MEMCACHED_PASSWORD = values.Value(default=None)
+    MEMCACHED_BINARY = values.Value(default=True)
+
+    @classmethod
+    def post_setup(cls):
+        super().post_setup()
+
+        if cls.MEMCACHED_URL:
+            caches = {
+                'default': {
+                    'BACKEND': 'django.core.cache.backends.memcached.PyLibMCCache',
+                    'LOCATION': cls.MEMCACHED_URL,
+                    'OPTIONS': {
+                        'binary': cls.MEMCACHED_BINARY,
+                    },
+                }
+            }
+
+            if cls.MEMCACHED_USERNAME and cls.MEMCACHED_PASSWORD:
+                caches['default']['OPTIONS']['username'] = cls.MEMCACHED_PASSWORD
+                caches['default']['OPTIONS']['password'] = cls.MEMCACHED_USERNAME
+
+            cls.CACHES = caches
+
+
 class ResonantGeoDataBaseMixin(GeoDjangoMixin, SwaggerMixin, ConfigMixin):
     @staticmethod
     def before_binding(configuration: ComposedConfiguration) -> None:
@@ -71,6 +99,4 @@ class ResonantGeoDataBaseMixin(GeoDjangoMixin, SwaggerMixin, ConfigMixin):
     RGD_STAC_BROWSER_LIMIT = values.Value(default=1000)
     RGD_TEMP_DIR = values.Value(default=os.path.join(tempfile.gettempdir(), 'rgd'))
     RGD_TARGET_AVAILABLE_CACHE = values.Value(default=2)
-    RGD_MEMCACHED_USERNAME = values.Value(default=None)
-    RGD_MEMCACHED_PASSWORD = values.Value(default=None)
-    RGD_MEMCACHED_URL = values.Value(default=None)
+    RGD_REST_CACHE_TIMEOUT = values.Value(default=60 * 60 * 2)

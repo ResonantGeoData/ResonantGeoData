@@ -10,7 +10,7 @@ from composed_configuration import (
     DevelopmentBaseConfiguration,
     TestingBaseConfiguration,
 )
-from rgd.configuration import ResonantGeoDataBaseMixin
+from rgd.configuration import MemachedMixin, ResonantGeoDataBaseMixin
 
 
 class CrispyFormsMixin(ConfigMixin):
@@ -19,7 +19,9 @@ class CrispyFormsMixin(ConfigMixin):
         configuration.INSTALLED_APPS += ['crispy_forms']
 
 
-class RGDExampleProjectMixin(CrispyFormsMixin, ResonantGeoDataBaseMixin, CorsMixin, ConfigMixin):
+class RGDExampleProjectMixin(
+    CrispyFormsMixin, ResonantGeoDataBaseMixin, CorsMixin, MemachedMixin, ConfigMixin
+):
     WSGI_APPLICATION = 'rgd_example.wsgi.application'
     ROOT_URLCONF = 'rgd_example.urls'
 

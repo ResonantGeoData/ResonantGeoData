@@ -30,7 +30,7 @@ INSTALLED_APPS += [
 The RGD imagery submodule has an optional setting:
 
 - `RGD_STAC_BROWSER_LIMIT`: (default of 1000) limit the response of STAC collection queries. An exception will be raised if a collection is requested with more than this many items.
-- `RGD_MEMCACHED_USERNAME`, `DJANGO_RGD_MEMCACHED_PASSWORD`, and `DJANGO_RGD_MEMCACHED_URL`: use if hosting a memcached server. large_image will use this to cache tiles.
+- Use the `MEMCACHE_*` options from `django-rgd` to configure `large_image` for use with Memcached.
 
 ## Models
 
