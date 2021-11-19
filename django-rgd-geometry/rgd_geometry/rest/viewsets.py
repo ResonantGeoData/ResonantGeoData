@@ -1,9 +1,9 @@
 from rest_framework.decorators import action
-from rgd.rest.base import ModelViewSet, ReadOnlyModelViewSet
+from rgd.rest.base import ModelViewSet
 from rgd_geometry import models, serializers
 
 
-class GeometryViewSet(ReadOnlyModelViewSet):
+class GeometryViewSet(ModelViewSet):
     serializer_class = serializers.GeometrySerializer
     queryset = models.Geometry.objects.all()
 

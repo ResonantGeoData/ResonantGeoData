@@ -1,7 +1,12 @@
 import json
-from rgd.models.file import ChecksumFile
 
-from rgd.serializers import TASK_EVENT_READ_ONLY_FIELDS, ChecksumFileSerializer, RelatedField, SpatialEntrySerializer
+from rgd.models.file import ChecksumFile
+from rgd.serializers import (
+    TASK_EVENT_READ_ONLY_FIELDS,
+    ChecksumFileSerializer,
+    RelatedField,
+    SpatialEntrySerializer,
+)
 
 from . import models
 
