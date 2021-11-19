@@ -1,11 +1,15 @@
 from rest_framework.decorators import action
-from rgd.rest.base import ReadOnlyModelViewSet
+from rgd.rest.base import ModelViewSet, ReadOnlyModelViewSet
 from rgd_fmv import models, serializers
 
 
-class FMVMetaViewSet(ReadOnlyModelViewSet):
-    serializer_class = serializers.FMVMetaSerializer
+class FMVMetaViewSet(ModelViewSet):
     queryset = models.FMVMeta.objects.all()
+
+    def get_serializer_class(self):
+        if self.action in ['get', 'list']:
+            return serializers.FMVMetaSerializer
+        return serializers.FMVSerializer
 
     @action(detail=True, serializer_class=serializers.FMVMetaDataSerializer)
     def data(self, request, *args, **kwargs):

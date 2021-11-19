@@ -1,17 +1,24 @@
 import json
 
 from rest_framework import serializers
-from rgd.serializers import ChecksumFileSerializer, SpatialEntrySerializer
+from rgd.models.file import ChecksumFile
+from rgd.serializers import (
+    TASK_EVENT_READ_ONLY_FIELDS,
+    ChecksumFileSerializer,
+    RelatedField,
+    SpatialEntrySerializer,
+)
 
 from . import models
 
 
 class FMVSerializer(serializers.ModelSerializer):
-    file = ChecksumFileSerializer()
+    file = RelatedField(queryset=ChecksumFile.objects.all(), serializer=ChecksumFileSerializer)
 
     class Meta:
         model = models.FMV
         fields = '__all__'
+        read_only_fields = TASK_EVENT_READ_ONLY_FIELDS + ['frame_rate']
 
 
 class FMVMetaSerializer(SpatialEntrySerializer):
