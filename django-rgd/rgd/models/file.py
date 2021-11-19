@@ -228,7 +228,8 @@ class ChecksumFile(TimeStampedModel, TaskEventMixin, PermissionPathMixin):
         """
         if self.file_set is None:
             # If no file_set, place in the main cache directory
-            directory = get_cache_dir()
+            directory = get_cache_dir() / f'f-{self.pk}'
+            directory.mkdir(parents=True, exist_ok=True)
         else:
             directory = self.file_set.get_cache_path()
         return directory / f'{self.name}'

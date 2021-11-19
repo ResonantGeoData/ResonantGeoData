@@ -338,7 +338,7 @@ def purge_file_cache():
     be in use.
 
     """
-    cache = get_cache_dir()
+    cache = get_temp_dir()
     shutil.rmtree(cache)
     cache = get_cache_dir()  # Return the cache dir so that a fresh directory is created.
     logger.debug(
