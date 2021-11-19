@@ -187,7 +187,7 @@ class ChecksumFile(TimeStampedModel, TaskEventMixin, PermissionPathMixin):
 
         This will handle locking to prevent multiple processes/threads
         from trying to download the file at the same time -- only one thread
-        or process will perfrom the download and the rest will yield its
+        or process will perform the download and the rest will yield its
         result.
 
         """
@@ -228,7 +228,8 @@ class ChecksumFile(TimeStampedModel, TaskEventMixin, PermissionPathMixin):
         """
         if self.file_set is None:
             # If no file_set, place in the main cache directory
-            directory = get_cache_dir()
+            directory = get_cache_dir() / f'f-{self.pk}'
+            directory.mkdir(parents=True, exist_ok=True)
         else:
             directory = self.file_set.get_cache_path()
         return directory / f'{self.name}'
@@ -265,16 +266,16 @@ class ChecksumFile(TimeStampedModel, TaskEventMixin, PermissionPathMixin):
             return
         # Fallback to loading entire file locally - this uses `get_temp_path`
         logger.debug('`yield_local_path` falling back to downloading entire file to local storage.')
+        path = self.get_cache_path()
         if yield_file_set and self.file_set:
             # NOTE: This is messy and should be improved but it ensures the directory remains locked
             with self.file_set.yield_all_to_local_path() as _:
-                yield self.get_cache_path()
+                yield path
             return
         # Not in file_set. Download to cache dir
-        path = self.download_to_local_path()
-        # provide a lock on this file while yielding
-        lock = get_file_lock(path)
-        with lock:
+        from .utils import yield_checksumfiles
+
+        with yield_checksumfiles([self], path.parent):
             yield path
 
     def get_url(self, internal: bool = False):

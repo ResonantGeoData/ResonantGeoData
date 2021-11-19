@@ -121,7 +121,7 @@ Now, all plugin namespaces and methods will be shown in your IDE.
 ### Sibling plugins
 There may be a circumstance where you'd like to make use of another plugin from within your own plugin. For example, if you wanted to wrap the core `search` method in your own `my_search` method. This can be done by defining a *plugin dependency*.
 
-This is very simple to do, just place a definition of the plugin you'd like to use within your own plugin definition. Here's an example that illustrates the situation metioned above
+This is very simple to do, just place a definition of the plugin you'd like to use within your own plugin definition. Here's an example that illustrates the situation mentioned above
 
 ```python
 from rgd_client.plugin import CorePlugin

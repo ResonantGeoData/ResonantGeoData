@@ -140,7 +140,7 @@ def yield_checksumfiles(queryset: Union[QuerySet, List[ChecksumFile]], directory
     # Acquire a lock on the directory so that it isn't cleaned up
     lock = get_file_lock(directory)
     lock.acquire()
-    # Download each file to the directory and yeild it so that the lock can be released when done
+    # Download each file to the directory and yield it so that the lock can be released when done
     try:
         names = set()
         # TODO: implement a FUSE interface

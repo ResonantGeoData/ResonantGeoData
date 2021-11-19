@@ -291,6 +291,15 @@ def download_field_file_to_local_path(field_file: FieldFile, path: str) -> Path:
 def clean_file_cache(override_target=None):
     """Clean the file cache to achieve RGD_TARGET_AVAILABLE_CACHE (Gb).
 
+    Note
+    ----
+    If above target, this will not do anything.
+
+    Note
+    ----
+    This is blocking across threads/processes; only one clean can happen at a
+    time.
+
     Return
     ------
     A tuple of the starting and ending free space in bytes.
@@ -302,30 +311,36 @@ def clean_file_cache(override_target=None):
     # While free space is not enough, remove directories until all ar gone
     initial = psutil.disk_usage(cache).free
     target = override_target or getattr(settings, 'RGD_TARGET_AVAILABLE_CACHE', 2)
-    logger.info(f'Cleaning file cache... Starting free space is {initial} bytes.')
-    while psutil.disk_usage(cache).free * 1e-9 < target:
-        if not len(paths):
-            # If we delete everything and still cannot acheive target, warn
-            logger.error(
-                f'Target cache free space of {target * 1e9} bytes not achieved when empty.'
-            )
-            break
-        path = paths.pop(0)
-        # Check if resource is locked and skip if so
-        lock = get_file_lock(path)
-        try:
-            with lock.acquire(timeout=0):
-                if os.path.isdir(path):
-                    shutil.rmtree(path)
-                else:
-                    os.remove(path)
-            # Remove the lockfile as well
-            os.remove(lock.lock_file)
-            logger.info(f'removed: {path}')
-        except Timeout:
-            # Another task holds the lock on this file/directory: do not delete
-            logger.info(f'File is locked, skipping: {path}')
-            pass
+    if psutil.disk_usage(cache).free * 1e-9 >= target:
+        # We're above target, so immediately return
+        return initial, psutil.disk_usage(cache).free
+    # Below target, starting a clean - this is blocking across processes
+    cache_lock = get_file_lock(cache)
+    with cache_lock:
+        logger.info(f'Cleaning file cache... Starting free space is {initial} bytes.')
+        while psutil.disk_usage(cache).free * 1e-9 < target:
+            if not len(paths):
+                # If we delete everything and still cannot achieve target, warn
+                logger.error(
+                    f'Target cache free space of {target * 1e9} bytes not achieved when empty.'
+                )
+                break
+            path = paths.pop(0)
+            # Check if resource is locked and skip if so
+            lock = get_file_lock(path)
+            try:
+                with lock.acquire(timeout=0):
+                    if os.path.isdir(path):
+                        shutil.rmtree(path)
+                    else:
+                        os.remove(path)
+                # Remove the lockfile as well
+                os.remove(lock.lock_file)
+                logger.info(f'removed: {path}')
+            except Timeout:
+                # Another task holds the lock on this file/directory: do not delete
+                logger.info(f'File is locked, skipping: {path}')
+                pass
     free = psutil.disk_usage(cache).free
     logger.debug(f'Finished cleaning file cache. Available free space is {free} bytes.')
     return initial, free
@@ -338,7 +353,7 @@ def purge_file_cache():
     be in use.
 
     """
-    cache = get_cache_dir()
+    cache = get_temp_dir()
     shutil.rmtree(cache)
     cache = get_cache_dir()  # Return the cache dir so that a fresh directory is created.
     logger.debug(
