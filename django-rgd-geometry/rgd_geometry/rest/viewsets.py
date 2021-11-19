@@ -1,5 +1,5 @@
 from rest_framework.decorators import action
-from rgd.rest.base import ReadOnlyModelViewSet
+from rgd.rest.base import ModelViewSet, ReadOnlyModelViewSet
 from rgd_geometry import models, serializers
 
 
@@ -13,3 +13,8 @@ class GeometryViewSet(ReadOnlyModelViewSet):
     )
     def data(self, request, *args, **kwargs):
         return self.retrieve(request, *args, **kwargs)
+
+
+class GeometryArchiveViewSet(ModelViewSet):
+    serializer_class = serializers.GeometryArchiveSerializer
+    queryset = models.GeometryArchive.objects.all()
