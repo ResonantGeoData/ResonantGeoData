@@ -1,5 +1,3 @@
-import logging
-
 from rest_framework import serializers
 from rgd.models import ChecksumFile
 from rgd.permissions import check_write_perm
@@ -12,8 +10,6 @@ from rgd.serializers import (
 
 from .. import models
 from .base import ImageSerializer
-
-logger = logging.getLogger(__name__)
 
 
 class ProcessedImageGroupSerializer(serializers.ModelSerializer):

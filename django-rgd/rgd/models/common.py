@@ -1,5 +1,4 @@
 import json
-import logging
 
 from django.contrib.gis.db import models
 from django_extensions.db.models import TimeStampedModel
@@ -8,8 +7,6 @@ from model_utils.managers import InheritanceManager
 from .constants import DB_SRID
 from .file import ChecksumFile
 from .mixins import PermissionPathMixin
-
-logger = logging.getLogger(__name__)
 
 
 class SpatialEntry(models.Model):

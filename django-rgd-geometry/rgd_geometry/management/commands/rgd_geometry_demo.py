@@ -1,10 +1,5 @@
-import logging
-
 from rgd.management.commands._data_helper import SynchronousTasksCommand, _get_or_create_file_model
 from rgd_geometry import models
-
-logger = logging.getLogger(__name__)
-
 
 SUCCESS_MSG = 'Finished loading all demo data.'
 
