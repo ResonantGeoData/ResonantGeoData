@@ -26,17 +26,17 @@ def _fill_annotation_segmentation(annotation_entry, ann_json):
     """For converting KWCOCO annotation JSON to an Annotation entry."""
     if 'keypoints' in ann_json and ann_json['keypoints']:
         # populate keypoints - ignore 3rd value visibility
-        logger.info('Keypoints: {}'.format(ann_json['keypoints']))
+        logger.debug('Keypoints: {}'.format(ann_json['keypoints']))
         points = np.array(ann_json['keypoints']).astype(float).reshape((-1, 3))
         keypoints = []
         for pt in points:
-            logger.info(f'The Point: {pt}')
+            logger.debug(f'The Point: {pt}')
             keypoints.append(Point(pt[0], pt[1]))
         annotation_entry.keypoints = MultiPoint(*keypoints)
     if 'line' in ann_json and ann_json['line']:
         # populate line
         points = np.array(ann_json['line']).astype(float).reshape((-1, 2))
-        logger.info(f'The line: {points}')
+        logger.debug(f'The line: {points}')
         annotation_entry.line = LineString(*[(pt[0], pt[1]) for pt in points], srid=0)
     # Add a segmentation
     segmentation = None
@@ -76,7 +76,7 @@ def _fill_annotation_segmentation(annotation_entry, ann_json):
 
 
 def load_kwcoco_dataset(kwcoco_dataset_id):
-    logger.info('Starting KWCOCO ETL routine')
+    logger.debug('Starting KWCOCO ETL routine')
     ds_entry = KWCOCOArchive.objects.get(id=kwcoco_dataset_id)
     if not ds_entry.name:
         ds_entry.name = os.path.basename(ds_entry.spec_file.name)
@@ -109,12 +109,12 @@ def load_kwcoco_dataset(kwcoco_dataset_id):
         # Images could come from a URL, so this is optional
         if ds_entry.image_archive:
             with ds_entry.image_archive.file as file_obj:
-                logger.info(f'The KWCOCO image archive: {ds_entry.image_archive}')
+                logger.debug(f'The KWCOCO image archive: {ds_entry.image_archive}')
                 # Place images in a local directory and keep track of root path
                 # Unzip the contents to the working dir
                 with zipfile.ZipFile(file_obj, 'r') as zip_ref:
                     zip_ref.extractall(tmpdir)
-                logger.info(f'The extracted KWCOCO image archive: {tmpdir}')
+                logger.debug(f'The extracted KWCOCO image archive: {tmpdir}')
         else:
             pass
             # TODO: how should we download data from specified URLs?
@@ -150,4 +150,4 @@ def load_kwcoco_dataset(kwcoco_dataset_id):
                     # annotation_entry.annotator =
                     # annotation_entry.notes =
                     _fill_annotation_segmentation(annotation_entry, ann)
-    logger.info('Done with KWCOCO ETL routine')
+    logger.debug('Done with KWCOCO ETL routine')

@@ -1,4 +1,3 @@
-import logging
 import os
 
 from django.conf import settings
@@ -8,8 +7,6 @@ from django.core.validators import URLValidator
 from rgd import models
 from rgd.datastore import datastore
 from rgd.utility import get_or_create_no_commit
-
-logger = logging.getLogger(__name__)
 
 
 class SynchronousTasksCommand(BaseCommand):

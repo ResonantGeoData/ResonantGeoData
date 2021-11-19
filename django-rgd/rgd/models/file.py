@@ -202,13 +202,13 @@ class ChecksumFile(TimeStampedModel, TaskEventMixin, PermissionPathMixin):
         with lock:  # TODO: handle timeouts in condition
             if dest_path.exists() and dest_path.stat().st_size > 0:
                 # File already exists (is cached)
-                logger.info(f'Found cached file ({self.pk}) at: {dest_path}')
+                logger.debug(f'Found cached file ({self.pk}) at: {dest_path}')
                 # Touch the file so that it moves to the top of the priority list
                 # when cleaning.
                 dest_path.touch()
                 return dest_path
             else:
-                logger.info(f'Downloading file ({self.pk}) to: {dest_path}')
+                logger.debug(f'Downloading file ({self.pk}) to: {dest_path}')
                 # If downloading to the cache, clean to achieve available free space
                 if get_cache_dir() in dest_path.parents:
                     clean_file_cache()
