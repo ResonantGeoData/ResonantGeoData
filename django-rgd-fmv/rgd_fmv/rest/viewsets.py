@@ -1,9 +1,9 @@
 from rest_framework.decorators import action
-from rgd.rest.base import ModelViewSet, ReadOnlyModelViewSet
+from rgd.rest.base import ModelViewSet
 from rgd_fmv import models, serializers
 
 
-class FMVMetaViewSet(ModelViewSet):
+class FMVViewSet(ModelViewSet):
     queryset = models.FMVMeta.objects.all()
 
     def get_serializer_class(self):
