@@ -60,16 +60,24 @@ class ChecksumFileViewSet(ModelViewSet):
             else:
                 base_path = base_path[:folder_index]
                 entry = folders.get(base_path)
+                fixed_file_size = file.size or 0
+                url_file_as_int = 1 - int(bool(file.size))
+
+                # Either create new folder entry, or add to existing folder
                 if entry is None:
+                    # New folder entry
                     folders[base_path] = {
-                        'size': file.size,
+                        'known_size': fixed_file_size,
                         'num_files': 1,
+                        'num_url_files': url_file_as_int,
                         'created': file.created,
                         'modified': file.modified,
                     }
                 else:
-                    entry['size'] += file.size
+                    # Add to existing folder
+                    entry['known_size'] += fixed_file_size
                     entry['num_files'] += 1
+                    entry['num_url_files'] += url_file_as_int
                     entry['created'] = min(entry['created'], file.created)  # earliest
                     entry['modified'] = max(entry['modified'], file.modified)  # latest
 

@@ -48,8 +48,9 @@ class CollectionPermissionSerializer(serializers.ModelSerializer):
 
 
 class ChecksumFileFolderSerializer(serializers.Serializer):
-    size = serializers.IntegerField()
+    known_size = serializers.IntegerField()
     num_files = serializers.IntegerField()
+    num_url_files = serializers.IntegerField()
     created = serializers.DateTimeField()
     modified = serializers.DateTimeField()
 

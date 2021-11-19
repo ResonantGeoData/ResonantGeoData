@@ -105,7 +105,11 @@ class ChecksumFile(TimeStampedModel, TaskEventMixin, PermissionPathMixin):
 
     @property
     def size(self):
-        return self.file.size
+        # Ensure safe check of self.file
+        try:
+            return self.file.size
+        except ValueError:
+            return None
 
     def get_checksum(self):
         """Compute a new checksum without saving it."""
