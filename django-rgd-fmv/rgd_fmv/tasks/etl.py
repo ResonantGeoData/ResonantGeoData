@@ -16,14 +16,14 @@ logger = get_task_logger(__name__)
 
 
 def _extract_klv(fmv_file_entry):
-    logger.info('Entered `_extract_klv`')
+    logger.debug('Entered `_extract_klv`')
 
     if not shutil.which('kwiver'):
         raise RuntimeError('kwiver not installed. Run `pip install kwiver`.')
 
     video_file = fmv_file_entry.file
     with tempfile.TemporaryDirectory() as tmpdir, video_file.yield_local_path() as dataset_path:
-        logger.info(f'Running dump-klv with data: {dataset_path}')
+        logger.debug(f'Running dump-klv with data: {dataset_path}')
         output_path = os.path.join(tmpdir, os.path.basename(video_file.file.name) + '.klv')
         stderr_path = os.path.join(tmpdir, 'stderr.dat')
         cmd = [
@@ -42,7 +42,7 @@ def _extract_klv(fmv_file_entry):
                     stderr=stderr,
                 )
         except subprocess.CalledProcessError as exc:
-            logger.info('Failed to successfully run dump-klv ({exc!r})')
+            logger.error('Failed to successfully run dump-klv ({exc!r})')
             raise exc
         # Store result
         with open(output_path, 'rb') as f:
@@ -120,7 +120,7 @@ def _get_path_and_footprints(content):
         else:
             union = union.union(p)
 
-    logger.info('Created ({}) Polygons '.format(len(polys)))
+    logger.debug('Created ({}) Polygons '.format(len(polys)))
 
     polys = MultiPolygon(polys)
     points = MultiPoint(path)
@@ -143,7 +143,7 @@ def _get_frame_rate_of_video(file_path):
 def _convert_video_to_mp4(fmv_file_entry):
     video_file = fmv_file_entry.file
     with video_file.yield_local_path() as dataset_path, tempfile.TemporaryDirectory() as tmpdir:
-        logger.info(f'Converting video file: {dataset_path}')
+        logger.debug(f'Converting video file: {dataset_path}')
         output_path = os.path.join(tmpdir, os.path.basename(video_file.file.name) + '.mp4')
 
         cmd = [
@@ -165,7 +165,7 @@ def _convert_video_to_mp4(fmv_file_entry):
             '-an',
             output_path,
         ]
-        logger.info('Running {}'.format(cmd))
+        logger.debug('Running {}'.format(cmd))
         try:
             subprocess.check_call(cmd)
             # Store result
@@ -174,7 +174,7 @@ def _convert_video_to_mp4(fmv_file_entry):
             fmv_file_entry.frame_rate = _get_frame_rate_of_video(dataset_path)
             fmv_file_entry.save()
         except subprocess.CalledProcessError as exc:
-            logger.info(f'Failed to successfully convert video ({exc!r})')
+            logger.error(f'Failed to successfully convert video ({exc!r})')
 
 
 def _populate_fmv_entry(entry):

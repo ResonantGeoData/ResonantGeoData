@@ -47,7 +47,7 @@ def _processed_image_helper(param_model, single_input=False):
         ]
     )
 
-    logger.info(f'Produced ProcessedImage in ChecksumFile: {param_model.processed_image.file.id}')
+    logger.debug(f'Produced ProcessedImage in ChecksumFile: {param_model.processed_image.file.id}')
 
 
 def convert_to_cog(param_model):
@@ -64,7 +64,7 @@ def convert_to_cog(param_model):
 def extract_region(processed_image):
     parameters = processed_image.group.parameters
     sample_type = parameters['sample_type']
-    logger.info(f'Subsample parameters: {parameters}')
+    logger.debug(f'Subsample parameters: {parameters}')
 
     class SampleTypes:
         PIXEL_BOX = 'pixel box'
@@ -120,7 +120,7 @@ def extract_region(processed_image):
         filename = f'region-{image.file.name}'
 
         with output_path_helper(filename, output.file) as output_path:
-            logger.info(f'The extent: {l, r, b, t}')
+            logger.debug(f'The extent: {l, r, b, t}')
             if sample_type in (
                 SampleTypes.GEOJSON,
                 SampleTypes.GEO_BOX,
@@ -137,7 +137,7 @@ def extract_region(processed_image):
 def resample_image(processed_image):
 
     factor = float(processed_image.group.parameters['sample_factor'])
-    logger.info(f'Resample factor: {factor}')
+    logger.debug(f'Resample factor: {factor}')
 
     with _processed_image_helper(processed_image, single_input=True) as (image, output):
 

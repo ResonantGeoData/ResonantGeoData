@@ -41,7 +41,7 @@ def read_geometry_archive(archive_pk):
     workdir = get_temp_dir()
     with tempfile.TemporaryDirectory(dir=workdir) as tmpdir:
         with archive.file.yield_local_path() as archive_path:
-            logger.info(f'The geometry archive: {archive_path}')
+            logger.debug(f'The geometry archive: {archive_path}')
 
             # Unzip the contents to the working dir
             with zipfile.ZipFile(archive_path, 'r') as zip_ref:
@@ -66,9 +66,9 @@ def read_geometry_archive(archive_pk):
             shapes.meta  # TODO: dump this JSON into the model entry
 
             crs_wkt = shapes.meta['crs_wkt']
-            logger.info(f'Geometry crs_wkt: {crs_wkt}')
+            logger.debug(f'Geometry crs_wkt: {crs_wkt}')
             spatial_ref = SpatialReference(crs_wkt)
-            logger.info(f'Geometry SRID: {spatial_ref.srid}')
+            logger.debug(f'Geometry SRID: {spatial_ref.srid}')
 
             collection = []
             for item in shapes:

@@ -95,10 +95,10 @@ def _read_api_key(api_url: str, username: str = None, password: str = None) -> O
         logger.error('API key is invalid.')
         # If username + password were provided, try to get a new API key with them
         if username is not None and password is not None:
-            logger.warning('Attempting to fetch a new API key...')
+            logger.info('Attempting to fetch a new API key...')
             api_key = _get_api_key(api_url, username, password, save=True)
             if api_key is not None:
-                logger.warning('Succeeded.')
+                logger.info('Succeeded.')
             return api_key
         else:
             logger.error('Provide your username and password next time to fetch a new one.')

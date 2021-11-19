@@ -168,7 +168,7 @@ def url_file_to_fuse_path(url: str) -> Path:
         fuse_path = url.replace('http://', '/tmp/rgd/http/') + '..'
     else:
         raise ValueError(f'Scheme {parsed.scheme} not currently handled by FUSE.')
-    logger.info(f'FUSE path: {fuse_path}')
+    logger.debug(f'FUSE path: {fuse_path}')
     return Path(fuse_path)
 
 
@@ -317,7 +317,7 @@ def clean_file_cache(override_target=None):
     # Below target, starting a clean - this is blocking across processes
     cache_lock = get_file_lock(cache)
     with cache_lock:
-        logger.info(f'Cleaning file cache... Starting free space is {initial} bytes.')
+        logger.debug(f'Cleaning file cache... Starting free space is {initial} bytes.')
         while psutil.disk_usage(cache).free * 1e-9 < target:
             if not len(paths):
                 # If we delete everything and still cannot achieve target, warn
@@ -336,10 +336,10 @@ def clean_file_cache(override_target=None):
                         os.remove(path)
                 # Remove the lockfile as well
                 os.remove(lock.lock_file)
-                logger.info(f'removed: {path}')
+                logger.debug(f'removed: {path}')
             except Timeout:
                 # Another task holds the lock on this file/directory: do not delete
-                logger.info(f'File is locked, skipping: {path}')
+                logger.debug(f'File is locked, skipping: {path}')
                 pass
     free = psutil.disk_usage(cache).free
     logger.debug(f'Finished cleaning file cache. Available free space is {free} bytes.')
