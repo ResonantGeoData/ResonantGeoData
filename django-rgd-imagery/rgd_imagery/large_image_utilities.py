@@ -18,7 +18,7 @@ def get_tilesource_from_image(
     #       For URL files, this is done through FUSE but for S3FileField
     #       files, we must download the entire file to the local disk.
     with image.file.yield_local_path(yield_file_set=True) as file_path:
-        # NOTE: yield_file_set=True incase there are header files
+        # NOTE: yield_file_set=True in case there are header files
         return large_image.open(str(file_path), projection=projection, style=style, encoding='PNG')
 
 

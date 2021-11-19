@@ -187,7 +187,7 @@ class ChecksumFile(TimeStampedModel, TaskEventMixin, PermissionPathMixin):
 
         This will handle locking to prevent multiple processes/threads
         from trying to download the file at the same time -- only one thread
-        or process will perfrom the download and the rest will yield its
+        or process will perform the download and the rest will yield its
         result.
 
         """

@@ -312,7 +312,7 @@ def clean_file_cache(override_target=None):
     initial = psutil.disk_usage(cache).free
     target = override_target or getattr(settings, 'RGD_TARGET_AVAILABLE_CACHE', 2)
     if psutil.disk_usage(cache).free * 1e-9 >= target:
-        # We're above targe, so immediately return
+        # We're above target, so immediately return
         return initial, psutil.disk_usage(cache).free
     # Below target, starting a clean - this is blocking across processes
     cache_lock = get_file_lock(cache)
@@ -320,7 +320,7 @@ def clean_file_cache(override_target=None):
         logger.info(f'Cleaning file cache... Starting free space is {initial} bytes.')
         while psutil.disk_usage(cache).free * 1e-9 < target:
             if not len(paths):
-                # If we delete everything and still cannot acheive target, warn
+                # If we delete everything and still cannot achieve target, warn
                 logger.error(
                     f'Target cache free space of {target * 1e9} bytes not achieved when empty.'
                 )
