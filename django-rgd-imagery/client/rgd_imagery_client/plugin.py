@@ -344,3 +344,68 @@ class ImageryPlugin(RgdPlugin):
 
         r.raise_for_status()
         return r.json()
+
+    def get_leaflet_tile_source(
+        self,
+        image_id: Union[str, int],
+        band: int = None,
+        palette: str = None,
+        vmin: Union[float, int] = None,
+        vmax: Union[float, int] = None,
+        nodata: Union[float, int] = None,
+        **kwargs,
+    ):
+        """Generate an ipyleaflet TileLayer for the given Image.
+
+        Parameters
+        ----------
+        image_id : Union[str, int]
+            The image ID to serve tiles from
+
+        **kwargs
+            All additional keyword arguments are passed to TileLayer
+
+        Return
+        ------
+        ipyleaflet.TileLayer
+
+        """
+        # Safely import ipyleaflet
+        try:
+            from ipyleaflet import TileLayer
+        except ImportError:
+            raise ImportError('Please install `ipyleaflet` and `jupyter`.')
+
+        # Check that the image source is valid and no server errors
+        r = self.session.get(f'image_process/imagery/{image_id}/tiles')
+        r.raise_for_status()
+        # Embed auth token in URL for external use
+        token = self.session.rgd_auth_token
+
+        params = {}
+        if band is not None:
+            params['band'] = band
+        if palette is not None:
+            # TODO: check this value as an incorrect one can lead to server errors
+            #       perhaps we should catch this, server side and ignore bad ones
+            params['palette'] = palette
+        if vmin is not None:
+            params['min'] = vmin
+        if vmax is not None:
+            params['max'] = vmax
+        if nodata is not None:
+            params['nodata'] = nodata
+
+        url = self.session.create_url(
+            f'image_process/imagery/{image_id}/tiles/{{z}}/{{x}}/{{y}}.png?projection=EPSG:3857&auth_token={token}'
+        )
+
+        for k, v in params.items():
+            url += f'&{k}={v}'
+
+        # Set a default attribution let's folks know how awesome RGD is
+        kwargs.setdefault(
+            'attribution',
+            '<a href="https://github.com/ResonantGeoData">Resonant GeoData</a> (Kitware, Inc.)',
+        )
+        return TileLayer(url=url, **kwargs)
