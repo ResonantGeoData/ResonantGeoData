@@ -3,8 +3,9 @@ from rest_framework.authentication import TokenAuthentication
 
 class TokenAuthSupportQueryString(TokenAuthentication):
     """
-    Extend the TokenAuthentication class to support querystring authentication
-    in the form of "http://www.example.com/?auth_token=<token_key>"
+    Extend the TokenAuthentication class to support querystring authentication.
+
+    This takes the form of "http://www.example.com/?auth_token=<token_key>".
     """
 
     def authenticate(self, request):
