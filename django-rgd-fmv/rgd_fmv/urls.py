@@ -4,7 +4,7 @@ from rgd_fmv import models, views
 from rgd_fmv.rest import viewsets
 
 router = SimpleRouter(trailing_slash=False)
-router.register(r'api/rgd_fmv', viewsets.FMVMetaViewSet)
+router.register(r'api/rgd_fmv', viewsets.FMVViewSet)
 
 urlpatterns = [
     # Pages
