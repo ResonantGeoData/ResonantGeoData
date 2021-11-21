@@ -5,6 +5,7 @@ from rgd_geometry.rest import viewsets
 
 router = SimpleRouter(trailing_slash=False)
 router.register(r'api/rgd_geometry', viewsets.GeometryViewSet)
+router.register(r'api/rgd_geometry/geometry_archive', viewsets.GeometryArchiveViewSet)
 
 urlpatterns = [
     # Pages

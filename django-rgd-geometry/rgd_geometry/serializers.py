@@ -1,8 +1,23 @@
 import json
 
-from rgd.serializers import SpatialEntrySerializer
+from rgd.models.file import ChecksumFile
+from rgd.serializers import (
+    TASK_EVENT_READ_ONLY_FIELDS,
+    ChecksumFileSerializer,
+    RelatedField,
+    SpatialEntrySerializer,
+)
 
 from . import models
+
+
+class GeometryArchiveSerializer(SpatialEntrySerializer):
+    file = RelatedField(queryset=ChecksumFile.objects.all(), serializer=ChecksumFileSerializer)
+
+    class Meta:
+        model = models.GeometryArchive
+        fields = '__all__'
+        read_only_fields = TASK_EVENT_READ_ONLY_FIELDS
 
 
 class GeometrySerializer(SpatialEntrySerializer):
