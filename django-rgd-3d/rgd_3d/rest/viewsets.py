@@ -1,10 +1,10 @@
 from rest_framework.decorators import action
-from rgd.rest.base import ReadOnlyModelViewSet
+from rgd.rest.base import ModelViewSet
 from rgd.rest.mixins import TaskEventViewSetMixin
 from rgd_3d import models, serializers
 
 
-class Mesh3DViewSet(ReadOnlyModelViewSet, TaskEventViewSetMixin):
+class Mesh3DViewSet(ModelViewSet, TaskEventViewSetMixin):
     serializer_class = serializers.Mesh3DSerializer
     queryset = models.Mesh3D.objects.all()
 
