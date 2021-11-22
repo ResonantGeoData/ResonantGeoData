@@ -2,7 +2,7 @@ from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.core import signing
 from django.utils.translation import ugettext_lazy as _
-from rest_framework import authentication, exceptions
+from rest_framework import exceptions
 
 
 class UserSigner:
@@ -32,7 +32,7 @@ class UserSigner:
             raise signing.BadSignature()
 
 
-class TokenOrSignedURLAuthentication(authentication.TokenAuthentication):
+class SignedURLAuthentication:
     """
     Extend the TokenAuthentication class to support signed authentication.
 
@@ -57,5 +57,3 @@ class TokenOrSignedURLAuthentication(authentication.TokenAuthentication):
             if not user.is_active:
                 raise exceptions.AuthenticationFailed(_('User inactive or deleted.'))
             return (user, None)
-        # Default to standard TokenAuthentication
-        return super(TokenOrSignedURLAuthentication, self).authenticate(request)

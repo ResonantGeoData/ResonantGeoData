@@ -10,7 +10,7 @@ from rest_framework.request import Request
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rgd.rest import CACHE_TIMEOUT
-from rgd.rest.authentication import TokenOrSignedURLAuthentication
+from rgd.rest.authentication import SignedURLAuthentication
 from rgd.rest.mixins import BaseRestViewMixin
 from rgd_imagery import large_image_utilities
 from rgd_imagery.models import Image
@@ -64,7 +64,7 @@ class TileView(BaseTileView):
     """Returns tile binary."""
 
     authentication_classes = BaseTileView.authentication_classes + [
-        TokenOrSignedURLAuthentication,
+        SignedURLAuthentication,
     ]
 
     @method_decorator(cache_page(CACHE_TIMEOUT))
