@@ -8,7 +8,7 @@ from rgd.filters import SpatialEntryFilter
 from rgd.rest.base import ModelViewSet, ReadOnlyModelViewSet
 
 from .authentication import UserSigner
-from .mixins import TaskEventViewSetMixin
+from .mixins import BaseRestViewMixin, TaskEventViewSetMixin
 
 
 class CollectionViewSet(ModelViewSet):
@@ -54,7 +54,7 @@ class SpatialAssetViewSet(ModelViewSet):
     queryset = models.SpatialAsset.objects.all()
 
 
-class SignatureView(views.APIView):
+class SignatureView(BaseRestViewMixin, views.APIView):
     """Generate an expirey URL signature."""
 
     def post(self, request):
