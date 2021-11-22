@@ -76,7 +76,7 @@ class ResonantGeoDataBaseMixin(GeoDjangoMixin, SwaggerMixin, ConfigMixin):
             'crum.CurrentRequestUserMiddleware',
         ]
         configuration.REST_FRAMEWORK['DEFAULT_AUTHENTICATION_CLASSES'] += [
-            'rgd.rest.authentication.TokenAuthSupportQueryString',
+            'rest_framework.authentication.TokenAuthentication',
         ]
 
         if getattr(configuration, 'DEBUG', False):
@@ -107,3 +107,5 @@ class ResonantGeoDataBaseMixin(GeoDjangoMixin, SwaggerMixin, ConfigMixin):
     RGD_TEMP_DIR = values.Value(default=os.path.join(tempfile.gettempdir(), 'rgd'))
     RGD_TARGET_AVAILABLE_CACHE = values.Value(default=2)
     RGD_REST_CACHE_TIMEOUT = values.Value(default=60 * 60 * 2)
+    RGD_SIGNED_URL_TTL = values.Value(default=60 * 30)  # 30 minutes
+    RGD_SIGNED_URL_QUERY_PARAM = values.Value(default='signature')

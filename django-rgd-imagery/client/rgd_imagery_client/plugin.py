@@ -379,8 +379,6 @@ class ImageryPlugin(RgdPlugin):
         # Check that the image source is valid and no server errors
         r = self.session.get(f'image_process/imagery/{image_id}/tiles')
         r.raise_for_status()
-        # Embed auth token in URL for external use
-        token = self.session.rgd_auth_token
 
         params = {}
         if band is not None:
@@ -396,10 +394,13 @@ class ImageryPlugin(RgdPlugin):
         if nodata is not None:
             params['nodata'] = nodata
 
-        url = self.session.create_url(
-            f'image_process/imagery/{image_id}/tiles/{{z}}/{{x}}/{{y}}.png?projection=EPSG:3857&auth_token={token}'
-        )
+        r = self.session.post('signature')
+        r.raise_for_status()
+        params.update(r.json())
 
+        url = self.session.create_url(
+            f'image_process/imagery/{image_id}/tiles/{{z}}/{{x}}/{{y}}.png?projection=EPSG:3857'
+        )
         for k, v in params.items():
             url += f'&{k}={v}'
 

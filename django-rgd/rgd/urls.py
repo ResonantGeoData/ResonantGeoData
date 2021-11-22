@@ -14,6 +14,7 @@ router.register(r'api/rgd/spatial_asset', viewsets.SpatialAssetViewSet)
 urlpatterns = [
     # API Key Authentication
     path('api/api-token-auth', obtain_auth_token, name='api-token-auth'),
+    path('api/signature', viewsets.SignatureView.as_view(), name='signature'),
     # Pages
     path('rgd', views.SpatialEntriesListView.as_view(), name='rgd-index'),
     path(

@@ -1,10 +1,13 @@
+from django.conf import settings
 from django.http import HttpResponseRedirect
 from drf_yasg.utils import swagger_auto_schema
+from rest_framework import response, views
 from rest_framework.decorators import action
 from rgd import models, serializers
 from rgd.filters import SpatialEntryFilter
 from rgd.rest.base import ModelViewSet, ReadOnlyModelViewSet
 
+from .authentication import UserSigner
 from .mixins import TaskEventViewSetMixin
 
 
@@ -49,3 +52,13 @@ class SpatialEntryViewSet(ReadOnlyModelViewSet):
 class SpatialAssetViewSet(ModelViewSet):
     serializer_class = serializers.SpatialAssetSerializer
     queryset = models.SpatialAsset.objects.all()
+
+
+class SignatureView(views.APIView):
+    """Generate an expirey URL signature."""
+
+    def post(self, request):
+        signer = UserSigner()
+        signature = signer.sign(user=self.request.user)
+        param = getattr(settings, 'RGD_SIGNED_URL_QUERY_PARAM', 'signature')
+        return response.Response({param: signature})
