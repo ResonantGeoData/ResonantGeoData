@@ -2,6 +2,7 @@ from django.contrib.auth.models import User
 import factory
 import factory.django
 from rgd import models
+from rgd.datastore import datastore
 
 
 class UserFactory(factory.django.DjangoModelFactory):
@@ -18,7 +19,7 @@ class ChecksumFileFactory(factory.django.DjangoModelFactory):
     class Meta:
         model = models.ChecksumFile
 
-    file = factory.django.FileField(filename='sample.dat')
+    file = factory.django.FileField(from_path=datastore.fetch('stars.png'))
 
     # If we have an on_commit or post_save method that modifies the model, we
     # need to refresh it afterwards.
