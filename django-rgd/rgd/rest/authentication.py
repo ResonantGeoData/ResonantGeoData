@@ -16,8 +16,9 @@ class UserSigner:
         return signer.sign(signing.dumps(data))
 
     def unsign(self, signature, max_age=None):
+        max_age = getattr(settings, 'RGD_SIGNED_URL_TTL', None)
         if max_age is None:
-            max_age = getattr(settings, 'RGD_SIGNED_URL_TTL', 60 * 30)
+            max_age = 60 * 30
         cls = get_user_model()
         signer = self.signer_class()
         data = signing.loads(signer.unsign(signature, max_age))

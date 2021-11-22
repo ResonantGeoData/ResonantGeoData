@@ -5,23 +5,11 @@ from rest_framework.decorators import action
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rgd.permissions import CollectionAuthorization, CollectionAuthorizationFilter
-from rgd.rest.authentication import TokenOrSignedURLAuthentication
 
 
 class BaseRestViewMixin:
     permission_classes = [CollectionAuthorization, IsAuthenticated]
     filter_backends = [CollectionAuthorizationFilter, DjangoFilterBackend]
-
-
-class SignedURLRestViewMixin:
-    """
-    Mixin to use a temporary URL signature for access.
-
-    When mixing this in, it must be the first class to override
-    `authentication_classes`.
-    """
-
-    authentication_classes = [TokenOrSignedURLAuthentication]
 
 
 class TaskEventViewSetMixin:
