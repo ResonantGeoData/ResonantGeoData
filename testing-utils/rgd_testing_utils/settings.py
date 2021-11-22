@@ -135,3 +135,5 @@ LOGGING = {
         },
     },
 }
+
+RGD_SIGNED_URL_TTL = 5  # Five seconds
