@@ -1,6 +1,5 @@
 import time
 
-from django.conf import settings
 import pytest
 import requests
 from rest_framework import status
@@ -94,13 +93,12 @@ def test_create_and_download_cog(admin_api_client, geotiff_image_entry):
 
 
 @pytest.mark.django_db(transaction=True)
-def test_tiles_endpoint_with_signature(admin_api_client, live_server):
+def test_tiles_endpoint_with_signature(admin_api_client, live_server, settings):
     image = factories.ImageFactory(
         file__file__filename='paris_france_10.tiff',
         file__file__from_path=datastore.fetch('paris_france_10.tiff'),
     )
     # Set the TTL to something short
-    prior = getattr(settings, 'RGD_SIGNED_URL_TTL', None)
     settings.RGD_SIGNED_URL_TTL = 3  # seconds
     # Generate a signature
     response = admin_api_client.post('/api/signature')
@@ -119,5 +117,3 @@ def test_tiles_endpoint_with_signature(admin_api_client, live_server):
     with pytest.raises(requests.HTTPError):
         response.raise_for_status()
     assert response.status_code == 401
-    # Reset the TTL now that test is over
-    settings.RGD_SIGNED_URL_TTL = prior
