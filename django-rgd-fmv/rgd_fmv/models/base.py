@@ -5,13 +5,13 @@ from django.contrib.gis.db import models
 from django_extensions.db.models import TimeStampedModel
 from rgd.models import ChecksumFile, SpatialEntry
 from rgd.models.constants import DB_SRID
-from rgd.models.mixins import DetailViewMixin, PermissionPathMixin, TaskEventMixin
+from rgd.models.mixins import DetailViewMixin, TaskEventMixin
 from rgd.utility import _link_url, uuid_prefix_filename
 from rgd_fmv.tasks import jobs
 from s3_file_field import S3FileField
 
 
-class FMV(TimeStampedModel, TaskEventMixin, PermissionPathMixin):
+class FMV(TimeStampedModel, TaskEventMixin):
     """For uploading single FMV files (mp4)."""
 
     task_funcs = (jobs.task_read_fmv_file,)
@@ -32,10 +32,8 @@ class FMV(TimeStampedModel, TaskEventMixin, PermissionPathMixin):
 
     klv_data_link.allow_tags = True
 
-    permissions_paths = [('file', ChecksumFile)]
 
-
-class FMVMeta(TimeStampedModel, SpatialEntry, PermissionPathMixin, DetailViewMixin):
+class FMVMeta(TimeStampedModel, SpatialEntry, DetailViewMixin):
     """Single FMV entry, tracks the original file."""
 
     fmv_file = models.OneToOneField(FMV, on_delete=models.CASCADE)
@@ -53,7 +51,6 @@ class FMVMeta(TimeStampedModel, SpatialEntry, PermissionPathMixin, DetailViewMix
     def _blob_to_array(blob):
         return pickle.loads(base64.b64decode(blob))
 
-    permissions_paths = [('fmv_file', FMV)]
     detail_view_name = 'fmv-entry-detail'
 
     @property

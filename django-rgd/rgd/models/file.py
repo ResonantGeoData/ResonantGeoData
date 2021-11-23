@@ -30,7 +30,7 @@ from s3_file_field import S3FileField
 from .. import tasks
 from .collection import Collection
 from .fileset import FileSet
-from .mixins import PermissionPathMixin, TaskEventMixin
+from .mixins import TaskEventMixin
 
 logger = logging.getLogger(__name__)
 
@@ -40,7 +40,7 @@ class FileSourceType(models.IntegerChoices):
     URL = 2, 'URL'
 
 
-class ChecksumFile(TimeStampedModel, TaskEventMixin, PermissionPathMixin):
+class ChecksumFile(TimeStampedModel, TaskEventMixin):
     """The main class for user-uploaded files.
 
     This has support for manually uploading files or specifying a URL to a file
@@ -75,7 +75,6 @@ class ChecksumFile(TimeStampedModel, TaskEventMixin, PermissionPathMixin):
     url = models.TextField(null=True, blank=True)
 
     task_funcs = (tasks.task_checksum_file_post_save,)
-    permissions_paths = [('collection', Collection)]
 
     class Meta:
         constraints = [

@@ -1,13 +1,13 @@
 from django.contrib.gis.db import models
 from django_extensions.db.models import TimeStampedModel
 from rgd.models import ChecksumFile
-from rgd.models.mixins import PermissionPathMixin, TaskEventMixin
+from rgd.models.mixins import TaskEventMixin
 from rgd_imagery.tasks import jobs
 
 from .base import ImageSet
 
 
-class KWCOCOArchive(TimeStampedModel, TaskEventMixin, PermissionPathMixin):
+class KWCOCOArchive(TimeStampedModel, TaskEventMixin):
     """A container for holding imported KWCOCO datasets.
 
     User must upload a JSON file of the KWCOCO meta info and an optional
@@ -44,8 +44,3 @@ class KWCOCOArchive(TimeStampedModel, TaskEventMixin, PermissionPathMixin):
             image.file.delete()
         # Now delete the empty image set
         self.image_set.delete()
-
-    permissions_paths = [
-        ('spec_file', ChecksumFile),
-        ('image_archive', ChecksumFile),
-    ]

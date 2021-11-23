@@ -68,19 +68,6 @@ class TaskEventMixin(models.Model):
         self._run_tasks()
 
 
-class PermissionPathMixin:
-    """Interface for permission querying.
-
-    Get all possible paths to the 'CollectionPermission' model under the ``permissions_paths`` field.
-
-    Relationships are represented as tuples of the form ('field', <Model>)
-    where 'field' is the field on the current model that points to a <Model>
-    and <Model> is the next model to fetch the remaining path from.
-    """
-
-    permissions_paths: List[Tuple[str, Union[str, Model]]] = []
-
-
 class DetailViewMixin:
     """Interface for spatial entry detail view redirect."""
 

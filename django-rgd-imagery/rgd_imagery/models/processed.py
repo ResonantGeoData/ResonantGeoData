@@ -2,7 +2,7 @@ from django.contrib.gis.db import models
 from django.utils.translation import gettext_lazy as _
 from django_extensions.db.models import TimeStampedModel
 from rgd.models import ChecksumFile
-from rgd.models.mixins import PermissionPathMixin, Status, TaskEventMixin
+from rgd.models.mixins import Status, TaskEventMixin
 from rgd_imagery.tasks import jobs
 
 from .base import Image
@@ -21,8 +21,6 @@ class ProcessedImageGroup(TimeStampedModel):
     )
     parameters = models.JSONField(null=True, blank=True)
 
-    # TODO: permissions_paths
-
     def _post_save(self, *args, **kwargs):
         source_images = ProcessedImage.objects.filter(group=self)
         for processed_image in source_images:
@@ -30,7 +28,7 @@ class ProcessedImageGroup(TimeStampedModel):
                 processed_image.save()
 
 
-class ProcessedImage(TimeStampedModel, TaskEventMixin, PermissionPathMixin):
+class ProcessedImage(TimeStampedModel, TaskEventMixin):
     """Base class for processed images."""
 
     task_funcs = (jobs.task_run_processed_image,)
@@ -49,5 +47,3 @@ class ProcessedImage(TimeStampedModel, TaskEventMixin, PermissionPathMixin):
         # self.ancillary_files.all().delete()
 
     group = models.ForeignKey(ProcessedImageGroup, on_delete=models.CASCADE)
-
-    permissions_paths = [('source_images', Image)]
