@@ -44,6 +44,10 @@ class SignedURLAuthentication:
         # Give precedence to 'Authorization' header.
         param_name = getattr(settings, 'RGD_SIGNED_URL_QUERY_PARAM', 'signature')
         if param_name in request.query_params and 'HTTP_AUTHORIZATION' not in request.META:
+            if request.method != 'GET':
+                raise exceptions.AuthenticationFailed(
+                    _('Signatures are only allowed for GET requests.')
+                )
             signer = UserSigner()
             sig = request.query_params.get(param_name)
             if not sig:
@@ -51,9 +55,9 @@ class SignedURLAuthentication:
             try:
                 user = signer.unsign(sig)
             except signing.SignatureExpired:
-                raise exceptions.AuthenticationFailed(_('This URL has expired.'))
+                raise exceptions.AuthenticationFailed(_('The signature has expired.'))
             except signing.BadSignature:
                 raise exceptions.AuthenticationFailed(_('Invalid signature.'))
             if not user.is_active:
-                raise exceptions.AuthenticationFailed(_('User inactive or deleted.'))
+                raise exceptions.AuthenticationFailed(_('Signing user is inactive or deleted.'))
             return (user, None)
