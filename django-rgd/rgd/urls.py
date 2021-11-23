@@ -15,7 +15,7 @@ urlpatterns = [
     # API Key Authentication
     path('api/api-token-auth', obtain_auth_token, name='api-token-auth'),
     # Pages
-    path('rgd', views.SpatialEntriesListView.as_view(), name='rgd-index'),
+    path('', views.SpatialEntriesListView.as_view(), name='rgd-index'),
     path(
         'rgd/statistics',
         views.StatisticsView.as_view(),

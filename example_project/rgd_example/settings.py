@@ -31,13 +31,13 @@ class RGDExampleProjectMixin(
     def before_binding(configuration: ComposedConfiguration) -> None:
 
         # Install additional apps
-        configuration.INSTALLED_APPS += [
+        configuration.INSTALLED_APPS = [
             'rgd',
             'rgd_3d',
             'rgd_fmv',
             'rgd_geometry',
             'rgd_imagery',
-        ]
+        ] + configuration.INSTALLED_APPS
 
         configuration.REST_FRAMEWORK['DEFAULT_AUTHENTICATION_CLASSES'].append(
             'rest_framework.authentication.BasicAuthentication'
