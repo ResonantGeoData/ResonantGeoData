@@ -15,7 +15,7 @@
 {% block content %}
 
   <div class="columns m-0">
-    <div class="column is-sidebar is-one-quarter p-0">
+    <div class="column is-sidebar is-one-quarter p-0" style="overflow-x:auto;">
 
       <div class="tab tabs is-boxed" id="tabs">
         <ul class="pt-2 px-2">
@@ -148,31 +148,30 @@
             });
           </script>
 
-
-
-
-
         </div>
 
         <div id="resultsTab" class="tabcontent" style="display: none;">
-          {% block list_view %}{% endblock %}
+          <div class="columns is-multiline mx-0">
+            {% block list_view %}{% endblock %}
+            <div class="column is-full mb-2 pb-5">
+              <div class="pagination" style="margin-left:10px; margin-top:10px;">
+                <span class="step-links">
+                  {% if page_obj.has_previous %}
+                    <a href="?page=1{{ query_params }}#resultsTab">&laquo; first</a>
+                    <a href="?page={{ page_obj.previous_page_number }}{{ query_params }}#resultsTab">previous</a>
+                  {% endif %}
 
-          <div class="pagination" style="position: absolute; margin-left:10px; margin-top:10px;">
-            <span class="step-links">
-              {% if page_obj.has_previous %}
-                <a href="?page=1{{ query_params }}#resultsTab">&laquo; first</a>
-                <a href="?page={{ page_obj.previous_page_number }}{{ query_params }}#resultsTab">previous</a>
-              {% endif %}
+                  <span class="current">
+                    Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}.
+                  </span>
 
-              <span class="current">
-                Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}.
-              </span>
-
-              {% if page_obj.has_next %}
-                <a href="?page={{ page_obj.next_page_number }}{{ query_params }}#resultsTab">next</a>
-                <a href="?page={{ page_obj.paginator.num_pages }}{{ query_params }}#resultsTab">last &raquo;</a>
-              {% endif %}
-            </span>
+                  {% if page_obj.has_next %}
+                    <a href="?page={{ page_obj.next_page_number }}{{ query_params }}#resultsTab">next</a>
+                    <a href="?page={{ page_obj.paginator.num_pages }}{{ query_params }}#resultsTab">last &raquo;</a>
+                  {% endif %}
+                </span>
+              </div>
+            </div>
           </div>
         </div>
       </div>
