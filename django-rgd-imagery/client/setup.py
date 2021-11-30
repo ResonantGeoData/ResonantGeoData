@@ -40,6 +40,6 @@ setup(
     python_requires='>=3.8',
     packages=find_packages(exclude=['tests']),
     install_requires=['rgd_client'],
-    extras_require={'dev': ['ipython']},
+    extras_require={'dev': ['ipython'], 'widgets': ['ipyleaflet']},
     entry_points={'rgd_client.plugin': ['rgd_imagery_client = rgd_imagery_client:ImageryClient']},
 )
