@@ -4,7 +4,7 @@ from django.contrib.gis.measure import D
 from django.core.validators import RegexValidator
 from django.db.models import F, Q
 from django_filters import rest_framework as filters
-from rgd.models import ChecksumFile, SpatialEntry
+from rgd.models import ChecksumFile, Collection, SpatialEntry
 from rgd.permissions import get_paths
 
 
@@ -77,6 +77,7 @@ class SpatialEntryFilter(filters.FilterSet):
         help_text='One or more collections that the data might belong to.',
         label='Collections',
         method='filter_collections',
+        queryset=Collection.objects.all(),
     )
 
     @property
