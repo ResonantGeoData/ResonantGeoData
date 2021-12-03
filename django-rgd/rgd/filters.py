@@ -76,7 +76,7 @@ class SpatialEntryFilter(filters.FilterSet):
     collections = filters.ModelMultipleChoiceFilter(
         help_text='One or more collections that the data might belong to.',
         label='Collections',
-        method='filter_collections',
+        method='filter_collection',
         queryset=Collection.objects.all(),
     )
 
