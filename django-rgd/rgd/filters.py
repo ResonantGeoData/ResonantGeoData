@@ -145,10 +145,13 @@ class SpatialEntryFilter(filters.FilterSet):
 
     def filter_collection(self, queryset, name, value):
         """Filter the queryset by the collection it belongs to."""
-        conditions = Q()
-        for path in get_paths(queryset.model, ChecksumFile):
-            conditions |= path.q(collection__in=value)
-        return queryset.filter(conditions)
+        breakpoint()
+        if value:
+            conditions = Q()
+            for path in get_paths(queryset.model, ChecksumFile):
+                conditions |= path.q(collection__in=value)
+            return queryset.filter(conditions)
+        return queryset
 
     class Meta:
         model = SpatialEntry
