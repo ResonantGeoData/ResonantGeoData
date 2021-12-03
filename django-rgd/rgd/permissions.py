@@ -149,10 +149,9 @@ def filter_perm(user, queryset, role):
             getattr(settings, 'RGD_GLOBAL_READ_ACCESS', False)
             and role == models.CollectionPermission.READER
         ):
-            # A user can read a file by default if it is not in a collection
-            is_not_in_collection = path.q(collection__isnull=True)
+            # A user can read any file by default
             has_no_owner = path.q(created_by__isnull=True)
-            conditions |= is_not_in_collection & has_no_owner
+            conditions |= has_no_owner
     for path in get_paths(model, models.Collection):
         # Check collection permissions
         has_permission = path.q(collection_permissions__user=user)
