@@ -1,4 +1,5 @@
 from django.conf import settings
+from django.db.models import Prefetch
 from rest_framework.generics import GenericAPIView
 from rest_framework.response import Response
 from rgd.models import Collection
@@ -8,6 +9,30 @@ from rgd_imagery import models
 from . import serializers
 from .filters import STACSimpleFilter
 from .pagination import STACPagination
+
+
+class OptimizedRasterMetaQuerysetMixin:
+    queryset = (
+        models.RasterMeta.objects.select_related('parent_raster')
+        .select_related('parent_raster__image_set')
+        .prefetch_related('parent_raster__ancillary_files')
+        .prefetch_related(
+            Prefetch(
+                'parent_raster__image_set__images',
+                queryset=models.Image.objects.select_related('file')
+                .select_related('file__collection')
+                .prefetch_related(
+                    Prefetch(
+                        'processedimage_set',
+                        queryset=models.ProcessedImage.objects.prefetch_related('source_images'),
+                    )
+                )
+                .prefetch_related('bandmeta_set')
+                .all(),
+            )
+        )
+        .all()
+    )
 
 
 class CoreView(BaseRestViewMixin, GenericAPIView):
@@ -38,11 +63,10 @@ class CollectionView(BaseRestViewMixin, GenericAPIView):
         return Response(serializer.data)
 
 
-class ItemCollectionView(BaseRestViewMixin, GenericAPIView):
+class ItemCollectionView(OptimizedRasterMetaQuerysetMixin, BaseRestViewMixin, GenericAPIView):
     """See the Items in the Collection."""
 
     serializer_class = serializers.ItemCollectionSerializer
-    queryset = models.RasterMeta.objects.all()
 
     def get(self, request, *args, collection_id=None, **kwargs):
         collection_id = None if collection_id == 'default' else collection_id
@@ -61,11 +85,10 @@ class ItemCollectionView(BaseRestViewMixin, GenericAPIView):
         return Response(serializer.data)
 
 
-class SimpleSearchView(BaseRestViewMixin, GenericAPIView):
+class SimpleSearchView(OptimizedRasterMetaQuerysetMixin, BaseRestViewMixin, GenericAPIView):
     """Search items."""
 
     serializer_class = serializers.ItemCollectionSerializer
-    queryset = models.RasterMeta.objects.all()
     pagination_class = STACPagination
     filterset_class = STACSimpleFilter
 
@@ -79,11 +102,10 @@ class SimpleSearchView(BaseRestViewMixin, GenericAPIView):
         return Response(serializer.data)
 
 
-class ItemView(BaseRestViewMixin, GenericAPIView):
+class ItemView(OptimizedRasterMetaQuerysetMixin, BaseRestViewMixin, GenericAPIView):
     """See the Items in the Collection."""
 
     serializer_class = serializers.ItemSerializer
-    queryset = models.RasterMeta.objects.all()
 
     def get(self, request, *args, collection_id=None, item_id=None, **kwargs):
         collection_id = None if collection_id == 'default' else collection_id
