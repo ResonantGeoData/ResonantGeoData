@@ -89,35 +89,33 @@ class ChecksumFilePathsSerializer(serializers.Serializer):
 
 
 class SpatialEntrySerializer(serializers.ModelSerializer):
-    def to_representation(self, value):
-        ret = super().to_representation(value)
-        # NOTE: including footprint can cause the search results to blow up in size
-        ret['outline'] = json.loads(value.outline.geojson)
-        # NOTE HACK: this is dirty but it works
-        subentry = models.SpatialEntry.objects.filter(pk=value.pk).select_subclasses().first()
-        # Add hyperlink to get view for subtype if SpatialEntry
-        ret['subentry_type'] = type(subentry).__name__
-        try:
-            # TODO: enforce all sub models have name
-            ret['subentry_name'] = subentry.name
-        except AttributeError:
-            pass
-        return ret
+    outline = serializers.SerializerMethodField()
+    subentry_name = serializers.SerializerMethodField()
+    subentry_type = serializers.SerializerMethodField()
 
     class Meta:
         model = models.SpatialEntry
         exclude = SPATIAL_ENTRY_EXCLUDE
+
+    def get_outline(self, obj):
+        return json.loads(obj.outline.geojson)
+
+    def get_subentry_type(self, obj):
+        return type(obj).__name__
+
+    def get_subentry_name(self, obj):
+        return getattr(obj, 'name', None)
 
 
 class SpatialEntryFootprintSerializer(SpatialEntrySerializer):
-    def to_representation(self, value):
-        ret = super().to_representation(value)
-        ret['footprint'] = json.loads(value.footprint.geojson)
-        return ret
+    footprint = serializers.SerializerMethodField()
 
     class Meta:
         model = models.SpatialEntry
         exclude = SPATIAL_ENTRY_EXCLUDE
+
+    def get_footprint(self, obj):
+        return json.loads(obj.footprint.geojson)
 
 
 class SpatialAssetSerializer(SpatialEntrySerializer):
