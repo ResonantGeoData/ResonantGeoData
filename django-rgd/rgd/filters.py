@@ -149,7 +149,7 @@ class SpatialEntryFilter(filters.FilterSet):
             conditions = Q()
             for path in get_paths(queryset.model, ChecksumFile):
                 conditions |= path.q(collection__in=value)
-            return queryset.filter(conditions)
+            return queryset.filter(conditions).distinct()
         return queryset
 
     class Meta:
