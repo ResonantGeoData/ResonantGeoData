@@ -34,5 +34,5 @@ class RasterMetaSerializer(SpatialEntrySerializer):
 
     class Meta:
         model = models.RasterMeta
-        exclude = ['footprint', 'outline']
+        exclude = ['footprint']
         # read_only_fields - This serializer should be used read-only

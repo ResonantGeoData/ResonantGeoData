@@ -6,7 +6,7 @@ from . import models
 
 MODIFIABLE_READ_ONLY_FIELDS = ['modified', 'created']
 TASK_EVENT_READ_ONLY_FIELDS = ['status', 'failure_reason']
-SPATIAL_ENTRY_EXCLUDE = ['footprint', 'outline']
+SPATIAL_ENTRY_EXCLUDE = ['footprint']
 
 
 class RelatedField(serializers.PrimaryKeyRelatedField):

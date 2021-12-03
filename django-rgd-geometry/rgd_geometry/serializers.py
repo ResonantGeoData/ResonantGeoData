@@ -23,7 +23,7 @@ class GeometryArchiveSerializer(SpatialEntrySerializer):
 class GeometrySerializer(SpatialEntrySerializer):
     class Meta:
         model = models.Geometry
-        exclude = ['data', 'footprint', 'outline']
+        exclude = ['data', 'footprint']
 
 
 class GeometryDataSerializer(GeometrySerializer):
