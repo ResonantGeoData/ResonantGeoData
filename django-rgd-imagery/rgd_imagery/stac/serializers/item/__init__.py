@@ -25,9 +25,6 @@ class ItemSerializer(serializers.BaseSerializer):
         asset_eo_ext = EOExtension.ext(asset, add_if_missing=True)
         asset_eo_ext.bands = [
             band_utils.to_pystac(bandmeta)
-            # for bandmeta in image.bandmeta_set.filter(
-            #     band_range__contained_by=(None, None),
-            # )
             for bandmeta in image.bandmeta_set.all()
             if bandmeta.band_range
         ]
