@@ -1,10 +1,9 @@
 """Mixin helper classes."""
-from typing import Iterable, List, Tuple, Union
+from typing import Iterable
 
 from celery import Task
 from django.conf import settings
 from django.contrib.gis.db import models
-from django.db.models import Model
 from django.utils.translation import gettext_lazy as _
 
 

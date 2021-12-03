@@ -1,4 +1,3 @@
-from django.apps import apps
 from rgd.rest.mixins import BaseRestViewMixin
 from rgd.views import PermissionDetailView, PermissionListView, PermissionTemplateView
 from rgd_3d.urls import urlpatterns
