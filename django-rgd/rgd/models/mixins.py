@@ -72,3 +72,9 @@ class DetailViewMixin:
     """Interface for spatial entry detail view redirect."""
 
     detail_view_name: str = None
+
+
+class PermissionPathMixin:
+    """Dummy model class for migrations."""
+
+    ...
