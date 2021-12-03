@@ -8,7 +8,7 @@ from django.conf import settings
 from django.contrib.auth.backends import BaseBackend
 from django.contrib.auth.models import User
 from django.core.exceptions import PermissionDenied
-from django.db.models import Model, Q
+from django.db.models import Model, Q, QuerySet
 from django.db.models.fields.related import OneToOneRel, RelatedField
 from rest_framework import filters, permissions
 from rgd import models
