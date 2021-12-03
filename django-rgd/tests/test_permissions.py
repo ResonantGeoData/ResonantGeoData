@@ -59,19 +59,16 @@ def test_nonadmin_created_by_permissions(user, spatial_asset_a, spatial_asset_b)
     # Filter and make sure nothing returns
     q = filter_read_perm(user, models.SpatialEntry.objects.all())
     assert q.count() == 0
-    assert q.count() == 0
     # Update the `created_by` field and check that query works
     spatial_asset_a.files.update(created_by=user)
     spatial_asset_b.files.update(created_by=user)
     # NOTE: the ChecksumFileFactory sets the Collection by default
     q = filter_read_perm(user, models.SpatialEntry.objects.all())
     assert q.count() == 2
-    assert q.count() == 0
     # Update the `collection` field and check that query works
     spatial_asset_a.files.update(collection=None)
     spatial_asset_b.files.update(collection=None)
     q = filter_read_perm(user, models.SpatialEntry.objects.all())
-    assert q.count() == 2
     assert q.count() == 2
 
 
