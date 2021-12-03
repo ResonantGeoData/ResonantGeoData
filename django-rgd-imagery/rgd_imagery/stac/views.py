@@ -24,7 +24,9 @@ class OptimizedRasterMetaQuerysetMixin:
                 .prefetch_related(
                     Prefetch(
                         'processedimage_set',
-                        queryset=models.ProcessedImage.objects.prefetch_related('source_images'),
+                        queryset=models.ProcessedImage.objects.select_related(
+                            'processed_image'
+                        ).select_related('processed_image__file'),
                     )
                 )
                 .prefetch_related('bandmeta_set')
