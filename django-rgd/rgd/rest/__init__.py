@@ -1,8 +1,6 @@
-__all__ = ['download', 'CACHE_TIMEOUT']
+__all__ = ['CACHE_TIMEOUT']
 
 from django.conf import settings
-
-from . import download
 
 try:
     CACHE_TIMEOUT = settings.RGD_REST_CACHE_TIMEOUT
