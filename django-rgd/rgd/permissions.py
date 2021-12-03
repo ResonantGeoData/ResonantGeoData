@@ -6,6 +6,7 @@ from typing import Any, Deque, Iterator, Optional, Type, Union
 
 from django.conf import settings
 from django.contrib.auth.backends import BaseBackend
+from django.contrib.auth.models import User
 from django.core.exceptions import PermissionDenied
 from django.db.models import Model, Q
 from django.db.models.fields.related import OneToOneRel, RelatedField
@@ -129,6 +130,7 @@ def filter_perm(user, queryset, role):
     """
     # Called outside of view
     if user is None:
+        # TODO: I think this is used if a user isn't logged in and hits our endpoints which is a problem
         return queryset
     # Must be logged in
     if not user.is_active or user.is_anonymous:
@@ -164,19 +166,19 @@ def filter_read_perm(user, queryset):
     return filter_perm(user, queryset, models.CollectionPermission.READER)
 
 
-def filter_write_perm(user, queryset):
+def filter_write_perm(user: User, queryset: QuerySet):
     """Filter a queryset to what the user may edit."""
     return filter_perm(user, queryset, models.CollectionPermission.OWNER)
 
 
-def check_read_perm(user, obj):
+def check_read_perm(user: User, obj: Model):
     """Raise 'PermissionDenied' error if user does not have read permissions."""
     model = type(obj)
     if not filter_read_perm(user, model.objects.filter(pk=obj.pk)).exists():
         raise PermissionDenied
 
 
-def check_write_perm(user, obj):
+def check_write_perm(user: User, obj: Model):
     """Raise 'PermissionDenied' error if user does not have write permissions."""
     # Called outside of view
     model = type(obj)

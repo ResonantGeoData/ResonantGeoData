@@ -1,10 +1,13 @@
+from typing import List
+
 from django.contrib.gis import forms
 from django.contrib.gis.db.models.functions import GeometryDistance
 from django.contrib.gis.measure import D
 from django.core.validators import RegexValidator
 from django.db.models import F
 from django_filters import rest_framework as filters
-from rgd.models import SpatialEntry
+from rgd.models import Collection, SpatialEntry
+from rgd.permissions import filter_collections
 
 
 class GeometryFilter(filters.Filter):
@@ -74,6 +77,14 @@ class SpatialEntryFilter(filters.FilterSet):
         method='filter_time_of_day',
     )
 
+    collections = filters.ModelMultipleChoiceFilter(
+        help_text='One or more collections that the data might belong to.',
+        label='Collections',
+        method='filter_collections',
+        queryset=Collection.objects.all(),
+        field_name='files__collection',
+    )
+
     @property
     def _geometry(self):
         return self.form.cleaned_data['q']
@@ -137,6 +148,11 @@ class SpatialEntryFilter(filters.FilterSet):
                 queryset = queryset.filter(time_of_day__lte=value.stop)
         return queryset
 
+    def filter_collections(self, queryset, name, value: List[Collection]):
+        if value:
+            return filter_collections(queryset, value)
+        return queryset
+
     class Meta:
         model = SpatialEntry
         fields = [
@@ -147,4 +163,5 @@ class SpatialEntryFilter(filters.FilterSet):
             'acquired',
             'instrumentation',
             'time_of_day',
+            'collections',
         ]
