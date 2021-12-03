@@ -145,7 +145,6 @@ class SpatialEntryFilter(filters.FilterSet):
 
     def filter_collection(self, queryset, name, value):
         """Filter the queryset by the collection it belongs to."""
-        breakpoint()
         if value:
             conditions = Q()
             for path in get_paths(queryset.model, ChecksumFile):
