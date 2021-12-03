@@ -46,9 +46,7 @@ class RgdClient:
                         'Failed to retrieve API key; are your username and password correct?'
                     )
 
-        auth_header = f'Token {api_key}'
-
-        self.session = RgdClientSession(base_url=api_url, auth_header=auth_header)
+        self.session = RgdClientSession(base_url=api_url, auth_token=api_key)
         self.rgd = CorePlugin(clone_session(self.session))
 
     def clear_token(self):

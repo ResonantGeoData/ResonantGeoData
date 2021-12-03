@@ -10,9 +10,7 @@ from ._version import __version__
 
 
 class RgdClientSession(BaseUrlSession):
-    def __init__(
-        self, base_url: str, auth_header: Optional[str] = None, retries: Optional[int] = 5
-    ):
+    def __init__(self, base_url: str, auth_token: Optional[str] = None, retries: Optional[int] = 5):
         """
         Initialize a session with a Resonant GeoData server.
 
@@ -33,8 +31,10 @@ class RgdClientSession(BaseUrlSession):
             }
         )
 
-        if auth_header:
-            self.headers['Authorization'] = auth_header
+        if auth_token:
+            self.headers['Authorization'] = f'Token {auth_token}'
+
+        self.rgd_auth_token = auth_token
 
         retry = Retry(
             total=retries, status_forcelist=[429, 503], method_whitelist=['GET'], backoff_factor=1
@@ -55,11 +55,13 @@ def clone_session(session: RgdClientSession):
     """
     Clone an existing RgdClientSession.
 
-    This is necessary as simply calling `copy.deepcopy` won't suffice, due to BaseUrlSession
-    defining `base_url` as a class/static variable. Since copy.deepcopy doesn't copy class
-    variables, `base_url` is `None` in the copied instance.
+    This is necessary as simply calling `copy.deepcopy` won't suffice, due to
+    BaseUrlSession defining `base_url` and `rgd_auth_token` as a class/static
+    variables. Since copy.deepcopy doesn't copy class variables, `base_url` is
+    `None` in the copied instance.
     """
     new_session = copy.deepcopy(session)
     new_session.base_url = session.base_url
+    new_session.rgd_auth_token = session.rgd_auth_token
 
     return new_session

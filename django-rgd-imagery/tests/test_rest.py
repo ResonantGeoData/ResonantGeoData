@@ -1,6 +1,13 @@
+import time
+
 import pytest
+import requests
 from rest_framework import status
+from rest_framework.test import RequestsClient
+from rgd.datastore import datastore
 from rgd_imagery import models
+
+from . import factories
 
 
 @pytest.mark.django_db(transaction=True)
@@ -83,3 +90,30 @@ def test_create_and_download_cog(admin_api_client, geotiff_image_entry):
     pk = cog.pk
     response = admin_api_client.get(f'/api/image_process/{pk}')
     assert response.data
+
+
+@pytest.mark.django_db(transaction=True)
+def test_tiles_endpoint_with_signature(admin_api_client, live_server, settings):
+    image = factories.ImageFactory(
+        file__file__filename='paris_france_10.tiff',
+        file__file__from_path=datastore.fetch('paris_france_10.tiff'),
+    )
+    # Set the TTL to something short
+    settings.RGD_SIGNED_URL_TTL = 3  # seconds
+    # Generate a signature
+    response = admin_api_client.post('/api/signature')
+    params = response.data
+    # 15/16618/11252 - paris_france_10.tiff
+    url = f'{live_server.url}/api/image_process/imagery/{image.pk}/tiles/15/16618/11252.png?projection=EPSG:3857'
+    for k, v in params.items():
+        url += f'&{k}={v}'
+    # Use a client without authententication
+    client = RequestsClient()
+    response = client.get(url)
+    response.raise_for_status()
+    # Let the signature expire and assert that we get an accessed denied error
+    time.sleep(3)
+    response = client.get(url)
+    with pytest.raises(requests.HTTPError):
+        response.raise_for_status()
+    assert response.status_code == 401
