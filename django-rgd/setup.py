@@ -68,6 +68,7 @@ setup(
         'python-magic',
         'flower',
         'psutil',
+        'typing_extensions',
         # Production-only
         'django-s3-file-field[minio]',
     ],
