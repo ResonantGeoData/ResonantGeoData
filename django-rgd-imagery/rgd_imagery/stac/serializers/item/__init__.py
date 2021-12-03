@@ -25,14 +25,20 @@ class ItemSerializer(serializers.BaseSerializer):
         asset_eo_ext = EOExtension.ext(asset, add_if_missing=True)
         asset_eo_ext.bands = [
             band_utils.to_pystac(bandmeta)
-            for bandmeta in image.bandmeta_set.filter(
-                band_range__contained_by=(None, None),
-            )
+            # for bandmeta in image.bandmeta_set.filter(
+            #     band_range__contained_by=(None, None),
+            # )
+            for bandmeta in image.bandmeta_set.all()
+            if bandmeta.band_range
         ]
         item.add_asset(f'{asset_type}-{image.pk}', asset)
 
     def to_representation(self, instance: models.RasterMeta) -> dict:
-        collection = instance.parent_raster.image_set.images.first().file.collection
+        item_images = instance.parent_raster.image_set.images.all()
+        if item_images:
+            collection = item_images[0].file.collection
+        else:
+            collection = None
         collection_id = collection and str(collection.pk) or 'default'
         item = pystac.Item(
             id=str(instance.pk),
@@ -77,20 +83,19 @@ class ItemSerializer(serializers.BaseSerializer):
         item_eo_ext.cloud_cover = instance.cloud_cover
         # Add assets
         used_images = set()
-        for image in (
-            instance.parent_raster.image_set.images.exclude(pk__in=used_images)
-            .select_related('file__collection')
-            .all()
-        ):
-            used_images.add(image.pk)
-            self._add_image_to_item(item, image, asset_type='image')
-            for pim in image.processedimage_set.exclude(processed_image__in=used_images).all():
-                self._add_image_to_item(
-                    item,
-                    pim.processed_image,
-                    asset_type='processed-image',
-                    roles=('processed-data',),
-                )
+        for image in item_images:
+            if item not in used_images:
+                used_images.add(image)
+                self._add_image_to_item(item, image, asset_type='image')
+                for pim in image.processedimage_set.all():
+                    if pim.processed_image not in used_images:
+                        used_images.add(pim.processed_image)
+                        self._add_image_to_item(
+                            item,
+                            pim.processed_image,
+                            asset_type='processed-image',
+                            roles=('processed-data',),
+                        )
 
         for ancillary_file in instance.parent_raster.ancillary_files.all():
             asset = pystac.Asset(
