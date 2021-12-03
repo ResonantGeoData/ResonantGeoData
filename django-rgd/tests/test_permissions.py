@@ -2,7 +2,7 @@ from django.conf import settings
 import pytest
 from rest_framework.authtoken.views import ObtainAuthToken
 from rgd import models
-from rgd.permissions import filter_created_by_user, filter_read_perm, filter_write_perm
+from rgd.permissions import filter_read_perm, filter_write_perm
 from rgd.rest.mixins import BaseRestViewMixin
 from rgd.urls import urlpatterns
 from rgd.views import PermissionDetailView, PermissionListView, PermissionTemplateView
@@ -59,7 +59,6 @@ def test_nonadmin_created_by_permissions(user, spatial_asset_a, spatial_asset_b)
     # Filter and make sure nothing returns
     q = filter_read_perm(user, models.SpatialEntry.objects.all())
     assert q.count() == 0
-    q = filter_created_by_user(user, models.SpatialEntry.objects.all(), default_only=True)
     assert q.count() == 0
     # Update the `created_by` field and check that query works
     spatial_asset_a.files.update(created_by=user)
@@ -67,14 +66,12 @@ def test_nonadmin_created_by_permissions(user, spatial_asset_a, spatial_asset_b)
     # NOTE: the ChecksumFileFactory sets the Collection by default
     q = filter_read_perm(user, models.SpatialEntry.objects.all())
     assert q.count() == 2
-    q = filter_created_by_user(user, models.SpatialEntry.objects.all(), default_only=True)
     assert q.count() == 0
     # Update the `collection` field and check that query works
     spatial_asset_a.files.update(collection=None)
     spatial_asset_b.files.update(collection=None)
     q = filter_read_perm(user, models.SpatialEntry.objects.all())
     assert q.count() == 2
-    q = filter_created_by_user(user, models.SpatialEntry.objects.all(), default_only=True)
     assert q.count() == 2
 
 
