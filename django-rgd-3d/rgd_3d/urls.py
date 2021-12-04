@@ -14,4 +14,9 @@ urlpatterns = [
         views.Mesh3DDetailView.as_view(),
         name=models.Mesh3D.detail_view_name,
     ),
+    path(
+        'rgd_3d/tiles3d/<int:pk>/',
+        views.Tiles3DDetailView.as_view(),
+        name=models.Tiles3D.detail_view_name,
+    ),
 ] + router.urls
