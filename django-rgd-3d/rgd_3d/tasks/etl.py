@@ -1,10 +1,11 @@
 import os
 import tempfile
+from typing import Union
 
 from celery.utils.log import get_task_logger
 from rgd.models import ChecksumFile
 from rgd.utility import get_temp_dir
-from rgd_3d.models import Mesh3D
+from rgd_3d.models import Mesh3D, Tiles3D
 
 logger = get_task_logger(__name__)
 
@@ -54,7 +55,7 @@ def _get_readers():
     return methods
 
 
-def read_mesh_3d_file(mesh_3d):
+def read_mesh_3d_file(mesh_3d: Union[Mesh3D, int]):
     """Read a Mesh3D object and populate the vtp_data field."""
     if not isinstance(mesh_3d, Mesh3D):
         mesh_3d = Mesh3D.objects.get(pk=mesh_3d)
@@ -78,3 +79,9 @@ def read_mesh_3d_file(mesh_3d):
             'vtp_data',
         ]
     )
+
+
+def read_3d_tiles_tileset_json(tiles_3d: Union[Tiles3D, int]):
+    if not isinstance(tiles_3d, Tiles3D):
+        tiles_3d = Tiles3D.objects.get(pk=tiles_3d)
+    # TODO: perform ETL of 3D tiles and populate Tiles3DMeta with it

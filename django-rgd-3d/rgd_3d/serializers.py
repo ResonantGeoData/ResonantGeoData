@@ -29,3 +29,11 @@ class Mesh3DDataSerializer(Mesh3DSerializer):
                 base64_content = base64_content.decode().replace('\n', '')
         ret['vtp_data'] = base64_content
         return ret
+
+
+class Tiles3DSerializer(serializers.ModelSerializer):
+    json_file = ChecksumFileSerializer()
+
+    class Meta:
+        model = models.Tiles3D
+        fields = '__all__'
