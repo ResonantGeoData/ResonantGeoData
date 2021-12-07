@@ -36,7 +36,7 @@ class Tiles3DMeta(TimeStampedModel, SpatialEntry, PermissionPathMixin):
 
     @property
     def name(self):
-        return self.source.file.name
+        return self.source.json_file.name
 
     permissions_paths = [('source', Tiles3D)]
     detail_view_name = 'tiles-3d-detail'
