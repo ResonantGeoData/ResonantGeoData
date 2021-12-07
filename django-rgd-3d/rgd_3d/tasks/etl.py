@@ -1,3 +1,4 @@
+import json
 import os
 import tempfile
 from typing import Union
@@ -5,7 +6,7 @@ from typing import Union
 from celery.utils.log import get_task_logger
 from rgd.models import ChecksumFile
 from rgd.utility import get_temp_dir
-from rgd_3d.models import Mesh3D, Tiles3D
+from rgd_3d.models import Mesh3D, Tiles3D, Tiles3DMeta
 
 logger = get_task_logger(__name__)
 
@@ -84,4 +85,10 @@ def read_mesh_3d_file(mesh_3d: Union[Mesh3D, int]):
 def read_3d_tiles_tileset_json(tiles_3d: Union[Tiles3D, int]):
     if not isinstance(tiles_3d, Tiles3D):
         tiles_3d = Tiles3D.objects.get(pk=tiles_3d)
-    # TODO: perform ETL of 3D tiles and populate Tiles3DMeta with it
+    with tiles_3d.json_file.yield_local_path() as path:
+        with open(path, 'r') as f:
+            tileset_json = json.load(f)
+    try:
+        spatial_reference = tileset_json['root']['boundingVolume']['region']
+    except KeyError:
+        return
