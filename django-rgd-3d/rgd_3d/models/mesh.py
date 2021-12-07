@@ -2,11 +2,11 @@ from django.contrib.gis.db import models
 from django.contrib.postgres import fields
 from django_extensions.db.models import TimeStampedModel
 from rgd.models import ChecksumFile, SpatialEntry
-from rgd.models.mixins import DetailViewMixin, PermissionPathMixin, TaskEventMixin
+from rgd.models.mixins import DetailViewMixin, TaskEventMixin
 from rgd_3d.tasks import jobs
 
 
-class Mesh3D(TimeStampedModel, TaskEventMixin, PermissionPathMixin, DetailViewMixin):
+class Mesh3D(TimeStampedModel, TaskEventMixin, DetailViewMixin):
     """Container for point cloud file."""
 
     name = models.CharField(max_length=1000, blank=True)
@@ -30,11 +30,10 @@ class Mesh3D(TimeStampedModel, TaskEventMixin, PermissionPathMixin, DetailViewMi
     data_link_vtp.allow_tags = True
 
     task_funcs = (jobs.task_read_mesh_3d_file,)
-    permissions_paths = [('file', ChecksumFile), ('vtp_data', ChecksumFile)]
     detail_view_name = 'mesh-3d-detail'
 
 
-class Mesh3DSpatial(TimeStampedModel, SpatialEntry, PermissionPathMixin):
+class Mesh3DSpatial(TimeStampedModel, SpatialEntry):
     """Optionally register a Mesh3D as a SpatialEntry."""
 
     source = models.OneToOneField(Mesh3D, on_delete=models.CASCADE)
@@ -47,6 +46,5 @@ class Mesh3DSpatial(TimeStampedModel, SpatialEntry, PermissionPathMixin):
     def name(self):
         return self.source.file.name
 
-    permissions_paths = [('source', Mesh3D)]
     detail_view_name = 'mesh-3d-detail'
     detail_view_pk = 'source__pk'

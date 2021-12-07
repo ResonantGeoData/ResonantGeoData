@@ -5,12 +5,11 @@ from django.contrib.gis.db import models
 from django.core.exceptions import ObjectDoesNotExist
 from django_extensions.db.models import TimeStampedModel
 import numpy as np
-from rgd.models.mixins import PermissionPathMixin
 
 from .base import Image
 
 
-class Annotation(TimeStampedModel, PermissionPathMixin):
+class Annotation(TimeStampedModel):
     """Image annotation/label for ``Image``."""
 
     image = models.ForeignKey(Image, on_delete=models.CASCADE)
@@ -66,8 +65,6 @@ class Segmentation(models.Model):
         except ObjectDoesNotExist:
             pass
         return 'Oultine/BBox'
-
-    permissions_paths = [('annotation', Annotation)]
 
 
 class PolygonSegmentation(Segmentation):

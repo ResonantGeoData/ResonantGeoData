@@ -15,10 +15,18 @@ class UserFactory(factory.django.DjangoModelFactory):
     last_name = factory.Faker('last_name')
 
 
+class CollectionFactory(factory.django.DjangoModelFactory):
+    class Meta:
+        model = models.Collection
+
+    name = factory.Sequence(lambda n: f'collection_{n}')
+
+
 class ChecksumFileFactory(factory.django.DjangoModelFactory):
     class Meta:
         model = models.ChecksumFile
 
+    collection = factory.SubFactory(CollectionFactory)
     file = factory.django.FileField(from_path=datastore.fetch('stars.png'))
 
     # If we have an on_commit or post_save method that modifies the model, we

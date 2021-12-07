@@ -3,11 +3,11 @@ from django.contrib.gis.db import models
 from django.contrib.postgres.fields import DecimalRangeField
 from django_extensions.db.models import TimeStampedModel
 from rgd.models import ChecksumFile, SpatialEntry
-from rgd.models.mixins import DetailViewMixin, PermissionPathMixin, TaskEventMixin
+from rgd.models.mixins import DetailViewMixin, TaskEventMixin
 from rgd_imagery.tasks import jobs
 
 
-class Image(TimeStampedModel, TaskEventMixin, PermissionPathMixin):
+class Image(TimeStampedModel, TaskEventMixin):
     """This is a standalone DB entry for image files.
 
     This points to a single image file in an S3 file field.
@@ -18,7 +18,6 @@ class Image(TimeStampedModel, TaskEventMixin, PermissionPathMixin):
 
     """
 
-    permissions_paths = [('file', ChecksumFile)]
     task_funcs = (jobs.task_load_image,)
     file = models.ForeignKey(ChecksumFile, on_delete=models.CASCADE, related_name='+')
 
@@ -44,10 +43,8 @@ class Image(TimeStampedModel, TaskEventMixin, PermissionPathMixin):
         return self.get_processed_images(self)
 
 
-class ImageMeta(TimeStampedModel, PermissionPathMixin):
+class ImageMeta(TimeStampedModel):
     """Single image entry, tracks the original file."""
-
-    permissions_paths = [('parent_image', Image)]
 
     parent_image = models.OneToOneField(Image, on_delete=models.CASCADE)
     driver = models.CharField(max_length=100)
@@ -55,10 +52,9 @@ class ImageMeta(TimeStampedModel, PermissionPathMixin):
     width = models.PositiveIntegerField()
 
 
-class BandMeta(TimeStampedModel, PermissionPathMixin):
+class BandMeta(TimeStampedModel):
     """A basic container to keep track of useful band info."""
 
-    permissions_paths = [('parent_image', Image)]
     parent_image = models.ForeignKey(Image, on_delete=models.CASCADE)
     band_number = models.IntegerField()
     description = models.TextField(
@@ -77,10 +73,8 @@ class BandMeta(TimeStampedModel, PermissionPathMixin):
     )
 
 
-class ImageSet(TimeStampedModel, PermissionPathMixin):
+class ImageSet(TimeStampedModel):
     """Container for many images."""
-
-    permissions_paths = [('images', Image)]
 
     name = models.CharField(max_length=1000, blank=True)
     description = models.TextField(null=True, blank=True)
@@ -129,10 +123,9 @@ class ImageSet(TimeStampedModel, PermissionPathMixin):
     detail_view_name = 'image-set-detail'
 
 
-class ImageSetSpatial(TimeStampedModel, SpatialEntry, PermissionPathMixin, DetailViewMixin):
+class ImageSetSpatial(TimeStampedModel, SpatialEntry, DetailViewMixin):
     """Arbitrary register an ImageSet to a location."""
 
-    permissions_paths = [('image_set', ImageSet)]
     detail_view_name = 'image-set-detail'
     detail_view_pk = 'image_set__pk'
 

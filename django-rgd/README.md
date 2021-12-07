@@ -84,13 +84,11 @@ new model will represent a collection of files with some spatial reference.
 ```py
 from django_extensions.db.models import TimeStampedModel
 from rgd.models import ChecksumFile, SpatialEntry
-from rgd.models.mixins import PermissionPathMixin
 
 
-class SpatialAsset(SpatialEntry, TimeStampedModel, PermissionPathMixin):
+class SpatialAsset(SpatialEntry, TimeStampedModel):
     """Any spatially referenced file set."""
     files = models.ManyToManyField(ChecksumFile, related_name='+')
-    permissions_paths = ['files__collection__collection_permissions']
 ```
 
 Just like that, you now have a way to associate a set of files to any geospatial

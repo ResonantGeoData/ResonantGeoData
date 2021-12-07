@@ -1,84 +1,136 @@
-from typing import List
+from collections import deque
+import dataclasses
+from dataclasses import dataclass
+from itertools import chain
+from typing import Any, Deque, Iterator, Optional, Type, Union
 
-from django.apps import apps
 from django.conf import settings
 from django.contrib.auth.backends import BaseBackend
+from django.contrib.auth.models import User
 from django.core.exceptions import PermissionDenied
-from django.db.models import Model, Q
+from django.db.models import Model, Q, QuerySet
+from django.db.models.fields.related import OneToOneRel, RelatedField
 from rest_framework import filters, permissions
 from rgd import models
+from typing_extensions import TypeGuard
+
+PathField = Union[RelatedField, OneToOneRel]
 
 
-# get django model via name, regardless of app
-def get_model(model_name: str):
-    for m in apps.get_models():
-        if m.__name__ == model_name:
-            return m
+def is_path_field(field: Any) -> TypeGuard[PathField]:
+    """Check if a `field` is a `PathField`."""
+    is_parent = isinstance(field, OneToOneRel) and field.parent_link
+    is_forward = isinstance(field, RelatedField)
+    return is_parent or is_forward
 
 
-def get_subclasses(model: Model):
-    """Retrieve all model subclasses for the provided class excluding the model class itself."""
-    return set(
-        [
-            m
-            for m in apps.get_models()
-            if issubclass(m, model)
-            and m != model
-            and issubclass(m, models.mixins.PermissionPathMixin)
-        ]
-    )
+def get_related_fields(model: Type[Model]) -> Iterator[PathField]:
+    """Get all `PathField`s for a `model`."""
+    for field in model._meta.get_fields():
+        if is_path_field(field):
+            yield field
 
 
-def get_permissions_paths(model: Model, target_model: Model) -> List[str]:
-    """Get all possible paths to the 'target_model'.
+def get_related_field(model: Type[Model], field_name: str) -> PathField:
+    """Get a `PathField` for a `model` by its field name."""
+    field = model._meta.get_field(field_name)
+    if is_path_field(field):
+        return field
+    raise ValueError(f'{field} is not a `PathField`')
 
-    Produces relationships represented as 'dunder's ('__').
+
+@dataclass
+class IdentityPathField:
+    """A self referential field used to represent a root node."""
+
+    model: Type[Model]
+
+    @property
+    def related_model(self) -> Type[Model]:
+        return self.model
+
+
+@dataclass
+class Path:
+    """Singly linked list of `PathField`s."""
+
+    field: Union[PathField, IdentityPathField]
+    previous: Optional['Path'] = dataclasses.field(default=None, init=False)
+
+    def traverse(self) -> Iterator['Path']:
+        """Iterate backwards over the linked paths."""
+        path: Optional['Path'] = self
+        while path is not None:
+            yield path
+            path = path.previous
+
+    def has_visited(self, model: Type[Model]) -> bool:
+        """Return whether this path has visited the given `model`."""
+        return any(
+            path.field.related_model == model or path.field.model == model
+            for path in self.traverse()
+        )
+
+    def get_frontier(self) -> Iterator['Path']:
+        """Iterate over the paths in this path's frontier."""
+        for field in get_related_fields(self.field.related_model):
+            if not self.has_visited(field.related_model):
+                path = Path(field)
+                path.previous = self
+                yield path
+
+    def q(self, **kwargs: Any) -> Q:
+        """Return a `Q` object for this path.
+
+        Can be any keyword arguments i.e. `user__isnull=True`.
+        """
+        conditions = Q()
+        field_names = reversed(
+            tuple(
+                path.field.name
+                for path in self.traverse()
+                if not isinstance(path.field, IdentityPathField)
+            )
+        )
+        for key, value in kwargs.items():
+            dunder = '__'.join(chain(field_names, (key,)))
+            conditions &= Q(**{dunder: value})
+        return conditions
+
+
+def get_paths(source: Type[Model], target: Type[Model]) -> Iterator[Path]:
+    """Get all paths from a `source` model to a `target` model.
+
+    Cycles are prevented by not following models that have already been
+    visited. This means that recursive relationships will only be followed
+    to a depth of 1.
+
+    Only "forward" relationships are followed. This includes
+    parent -> child relationships for inherited models.
+
+    This performs a breadth-first search, so shorter paths will be
+    returned first.
     """
-    if model == target_model:
-        return ['']
+    queue: Deque[Path] = deque()
+    queue.append(Path(IdentityPathField(source)))
 
-    if model == models.SpatialEntry:
-        submodels = get_subclasses(model)
-        paths = []
-        for sub in submodels:
-            # TODO: there should be a cleaner way to do this.
-            model_name = sub.__name__.lower()
-            [paths.append(f'{model_name}__{s}') for s in get_permissions_paths(sub, target_model)]
-        return paths
-
-    if not issubclass(model, models.mixins.PermissionPathMixin):
-        raise TypeError(f'{type(model)} does not have the `PermissionPathMixin` interface.')
-
-    paths = []
-    for path in model.permissions_paths:
-        field, next_model = path
-
-        if type(next_model) == str:
-
-            # grab model via class name
-            next_model = get_model(next_model)
-
-        # sanity check
-        if not issubclass(next_model, Model):
-            raise TypeError('Failed to extract next_model in permissions_paths')
-
-        if next_model == target_model:
-            paths.append(field)
-        else:
-            next_path = get_permissions_paths(next_model, target_model)
-            for n in next_path:
-                paths.append(f'{field}__{n}')
-
-    return paths
+    while queue:
+        path = queue.pop()
+        if path.field.related_model == target:
+            yield path
+            continue
+        frontier = path.get_frontier()
+        queue.extendleft(frontier)
 
 
 def filter_perm(user, queryset, role):
-    """Filter a queryset."""
-    if queryset.model == models.SpatialEntry:
-        # Return subclasses of SpatialEntry
-        queryset = queryset.select_subclasses()
+    """Filter a queryset.
+
+    Main authorization business logic goes here.
+    """
     # Called outside of view
     if user is None:
+        # TODO: I think this is used if a user isn't logged in and hits our endpoints which is a problem
         return queryset
     # Must be logged in
     if not user.is_active or user.is_anonymous:
@@ -87,22 +139,25 @@ def filter_perm(user, queryset, role):
     if user.is_active and user.is_superuser:
         return queryset
     # Check permissions
-    subquery = queryset.none()
-    # Now grab resources created by this user - only file-based models
-    if not issubclass(queryset.model, (models.CollectionPermission, models.Collection)):
-        for path in get_permissions_paths(queryset.model, models.ChecksumFile):
-            created_by_path = (path + '__' if path != '' else path) + 'created_by'
-            condition = Q(**{created_by_path: user})
-            subquery = subquery.union(queryset.filter(condition).values('pk'))
-    for path in get_permissions_paths(queryset.model, models.CollectionPermission):
-        # `path` can be an empty string (meaning queryset is `CollectionPermission`)
-        user_path = (path + '__' if path != '' else path) + 'user'
-        role_path = (path + '__' if path != '' else path) + 'role'
-        condition = Q(**{user_path: user}) & Q(**{role_path + '__gte': role})
-        if getattr(settings, 'RGD_GLOBAL_READ_ACCESS', False):
-            condition |= Q(**{path + '__isnull': True})
-        subquery = subquery.union(queryset.filter(condition).values('pk'))
-    return queryset.filter(pk__in=subquery)
+    conditions = Q()
+    model = queryset.model
+    for path in get_paths(model, models.ChecksumFile):
+        # A user can read/write a file if they are the creator
+        is_creator = path.q(created_by=user)
+        conditions |= is_creator
+        if (
+            getattr(settings, 'RGD_GLOBAL_READ_ACCESS', False)
+            and role == models.CollectionPermission.READER
+        ):
+            # A user can read any file by default
+            has_no_owner = path.q(created_by__isnull=True)
+            conditions |= has_no_owner
+    for path in get_paths(model, models.Collection):
+        # Check collection permissions
+        has_permission = path.q(collection_permissions__user=user)
+        has_role_level = path.q(collection_permissions__role__gte=role)
+        conditions |= has_permission & has_role_level
+    return queryset.filter(conditions).distinct()
 
 
 def filter_read_perm(user, queryset):
@@ -110,19 +165,19 @@ def filter_read_perm(user, queryset):
     return filter_perm(user, queryset, models.CollectionPermission.READER)
 
 
-def filter_write_perm(user, queryset):
+def filter_write_perm(user: User, queryset: QuerySet):
     """Filter a queryset to what the user may edit."""
     return filter_perm(user, queryset, models.CollectionPermission.OWNER)
 
 
-def check_read_perm(user, obj):
+def check_read_perm(user: User, obj: Model):
     """Raise 'PermissionDenied' error if user does not have read permissions."""
     model = type(obj)
     if not filter_read_perm(user, model.objects.filter(pk=obj.pk)).exists():
         raise PermissionDenied
 
 
-def check_write_perm(user, obj):
+def check_write_perm(user: User, obj: Model):
     """Raise 'PermissionDenied' error if user does not have write permissions."""
     # Called outside of view
     model = type(obj)

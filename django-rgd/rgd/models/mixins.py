@@ -1,10 +1,9 @@
 """Mixin helper classes."""
-from typing import Iterable, List, Tuple, Union
+from typing import Iterable
 
 from celery import Task
 from django.conf import settings
 from django.contrib.gis.db import models
-from django.db.models import Model
 from django.utils.translation import gettext_lazy as _
 
 
@@ -68,20 +67,13 @@ class TaskEventMixin(models.Model):
         self._run_tasks()
 
 
-class PermissionPathMixin:
-    """Interface for permission querying.
-
-    Get all possible paths to the 'CollectionPermission' model under the ``permissions_paths`` field.
-
-    Relationships are represented as tuples of the form ('field', <Model>)
-    where 'field' is the field on the current model that points to a <Model>
-    and <Model> is the next model to fetch the remaining path from.
-    """
-
-    permissions_paths: List[Tuple[str, Union[str, Model]]] = []
-
-
 class DetailViewMixin:
     """Interface for spatial entry detail view redirect."""
 
     detail_view_name: str = None
+
+
+class PermissionPathMixin:
+    """Dummy model class for migrations."""
+
+    ...

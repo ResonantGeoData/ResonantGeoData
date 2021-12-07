@@ -6,7 +6,6 @@ from model_utils.managers import InheritanceManager
 
 from .constants import DB_SRID
 from .file import ChecksumFile
-from .mixins import PermissionPathMixin
 
 
 class SpatialEntry(models.Model):
@@ -62,7 +61,7 @@ class WhitelistedEmail(models.Model):
     email = models.EmailField()
 
 
-class SpatialAsset(SpatialEntry, TimeStampedModel, PermissionPathMixin):
+class SpatialAsset(SpatialEntry, TimeStampedModel):
     """Any spatially referenced file set.
 
     This can be any collection of files that have a spatial reference and are
@@ -71,7 +70,5 @@ class SpatialAsset(SpatialEntry, TimeStampedModel, PermissionPathMixin):
     have a georeference.
 
     """
-
-    permissions_paths = [('files', ChecksumFile)]
 
     files = models.ManyToManyField(ChecksumFile, related_name='+')
