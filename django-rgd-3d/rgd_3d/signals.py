@@ -15,5 +15,4 @@ def _post_save_mesh_3d_file(sender: ModelBase, instance: models.Mesh3D, *args, *
 @receiver(post_save, sender=models.Tiles3D)
 @skip_signal()
 def _post_save_tiles_3d_file(sender: ModelBase, instance: models.Tiles3D, *args, **kwargs):
-    print(type(instance))
     transaction.on_commit(lambda: instance._post_save_event_task(*args, **kwargs))
