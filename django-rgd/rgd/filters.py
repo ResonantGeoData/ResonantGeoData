@@ -2,9 +2,10 @@ from django.contrib.gis import forms
 from django.contrib.gis.db.models.functions import GeometryDistance
 from django.contrib.gis.measure import D
 from django.core.validators import RegexValidator
-from django.db.models import F
+from django.db.models import F, Q
 from django_filters import rest_framework as filters
-from rgd.models import SpatialEntry
+from rgd.models import ChecksumFile, Collection, SpatialEntry
+from rgd.permissions import get_paths
 
 
 class GeometryFilter(filters.Filter):
@@ -67,11 +68,16 @@ class SpatialEntryFilter(filters.FilterSet):
         label='Instrumentation',
         lookup_expr='icontains',
     )
-
     time_of_day = filters.TimeRangeFilter(
         help_text='The minimum/maximum times during the day the records were acquired.',
         label='Time of Day',
         method='filter_time_of_day',
+    )
+    collections = filters.ModelMultipleChoiceFilter(
+        help_text='One or more collections that the data might belong to.',
+        label='Collections',
+        method='filter_collection',
+        queryset=Collection.objects.all(),
     )
 
     @property
@@ -137,6 +143,15 @@ class SpatialEntryFilter(filters.FilterSet):
                 queryset = queryset.filter(time_of_day__lte=value.stop)
         return queryset
 
+    def filter_collection(self, queryset, name, value):
+        """Filter the queryset by the collection it belongs to."""
+        if value:
+            conditions = Q()
+            for path in get_paths(queryset.model, ChecksumFile):
+                conditions |= path.q(collection__in=value)
+            return queryset.filter(conditions).distinct()
+        return queryset
+
     class Meta:
         model = SpatialEntry
         fields = [
@@ -147,4 +162,5 @@ class SpatialEntryFilter(filters.FilterSet):
             'acquired',
             'instrumentation',
             'time_of_day',
+            'collections',
         ]

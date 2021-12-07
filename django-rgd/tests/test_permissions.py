@@ -56,13 +56,19 @@ def test_nonadmin_user_permissions(user, spatial_asset_a, spatial_asset_b):
 @pytest.mark.django_db(transaction=True)
 def test_nonadmin_created_by_permissions(user, spatial_asset_a, spatial_asset_b):
     # Filter and make sure nothing returns
-    basic_q = filter_read_perm(user, models.SpatialEntry.objects.all())
-    assert basic_q.count() == 0
+    q = filter_read_perm(user, models.SpatialEntry.objects.all())
+    assert q.count() == 0
     # Update the `created_by` field and check that query works
     spatial_asset_a.files.update(created_by=user)
     spatial_asset_b.files.update(created_by=user)
-    basic_q = filter_read_perm(user, models.SpatialEntry.objects.all())
-    assert basic_q.count() == 2
+    # NOTE: the ChecksumFileFactory sets the Collection by default
+    q = filter_read_perm(user, models.SpatialEntry.objects.all())
+    assert q.count() == 2
+    # Update the `collection` field and check that query works
+    spatial_asset_a.files.update(collection=None)
+    spatial_asset_b.files.update(collection=None)
+    q = filter_read_perm(user, models.SpatialEntry.objects.all())
+    assert q.count() == 2
 
 
 def test_urls():

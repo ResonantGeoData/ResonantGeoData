@@ -6,8 +6,9 @@ from typing import Any, Deque, Iterator, Optional, Type, Union
 
 from django.conf import settings
 from django.contrib.auth.backends import BaseBackend
+from django.contrib.auth.models import User
 from django.core.exceptions import PermissionDenied
-from django.db.models import Model, Q
+from django.db.models import Model, Q, QuerySet
 from django.db.models.fields.related import OneToOneRel, RelatedField
 from rest_framework import filters, permissions
 from rgd import models
@@ -129,6 +130,7 @@ def filter_perm(user, queryset, role):
     """
     # Called outside of view
     if user is None:
+        # TODO: I think this is used if a user isn't logged in and hits our endpoints which is a problem
         return queryset
     # Must be logged in
     if not user.is_active or user.is_anonymous:
@@ -147,10 +149,9 @@ def filter_perm(user, queryset, role):
             getattr(settings, 'RGD_GLOBAL_READ_ACCESS', False)
             and role == models.CollectionPermission.READER
         ):
-            # A user can read a file by default if it is not in a collection
-            is_not_in_collection = path.q(collection__isnull=True)
+            # A user can read any file by default
             has_no_owner = path.q(created_by__isnull=True)
-            conditions |= is_not_in_collection & has_no_owner
+            conditions |= has_no_owner
     for path in get_paths(model, models.Collection):
         # Check collection permissions
         has_permission = path.q(collection_permissions__user=user)
@@ -164,19 +165,19 @@ def filter_read_perm(user, queryset):
     return filter_perm(user, queryset, models.CollectionPermission.READER)
 
 
-def filter_write_perm(user, queryset):
+def filter_write_perm(user: User, queryset: QuerySet):
     """Filter a queryset to what the user may edit."""
     return filter_perm(user, queryset, models.CollectionPermission.OWNER)
 
 
-def check_read_perm(user, obj):
+def check_read_perm(user: User, obj: Model):
     """Raise 'PermissionDenied' error if user does not have read permissions."""
     model = type(obj)
     if not filter_read_perm(user, model.objects.filter(pk=obj.pk)).exists():
         raise PermissionDenied
 
 
-def check_write_perm(user, obj):
+def check_write_perm(user: User, obj: Model):
     """Raise 'PermissionDenied' error if user does not have write permissions."""
     # Called outside of view
     model = type(obj)

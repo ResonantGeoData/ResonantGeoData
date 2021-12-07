@@ -113,4 +113,54 @@
     </div>
   </div>
 
+
+  <div class="column is-full field mb-0">
+    <div class="field-label is-normal">
+      <label class="label">Collections</label>
+    </div>
+    <div class="field-body">
+      <div class="field">
+        <div class="control">
+          <select name="collections" id="collections" multiple>
+          </select>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const collectionsSelector = document.getElementById('collections');
+
+    async function updateCollectionsDropdown() {
+      const collections = await fetch(
+        `${host}/api/rgd/collection`
+      ).then(response => response.json());
+
+      collections.results.forEach(({ id, name }) => {
+        const opt = document.createElement('option');
+        opt.value = id;
+        opt.innerHTML = `${name} (${id})`;
+        collectionsSelector.appendChild(opt);
+      });
+    }
+
+    $("document").ready(async () => {
+      // populate collections dropdown
+      await updateCollectionsDropdown();
+
+      // Automatically select the collections field based on previously submitted form.
+      // The value is converted to an Array from a Set to avoid having nothing on the
+      // right-hand side of the equal sign when no collections are selected.
+      const selectedCollections = Array.from(new Set({% for key, value in request.GET.lists %}
+        {% if key == 'collections' %}
+          {{ value|safe }}
+        {% endif %}
+      {% endfor %}));
+
+      if (selectedCollections.length > 0) {
+        $("#collections").val(selectedCollections);
+      }
+    });
+  </script>
+
 {% endblock %}

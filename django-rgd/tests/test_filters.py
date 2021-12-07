@@ -70,3 +70,14 @@ def test_q_time(spatial_asset_a):
     assert filterset.is_valid()
     qs = filterset.filter_queryset(models.SpatialEntry.objects.all())
     assert qs.count() == 0
+
+
+@pytest.mark.django_db(transaction=True)
+def test_collection(spatial_asset_a):
+    filterset = SpatialEntryFilter(
+        data={'collections': [spatial_asset_a.files.first().collection.pk]}
+    )
+    assert filterset.is_valid()
+    qs = filterset.filter_queryset(models.SpatialEntry.objects.all())
+    assert qs.count() == 1
+    assert spatial_asset_a.spatial_id == qs.first().spatial_id
