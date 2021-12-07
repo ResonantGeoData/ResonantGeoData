@@ -139,25 +139,30 @@ def filter_perm(user, queryset, role):
     if user.is_active and user.is_superuser:
         return queryset
     # Check permissions
-    conditions = Q()
+    conditions = []
     model = queryset.model
     for path in get_paths(model, models.ChecksumFile):
         # A user can read/write a file if they are the creator
         is_creator = path.q(created_by=user)
-        conditions |= is_creator
+        conditions.append(is_creator)
         if (
             getattr(settings, 'RGD_GLOBAL_READ_ACCESS', False)
             and role == models.CollectionPermission.READER
         ):
             # A user can read any file by default
             has_no_owner = path.q(created_by__isnull=True)
-            conditions |= has_no_owner
+            conditions.append(has_no_owner)
     for path in get_paths(model, models.Collection):
         # Check collection permissions
         has_permission = path.q(collection_permissions__user=user)
         has_role_level = path.q(collection_permissions__role__gte=role)
-        conditions |= has_permission & has_role_level
-    return queryset.filter(conditions).distinct()
+        conditions.append(has_permission & has_role_level)
+    whitelist = (
+        queryset.none()
+        .union(*(queryset.filter(condition) for condition in conditions), all=True)
+        .values('pk')
+    )
+    return queryset.filter(pk__in=whitelist)
 
 
 def filter_read_perm(user, queryset):
