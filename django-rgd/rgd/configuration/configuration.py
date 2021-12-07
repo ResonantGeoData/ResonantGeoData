@@ -46,6 +46,7 @@ class MemachedMixin(ConfigMixin):
     MEMCACHED_USERNAME = values.Value(default=None)
     MEMCACHED_PASSWORD = values.Value(default=None)
     MEMCACHED_BINARY = values.Value(default=True)
+    SESSION_ENGINE = 'django.contrib.sessions.backends.cached_db'
 
     @classmethod
     def post_setup(cls):
