@@ -44,3 +44,9 @@ def test_eo_serialize(sample_raster_url):
                 assert 'common_name' in band or (
                     'center_wavelength' in band and 'full_width_half_max' in band
                 )
+
+
+@pytest.mark.django_db(transaction=True)
+def test_optimized_query(admin_api_client, sample_raster_url, django_assert_num_queries):
+    with django_assert_num_queries(6):
+        admin_api_client.get('/api/stac/collection/default/items')
