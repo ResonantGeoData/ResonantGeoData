@@ -9,6 +9,8 @@ from rgd.models import ChecksumFile
 from rgd.models.transform import transform_geometry
 from rgd.utility import get_or_create_no_commit, get_temp_dir
 from rgd_3d.models import Mesh3D, Tiles3D, Tiles3DMeta
+from shapely import affinity
+from shapely.geometry import Polygon as ShapelyPolygon
 
 logger = get_task_logger(__name__)
 
@@ -90,21 +92,22 @@ def read_3d_tiles_tileset_json(tiles_3d: Union[Tiles3D, int]):
     with tiles_3d.json_file.yield_local_path() as path:
         with open(path, 'r') as f:
             tileset_json = json.load(f)
+
     tiles_3d_meta, created = get_or_create_no_commit(Tiles3DMeta, source=tiles_3d)
 
-    # 3D tiles documentation states that these are always in EPSG:4929
     volume = tileset_json['root']['boundingVolume']
-    logger.info(volume)
+    logger.debug(f'3D tiles bounding volume: {volume}')
+
     if 'region' in volume:
         xmin, ymin, xmax, ymax, _, _ = volume['region']
     elif 'box' in volume:
-        # NOTE: for the oriented bounding box, use that as the `footprint` field
         b = volume['box']
         center, x, y = b[0:3], b[3:6], b[6:9]
         xmin = min(center[0], x[0], y[0])
         xmax = max(center[0], x[0], y[0])
         ymin = min(center[1], x[1], y[1])
         ymax = max(center[1], x[1], y[1])
+        # TODO: for the oriented bounding box, use it as the `footprint` field
     elif 'sphere' in volume:
         raise NotImplementedError
     else:
@@ -117,8 +120,20 @@ def read_3d_tiles_tileset_json(tiles_3d: Union[Tiles3D, int]):
         (xmin, ymin),
         (xmin, ymax),  # Close the loop
     ]
-    tiles_3d_meta.outline = transform_geometry(Polygon(coords), 'EPSG:4929')
-    if not tiles_3d_meta.footprint:
-        # Default to footprint = outline
-        tiles_3d_meta.footprint = tiles_3d_meta.outline
+
+    if 'transform' in tileset_json['root']:
+        # Apply transform if required
+        # TODO: this isn't correct.... having trouble debugging the transform
+        transform = tileset_json['root']['transform'][:-4]  # ignore last 4 (z component)
+        logger.info(f'Bounding volume transform: {transform}')
+        trans = affinity.affine_transform(ShapelyPolygon(coords), transform)
+        outline = Polygon(list(trans.exterior.coords))
+        logger.info(list(trans.exterior.coords))
+    else:
+        # 3D tiles documentation states that these are always in EPSG:4929
+        outline = transform_geometry(Polygon(coords), 'EPSG:4929')
+
+    tiles_3d_meta.outline = outline
+    tiles_3d_meta.footprint = outline  # TODO: handle oriented bounding boxes
+
     tiles_3d_meta.save()
