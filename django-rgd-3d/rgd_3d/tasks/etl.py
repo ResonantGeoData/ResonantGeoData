@@ -4,8 +4,10 @@ import tempfile
 from typing import Union
 
 from celery.utils.log import get_task_logger
+from django.contrib.gis.geos import Polygon
 from rgd.models import ChecksumFile
-from rgd.utility import get_temp_dir
+from rgd.models.transform import transform_geometry
+from rgd.utility import get_or_create_no_commit, get_temp_dir
 from rgd_3d.models import Mesh3D, Tiles3D, Tiles3DMeta
 
 logger = get_task_logger(__name__)
@@ -88,7 +90,35 @@ def read_3d_tiles_tileset_json(tiles_3d: Union[Tiles3D, int]):
     with tiles_3d.json_file.yield_local_path() as path:
         with open(path, 'r') as f:
             tileset_json = json.load(f)
-    try:
-        spatial_reference = tileset_json['root']['boundingVolume']['region']
-    except KeyError:
-        return
+    tiles_3d_meta, created = get_or_create_no_commit(Tiles3DMeta, source=tiles_3d)
+
+    # 3D tiles documentation states that these are always in EPSG:4929
+    volume = tileset_json['root']['boundingVolume']
+    logger.info(volume)
+    if 'region' in volume:
+        xmin, ymin, xmax, ymax, _, _ = volume['region']
+    elif 'box' in volume:
+        # NOTE: for the oriented bounding box, use that as the `footprint` field
+        b = volume['box']
+        center, x, y = b[0:3], b[3:6], b[6:9]
+        xmin = min(center[0], x[0], y[0])
+        xmax = max(center[0], x[0], y[0])
+        ymin = min(center[1], x[1], y[1])
+        ymax = max(center[1], x[1], y[1])
+    elif 'sphere' in volume:
+        raise NotImplementedError
+    else:
+        raise ValueError(f'Bounding volume of unknown type: {volume}')
+
+    coords = [
+        (xmin, ymax),
+        (xmax, ymax),
+        (xmax, ymin),
+        (xmin, ymin),
+        (xmin, ymax),  # Close the loop
+    ]
+    tiles_3d_meta.outline = transform_geometry(Polygon(coords), 'EPSG:4929')
+    if not tiles_3d_meta.footprint:
+        # Default to footprint = outline
+        tiles_3d_meta.footprint = tiles_3d_meta.outline
+    tiles_3d_meta.save()
