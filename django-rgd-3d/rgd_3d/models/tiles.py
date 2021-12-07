@@ -28,7 +28,7 @@ class Tiles3D(TimeStampedModel, TaskEventMixin, PermissionPathMixin, DetailViewM
 
     task_funcs = (jobs.task_read_3d_tiles_file,)
     permissions_paths = [('json_file', ChecksumFile)]
-    detail_view_name = 'tiles-3d-detail'
+    detail_view_name = 'detail-tiles-3d'
 
 
 class Tiles3DMeta(TimeStampedModel, SpatialEntry, PermissionPathMixin):
@@ -39,5 +39,5 @@ class Tiles3DMeta(TimeStampedModel, SpatialEntry, PermissionPathMixin):
         return self.source.json_file.name
 
     permissions_paths = [('source', Tiles3D)]
-    detail_view_name = 'tiles-3d-detail'
+    detail_view_name = Tiles3D.detail_view_name
     detail_view_pk = 'source__pk'
