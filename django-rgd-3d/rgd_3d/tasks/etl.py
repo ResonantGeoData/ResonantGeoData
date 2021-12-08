@@ -5,6 +5,7 @@ from typing import Union
 
 from celery.utils.log import get_task_logger
 from django.contrib.gis.geos import Polygon
+import numpy as np
 from rgd.models import ChecksumFile
 from rgd.models.transform import transform_geometry
 from rgd.utility import get_or_create_no_commit, get_temp_dir
@@ -98,8 +99,14 @@ def read_3d_tiles_tileset_json(tiles_3d: Union[Tiles3D, int]):
     volume = tileset_json['root']['boundingVolume']
     logger.debug(f'3D tiles bounding volume: {volume}')
 
+    # The coordinates should be in EPSG:4978 by convention in 3D Tiles
+    # See https://github.com/CesiumGS/3d-tiles/tree/main/specification#coordinate-reference-system-crs
+    srid = 4978
     if 'region' in volume:
         xmin, ymin, xmax, ymax, _, _ = volume['region']
+        # The region bounding volume specifies bounds using a geographic coordinate system (latitude, longitude, height), specifically EPSG 4979.
+        # See https://github.com/CesiumGS/3d-tiles/tree/main/specification#coordinate-reference-system-crs
+        srid = 4979
     elif 'box' in volume:
         b = volume['box']
         center, x, y = b[0:3], b[3:6], b[6:9]
@@ -113,26 +120,44 @@ def read_3d_tiles_tileset_json(tiles_3d: Union[Tiles3D, int]):
     else:
         raise ValueError(f'Bounding volume of unknown type: {volume}')
 
-    coords = [
-        (xmin, ymax),
-        (xmax, ymax),
-        (xmax, ymin),
-        (xmin, ymin),
-        (xmin, ymax),  # Close the loop
-    ]
+    coords = np.array(
+        [
+            (xmin, ymax),
+            (xmax, ymax),
+            (xmax, ymin),
+            (xmin, ymin),
+            (xmin, ymax),  # Close the loop
+        ]
+    )
 
     if 'transform' in tileset_json['root']:
         # Apply transform if required
-        # TODO: this isn't correct.... having trouble debugging the transform
-        transform = tileset_json['root']['transform'][:-4]  # ignore last 4 (z component)
-        logger.info(f'Bounding volume transform: {transform}')
-        trans = affinity.affine_transform(ShapelyPolygon(coords), transform)
-        outline = Polygon(list(trans.exterior.coords))
-        logger.info(list(trans.exterior.coords))
-    else:
-        # 3D tiles documentation states that these are always in EPSG:4929
-        outline = transform_geometry(Polygon(coords), 'EPSG:4929')
+        transform = tileset_json['root']['transform']
+        # The transform is stored in column-major order in the JSON, so reorder
+        # to produce the  full 3D Affine matrix in the form of:
+        #      [x']    / a  b  c xoff \ [x]
+        #      [y'] =  | d  e  f yoff | [y]
+        #      [z']    | g  h  i zoff | [z]
+        #      [1 ]    \ 0  0  0   1  / [1]
+        t = np.array(transform).reshape((4, 4), order='F')
+        # But we want the 2D subcomponent which would be:
+        #     [x']   / a  b xoff \ [x]
+        #     [y'] = | d  e yoff | [y]
+        #     [1 ]   \ 0  0   1  / [1]
+        # This would effectively be:
+        # np.hstack((t[0:2,0:2], t[0:2,-1,None]))
+        # but, shapely expects this form as a 1D array:
+        #           [a, b, d, e, xoff, yoff]
+        affine = np.append(t[0:2, 0:2].ravel(), t[0:2, -1])
+        # Use shapely to apply the affine tranformation
+        transformed = affinity.affine_transform(ShapelyPolygon(coords).exterior, affine)
+        coords = np.array(transformed.coords)
 
+    # TODO: this final transformation is still problematic
+    # Transform from 3DTiles SRID to Database SRID
+    outline = transform_geometry(Polygon(coords), srid)
+
+    # Save out
     tiles_3d_meta.outline = outline
     tiles_3d_meta.footprint = outline  # TODO: handle oriented bounding boxes
 
