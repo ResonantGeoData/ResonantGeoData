@@ -8,7 +8,6 @@ from rgd.models import ChecksumFile
 @pytest.mark.django_db(transaction=True)
 def test_swagger(admin_api_client):
     response = admin_api_client.get('/swagger/?format=openapi')
-    breakpoint()
     assert status.is_success(response.status_code)
 
 
