@@ -44,6 +44,10 @@ jobs:
           MINIO_SECRET_KEY: minioSecretKey
         ports:
           - 9000:9000
+    strategy:
+      fail-fast: false
+      matrix:
+        django-version: ["32", "40"]
     steps:
       - uses: actions/checkout@v2
       - name: Set up Python
@@ -58,9 +62,18 @@ jobs:
         run: |
           sudo apt update
           sudo apt-get install --no-install-recommends --yes graphviz libgraphviz-dev
-      - name: Run check migrations and graph models
+      - name: Run check migrations
         run: |
-          tox -e check-migrations
+          tox -e check-migrations-django${{ matrix.django-version }}
+        env:
+          DJANGO_DATABASE_URL: postgres://postgres:postgres@localhost:5432/django
+          DJANGO_MINIO_STORAGE_ENDPOINT: localhost:9000
+          DJANGO_MINIO_STORAGE_ACCESS_KEY: minioAccessKey
+          DJANGO_MINIO_STORAGE_SECRET_KEY: minioSecretKey
+          DJANGO_STORAGE_BUCKET_NAME: django-storage
+      - name: Graph models
+        if: ${{ matrix.django-version=='40' }}
+        run: |
           tox -e graph-models
         env:
           DJANGO_DATABASE_URL: postgres://postgres:postgres@localhost:5432/django
@@ -98,7 +111,8 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        rgd-module: ['rgd', 'rgd-3d', 'rgd-fmv', 'rgd-geometry', 'rgd-imagery']
+        rgd-module: ["rgd", "rgd-3d", "rgd-fmv", "rgd-geometry", "rgd-imagery"]
+        django-version: ["32", "40"]
     steps:
       - uses: actions/checkout@v2
       - name: Set up Python
@@ -116,7 +130,7 @@ jobs:
           pip install tox codecov
       - name: Run RGD module tests
         run: |
-          tox -e test-${{ matrix.rgd-module }}
+          tox -e test-${{ matrix.rgd-module }}-django${{ matrix.django-version }}
         env:
           MINIO_STORAGE_ENDPOINT: localhost:9000
           MINIO_STORAGE_ACCESS_KEY: minioAccessKey
@@ -127,10 +141,10 @@ jobs:
         uses: actions/upload-artifact@v2
         with:
           name: .coverage.${{ matrix.rgd-module }}
-          path: django-${{ matrix.rgd-module }}/tests/coverage.xml
+          path: django${{ matrix.django-version }}-${{ matrix.rgd-module }}/tests/coverage.xml
       - uses: codecov/codecov-action@v2
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
-          files: django-${{ matrix.rgd-module }}/tests/coverage.xml
+          files: django${{ matrix.django-version }}-${{ matrix.rgd-module }}/tests/coverage.xml
           flags: ${{ matrix.rgd-module }}
           verbose: true
