@@ -112,7 +112,7 @@ class SpatialEntryFootprintSerializer(SpatialEntrySerializer):
 
     class Meta:
         model = models.SpatialEntry
-        exclude = SPATIAL_ENTRY_EXCLUDE
+        fields = '__all__'
 
     def get_footprint(self, obj):
         return json.loads(obj.footprint.geojson)
