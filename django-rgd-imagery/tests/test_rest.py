@@ -1,13 +1,18 @@
 import time
 
 import pytest
-import requests
 from rest_framework import status
 from rest_framework.test import RequestsClient
 from rgd.datastore import datastore
 from rgd_imagery import models
 
 from . import factories
+
+
+@pytest.mark.django_db(transaction=True)
+def test_swagger(admin_api_client):
+    response = admin_api_client.get('/swagger/?format=openapi')
+    assert status.is_success(response.status_code)
 
 
 @pytest.mark.django_db(transaction=True)
