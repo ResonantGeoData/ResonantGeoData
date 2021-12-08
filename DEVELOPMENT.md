@@ -2,6 +2,9 @@
 
 2D/3D/4D Geospatial Data API and Machine Learning System for Evaluation
 
+> **Warning**: CPU architectures besides x86_64 are not supported yet. Other
+  CPU architectures are likely to experience build failures. 
+
 ## Develop with Docker (recommended quickstart)
 This is the simplest configuration for developers to start with.
 
