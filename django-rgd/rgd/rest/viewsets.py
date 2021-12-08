@@ -93,7 +93,7 @@ class ChecksumFileViewSet(ModelViewSet, TaskEventViewSetMixin):
 
 class SpatialEntryViewSet(ReadOnlyModelViewSet):
     serializer_class = serializers.SpatialEntrySerializer
-    queryset = models.SpatialEntry.objects.all()
+    queryset = models.SpatialEntry.objects.select_subclasses()
     filterset_class = SpatialEntryFilter
 
     @swagger_auto_schema(
