@@ -141,12 +141,11 @@ def read_3d_tiles_tileset_json(tiles_3d: Union[Tiles3D, int]):
         #      [1 ]    \ 0  0  0   1  / [1]
         t = np.array(transform).reshape((4, 4), order='F')
         # But we want the 2D subcomponent which would be:
-        #     [x']   / a  b xoff \ [x]
-        #     [y'] = | d  e yoff | [y]
-        #     [1 ]   \ 0  0   1  / [1]
-        # This would effectively be:
-        # np.hstack((t[0:2,0:2], t[0:2,-1,None]))
-        # but, shapely expects this form as a 1D array:
+        #      [x']    / a  b xoff \ [x]
+        #      [y'] =  | d  e yoff | [y]
+        #      [1 ]    \ 0  0   1  / [1]
+        # This would effectively be: np.hstack((t[0:2,0:2], t[0:2,-1,None]))
+        # but, shapely expects the following form as a 1D array:
         #           [a, b, d, e, xoff, yoff]
         affine = np.append(t[0:2, 0:2].ravel(), t[0:2, -1])
         # Use shapely to apply the affine tranformation
