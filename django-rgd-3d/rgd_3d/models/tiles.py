@@ -2,11 +2,11 @@ from django.contrib.gis.db import models
 from django.core.exceptions import ValidationError
 from django_extensions.db.models import TimeStampedModel
 from rgd.models import ChecksumFile, SpatialEntry
-from rgd.models.mixins import DetailViewMixin, PermissionPathMixin, TaskEventMixin
+from rgd.models.mixins import DetailViewMixin, TaskEventMixin
 from rgd_3d.tasks import jobs
 
 
-class Tiles3D(TimeStampedModel, TaskEventMixin, PermissionPathMixin, DetailViewMixin):
+class Tiles3D(TimeStampedModel, TaskEventMixin, DetailViewMixin):
     class Meta:
         verbose_name = '3D tiles'
         verbose_name_plural = '3D tiles'
@@ -27,17 +27,15 @@ class Tiles3D(TimeStampedModel, TaskEventMixin, PermissionPathMixin, DetailViewM
     )
 
     task_funcs = (jobs.task_read_3d_tiles_file,)
-    permissions_paths = [('json_file', ChecksumFile)]
     detail_view_name = 'detail-tiles-3d'
 
 
-class Tiles3DMeta(TimeStampedModel, SpatialEntry, PermissionPathMixin):
+class Tiles3DMeta(TimeStampedModel, SpatialEntry):
     source = models.OneToOneField(Tiles3D, on_delete=models.CASCADE)
 
     @property
     def name(self):
         return self.source.json_file.name
 
-    permissions_paths = [('source', Tiles3D)]
     detail_view_name = Tiles3D.detail_view_name
     detail_view_pk = 'source__pk'
