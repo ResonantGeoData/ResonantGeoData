@@ -6,12 +6,13 @@ from typing import Union
 from celery.utils.log import get_task_logger
 from django.contrib.gis.geos import Polygon
 import numpy as np
-from rgd.models import ChecksumFile
-from rgd.models.transform import transform_geometry
+import pyproj
+from rgd.models import DB_SRID, ChecksumFile
 from rgd.utility import get_or_create_no_commit, get_temp_dir
 from rgd_3d.models import Mesh3D, Tiles3D, Tiles3DMeta
 from shapely import affinity
 from shapely.geometry import Polygon as ShapelyPolygon
+from shapely.ops import transform as shapely_transform
 
 logger = get_task_logger(__name__)
 
@@ -152,9 +153,16 @@ def read_3d_tiles_tileset_json(tiles_3d: Union[Tiles3D, int]):
         transformed = affinity.affine_transform(ShapelyPolygon(coords).exterior, affine)
         coords = np.array(transformed.coords)
 
-    # TODO: this final transformation is still problematic
     # Transform from 3DTiles SRID to Database SRID
-    outline = transform_geometry(Polygon(coords), srid)
+    # Convert the coordinates using pyproj to database SRID from source SRID
+    # This might work on proj>=8 and pyproj>=3.1 - large_image_wheels gives us these versions
+    src = pyproj.CRS(f'EPSG:{srid}')
+    dest = pyproj.CRS(f'EPSG:{DB_SRID}')
+    project = pyproj.Transformer.from_crs(src, dest, always_xy=True).transform
+    result = shapely_transform(project, ShapelyPolygon(coords))
+    logger.info(f'the coords: {list(result.exterior.coords)}')
+
+    outline = Polygon(list(result.exterior.coords), srid=DB_SRID)
 
     # Save out
     tiles_3d_meta.outline = outline
