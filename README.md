@@ -40,7 +40,6 @@ For general questions about the project, its applications, or about software usa
 - [`large_image`](http://girder.github.io/large_image/index.html): we leverage `large_image` to serve image tiles and extract thumbnails.
 - [VTK.js](https://kitware.github.io/vtk-js/): we use VTK.js for the client-side 3D viewer for 3D data.
 - [KWIVER](https://github.com/Kitware/kwiver): we leverage KWIVER's Full Motion Video (FMV) processing capabilities to extract spatial information from FMV files.
-- [KWCOCO](https://gitlab.kitware.com/computer-vision/kwcoco): KWCOCO is an extension of the [COCO image annotation format](https://cocodataset.org/) which we support for ingesting annotated imagery.
 
 
 ## Contributing

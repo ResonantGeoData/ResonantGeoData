@@ -124,21 +124,3 @@ def test_subsample_geojson(elevation):
         tile_source = GDALFileTileSource(str(file_path), projection='EPSG:3857', encoding='PNG')
         new = tile_source.getBounds()
     _assert_bounds(new, bounds)
-
-
-@pytest.mark.django_db(transaction=True)
-def test_subsample_annotaion():
-    # Test with annotations
-    factories.KWCOCOArchiveFactory(
-        image_archive__file__filename='demo_rle.zip',
-        image_archive__file__from_path=datastore.fetch('demo_rle.zip'),
-        spec_file__file__filename='demo_rle.kwcoco.json',
-        spec_file__file__from_path=datastore.fetch('demo_rle.kwcoco.json'),
-    )
-
-    file = ChecksumFile.objects.get(name='000000242287.jpg')  # bicycle
-    image = Image.objects.get(file=file)
-    a = Annotation.objects.get(image=image.pk)  # Should be only one
-    sub = _create_subsampled(image, {'sample_type': 'annotation', 'id': a.pk})
-    sub.refresh_from_db()
-    assert sub.processed_image.file

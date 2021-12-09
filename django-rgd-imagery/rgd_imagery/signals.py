@@ -25,18 +25,6 @@ def _post_save_raster(sender, instance, *args, **kwargs):
     transaction.on_commit(lambda: instance._on_commit_event_task(*args, **kwargs))
 
 
-@receiver(post_save, sender=models.KWCOCOArchive)
-@skip_signal()
-def _post_save_kwcoco_dataset(sender, instance, *args, **kwargs):
-    transaction.on_commit(lambda: instance._on_commit_event_task(*args, **kwargs))
-
-
-@receiver(post_delete, sender=models.KWCOCOArchive)
-@skip_signal()
-def _post_delete_kwcoco_dataset(sender, instance, *args, **kwargs):
-    transaction.on_commit(lambda: instance._post_delete(*args, **kwargs))
-
-
 @receiver(post_save, sender=models.Image)
 @skip_signal()
 def _post_save_image_file(sender, instance, *args, **kwargs):

@@ -105,19 +105,6 @@ def load_raster_files(raster_dicts):
     return ids
 
 
-def load_kwcoco_archives(archives):
-    ids = []
-    for fspec, farch in archives:
-        spec = _get_or_create_checksum_file(fspec)
-        arch = _get_or_create_checksum_file(farch)
-        ds, created = get_or_create_no_commit(
-            models.KWCOCOArchive, spec_file=spec, image_archive=arch
-        )
-        _save_signal(ds, created)
-        ids.append(ds.id)
-    return ids
-
-
 def load_spatial_image_sets(image_sets):
     for value in image_sets:
         image_files, loc_file = value
