@@ -39,15 +39,6 @@ def task_populate_raster_outline(raster_pk):
 
 
 @shared_task(time_limit=86400)
-def task_load_kwcoco_dataset(kwcoco_dataset_pk):
-    from rgd_imagery.models import KWCOCOArchive
-    from rgd_imagery.tasks.kwcoco_etl import load_kwcoco_dataset
-
-    ds_entry = KWCOCOArchive.objects.get(pk=kwcoco_dataset_pk)
-    helpers._run_with_failure_reason(ds_entry, load_kwcoco_dataset, kwcoco_dataset_pk)
-
-
-@shared_task(time_limit=86400)
 def task_run_processed_image(processed_pk):
     from rgd_imagery.models import ProcessedImage
     from rgd_imagery.tasks.subsample import run_processed_image

@@ -48,6 +48,5 @@ This app adds quite a few additional models on top of the core app for storing i
 - STAC Item ingest/export for raster imagery
 - Image tile serving through `large_image`
 - Image annotation support
-- KWCOCO image archive and annotation ingest
 - Cloud Optimized GeoTIFF conversion utility
 - Extract ROIs from imagery in pixel and world coordinates
