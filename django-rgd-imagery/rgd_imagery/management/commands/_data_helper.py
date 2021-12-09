@@ -5,7 +5,6 @@ import logging
 from django.contrib.gis.geos import GEOSGeometry
 from rgd.datastore import datastore
 from rgd.management.commands._data_helper import (
-    _get_or_create_checksum_file,
     _get_or_create_checksum_file_url,
     _get_or_create_file_model,
     _save_signal,

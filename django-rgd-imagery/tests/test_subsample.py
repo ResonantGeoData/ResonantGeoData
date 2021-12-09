@@ -1,8 +1,7 @@
 from large_image_source_gdal import GDALFileTileSource
 import pytest
 from rgd.datastore import datastore
-from rgd.models import ChecksumFile
-from rgd_imagery.models import Annotation, Image, ProcessedImage, ProcessedImageGroup
+from rgd_imagery.models import ProcessedImage, ProcessedImageGroup
 from rgd_imagery.tasks.subsample import extract_region
 
 from . import factories
