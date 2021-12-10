@@ -18,9 +18,17 @@ def test_unassigned_permissions_complex(
     basic_q = filter_read_perm(user, models.SpatialEntry.objects.all())
     assert len(admin_q) == 2
     assert len(basic_q) == 0
+    admin_q = filter_read_perm(admin, models.Collection.objects.all())
+    basic_q = filter_read_perm(user, models.Collection.objects.all())
+    assert len(admin_q) == 2
+    assert len(basic_q) == 0
     settings.RGD_GLOBAL_READ_ACCESS = True
     admin_q = filter_read_perm(admin, models.SpatialEntry.objects.all())
     basic_q = filter_read_perm(user, models.SpatialEntry.objects.all())
+    assert len(admin_q) == len(basic_q)
+    assert set(admin_q) == set(basic_q)
+    admin_q = filter_read_perm(admin, models.Collection.objects.all())
+    basic_q = filter_read_perm(user, models.Collection.objects.all())
     assert len(admin_q) == len(basic_q)
     assert set(admin_q) == set(basic_q)
 
