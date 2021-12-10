@@ -38,7 +38,6 @@ def test_create_file_from_url_existing(
     py_client: RgdClient, checksum_file_url: ChecksumFile, collection: Collection
 ):
     """Test that create with an existing URL/Collection returns the existing file."""
-
     checksum_file_url.collection = collection
     checksum_file_url.save()
 
