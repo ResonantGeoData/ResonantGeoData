@@ -88,6 +88,11 @@ class ChecksumFilePathsSerializer(serializers.Serializer):
     files = serializers.DictField(child=ChecksumFileSerializer())
 
 
+class ChecksumFileListQuerySerializer(serializers.Serializer):
+    collection = serializers.IntegerField(required=False)
+    url = serializers.CharField(required=False)
+
+
 class SpatialEntrySerializer(serializers.ModelSerializer):
     outline = serializers.SerializerMethodField()
     subentry_name = serializers.SerializerMethodField()

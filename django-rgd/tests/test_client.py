@@ -1,7 +1,7 @@
 import json
 
 import pytest
-from rgd.models import ChecksumFile
+from rgd.models import ChecksumFile, Collection
 from rgd_client import RgdClient, create_rgd_client
 from rgd_client.utils import API_KEY_DIR_PATH, API_KEY_FILE_NAME
 
@@ -31,6 +31,20 @@ def test_create_file_from_url(py_client: RgdClient, checksum_file_url: ChecksumF
     file_dict = py_client.rgd.create_file_from_url(checksum_file_url.get_url())
     assert file_dict['url'] == checksum_file_url.get_url()
     assert file_dict['type'] == 2
+
+
+@pytest.mark.django_db(transaction=True)
+def test_create_file_from_url_existing(
+    py_client: RgdClient, checksum_file_url: ChecksumFile, collection: Collection
+):
+    """Test that create with an existing URL/Collection returns the existing file."""
+    checksum_file_url.collection = collection
+    checksum_file_url.save()
+
+    file_dict = py_client.rgd.create_file_from_url(
+        url=checksum_file_url.get_url(), collection=collection.id
+    )
+    assert file_dict['id'] == checksum_file_url.id
 
 
 @pytest.mark.django_db(transaction=True)

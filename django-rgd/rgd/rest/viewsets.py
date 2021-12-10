@@ -26,6 +26,33 @@ class ChecksumFileViewSet(ModelViewSet, TaskEventViewSetMixin):
     serializer_class = serializers.ChecksumFileSerializer
     queryset = models.ChecksumFile.objects.all()
 
+    @swagger_auto_schema(query_serializer=serializers.ChecksumFileListQuerySerializer())
+    def list(self, request, *args, **kwargs):
+        query_serializer = serializers.ChecksumFileListQuerySerializer(
+            data=self.request.query_params
+        )
+        query_serializer.is_valid(raise_exception=True)
+        url: str = query_serializer.validated_data.get('url')
+        collection: int = query_serializer.validated_data.get('collection')
+
+        if url is None and collection is None:
+            return super().list(request, *args, **kwargs)
+
+        queryset = self.get_queryset()
+
+        if url is not None:
+            queryset = queryset.filter(url=url)
+        if collection is not None:
+            queryset = queryset.filter(collection=collection)
+
+        page = self.paginate_queryset(queryset)
+        if page is not None:
+            serializer = self.get_serializer(page, many=True)
+            return self.get_paginated_response(serializer.data)
+
+        serializer = self.get_serializer(queryset, many=True)
+        return Response(serializer.data)
+
     @swagger_auto_schema(
         method='GET',
         operation_summary='Download ChecksumFile data directly from S3.',
