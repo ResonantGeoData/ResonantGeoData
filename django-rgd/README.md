@@ -63,6 +63,8 @@ The RGD core app has a few optional settings:
 - `MEMCACHED_USERNAME`, `MEMCACHED_PASSWORD`, and `MEMCACHED_URL`: use if hosting a memcached server to set the `default` django cache.
 - `RGD_SIGNED_URL_TTL`: The time in seconds for which URL signatures are valid (defaults to 24 hours).
 - `RGD_SIGNED_URL_QUERY_PARAM`: The signature querystring variable name (defaults to `signature`).
+- `RGD_DEBUG_LOGS`: enable debug level logging for RGD (default True)
+
 
 ## Models
 
