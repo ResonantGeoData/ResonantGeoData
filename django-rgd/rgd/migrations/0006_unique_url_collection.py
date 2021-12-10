@@ -16,4 +16,9 @@ class Migration(migrations.Migration):
                 fields=('collection', 'url'), name='unique_url_collection'
             ),
         ),
+        migrations.AlterField(
+            model_name='collection',
+            name='name',
+            field=models.TextField(max_length=127, unique=True),
+        ),
     ]
