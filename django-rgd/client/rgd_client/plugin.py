@@ -80,7 +80,7 @@ class CorePlugin(RgdPlugin):
         description: Optional[str] = None,
     ) -> Dict:
         """
-        Create a ChecksumFile from a URL.
+        Get or create a ChecksumFile from a URL.
 
         Args:
             url: The URL to retrieve the file from
@@ -91,15 +91,22 @@ class CorePlugin(RgdPlugin):
         # Verify that url is valid in shape, will raise error on failure
         validators.url(url)
 
-        # Check if url/collection combination already exists, and returning it
+        # Check if url/collection combination already exists, and return it
+        payload = {'url': url}
         if collection is not None:
-            r = self.session.get('checksum_file', params={'url': url, 'collection': collection})
-            if r.json()['results']:
-                return r.json()['results'][0]
+            payload['collection'] = collection
+        data = self.session.get('checksum_file', params=payload).json()
+        # TODO: This is absolutely stumping me...
+        if isinstance(data, list) and data:
+            # Test env returns list
+            return data[0]
+        elif isinstance(data, dict) and data['results']:
+            # User env returns dict
+            return data['results'][0]
 
         # Create new checksum file
         # Construct payload, leaving out empty arguments
-        payload = {'url': url, 'type': 2}
+        payload['type'] = 2
         if name is not None:
             payload['name'] = name
         if collection is not None:
