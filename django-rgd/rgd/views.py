@@ -46,7 +46,10 @@ class SpatialListView(PermissionListView):
 
     def get_context_data(self, *args, **kwargs):
         context = super().get_context_data(*args, **kwargs)
-        summary = self.object_list.aggregate(
+        full_queryset = self.object_list
+        paginated_queryset = context['object_list']
+        count = full_queryset.count()
+        summary = paginated_queryset.aggregate(
             Collect('outline'),
             Extent('outline'),
             Count('pk'),
@@ -54,8 +57,8 @@ class SpatialListView(PermissionListView):
         # Have a smaller dict of meta fields to parse for menu bar
         # This keeps us from parsing long GeoJSON fields twice
         context['extents_meta'] = json.dumps({'count': summary['pk__count']})
-        extents = {'count': summary['pk__count']}
-        if summary['pk__count']:
+        extents = {'count': count}
+        if count:
             extents.update(
                 {
                     'collect': json.loads(summary['outline__collect'].geojson),
