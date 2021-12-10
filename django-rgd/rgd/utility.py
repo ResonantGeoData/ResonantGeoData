@@ -119,7 +119,9 @@ def _download_url_file_to_stream(
     parsed = urlparse(url)
     if parsed.scheme == 's3':
         s3 = get_s3_client()
-        s3.download_fileobj(parsed.netloc, parsed.path.lstrip('/'), dest_stream)
+        s3.download_fileobj(
+            parsed.netloc, parsed.path.lstrip('/'), dest_stream, {'RequestPayer': 'requester'}
+        )
     else:
         with safe_urlopen(url) as remote:
             while chunk := remote.read(num_blocks * block_size):
