@@ -141,7 +141,13 @@ def filter_perm(user, queryset, role):
     # Check permissions
     conditions = []
     model = queryset.model
-    for path in get_paths(model, models.ChecksumFile):
+    paths_to_checksumfile = [*get_paths(model, models.ChecksumFile)]
+    if model == models.Collection:
+        # Add custom reverse relationships
+        field = model._meta.get_field('checksumfiles')
+        path = Path(field)
+        paths_to_checksumfile.append(path)
+    for path in paths_to_checksumfile:
         # A user can read/write a file if they are the creator
         is_creator = path.q(created_by=user)
         conditions.append(is_creator)
