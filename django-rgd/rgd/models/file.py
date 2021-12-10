@@ -72,7 +72,7 @@ class ChecksumFile(TimeStampedModel, TaskEventMixin):
 
     type = models.IntegerField(choices=FileSourceType.choices, default=FileSourceType.FILE_FIELD)
     file = S3FileField(null=True, blank=True, upload_to=uuid_prefix_filename)
-    url = models.TextField(null=True, blank=True, unique=True)
+    url = models.TextField(null=True, blank=True)
 
     task_funcs = (tasks.task_checksum_file_post_save,)
 
@@ -95,6 +95,10 @@ class ChecksumFile(TimeStampedModel, TaskEventMixin):
             models.UniqueConstraint(
                 fields=['file_set', 'name'],
                 name='unique_name',
+            ),
+            models.UniqueConstraint(
+                fields=['collection', 'url'],
+                name='unique_url_collection',
             ),
         ]
 
