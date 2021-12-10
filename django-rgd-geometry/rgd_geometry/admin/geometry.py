@@ -48,3 +48,4 @@ class GeometryArchiveAdmin(OSMGeoAdmin, _FileGetNameMixin):
     inlines = (GeometryInline,)
     actions = (reprocess,)
     list_filter = MODIFIABLE_FILTERS + TASK_EVENT_FILTERS
+    raw_id_fields = ('file',)

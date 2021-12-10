@@ -58,3 +58,4 @@ class SpatialAssetAdmin(OSMGeoAdmin, _FileGetNameMixin):
         'created',
     )
     list_filter = MODIFIABLE_FILTERS
+    raw_id_fields = ('files',)

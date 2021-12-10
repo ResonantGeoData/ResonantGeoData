@@ -17,6 +17,11 @@ class ProcessedImageAdmin(admin.StackedInline):
     readonly_fields = MODIFIABLE_FILTERS + TASK_EVENT_READONLY
     actions = (reprocess,)
     list_filter = MODIFIABLE_FILTERS + TASK_EVENT_FILTERS
+    raw_id_fields = (
+        'source_images',
+        'processed_image',
+        'ancillary_files',
+    )
 
 
 @admin.register(ProcessedImageGroup)
