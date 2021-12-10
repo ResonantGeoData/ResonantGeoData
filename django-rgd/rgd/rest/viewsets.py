@@ -45,8 +45,13 @@ class ChecksumFileViewSet(ModelViewSet, TaskEventViewSetMixin):
         if collection is not None:
             queryset = queryset.filter(collection=collection)
 
-        response_serializer = serializers.ChecksumFileSerializer(queryset, many=True)
-        return Response(response_serializer.data)
+        page = self.paginate_queryset(queryset)
+        if page is not None:
+            serializer = self.get_serializer(page, many=True)
+            return self.get_paginated_response(serializer.data)
+
+        serializer = self.get_serializer(queryset, many=True)
+        return Response(serializer.data)
 
     @swagger_auto_schema(
         method='GET',
