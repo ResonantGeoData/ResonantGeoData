@@ -91,6 +91,13 @@ class CorePlugin(RgdPlugin):
         # Verify that url is valid in shape, will raise error on failure
         validators.url(url)
 
+        # Check if url/collection combination already exists, and returning it
+        if collection is not None:
+            r = self.session.get('checksum_file', params={'url': url, 'collection': collection})
+            if r.json()['results']:
+                return r.json()['results'][0]
+
+        # Create new checksum file
         # Construct payload, leaving out empty arguments
         payload = {'url': url, 'type': 2}
         if name is not None:
