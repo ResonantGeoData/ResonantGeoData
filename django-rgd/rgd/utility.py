@@ -168,6 +168,8 @@ def url_file_to_fuse_path(url: str) -> Path:
         fuse_path = url.replace('https://', '/tmp/rgd/https/') + '..'
     elif parsed.scheme == 'http':
         fuse_path = url.replace('http://', '/tmp/rgd/http/') + '..'
+    elif Path('/tmp/rgd/s3/').exists() and parsed.scheme == 's3':
+        fuse_path = url.replace('s3://', '/tmp/rgd/s3/') + '..'
     else:
         raise ValueError(f'Scheme {parsed.scheme} not currently handled by FUSE.')
     logger.debug(f'FUSE path: {fuse_path}')
