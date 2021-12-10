@@ -45,3 +45,4 @@ class Mesh3DAdmin(OSMGeoAdmin):
     list_filter = MODIFIABLE_FILTERS + TASK_EVENT_FILTERS
     inlines = (Mesh3DSpatialInline,)
     extra = 0
+    raw_id_fields = ('file', 'vtp_data')

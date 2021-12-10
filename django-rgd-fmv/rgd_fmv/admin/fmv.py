@@ -48,3 +48,4 @@ class FMVAdmin(OSMGeoAdmin, _FileGetNameMixin):
     inlines = (FMVMetaInline,)
     actions = (reprocess,)
     list_filter = MODIFIABLE_FILTERS + TASK_EVENT_FILTERS
+    raw_id_fields = ('file',)
