@@ -23,6 +23,10 @@ services:
       context: .
       dockerfile: ./dev/celery.Dockerfile
     command: [
+      "watchmedo", "auto-restart",
+      "--pattern", "*.py",
+      "--recursive",
+      "--",
       "celery",
       "--app", "rgd_example.celery",
       "worker",

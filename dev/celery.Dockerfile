@@ -15,6 +15,7 @@ RUN apt-get update && \
         libglib2.0-0 \
         ffmpeg \
         fuse \
+        python3-watchdog \
         && \
     rm -rf /var/lib/apt/lists/*
 
