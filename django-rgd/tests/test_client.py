@@ -182,3 +182,15 @@ def test_file_download(
 
     assert download_path == expected_download_path
     assert expected_download_path.read_bytes() == checksum_file.file.file.read()
+
+
+@pytest.mark.django_db(transaction=True)
+def test_invalid_file_download(py_client: RgdClient, checksum_file: ChecksumFile):
+    """Test that attempting to download a non-existent file fails properly."""
+    checksum_file.delete()
+
+    with pytest.raises(HTTPError) as error:
+        py_client.rgd.download_file(checksum_file.id)
+
+    # Make sure it was a 404 error
+    assert error.match(r'404 Client Error')
