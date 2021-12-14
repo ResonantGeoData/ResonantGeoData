@@ -1,7 +1,7 @@
 import json
-from requests.exceptions import HTTPError
 
 import pytest
+from requests.exceptions import HTTPError
 from rgd.models import ChecksumFile, Collection
 from rgd_client import RgdClient, create_rgd_client
 from rgd_client.utils import API_KEY_DIR_PATH, API_KEY_FILE_NAME
