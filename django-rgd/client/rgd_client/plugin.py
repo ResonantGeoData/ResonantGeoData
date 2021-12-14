@@ -5,7 +5,7 @@ import validators
 
 from .session import RgdClientSession
 from .types import DATETIME_OR_STR_TUPLE, SEARCH_PREDICATE_CHOICE
-from .utils import spatial_search_params
+from .utils import iterate_response_bytes, spatial_search_params
 
 
 class RgdPlugin:
@@ -170,44 +170,45 @@ class CorePlugin(RgdPlugin):
         """
         return self.session.get('checksum_file/tree', params={'path_prefix': path}).json()
 
-    def download_file(self, id: int, download_location: Optional[str] = None, use_id=False) -> Path:
+    def download_checksum_file_to_path(
+        self, id: int, path: Optional[Path] = None, keep_existing=False, use_id=False
+    ):
         """
-        Download a ChecksumFile.
+        Download a RGD ChecksumFile to a given path.
 
         Args:
-            id: The id of the ChecksumFile
-            download_location: Path to download file to. Defaults to current working directory.
-            use_id: Set to `True` to use the ChecksumFile's ID as the downloaded
-                    file name instead of it's name. Defaults to `False`.
+            id: The id of the RGD ChecksumFile to download.
+            path: The root path to download this file to.
+            keep_existing: If False, replace files existing on disk.
 
         Returns:
-            The path of the newly downloaded file
+            The path on disk the file was downloaded to.
         """
         r = self.session.get(f'checksum_file/{id}')
         r.raise_for_status()
 
-        filename: str = r.json()['name']
+        resp_json = r.json()
+        filepath: str = str(resp_json['id']) if use_id else resp_json['name']
+        file_download_url: str = resp_json['download_url']
 
-        r = self.session.get(f'checksum_file/{id}/data')
-        r.raise_for_status()
+        if not path:
+            path = Path.cwd()
 
-        if download_location is not None:
-            download_location_path = Path(download_location)
-        else:
-            # Download to current working directory if download_location isn't given
-            download_location_path = Path.cwd()
+        # Parse file path to identifiy nested directories
+        filepath: str = filepath.lstrip('/')
+        split_filepath: List[str] = filepath.split('/')
+        parent_dirname = '/'.join(split_filepath[:-1])
+        filename = split_filepath[-1]
 
-        # Create the download directory if it doesn't exist
-        download_location_path.mkdir(parents=True, exist_ok=True)
+        # Create nested directory if necessary
+        parent_path = path / parent_dirname if parent_dirname else path
+        parent_path.mkdir(parents=True, exist_ok=True)
 
-        if use_id:
-            download_location_path /= str(id)
-        else:
-            download_location_path /= filename
+        # Download contents to file
+        file_path = parent_path / filename
+        if not (file_path.is_file() and keep_existing):
+            with open(file_path, 'wb') as open_file_path:
+                for chunk in iterate_response_bytes(file_download_url):
+                    open_file_path.write(chunk)
 
-        # Save the file
-        with open(download_location_path, 'wb') as file:
-            for chunk in r.iter_content(1048576):  # Use a chunk size of 1MB
-                file.write(chunk)
-
-        return download_location_path
+        return file_path

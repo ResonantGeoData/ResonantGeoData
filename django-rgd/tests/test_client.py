@@ -178,7 +178,9 @@ def test_file_download(
     expected_download_path.unlink(missing_ok=True)
 
     # Download file and make sure it exists and the contents are as expected.
-    download_path = py_client.rgd.download_file(checksum_file.id, download_path, use_id=use_id)
+    download_path = py_client.rgd.download_checksum_file_to_path(
+        checksum_file.id, download_path, use_id=use_id
+    )
 
     assert download_path == expected_download_path
     assert expected_download_path.read_bytes() == checksum_file.file.file.read()
@@ -190,7 +192,7 @@ def test_invalid_file_download(py_client: RgdClient, checksum_file: ChecksumFile
     checksum_file.delete()
 
     with pytest.raises(HTTPError) as error:
-        py_client.rgd.download_file(checksum_file.id)
+        py_client.rgd.download_checksum_file_to_path(checksum_file.id)
 
     # Make sure it was a 404 error
     assert error.match(r'404 Client Error')
