@@ -4,9 +4,9 @@ from rgd_imagery import models, rest, views
 from rgd_imagery.rest import viewsets
 
 router = SimpleRouter(trailing_slash=False)
-router.register(r'api/image_process', viewsets.ProcessedImageViewSet)
 router.register(r'api/image_process/group', viewsets.ProcessedImageGroupViewSet)
 router.register(r'api/rgd_imagery/image_set', viewsets.ImageSetViewSet)
+router.register(r'api/image_process', viewsets.ProcessedImageViewSet)
 router.register(r'api/rgd_imagery/image_set_spatial', viewsets.ImageSetSpatialViewSet)
 router.register(r'api/rgd_imagery/raster', viewsets.RasterViewSet, basename='raster')
 router.register(r'api/rgd_imagery', viewsets.ImageViewSet, basename='imagery')
