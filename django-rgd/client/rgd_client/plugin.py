@@ -72,6 +72,20 @@ class CorePlugin(RgdPlugin):
 
         return r.json()
 
+    def create_collection(self, name: str):
+        """Get or create collection by name."""
+        payload = {'name': name}
+        data = self.session.get('collection', params=payload).json()
+        if isinstance(data, list) and data:
+            # Test env returns list
+            return data[0]
+        elif isinstance(data, dict) and data['results']:
+            # User env returns dict
+            return data['results'][0]
+        r = self.session.post('collection', json=payload)
+        r.raise_for_status()
+        return r.json()
+
     def create_file_from_url(
         self,
         url: str,
@@ -90,6 +104,9 @@ class CorePlugin(RgdPlugin):
         """
         # Verify that url is valid in shape, will raise error on failure
         validators.url(url)
+
+        if isinstance(collection, str):
+            collection = self.create_collection(collection)['id']
 
         # Check if url/collection combination already exists, and return it
         payload = {'url': url}

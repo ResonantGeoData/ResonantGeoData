@@ -5,7 +5,7 @@ from rest_framework import response, views
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from rgd import models, serializers
-from rgd.filters import SpatialEntryFilter
+from rgd.filters import CollectionFilter, SpatialEntryFilter
 from rgd.rest.base import ModelViewSet, ReadOnlyModelViewSet
 
 from .authentication import UserSigner
@@ -15,6 +15,7 @@ from .mixins import BaseRestViewMixin, TaskEventViewSetMixin
 class CollectionViewSet(ModelViewSet):
     serializer_class = serializers.CollectionSerializer
     queryset = models.Collection.objects.all()
+    filterset_class = CollectionFilter
 
 
 class CollectionPermissionViewSet(ModelViewSet):
