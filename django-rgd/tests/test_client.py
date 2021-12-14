@@ -154,23 +154,31 @@ def test_invalid_api_url(live_server, user_with_api_key, monkeypatch):
 
 @pytest.mark.django_db(transaction=True)
 @pytest.mark.parametrize(
-    # Two test cases: when download_location is None, and when it is a valid string
-    'download_path,expected_download_directory,',
-    [(None, Path.cwd()), (Path('~/.rgd/temp').expanduser(), Path('~/.rgd/temp').expanduser())],
+    # Test cases: when download_location is None, and when it is a valid string
+    'download_path,expected_download_directory,use_id',
+    [
+        (None, Path.cwd(), False),
+        (Path('~/.rgd/temp').expanduser(), Path('~/.rgd/temp').expanduser(), False),
+        (None, Path.cwd(), True),
+        (Path('~/.rgd/temp').expanduser(), Path('~/.rgd/temp').expanduser(), True),
+    ],
 )
 def test_file_download(
     py_client: RgdClient,
     checksum_file: ChecksumFile,
     download_path: Optional[Path],
     expected_download_directory: Optional[Path],
+    use_id: bool,
 ):
-    expected_download_path: Path = expected_download_directory / checksum_file.name
+    expected_download_path: Path = expected_download_directory / (
+        str(checksum_file.id) if use_id else checksum_file.name
+    )
 
     # Remove file if it already exists
     expected_download_path.unlink(missing_ok=True)
 
     # Download file and make sure it exists and the contents are as expected.
-    download_path = py_client.rgd.download_file(checksum_file.id, download_path)
+    download_path = py_client.rgd.download_file(checksum_file.id, download_path, use_id=use_id)
 
     assert download_path == expected_download_path
     assert expected_download_path.read_bytes() == checksum_file.file.file.read()

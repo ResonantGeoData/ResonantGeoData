@@ -170,13 +170,15 @@ class CorePlugin(RgdPlugin):
         """
         return self.session.get('checksum_file/tree', params={'path_prefix': path}).json()
 
-    def download_file(self, id: int, download_location: Optional[str] = None) -> Path:
+    def download_file(self, id: int, download_location: Optional[str] = None, use_id=False) -> Path:
         """
         Download a ChecksumFile.
 
         Args:
             id: The id of the ChecksumFile
             download_location: Path to download file to. Defaults to current working directory.
+            use_id: Set to `True` to use the ChecksumFile's ID as the downloaded
+                    file name instead of it's name. Defaults to `False`.
 
         Returns:
             The path of the newly downloaded file
@@ -198,7 +200,10 @@ class CorePlugin(RgdPlugin):
         # Create the download directory if it doesn't exist
         download_location_path.mkdir(parents=True, exist_ok=True)
 
-        download_location_path /= filename
+        if use_id:
+            download_location_path /= str(id)
+        else:
+            download_location_path /= filename
 
         # Save the file
         with open(download_location_path, 'wb') as file:
