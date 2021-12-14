@@ -1,4 +1,6 @@
 import json
+from pathlib import Path
+from typing import Optional
 
 import pytest
 from requests.exceptions import HTTPError
@@ -148,3 +150,27 @@ def test_invalid_api_url(live_server, user_with_api_key, monkeypatch):
             password=password,
             api_url=f'{url}/invalid',
         )
+
+
+@pytest.mark.django_db(transaction=True)
+@pytest.mark.parametrize(
+    # Two test cases: when download_location is None, and when it is a valid string
+    'download_path,expected_download_directory,',
+    [(None, Path.cwd()), (Path('~/.rgd/temp').expanduser(), Path('~/.rgd/temp').expanduser())],
+)
+def test_file_download(
+    py_client: RgdClient,
+    checksum_file: ChecksumFile,
+    download_path: Optional[Path],
+    expected_download_directory: Optional[Path],
+):
+    expected_download_path: Path = expected_download_directory / str(checksum_file.id)
+
+    # Remove file if it already exists
+    expected_download_path.unlink(missing_ok=True)
+
+    # Download file and make sure it exists and the contents are as expected.
+    download_path = py_client.rgd.download_file(checksum_file.id, download_path)
+
+    assert download_path == expected_download_path
+    assert expected_download_path.read_bytes() == checksum_file.file.file.read()
