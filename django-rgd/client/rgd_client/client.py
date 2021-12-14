@@ -115,6 +115,10 @@ def create_rgd_client(
     # Avoid circular import
     from ._plugin_utils import _inject_plugin_deps, _plugin_classes, _plugin_instances
 
+    # Strip trailing slash
+    if api_url.endswith('/'):
+        api_url = api_url.rstrip('/')
+
     # Create initial client
     client = RgdClient(api_url, username, password, save)
 
