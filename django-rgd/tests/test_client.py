@@ -48,6 +48,14 @@ def test_create_file_from_url_existing(
 
 
 @pytest.mark.django_db(transaction=True)
+def test_tree_file_search(py_client: RgdClient, checksum_file: ChecksumFile):
+    """Test that basic connection to the tree endpoint succeeds."""
+    resp_dict = py_client.rgd.file_tree_search()
+    assert 'folders' in resp_dict
+    assert 'files' in resp_dict
+
+
+@pytest.mark.django_db(transaction=True)
 def test_save_api_key(live_server, user_with_api_key):
     """Test that saving an API key works correctly."""
     username, password, api_token = user_with_api_key
