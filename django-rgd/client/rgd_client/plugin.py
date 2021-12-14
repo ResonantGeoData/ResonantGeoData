@@ -207,7 +207,7 @@ class CorePlugin(RgdPlugin):
 
         # Save the file
         with open(download_location_path, 'wb') as file:
-            for chunk in r.iter_content(1 << 20):
+            for chunk in r.iter_content(1048576):  # Use a chunk size of 1MB
                 file.write(chunk)
 
         return download_location_path
