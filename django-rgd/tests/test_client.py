@@ -1,4 +1,5 @@
 import json
+from requests.exceptions import HTTPError
 
 import pytest
 from requests.exceptions import HTTPError
