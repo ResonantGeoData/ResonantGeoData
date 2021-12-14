@@ -74,16 +74,16 @@ def _read_api_key(api_url: str, username: str = None, password: str = None) -> O
     This function checks for an environment variable named RGD_API_TOKEN and returns it if it exists.
     If it does not exist, it looks for a file located at ~/.rgd/token and returns its contents.
     """
-    token = os.getenv('RGD_API_TOKEN', None)
-    if token is not None:
-        return token
-
-    try:
-        # read the first line of the text file at ~/.rgd/token
-        with open(API_KEY_DIR_PATH / API_KEY_FILE_NAME, 'r') as fd:
-            api_key = fd.readline().strip()
-    except FileNotFoundError:
-        return None
+    api_key = os.getenv('RGD_API_TOKEN', None)
+    save = False
+    if api_key is None:
+        try:
+            # read the first line of the text file at ~/.rgd/token
+            with open(API_KEY_DIR_PATH / API_KEY_FILE_NAME, 'r') as fd:
+                api_key = fd.readline().strip()
+                save = True  # save any new api key to disk
+        except FileNotFoundError:
+            return None
 
     # Make sure API key works by hitting a protected endpoint
     resp = requests.get(f'{api_url}/rgd/collection', headers={'Authorization': f'Token {api_key}'})
@@ -92,7 +92,10 @@ def _read_api_key(api_url: str, username: str = None, password: str = None) -> O
     if resp.status_code == 401:
         logger.error('API key is invalid.')
         # If username + password were provided, try to get a new API key with them
-        if username is not None and password is not None:
+        # Note we only do this if `save` is `True`, i.e. if the user originally attempted to
+        # instantiate the client with an API key located on disk. If they instead provided an env
+        # var, do not assume that they want a key saved and do not attempt to fetch a new one.
+        if save and username is not None and password is not None:
             logger.info('Attempting to fetch a new API key...')
             api_key = _get_api_key(api_url, username, password, save=True)
             if api_key is not None:
@@ -101,6 +104,9 @@ def _read_api_key(api_url: str, username: str = None, password: str = None) -> O
         else:
             logger.error('Provide your username and password next time to fetch a new one.')
             return None
+
+    # If the response failed with an error status other than 401, raise an exception
+    resp.raise_for_status()
 
     return api_key
 
