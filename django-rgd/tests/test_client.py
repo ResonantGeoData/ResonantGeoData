@@ -196,3 +196,28 @@ def test_invalid_file_download(py_client: RgdClient, checksum_file: ChecksumFile
 
     # Make sure it was a 404 error
     assert error.match(r'404 Client Error')
+
+
+@pytest.mark.django_db(transaction=True)
+def test_file_download_keep_existing(
+    tmp_path: Path, py_client: RgdClient, checksum_file: ChecksumFile
+):
+    # Save a file where the client would normally put the downloaded file
+    file_path = tmp_path / str(checksum_file.id)
+    existing_file_content: bytes = b'foobar'
+
+    with open(file_path, 'wb') as f:
+        f.write(existing_file_content)
+
+    # Make sure the file isn't modified
+    assert existing_file_content == file_path.read_bytes()
+    py_client.rgd.download_checksum_file_to_path(
+        checksum_file.id, tmp_path, keep_existing=True, use_id=True
+    )
+    assert existing_file_content == file_path.read_bytes()
+
+    # Make sure the file *is* modified
+    py_client.rgd.download_checksum_file_to_path(
+        checksum_file.id, tmp_path, keep_existing=False, use_id=True
+    )
+    assert existing_file_content != file_path.read_bytes()
