@@ -164,7 +164,7 @@ def test_file_download(
     download_path: Optional[Path],
     expected_download_directory: Optional[Path],
 ):
-    expected_download_path: Path = expected_download_directory / str(checksum_file.id)
+    expected_download_path: Path = expected_download_directory / checksum_file.name
 
     # Remove file if it already exists
     expected_download_path.unlink(missing_ok=True)

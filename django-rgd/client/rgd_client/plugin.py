@@ -181,6 +181,11 @@ class CorePlugin(RgdPlugin):
         Returns:
             The path of the newly downloaded file
         """
+        r = self.session.get(f'checksum_file/{id}')
+        r.raise_for_status()
+
+        filename: str = r.json()['name']
+
         r = self.session.get(f'checksum_file/{id}/data')
         r.raise_for_status()
 
@@ -193,9 +198,11 @@ class CorePlugin(RgdPlugin):
         # Create the download directory if it doesn't exist
         download_location_path.mkdir(parents=True, exist_ok=True)
 
+        download_location_path /= filename
+
         # Save the file
-        with open(download_location_path / str(id), 'wb') as file:
+        with open(download_location_path, 'wb') as file:
             for chunk in r.iter_content(1 << 20):
                 file.write(chunk)
 
-        return download_location_path / str(id)
+        return download_location_path
