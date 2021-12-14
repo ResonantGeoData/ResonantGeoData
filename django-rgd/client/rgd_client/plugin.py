@@ -1,3 +1,4 @@
+from pathlib import Path
 from typing import Dict, List, Optional, Tuple, Union
 
 import validators
@@ -168,3 +169,33 @@ class CorePlugin(RgdPlugin):
             A dictionary, containing all direct subfolders (`folders`), and files (`files`) under the specified path.
         """
         return self.session.get('checksum_file/tree', params={'path_prefix': path}).json()
+
+    def download_file(self, id: int, download_location: Optional[str] = None) -> Path:
+        """
+        Download a ChecksumFile.
+
+        Args:
+            id: The id of the ChecksumFile
+            download_location: Path to download file to. Defaults to current working directory.
+
+        Returns:
+            The path of the newly downloaded file
+        """
+        r = self.session.get(f'checksum_file/{id}/data')
+        r.raise_for_status()
+
+        if download_location is not None:
+            download_location_path = Path(download_location)
+        else:
+            # Download to current working directory if download_location isn't given
+            download_location_path = Path.cwd()
+
+        # Create the download directory if it doesn't exist
+        download_location_path.mkdir(parents=True, exist_ok=True)
+
+        # Save the file
+        with open(download_location_path / str(id), 'wb') as file:
+            for chunk in r.iter_content(1 << 20):
+                file.write(chunk)
+
+        return download_location_path / str(id)
