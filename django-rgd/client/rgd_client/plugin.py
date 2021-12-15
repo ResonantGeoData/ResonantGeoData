@@ -180,6 +180,7 @@ class CorePlugin(RgdPlugin):
             id: The id of the RGD ChecksumFile to download.
             path: The root path to download this file to.
             keep_existing: If False, replace files existing on disk.
+            use_id: If True, save this file to disk using it's ID, rather than it's name.
 
         Returns:
             The path on disk the file was downloaded to.
