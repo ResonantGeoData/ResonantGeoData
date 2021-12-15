@@ -1,6 +1,7 @@
 from large_image_source_gdal import GDALFileTileSource
 import pytest
 from rgd.datastore import datastore
+from rgd_imagery.large_image_utilities import get_tile_bounds
 from rgd_imagery.models import ProcessedImage, ProcessedImageGroup
 from rgd_imagery.tasks.subsample import extract_region
 
@@ -72,7 +73,7 @@ def test_subsample_pixel_box(elevation):
 def test_subsample_geo_box(elevation):
     with elevation.file.yield_local_path() as file_path:
         tile_source = GDALFileTileSource(str(file_path), projection='EPSG:3857', encoding='PNG')
-        bounds = tile_source.getBounds()
+        bounds = get_tile_bounds(tile_source)
     # Test with bbox
     # -107.16011512365533, -107.05522782296597
     # 38.87471016725091, 38.92317443621267
@@ -91,7 +92,7 @@ def test_subsample_geo_box(elevation):
     assert sub.processed_image.file
     with sub.processed_image.file.yield_local_path() as file_path:
         tile_source = GDALFileTileSource(str(file_path), projection='EPSG:3857', encoding='PNG')
-        new = tile_source.getBounds()
+        new = get_tile_bounds(tile_source)
     _assert_bounds(new, bounds)
 
 
@@ -99,7 +100,7 @@ def test_subsample_geo_box(elevation):
 def test_subsample_geojson(elevation):
     with elevation.file.yield_local_path() as file_path:
         tile_source = GDALFileTileSource(str(file_path), projection='EPSG:3857', encoding='PNG')
-        bounds = tile_source.getBounds()
+        bounds = get_tile_bounds(tile_source)
     # Test with GeoJSON
     geojson = {
         'sample_type': 'geojson',
@@ -121,5 +122,5 @@ def test_subsample_geojson(elevation):
     assert sub.processed_image.file
     with sub.processed_image.file.yield_local_path() as file_path:
         tile_source = GDALFileTileSource(str(file_path), projection='EPSG:3857', encoding='PNG')
-        new = tile_source.getBounds()
+        new = get_tile_bounds(tile_source)
     _assert_bounds(new, bounds)
