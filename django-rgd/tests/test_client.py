@@ -1,6 +1,7 @@
 import json
 
 import pytest
+from requests.exceptions import HTTPError
 from rgd.models import ChecksumFile, Collection
 from rgd_client import RgdClient, create_rgd_client
 from rgd_client.utils import API_KEY_DIR_PATH, API_KEY_FILE_NAME
@@ -80,3 +81,62 @@ def test_invalid_local_api_key(live_server, user_with_api_key):
 
     # Ensure that `create_rgd_client` overwrote the invalid key with a fresh one
     assert (API_KEY_DIR_PATH / API_KEY_FILE_NAME).read_text() == api_token
+
+
+@pytest.mark.django_db(transaction=True)
+def test_invalid_env_var_api_key(live_server, user_with_api_key, monkeypatch):
+    """Test that a new API key is *not* fetched when one provided via env var is invalid."""
+    username, password, api_token = user_with_api_key
+    monkeypatch.setenv('RGD_API_TOKEN', api_token)
+
+    # Make sure ~/.rgd/token doesn't exist
+    (API_KEY_DIR_PATH / API_KEY_FILE_NAME).unlink(missing_ok=True)
+    assert not (API_KEY_DIR_PATH / API_KEY_FILE_NAME).exists()
+
+    create_rgd_client(
+        username=username,
+        password=password,
+        api_url=f'{live_server.url}/api',
+        save=True,  # save the API key
+    )
+
+    # Make sure ~/.rgd/token wasn't created
+    assert not (API_KEY_DIR_PATH / API_KEY_FILE_NAME).exists()
+
+
+@pytest.mark.django_db(transaction=True)
+def test_api_url_trailing_slash(live_server, user_with_api_key, checksum_file_url: ChecksumFile):
+    url: str = live_server.url
+
+    # Ensure url doesn't end with a trailing slash already
+    if url.endswith('/'):
+        url = url.rstrip('/')
+
+    username, password, _ = user_with_api_key
+
+    py_client = create_rgd_client(
+        username=username,
+        password=password,
+        api_url=f'{url}/api/',  # append a trailing slash to url
+    )
+    assert py_client.session.base_url == f'{url}/api/'
+
+    # Make sure the client behaves as expected given a trailing slash
+    file_dict = py_client.rgd.create_file_from_url(checksum_file_url.get_url())
+    assert file_dict['url'] == checksum_file_url.get_url()
+
+
+@pytest.mark.django_db(transaction=True)
+def test_invalid_api_url(live_server, user_with_api_key, monkeypatch):
+    """Test that the client fails loudly when given an invalid API URL."""
+    url: str = live_server.url
+    username, password, api_key = user_with_api_key
+
+    monkeypatch.setenv('RGD_API_TOKEN', api_key)
+
+    with pytest.raises(HTTPError):
+        create_rgd_client(
+            username=username,
+            password=password,
+            api_url=f'{url}/invalid',
+        )
