@@ -101,11 +101,14 @@ class ImageryPlugin(RgdPlugin):
         if isinstance(raster_meta_id, dict):
             raster_meta_id = spatial_subentry_id(raster_meta_id)
 
+        r = self.session.get(f'rgd_imagery/raster/{raster_meta_id}').json()
         if stac:
-            r = self.session.get(f'rgd_imagery/raster/{raster_meta_id}/stac')
-        else:
-            r = self.session.get(f'rgd_imagery/raster/{raster_meta_id}')
-        return r.json()
+            # Get collection ID - TODO: if this is zero, will fail - could that happen?
+            collection_id = (
+                r['parent_raster']['image_set']['images'][0]['file']['collection'] or 'default'
+            )
+            r = self.session.get(f'stac/collection/{collection_id}/items/{raster_meta_id}').json()
+        return r
 
     def download_raster(
         self,

@@ -34,8 +34,9 @@ class Image(TimeStampedModel, TaskEventMixin):
         if images is None:
             images = set()
         for proc in self.processedimage_set.exclude(processed_image__in=images):
-            images.add(proc.processed_image)
-            images.update(proc.processed_image.get_processed_images(images))
+            if proc.processed_image:
+                images.add(proc.processed_image)
+                images.update(proc.processed_image.get_processed_images(images))
         return images
 
     @property

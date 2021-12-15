@@ -5,7 +5,7 @@ from rest_framework.response import Response
 from rgd.models.mixins import Status
 from rgd.rest.base import ModelViewSet
 from rgd.rest.mixins import TaskEventViewSetMixin
-from rgd_imagery import models, serializers
+from rgd_imagery import filters, models, serializers
 
 
 class ProcessedImageViewSet(ModelViewSet):
@@ -73,6 +73,7 @@ class ImageViewSet(ModelViewSet):
 
 class RasterViewSet(ModelViewSet, TaskEventViewSetMixin):
     # TODO: consolidate 'RasterSerializer' and 'RasterMetaSerializer'
+    filterset_class = filters.RasterMetaFilter
 
     def get_serializer_class(self):
         if self.action in {'list', 'retrieve'}:
