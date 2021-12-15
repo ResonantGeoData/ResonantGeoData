@@ -5,7 +5,7 @@ import validators
 
 from .session import RgdClientSession
 from .types import DATETIME_OR_STR_TUPLE, SEARCH_PREDICATE_CHOICE
-from .utils import iterate_response_bytes, spatial_search_params
+from .utils import download_checksum_file_to_path, spatial_search_params
 
 
 class RgdPlugin:
@@ -188,28 +188,6 @@ class CorePlugin(RgdPlugin):
         r = self.session.get(f'checksum_file/{id}')
         r.raise_for_status()
 
-        resp_json = r.json()
-        filepath: str = str(resp_json['id']) if use_id else resp_json['name']
-        file_download_url: str = resp_json['download_url']
-
-        if not path:
-            path = Path.cwd()
-
-        # Parse file path to identifiy nested directories
-        filepath: str = filepath.lstrip('/')
-        split_filepath: List[str] = filepath.split('/')
-        parent_dirname = '/'.join(split_filepath[:-1])
-        filename = split_filepath[-1]
-
-        # Create nested directory if necessary
-        parent_path = path / parent_dirname if parent_dirname else path
-        parent_path.mkdir(parents=True, exist_ok=True)
-
-        # Download contents to file
-        file_path = parent_path / filename
-        if not (file_path.is_file() and keep_existing):
-            with open(file_path, 'wb') as open_file_path:
-                for chunk in iterate_response_bytes(file_download_url):
-                    open_file_path.write(chunk)
-
-        return file_path
+        return download_checksum_file_to_path(
+            r.json(), path, keep_existing=keep_existing, use_id=use_id
+        )
