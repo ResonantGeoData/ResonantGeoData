@@ -1,5 +1,6 @@
 """Tasks for subsampling images with GDAL."""
 from contextlib import contextmanager
+import time
 
 from celery.utils.log import get_task_logger
 from django.contrib.gis.geos import GEOSGeometry
@@ -24,6 +25,7 @@ def _processed_image_helper(param_model, single_input=False):
         param_model.processed_image.file.delete()
     file = ChecksumFile()
 
+    time.sleep(3)  # HACK to avoid race condition in #647
     param_model.refresh_from_db()
 
     if single_input:
