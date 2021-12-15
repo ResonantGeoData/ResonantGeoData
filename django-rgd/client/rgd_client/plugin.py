@@ -71,9 +71,10 @@ class CorePlugin(RgdPlugin):
         Returns:
             A list of Spatial Entries.
         """
-        for i, collection in enumerate(collections):
-            if isinstance(collection, str):
-                collections[i] = self.get_collection_by_name(collection)['id']
+        if collections is not None:
+            for i, collection in enumerate(collections):
+                if isinstance(collection, str):
+                    collections[i] = self.get_collection_by_name(collection)['id']
 
         params = spatial_search_params(
             query=query,
