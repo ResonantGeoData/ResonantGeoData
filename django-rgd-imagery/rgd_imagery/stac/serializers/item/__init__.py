@@ -6,6 +6,7 @@ from pystac.extensions.eo import EOExtension
 from pystac.extensions.projection import ProjectionExtension
 from rest_framework import serializers
 from rest_framework.reverse import reverse
+from rgd.models.constants import DB_SRID
 from rgd_imagery import models
 
 from . import bands as band_utils
@@ -71,8 +72,13 @@ class ItemSerializer(serializers.BaseSerializer):
         )
         # 'proj' extension
         proj_ext = ProjectionExtension.ext(item, add_if_missing=True)
+        if instance.crs:
+            crs = instance.crs
+        else:
+            # NOTE: assumption with implications
+            crs = f'+init=epsg:{DB_SRID}'
         proj_ext.apply(
-            epsg=CRS.from_proj4(instance.crs).to_epsg(),
+            epsg=CRS.from_proj4(crs).to_epsg(),
             transform=instance.transform,
         )
         # 'eo' extension
