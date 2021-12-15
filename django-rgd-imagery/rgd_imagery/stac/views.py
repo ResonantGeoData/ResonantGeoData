@@ -74,17 +74,11 @@ class ItemCollectionView(OptimizedRasterMetaQuerysetMixin, BaseRestViewMixin, Ge
 
     def get(self, request, *args, collection_id=None, **kwargs):
         collection_id = None if collection_id == 'default' else collection_id
-        queryset = self.get_queryset().filter(
-            parent_raster__image_set__images__file__collection=collection_id
-        )
-        # Test if queryset is too large
-        stac_browser_limit = getattr(settings, 'RGD_STAC_BROWSER_LIMIT', 1000)
-        num_items = queryset.count()
-        if num_items > stac_browser_limit:
-            raise ValueError(
-                f"'RGD_STAC_BROWSER_LIMIT' ({stac_browser_limit}) exceeded. "
-                f'Requested collection with {num_items} items.'
+        queryset = self.filter_queryset(
+            self.get_queryset().filter(
+                parent_raster__image_set__images__file__collection=collection_id
             )
+        )
         page = self.paginate_queryset(queryset)
         if page is not None:
             serializer = self.get_serializer(page)
