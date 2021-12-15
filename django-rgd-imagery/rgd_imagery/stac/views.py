@@ -69,6 +69,8 @@ class ItemCollectionView(OptimizedRasterMetaQuerysetMixin, BaseRestViewMixin, Ge
     """See the Items in the Collection."""
 
     serializer_class = serializers.ItemCollectionSerializer
+    pagination_class = STACPagination
+    filterset_class = STACSimpleFilter
 
     def get(self, request, *args, collection_id=None, **kwargs):
         collection_id = None if collection_id == 'default' else collection_id
@@ -83,6 +85,10 @@ class ItemCollectionView(OptimizedRasterMetaQuerysetMixin, BaseRestViewMixin, Ge
                 f"'RGD_STAC_BROWSER_LIMIT' ({stac_browser_limit}) exceeded. "
                 f'Requested collection with {num_items} items.'
             )
+        page = self.paginate_queryset(queryset)
+        if page is not None:
+            serializer = self.get_serializer(page)
+            return self.get_paginated_response(serializer.data)
         serializer = self.get_serializer(queryset)
         return Response(serializer.data)
 
