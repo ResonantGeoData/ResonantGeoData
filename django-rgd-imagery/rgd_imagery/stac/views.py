@@ -1,4 +1,3 @@
-from django.conf import settings
 from django.db.models import Prefetch
 from rest_framework.generics import GenericAPIView
 from rest_framework.response import Response

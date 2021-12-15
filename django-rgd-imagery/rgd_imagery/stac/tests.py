@@ -1,7 +1,4 @@
-import re
-
 import pytest
-from rgd.models import ChecksumFile
 from rgd_imagery.stac.serializers import ItemSerializer
 
 
