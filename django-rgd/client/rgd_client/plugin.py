@@ -135,3 +135,18 @@ class CorePlugin(RgdPlugin):
 
         r.raise_for_status()
         return r.json()
+
+    def file_tree_search(self, path: str = ''):
+        """
+        Search files in a hierarchical format, from a provided folder path.
+
+        This endpoint returns all files and folders that are "within" the specified "folder" (the path argument).
+        An example is
+
+        Args:
+            path: The path to apply to the search. This can be thought of as the folder path that you'd like to search.
+
+        Returns:
+            A dictionary, containing all direct subfolders (`folders`), and files (`files`) under the specified path.
+        """
+        return self.session.get('checksum_file/tree', params={'path_prefix': path}).json()
