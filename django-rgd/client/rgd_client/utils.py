@@ -170,6 +170,7 @@ def spatial_search_params(
     limit: Optional[int] = None,
     offset: Optional[int] = None,
     time_of_day: Optional[DATETIME_OR_STR_TUPLE] = None,
+    collections: Optional[List[int]] = None,
 ) -> Dict:
     # The dict that will be used to store params.
     # Initialize with queries that won't be additionally processed.
@@ -211,5 +212,8 @@ def spatial_search_params(
         after, before = order_datetimes(*time_of_day)
         params['time_of_day_after'] = datetime_to_time(after)
         params['time_of_day_before'] = datetime_to_time(before)
+
+    if collections:
+        params['collections'] = collections
 
     return params

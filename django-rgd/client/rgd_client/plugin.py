@@ -21,6 +21,20 @@ class CorePlugin(RgdPlugin):
         super().__init__(*args, **kwargs)
         self.session.base_url += 'rgd/'
 
+    def get_collection_by_name(self, name: str):
+        """Get collection by name."""
+        payload = {'name': name}
+        data = self.session.get('collection', params=payload).json()
+        try:
+            if isinstance(data, list) and data:
+                # Test env returns list
+                return data[0]
+            elif isinstance(data, dict) and data['results']:
+                # User env returns dict
+                return data['results'][0]
+        except (IndexError, KeyError):
+            raise ValueError(f'Collection ({name}) cannot be found.')
+
     def search(
         self,
         query: Optional[Union[Dict, str]] = None,
@@ -32,6 +46,7 @@ class CorePlugin(RgdPlugin):
         limit: Optional[int] = None,
         offset: Optional[int] = None,
         time_of_day: Optional[DATETIME_OR_STR_TUPLE] = None,
+        collections: Optional[List[Union[str, int]]] = None,
     ) -> List[Dict]:
         """
         Search for geospatial entries based on various criteria.
@@ -50,10 +65,15 @@ class CorePlugin(RgdPlugin):
             instrumentation: The instrumentation used to acquire at least one of these data.
             limit: The maximum number of results to return.
             offset: The number of results to skip.
+            collection: The collection ID or name
 
         Returns:
             A list of Spatial Entries.
         """
+        for i, collection in enumerate(collections):
+            if isinstance(collection, str):
+                collections[i] = self.get_collection_by_name(collection)['id']
+
         params = spatial_search_params(
             query=query,
             predicate=predicate,
@@ -64,6 +84,7 @@ class CorePlugin(RgdPlugin):
             limit=limit,
             offset=offset,
             time_of_day=time_of_day,
+            collections=collections,
         )
 
         r = self.session.get('search', params=params)
@@ -74,17 +95,12 @@ class CorePlugin(RgdPlugin):
 
     def create_collection(self, name: str):
         """Get or create collection by name."""
-        payload = {'name': name}
-        data = self.session.get('collection', params=payload).json()
-        if isinstance(data, list) and data:
-            # Test env returns list
-            return data[0]
-        elif isinstance(data, dict) and data['results']:
-            # User env returns dict
-            return data['results'][0]
-        r = self.session.post('collection', json=payload)
-        r.raise_for_status()
-        return r.json()
+        try:
+            return self.get_collection_by_name(name)
+        except ValueError:
+            r = self.session.post('collection', json={'name': name})
+            r.raise_for_status()
+            return r.json()
 
     def create_file_from_url(
         self,
