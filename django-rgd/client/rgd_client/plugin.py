@@ -33,7 +33,8 @@ class CorePlugin(RgdPlugin):
                 # User env returns dict
                 return data['results'][0]
         except (IndexError, KeyError):
-            raise ValueError(f'Collection ({name}) cannot be found.')
+            pass
+        raise ValueError(f'Collection ({name}) cannot be found.')
 
     def search(
         self,
