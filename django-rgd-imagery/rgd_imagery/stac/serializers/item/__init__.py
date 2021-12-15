@@ -85,7 +85,7 @@ class ItemSerializer(serializers.BaseSerializer):
                 used_images.add(image)
                 self._add_image_to_item(item, image, asset_type='image')
                 for pim in image.processedimage_set.all():
-                    if pim.processed_image not in used_images:
+                    if pim.processed_image and pim.processed_image not in used_images:
                         used_images.add(pim.processed_image)
                         self._add_image_to_item(
                             item,
