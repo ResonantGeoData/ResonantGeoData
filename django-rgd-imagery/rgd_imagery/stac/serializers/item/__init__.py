@@ -71,8 +71,13 @@ class ItemSerializer(serializers.BaseSerializer):
         )
         # 'proj' extension
         proj_ext = ProjectionExtension.ext(item, add_if_missing=True)
+        if instance.crs:
+            crs = instance.crs
+        else:
+            # NOTE: assumption with implications
+            crs = '+init=epsg:4326'
         proj_ext.apply(
-            epsg=CRS.from_proj4(instance.crs).to_epsg(),
+            epsg=CRS.from_proj4(crs).to_epsg(),
             transform=instance.transform,
         )
         # 'eo' extension
