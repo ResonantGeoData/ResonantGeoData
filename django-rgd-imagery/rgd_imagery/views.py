@@ -21,6 +21,13 @@ class RasterMetaEntriesListView(SpatialEntriesListView):
 class RasterDetailView(SpatialDetailView):
     model = models.RasterMeta
 
+    def get_context_data(self, *args, **kwargs):
+        context = super().get_context_data(*args, **kwargs)
+        import matplotlib.pyplot
+        import cmocean  # noqa
+        context["colormaps"] = {"mpl" : list(matplotlib.pyplot.colormaps())}
+        return context
+
 
 class STACBrowserView(PermissionTemplateView):
     template_name = 'rgd_imagery/stac/stac_browser.html'
