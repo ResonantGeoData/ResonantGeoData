@@ -3,11 +3,10 @@ from typing import List
 
 from pooch.processors import Unzip
 from rgd.datastore import datastore
-
 from rgd.management.commands._data_helper import (
     SynchronousTasksCommand,
-    _get_or_create_file_model,
     _get_or_create_checksum_file,
+    _get_or_create_file_model,
 )
 from rgd.models import FileSet
 from rgd_3d import models

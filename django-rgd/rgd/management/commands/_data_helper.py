@@ -83,7 +83,9 @@ def _get_or_create_checksum_file(file: str, name=None):
         try:
             file_entry = _get_or_create_checksum_file_filefield(file, name=name, use_datastore=True)
         except ValueError:
-            file_entry = _get_or_create_checksum_file_filefield(file, name=name, use_datastore=False)
+            file_entry = _get_or_create_checksum_file_filefield(
+                file, name=name, use_datastore=False
+            )
     return file_entry
 
 
