@@ -91,9 +91,7 @@ def read_mesh_3d_file(mesh_3d: Union[Mesh3D, int]):
 def read_3d_tiles_tileset_json(tiles_3d: Union[Tiles3D, int]):
     if not isinstance(tiles_3d, Tiles3D):
         tiles_3d = Tiles3D.objects.get(pk=tiles_3d)
-    with tiles_3d.json_file.yield_local_path() as path:
-        with open(path, 'r') as f:
-            tileset_json = json.load(f)
+    tileset_json = json.load(tiles_3d.json_file.file)
 
     tiles_3d_meta, created = get_or_create_no_commit(Tiles3DMeta, source=tiles_3d)
 
