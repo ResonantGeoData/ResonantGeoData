@@ -44,7 +44,9 @@ class RGDExampleProjectMixin(
         )
 
     # To use endpoints from external origin
-    CORS_ORIGIN_ALLOW_ALL = True
+    CORS_ORIGIN_ALLOW_ALL = False
+    CORS_ORIGIN_WHITELIST = ['http://localhost:8081']
+    X_FRAME_OPTIONS = 'ALLOW-FROM http://localhost'
 
 
 class DevelopmentConfiguration(RGDExampleProjectMixin, DevelopmentBaseConfiguration):
