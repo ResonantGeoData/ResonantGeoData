@@ -124,6 +124,7 @@ class ImageSetAdmin(OSMGeoAdmin):
     )
     list_filter = MODIFIABLE_FILTERS  # (ImageSetSpatialFilter, )
     inlines = (ImageSetSpatialInline,)
+    raw_id_fields = ('images',)
 
 
 class BandMetaInline(admin.StackedInline):
@@ -198,3 +199,4 @@ class ImageAdmin(OSMGeoAdmin, _FileGetNameMixin):
         ImageMetaInline,
         BandMetaInline,
     )
+    raw_id_fields = ('file',)

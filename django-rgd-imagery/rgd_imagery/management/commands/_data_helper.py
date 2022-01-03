@@ -5,7 +5,6 @@ import logging
 from django.contrib.gis.geos import GEOSGeometry
 from rgd.datastore import datastore
 from rgd.management.commands._data_helper import (
-    _get_or_create_checksum_file,
     _get_or_create_checksum_file_url,
     _get_or_create_file_model,
     _save_signal,
@@ -102,19 +101,6 @@ def load_raster_files(raster_dicts):
         raster = load_raster(imentries, rf)
         ids.append(raster.pk)
         logger.info('\t Loaded raster in: {}'.format(datetime.now() - start_time))
-    return ids
-
-
-def load_kwcoco_archives(archives):
-    ids = []
-    for fspec, farch in archives:
-        spec = _get_or_create_checksum_file(fspec)
-        arch = _get_or_create_checksum_file(farch)
-        ds, created = get_or_create_no_commit(
-            models.KWCOCOArchive, spec_file=spec, image_archive=arch
-        )
-        _save_signal(ds, created)
-        ids.append(ds.id)
     return ids
 
 

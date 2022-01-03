@@ -164,3 +164,18 @@ class SpatialEntryFilter(filters.FilterSet):
             'time_of_day',
             'collections',
         ]
+
+
+class CollectionFilter(filters.FilterSet):
+    name = filters.CharFilter(
+        field_name='name',
+        help_text='The name of the Collection.',
+        label='Name',
+        lookup_expr='exact',
+    )
+
+    class Meta:
+        model = Collection
+        fields = [
+            'name',
+        ]

@@ -6,6 +6,12 @@ from rgd.models import ChecksumFile
 
 
 @pytest.mark.django_db(transaction=True)
+def test_swagger(admin_api_client):
+    response = admin_api_client.get('/swagger/?format=openapi')
+    assert status.is_success(response.status_code)
+
+
+@pytest.mark.django_db(transaction=True)
 def test_download_checksum_file(admin_api_client, checksum_file):
     pk = checksum_file.pk
     response = admin_api_client.get(f'/api/rgd/checksum_file/{pk}/data')

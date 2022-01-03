@@ -1,6 +1,7 @@
 import json
 
 from pyproj import CRS
+from pyproj.exceptions import CRSError
 import pystac
 from pystac.extensions.eo import EOExtension
 from pystac.extensions.projection import ProjectionExtension
@@ -70,11 +71,14 @@ class ItemSerializer(serializers.BaseSerializer):
             )
         )
         # 'proj' extension
-        proj_ext = ProjectionExtension.ext(item, add_if_missing=True)
-        proj_ext.apply(
-            epsg=CRS.from_proj4(instance.crs).to_epsg(),
-            transform=instance.transform,
-        )
+        try:
+            proj_ext = ProjectionExtension.ext(item, add_if_missing=True)
+            proj_ext.apply(
+                epsg=CRS.from_proj4(instance.crs).to_epsg(),
+                transform=instance.transform,
+            )
+        except CRSError:
+            pass
         # 'eo' extension
         item_eo_ext = EOExtension.ext(item, add_if_missing=True)
         item_eo_ext.cloud_cover = instance.cloud_cover
@@ -85,7 +89,7 @@ class ItemSerializer(serializers.BaseSerializer):
                 used_images.add(image)
                 self._add_image_to_item(item, image, asset_type='image')
                 for pim in image.processedimage_set.all():
-                    if pim.processed_image not in used_images:
+                    if pim.processed_image and pim.processed_image not in used_images:
                         used_images.add(pim.processed_image)
                         self._add_image_to_item(
                             item,

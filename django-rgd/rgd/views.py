@@ -41,20 +41,24 @@ def query_params(params):
     return '&' + query.urlencode() if query.urlencode() else ''
 
 
-class _SpatialListView(PermissionListView):
+class SpatialListView(PermissionListView):
     paginate_by = 15
 
-    def _get_extent_summary(self, object_list):
-        ids = [o.spatial_id for o in object_list]
-        queryset = self.get_queryset().filter(spatial_id__in=ids)
-        summary = queryset.aggregate(
+    def get_context_data(self, *args, **kwargs):
+        context = super().get_context_data(*args, **kwargs)
+        full_queryset = self.object_list
+        paginated_queryset = context['object_list']
+        count = full_queryset.count()
+        summary = paginated_queryset.aggregate(
             Collect('outline'),
             Extent('outline'),
+            Count('pk'),
         )
-        extents = {
-            'count': queryset.count(),
-        }
-        if queryset.count():
+        # Have a smaller dict of meta fields to parse for menu bar
+        # This keeps us from parsing long GeoJSON fields twice
+        context['extents_meta'] = json.dumps({'count': summary['pk__count']})
+        extents = {'count': count}
+        if count:
             extents.update(
                 {
                     'collect': json.loads(summary['outline__collect'].geojson),
@@ -67,33 +71,21 @@ class _SpatialListView(PermissionListView):
                     },
                 }
             )
-        return extents
-
-    def get_context_data(self, *args, **kwargs):
-        # Pagination happens here
-        context = super().get_context_data(*args, **kwargs)
-        summary = self._get_extent_summary(context['object_list'])
-        context['extents'] = json.dumps(summary)
-        # Have a smaller dict of meta fields to parse for menu bar
-        # This keeps us from parsing long GeoJSON fields twice
-        meta = {
-            'count': self.get_queryset().count(),  # This is the amount in the full results
-        }
-        context['extents_meta'] = json.dumps(meta)
+        context['extents'] = json.dumps(extents)
         context['search_params'] = json.dumps(self.request.GET)
         context['query_params'] = query_params(self.request.GET)
         return context
 
 
-class SpatialEntriesListView(_SpatialListView):
-    model = models.SpatialEntry
-    filter = filters.SpatialEntryFilter
+class SpatialEntriesListView(SpatialListView):
+    queryset = models.SpatialEntry.objects.select_subclasses()
     context_object_name = 'spatial_entries'
     template_name = 'rgd/spatialentry_list.html'
+    filterset_class = filters.SpatialEntryFilter
 
     def get_queryset(self):
-        filterset = self.filter(data=self.request.GET)
-        queryset = self.model.objects.select_subclasses().order_by('spatial_id')
+        queryset = super().get_queryset()
+        filterset = self.filterset_class(data=self.request.GET)
         if not filterset.is_valid():
             message = 'Filter parameters illformed. Full results returned.'
             all_error_messages_content = [
@@ -103,9 +95,9 @@ class SpatialEntriesListView(_SpatialListView):
             ]
             if message not in all_error_messages_content:
                 messages.add_message(self.request, messages.ERROR, message)
-            return queryset
-        queryset = filterset.filter_queryset(queryset)
-        return permissions.filter_read_perm(self.request.user, queryset)
+        else:
+            queryset = filterset.filter_queryset(queryset)
+        return queryset
 
 
 class StatisticsView(PermissionListView):
@@ -117,7 +109,7 @@ class StatisticsView(PermissionListView):
     def get_context_data(self, *args, **kwargs):
         context = super().get_context_data(*args, **kwargs)
         context.update(
-            self.get_queryset().aggregate(
+            self.object_list.aggregate(
                 count=Count('spatial_id', distinct=True),
                 coordinates=ArrayAgg(AsGeoJSON(Centroid('footprint'))),
                 instrumentation_count=Count(
@@ -147,25 +139,20 @@ class StatisticsView(PermissionListView):
         return context
 
 
-class _SpatialDetailView(PermissionDetailView):
-    def _get_extent(self, object):
-        extent = {
-            'count': 0,
-        }
-        if object.footprint:
-            extent.update(
-                {
-                    'count': 1,
-                    'collect': object.footprint.json,
-                    'outline': object.outline.json,
-                    'extent': object.bounds,
-                }
-            )
-        return extent
-
+class SpatialDetailView(PermissionDetailView):
     def get_context_data(self, *args, **kwargs):
         context = super().get_context_data(*args, **kwargs)
-        context['extents'] = json.dumps(self._get_extent(self.object))
+        extents = {'count': 0}
+        if self.object.footprint:
+            extents.update(
+                {
+                    'count': 1,
+                    'collect': self.object.footprint.json,
+                    'outline': self.object.outline.json,
+                    'extent': self.object.bounds,
+                }
+            )
+        context['extents'] = json.dumps(extents)
         return context
 
 

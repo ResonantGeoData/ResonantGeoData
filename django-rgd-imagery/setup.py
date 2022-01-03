@@ -59,9 +59,6 @@ setup(
     ],
     extras_require={
         'worker': [
-            'kwarray>=0.5.10',
-            'kwcoco',
-            'kwimage[headless]>=0.6.7',
             'large-image-converter',
             'rasterio',
         ],

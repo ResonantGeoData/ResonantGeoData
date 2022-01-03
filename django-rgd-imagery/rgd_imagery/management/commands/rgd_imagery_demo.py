@@ -33,7 +33,6 @@ RASTER_FILES = [
     # ['US_eMAH_NDVI.2020.350-356.1KM.VI_QUAL.006.2020359165956.tif'],
     ['TC_NG_SFBay_US_Geo.tif'],
 ]
-KWCOCO_ARCHIVES = [['demo.kwcoco.json', 'demodata.zip'], ['demo_rle.kwcoco.json', 'demo_rle.zip']]
 SPATIAL_IMAGE_SETS = [
     (
         ['afie_1.jpg', 'afie_2.jpg', 'afie_3.jpg'],
@@ -49,7 +48,6 @@ class Command(SynchronousTasksCommand):
         self.set_synchronous()
         # Run the command
         helper.load_raster_files([helper.make_raster_dict(im) for im in RASTER_FILES])
-        helper.load_kwcoco_archives(KWCOCO_ARCHIVES)
         helper.load_spatial_image_sets(SPATIAL_IMAGE_SETS)
         self.stdout.write(self.style.SUCCESS(SUCCESS_MSG))
         self.reset_celery()

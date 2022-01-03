@@ -80,8 +80,11 @@ class ResonantGeoDataBaseMixin(GeoDjangoMixin, SwaggerMixin, ConfigMixin):
             'rest_framework.authentication.TokenAuthentication',
         ]
 
-        if getattr(configuration, 'DEBUG', False):
-            configuration.LOGGING['loggers']['rgd'] = {
+    @classmethod
+    def post_setup(cls):
+        super().post_setup()
+        if getattr(cls, 'DEBUG', False) or cls.RGD_DEBUG_LOGS:
+            cls.LOGGING['loggers']['rgd'] = {
                 'level': 'DEBUG',
                 'handlers': ['console'],
                 'propagate': False,
@@ -104,9 +107,9 @@ class ResonantGeoDataBaseMixin(GeoDjangoMixin, SwaggerMixin, ConfigMixin):
     RGD_GLOBAL_READ_ACCESS = values.Value(default=False)
     RGD_AUTO_APPROVE_SIGN_UP = values.Value(default=False)
     RGD_AUTO_COMPUTE_CHECKSUMS = values.Value(default=False)
-    RGD_STAC_BROWSER_LIMIT = values.Value(default=1000)
     RGD_TEMP_DIR = values.Value(default=os.path.join(tempfile.gettempdir(), 'rgd'))
     RGD_TARGET_AVAILABLE_CACHE = values.Value(default=2)
     RGD_REST_CACHE_TIMEOUT = values.Value(default=60 * 60 * 2)
     RGD_SIGNED_URL_TTL = values.Value(default=60 * 60 * 24)  # 24 hours
     RGD_SIGNED_URL_QUERY_PARAM = values.Value(default='signature')
+    RGD_DEBUG_LOGS = values.Value(default=True)
