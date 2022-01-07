@@ -25,6 +25,7 @@ services:
     command: [
       "watchmedo", "auto-restart",
       "--pattern", "*.py",
+      "--ignore-patterns", "./.tox/*",
       "--recursive",
       "--",
       "celery",
