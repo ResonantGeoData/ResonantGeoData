@@ -1,3 +1,4 @@
+import json
 from rgd.views import (
     PermissionDetailView,
     PermissionTemplateView,
@@ -25,7 +26,8 @@ class RasterDetailView(SpatialDetailView):
         context = super().get_context_data(*args, **kwargs)
         import matplotlib.pyplot
         import cmocean  # noqa
-        context["colormaps"] = {"mpl" : list(matplotlib.pyplot.colormaps())}
+        colorlist = {'mpl' : list(matplotlib.pyplot.colormaps())}
+        context['colormaps'] = json.dumps(colorlist)
         return context
 
 
