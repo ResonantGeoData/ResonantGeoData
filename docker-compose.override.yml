@@ -24,8 +24,8 @@ services:
       dockerfile: ./dev/celery.Dockerfile
     command: [
       "watchmedo", "auto-restart",
-      "--pattern", "*.py",
-      "--ignore-patterns", "./.tox/*",
+      "--pattern", "*.py;",
+      "--ignore-patterns", "./.tox/**/*.py",
       "--recursive",
       "--",
       "celery",
