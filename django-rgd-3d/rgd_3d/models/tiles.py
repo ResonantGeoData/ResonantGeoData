@@ -27,7 +27,7 @@ class Tiles3D(TimeStampedModel, TaskEventMixin, DetailViewMixin):
     )
 
     task_funcs = (jobs.task_read_3d_tiles_file,)
-    detail_view_name = 'detail-tiles-3d'
+    detail_view_name = 'tiles-3d-entry'
 
 
 class Tiles3DMeta(TimeStampedModel, SpatialEntry):
