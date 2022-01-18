@@ -1,10 +1,11 @@
+from pathlib import Path
 from typing import Dict, List, Optional, Tuple, Union
 
 import validators
 
 from .session import RgdClientSession
 from .types import DATETIME_OR_STR_TUPLE, SEARCH_PREDICATE_CHOICE
-from .utils import spatial_search_params
+from .utils import download_checksum_file_to_path, spatial_search_params
 
 
 class RgdPlugin:
@@ -168,3 +169,25 @@ class CorePlugin(RgdPlugin):
             A dictionary, containing all direct subfolders (`folders`), and files (`files`) under the specified path.
         """
         return self.session.get('checksum_file/tree', params={'path_prefix': path}).json()
+
+    def download_checksum_file_to_path(
+        self, id: int, path: Optional[Path] = None, keep_existing=False, use_id=False
+    ):
+        """
+        Download a RGD ChecksumFile to a given path.
+
+        Args:
+            id: The id of the RGD ChecksumFile to download.
+            path: The root path to download this file to.
+            keep_existing: If False, replace files existing on disk.
+            use_id: If True, save this file to disk using it's ID, rather than it's name.
+
+        Returns:
+            The path on disk the file was downloaded to.
+        """
+        r = self.session.get(f'checksum_file/{id}')
+        r.raise_for_status()
+
+        return download_checksum_file_to_path(
+            r.json(), path, keep_existing=keep_existing, use_id=use_id
+        )
