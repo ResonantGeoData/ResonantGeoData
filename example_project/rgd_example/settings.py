@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from datetime import timedelta
 from pathlib import Path
 from typing import Type
 
@@ -10,6 +11,7 @@ from composed_configuration import (
     DevelopmentBaseConfiguration,
     TestingBaseConfiguration,
 )
+from configurations import values
 from rgd.configuration import MemachedMixin, ResonantGeoDataBaseMixin
 
 
@@ -45,6 +47,10 @@ class RGDExampleProjectMixin(
 
     # To use endpoints from external origin
     CORS_ORIGIN_ALLOW_ALL = True
+
+    CELERY_TASK_TIME_LIMIT = values.IntegerValue(
+        environ=True, default=timedelta(days=1).total_seconds()
+    )
 
 
 class DevelopmentConfiguration(RGDExampleProjectMixin, DevelopmentBaseConfiguration):
