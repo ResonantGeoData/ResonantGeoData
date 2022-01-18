@@ -13,4 +13,9 @@ urlpatterns = [
         views.Mesh3DDetailView.as_view(),
         name=models.Mesh3D.detail_view_name,
     ),
+    path(
+        'rgd_3d/mesh/',
+        views.Mesh3DListView.as_view(),
+        name='mesh-3d-list',
+    ),
 ] + router.urls

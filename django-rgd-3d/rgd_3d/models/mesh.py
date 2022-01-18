@@ -41,6 +41,7 @@ class Mesh3DSpatial(TimeStampedModel, SpatialEntry):
     crs = models.TextField(help_text='PROJ string', blank=True, null=True)  # PROJ String
     # Origin point to map the 0,0,0 point of the point cloud
     origin = fields.ArrayField(models.FloatField(), size=3, blank=True, null=True)
+    heading = models.FloatField(null=True, blank=True)
 
     @property
     def name(self):

@@ -1,0 +1,49 @@
+{% extends "rgd/_base/search_view.html" %}
+{% block title %}
+  Mesh 3D Entries
+{% endblock title %}
+
+{% block search_fields %}
+  {% include 'rgd/_include/search_fields.html' %}
+
+  <div class="column is-full field mb-0">
+    <div class="field-label is-normal">
+      <label class="label">Heading (Min/Max)</label>
+    </div>
+    <div class="field-body">
+      <div class="field">
+        <div class="control">
+          <input class="input" type="text" name="heading_min" value="{{ request.GET.heading_min }}">
+          <input class="input" type="text" name="heading_max" value="{{ request.GET.heading_max }}">
+        </div>
+      </div>
+    </div>
+  </div>
+
+
+{% endblock search_fields %}
+
+{% block list_view %}
+
+  <div style="overflow-x:auto;">
+    <table class="table">
+      <thead class="thead-dark">
+        <tr>
+          <th><span class="text">ID - Name</span></th>
+          <th><span class="text">Area</span></th>
+          <th><span class="text">Data Type</span></th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for entry in spatial_entries %}
+          <tr>
+            <td><a href="{% url 'raster-entry-detail' entry.pk %}">{{ entry.spatial_id }} - {{ entry.name | truncatechars:12 }}</a></td>
+            <td>{{ entry.footprint.area | floatformat:-2 }}</td>
+            <td>RasterMeta</td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+{% endblock list_view %}
