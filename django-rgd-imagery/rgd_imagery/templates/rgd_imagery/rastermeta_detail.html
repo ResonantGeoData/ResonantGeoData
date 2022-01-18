@@ -113,16 +113,21 @@
       var imageSelector_value = Number(imageSelector.value)
       var bandSelector_value = Number(bandSelector.value)
       var cmap = colormapSelector.value
-      
+
       if (imageSelector_value >= 0) {
         var image_id = imageSelector_value.toString();
         var band = bandSelector_value.toString();
         if (Number.isNaN(band)) {
           band = 0
         }
+        if (band != 0) {
+          colormapSelector.style.visibility = "visible";
+        } else {
+          colormapSelector.style.visibility = "hidden";
+        }
         tileLayer.visible(true);
-        tileLayer.url(`${host}/api/image_process/imagery/${image_id}/tiles/{z}/{x}/{y}.png?projection=EPSG:3857&band=${band}&pallete=${cmap}`)
-        thumbnail.src = `${host}/api/image_process/imagery/${image_id}/thumbnail?band=${band}&pallete=${cmap}`
+        tileLayer.url(`${host}/api/image_process/imagery/${image_id}/tiles/{z}/{x}/{y}.png?projection=EPSG:3857&band=${band}&palette=${cmap}`)
+        thumbnail.src = `${host}/api/image_process/imagery/${image_id}/thumbnail?band=${band}&palette=${cmap}`
         thumbnail.hidden = false
       } else {
         tileLayer.visible(false);
@@ -163,6 +168,7 @@
         opt.value = cmap;
         opt.innerHTML = `${cmap}`;
         colormapSelector.appendChild(opt);
+        colormapSelector.style.visibility = "hidden";
       });
 
 
