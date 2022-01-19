@@ -18,7 +18,7 @@ except ImportError:
 
 class GeoDjangoMixin(ConfigMixin):
     @staticmethod
-    def before_binding(configuration: Type[ComposedConfiguration]):
+    def mutate_configuration(configuration: Type[ComposedConfiguration]):
         configuration.INSTALLED_APPS += ['django.contrib.gis']
 
         try:
@@ -72,7 +72,7 @@ class MemachedMixin(ConfigMixin):
 
 class ResonantGeoDataBaseMixin(GeoDjangoMixin, SwaggerMixin, ConfigMixin):
     @staticmethod
-    def before_binding(configuration: ComposedConfiguration) -> None:
+    def mutate_configuration(configuration: ComposedConfiguration) -> None:
         configuration.MIDDLEWARE += [
             'crum.CurrentRequestUserMiddleware',
         ]
