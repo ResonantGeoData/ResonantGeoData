@@ -15,7 +15,7 @@ from rgd.configuration import MemachedMixin, ResonantGeoDataBaseMixin
 
 class CrispyFormsMixin(ConfigMixin):
     @staticmethod
-    def before_binding(configuration: Type[ComposedConfiguration]):
+    def mutate_configuration(configuration: Type[ComposedConfiguration]):
         configuration.INSTALLED_APPS += ['crispy_forms']
 
 
@@ -28,7 +28,7 @@ class RGDExampleProjectMixin(
     BASE_DIR = Path(__file__).resolve(strict=True).parent.parent
 
     @staticmethod
-    def before_binding(configuration: ComposedConfiguration) -> None:
+    def mutate_configuration(configuration: ComposedConfiguration) -> None:
 
         # Install additional apps
         configuration.INSTALLED_APPS = [
