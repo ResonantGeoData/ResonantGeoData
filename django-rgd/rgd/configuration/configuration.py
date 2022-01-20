@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from datetime import timedelta
 import logging
 import os
 import tempfile
@@ -102,6 +103,9 @@ class ResonantGeoDataBaseMixin(GeoDjangoMixin, SwaggerMixin, ConfigMixin):
     )
 
     CELERY_WORKER_SEND_TASK_EVENTS = True
+    CELERY_TASK_TIME_LIMIT = values.IntegerValue(
+        environ=True, default=timedelta(days=1).total_seconds()
+    )
 
     RGD_FILE_FIELD_PREFIX = values.Value(default=None)
     RGD_GLOBAL_READ_ACCESS = values.Value(default=False)
