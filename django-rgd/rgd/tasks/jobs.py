@@ -4,7 +4,7 @@ from django.conf import settings
 from . import helpers
 
 
-@shared_task(time_limit=86400)
+@shared_task(time_limit=settings.CELERY_TASK_TIME_LIMIT)
 def task_checksum_file_post_save(checksumfile_pk):
     from rgd.models import ChecksumFile
     from rgd.models.mixins import Status
