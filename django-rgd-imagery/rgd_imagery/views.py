@@ -1,3 +1,5 @@
+import json
+
 from rgd.views import (
     PermissionDetailView,
     PermissionTemplateView,
@@ -20,6 +22,15 @@ class RasterMetaEntriesListView(SpatialEntriesListView):
 
 class RasterDetailView(SpatialDetailView):
     model = models.RasterMeta
+
+    def get_context_data(self, *args, **kwargs):
+        context = super().get_context_data(*args, **kwargs)
+        import cmocean  # noqa
+        import matplotlib.pyplot
+
+        colorlist = {'mpl': list(matplotlib.pyplot.colormaps())}
+        context['colormaps'] = json.dumps(colorlist)
+        return context
 
 
 class STACBrowserView(PermissionTemplateView):
