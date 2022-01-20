@@ -94,6 +94,21 @@
     {% endfor %}
     };
 
+    function populateColorMapOptions() {
+      var opt = document.createElement('option');
+      opt.value = "";
+      opt.innerHTML = 'Default';
+      colormapSelector.appendChild(opt);
+      colormaps['mpl'].forEach((cmap) => {
+        var opt = document.createElement('option');
+        opt.value = cmap;
+        opt.innerHTML = `${cmap}`;
+        colormapSelector.appendChild(opt);
+        colormapSelector.style.visibility = "hidden";
+      });
+    }
+    populateColorMapOptions()
+
     // Make sure regions outside the extent of the raster do not load null tiles
     //   this relieves strain on the tile server
     const dataset_bb = extents.extent;
@@ -158,24 +173,9 @@
         });
       }
     }
-    function updateColorMapOptions() {
-      var opt = document.createElement('option');
-      opt.value = 0;
-      opt.innerHTML = 'Default';
-      colormapSelector.appendChild(opt);
-      colormaps['mpl'].forEach((cmap) => {
-        var opt = document.createElement('option');
-        opt.value = cmap;
-        opt.innerHTML = `${cmap}`;
-        colormapSelector.appendChild(opt);
-        colormapSelector.style.visibility = "hidden";
-      });
 
-
-    }
     function updateImage() {
       updateBandOptions()
-      updateColorMapOptions()
       updateBandThumbnail()
     }
 
