@@ -46,7 +46,7 @@ setup(
     include_package_data=True,
     install_requires=[
         'bidict',
-        'django-rgd',
+        f'django-rgd=={__version__}',
         'large-image[memcached]>=1.9.0',
         'large-image-source-gdal>=1.9.0',
         'large-image-source-pil>=1.9.0',

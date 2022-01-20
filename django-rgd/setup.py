@@ -79,7 +79,7 @@ setup(
         ],
         'configuration': [
             'django-composed-configuration[dev]',
-            'django-configurations[database,email]',
+            'django-configurations[database,email]>=0.19.2',
         ],
     },
 )
