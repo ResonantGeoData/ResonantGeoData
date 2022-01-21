@@ -1,4 +1,4 @@
-name: npm build and commit
+name: build and commit vtkjs_viewer
 on:
   push:
     paths:
@@ -6,7 +6,7 @@ on:
     branches-ignore:
       - main
 jobs:
-  lint:
+  build-vtkjs-viewer:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
