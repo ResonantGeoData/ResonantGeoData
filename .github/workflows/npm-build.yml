@@ -1,0 +1,22 @@
+name: npm build and commit
+on:
+  push:
+    paths:
+      - 'django-rgd-3d/vtkjs_viewer/package**.json'
+    branches-ignore:
+      - main
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/setup-node@v2
+        with:
+          node-version: '14'
+      - working-directory: django-rgd-3d/vtkjs_viewer
+        run: npm install
+      - working-directory: django-rgd-3d/vtkjs_viewer
+        run: npm run-script build
+      - uses: EndBug/add-and-commit@v8
+        add: django-rgd-3d/rgd_3d/static/rgd_3d/vtkjs_viewer.js
+        message: 'Rebuild vtkjs_viewer.js asset'
