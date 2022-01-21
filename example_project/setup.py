@@ -36,9 +36,9 @@ setup(
     ],
     extras_require={
         'graph': [
+            'pydot',
             'pygraphviz',
             'pyparsing',
-            'pydot',
         ],
     },
 )
