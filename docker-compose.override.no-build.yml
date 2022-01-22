@@ -1,0 +1,7 @@
+version: '3'
+services:
+  django:
+    image: ghcr.io/resonantgeodata/resonantgeodata/django:main
+
+  celery:
+    image: ghcr.io/resonantgeodata/resonantgeodata/celery:main
