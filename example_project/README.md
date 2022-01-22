@@ -19,6 +19,5 @@ docker compose -f docker-compose.yml -f docker-compose.override.yml -f docker-co
 To use prebuilt images, not building the images locally (time saver):
 
 ```
-docker compose -f docker-compose.yml -f docker-compose.override.yml -f docker-compose.override.no-build.yml build
 docker compose -f docker-compose.yml -f docker-compose.override.yml -f docker-compose.override.no-build.yml up
 ```
