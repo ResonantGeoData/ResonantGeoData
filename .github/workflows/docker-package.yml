@@ -16,7 +16,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        docker-file: [miniforge, django, celery]
+        docker-file: [miniforge, django, celery, sass]
     steps:
       - uses: actions/checkout@v2
       - name: Log into the Container registry

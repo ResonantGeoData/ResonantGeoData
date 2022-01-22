@@ -5,3 +5,6 @@ services:
 
   celery:
     image: ghcr.io/resonantgeodata/resonantgeodata/celery:main
+
+  sass:
+    image: ghcr.io/resonantgeodata/resonantgeodata/sass:main
