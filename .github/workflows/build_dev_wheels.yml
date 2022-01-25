@@ -33,7 +33,7 @@ jobs:
       - name: Cache Wheel
         uses: actions/upload-artifact@v2
         with:
-          name: pkg-$CACHE_NAME
+          name: pkg-${{ env.CACHE_NAME }}
           path: ${{ matrix.rgd-module }}/dist/
   publish-wheels:
     name: Publish Wheels
