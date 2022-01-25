@@ -48,6 +48,9 @@ jobs:
         uses: banesullivan/create-pip-index-action@main
         with:
           package_directory:  packages/
+      - run: |
+          ls
+          ls packages/
       - name: Deploy to GH Pages
         uses: peaceiris/actions-gh-pages@v3
         with:
