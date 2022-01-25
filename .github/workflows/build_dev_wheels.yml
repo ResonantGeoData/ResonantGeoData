@@ -26,15 +26,10 @@ jobs:
       - name: Build Weel
         working-directory: ${{ matrix.rgd-module }}
         run: python setup.py sdist bdist_wheel
-      - name: Set Cache Name
-        run:
-          CACHE_NAME=$(echo '${{ matrix.rgd-module }}' | sed 's/\//\-/g');
-          echo $CACHE_NAME;
-          echo "CACHE_NAME=$CACHE_NAME" >> $GITHUB_ENV;
       - name: Cache Wheel
         uses: actions/upload-artifact@v2
         with:
-          name: pkg-${{ env.CACHE_NAME }}
+          name: dist
           path: ${{ matrix.rgd-module }}/dist/
           if-no-files-found: error
   publish-wheels:
@@ -44,13 +39,13 @@ jobs:
     steps:
       # Downloads all artifacts
       - uses: actions/download-artifact@v2
-      - run: ls
+      - run: ls; ls dist
       - name: Make index
         uses: banesullivan/create-pip-index-action@main
         with:
-          package_directory:  .
+          package_directory: dist
       - name: Deploy to GH Pages
         uses: peaceiris/actions-gh-pages@v3
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_dir:  .
+          publish_dir:  dist
