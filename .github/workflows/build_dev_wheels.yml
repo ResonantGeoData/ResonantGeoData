@@ -15,13 +15,12 @@ jobs:
       fail-fast: false
       matrix:
         rgd-module: ['django-rgd', 'django-rgd/client', 'django-rgd-3d', 'django-rgd-fmv', 'django-rgd-geometry', 'django-rgd-imagery', 'django-rgd-imagery/client']
-        python-version: [3.8, 3.9, "3.10"]
     steps:
       - uses: actions/checkout@v2
       - name: Set up Python
         uses: actions/setup-python@v2
         with:
-          python-version: ${{ matrix.python-version }}
+          python-version: "3.8"
       - name: Install Dependencies
         run: pip install setuptools wheel
       - name: Build Weel
