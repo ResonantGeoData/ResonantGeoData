@@ -76,8 +76,10 @@ class RasterViewSet(ModelViewSet, TaskEventViewSetMixin):
     filterset_class = filters.RasterMetaFilter
 
     def get_serializer_class(self):
-        if self.action in {'list', 'retrieve', 'stac', 'status'}:
+        if self.action in {'list', 'retrieve', 'status'}:
             return serializers.RasterMetaSerializer
+        if self.action in {'stac'}:
+            return stac.serializers.ItemSerializer
         return serializers.RasterSerializer
 
     def get_queryset(self):
