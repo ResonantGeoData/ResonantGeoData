@@ -48,9 +48,9 @@ jobs:
       - name: Make index
         uses: banesullivan/create-pip-index-action@main
         with:
-          package_directory:  packages/
+          package_directory:  .
       - name: Deploy to GH Pages
         uses: peaceiris/actions-gh-pages@v3
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_dir:  packages/
+          publish_dir:  .
