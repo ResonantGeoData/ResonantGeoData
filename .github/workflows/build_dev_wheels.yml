@@ -29,7 +29,7 @@ jobs:
       - name: Cache Wheel
         uses: actions/upload-artifact@v2
         with:
-          name: pkg-${{ matrix.rgd-module }}
+          name: pkg-${{ matrix.rgd-module//// }}
           path: ${{ matrix.rgd-module }}/dist/
   publish-wheels:
     name: Publish Wheels
