@@ -36,18 +36,15 @@ jobs:
         with:
           name: pkg-${{ env.CACHE_NAME }}
           path: ${{ matrix.rgd-module }}/dist/
+          if-no-files-found: error
   publish-wheels:
     name: Publish Wheels
     runs-on: ubuntu-latest
     needs: build-wheels
     steps:
+      # Downloads all artifacts
       - uses: actions/download-artifact@v2
-        with:
-          # Downloads all artifacts
-          path: packages/
-      - run: |
-          ls
-          ls packages/
+      - run: ls
       - name: Make index
         uses: banesullivan/create-pip-index-action@main
         with:
