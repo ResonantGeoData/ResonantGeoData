@@ -42,10 +42,13 @@ services:
       - memcached
 
   flower:
-    image: mher/flower
-    command: ["celery", "--broker=amqp://rabbitmq:5672/", "flower"]
+    image: mher/flower:0.9.5
+    command: ["--broker=amqp://rabbitmq:5672/"]
     ports:
       - 5555:5555
+    depends_on:
+      - rabbitmq
+      - celery
 
   sass:
     build:
