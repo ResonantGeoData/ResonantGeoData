@@ -1,5 +1,6 @@
 name: build and commit vtkjs_viewer
 on:
+  workflow_dispatch:
   push:
     paths:
       - 'django-rgd-3d/vtkjs_viewer/package**.json'
