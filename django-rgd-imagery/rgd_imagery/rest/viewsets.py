@@ -91,7 +91,8 @@ class RasterViewSet(ModelViewSet, TaskEventViewSetMixin):
         method='GET',
         operation_summary='Fetch the STAC Item JSON for this raster.',
     )
-    @action(detail=True)
+    @action(detail=True, serializer_class=stac.serializers.ItemSerializer)
     def stac(self, *args, **kwargs):
         obj = self.get_object()
-        return Response(stac.serializers.ItemSerializer().to_representation(obj))
+        serializer = self.get_serializer()
+        return Response(serializer.to_representation(obj))
