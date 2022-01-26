@@ -14,7 +14,7 @@ env:
 jobs:
   build-and-publish:
     runs-on: ubuntu-latest
-    if: github.event_name == 'push' || ( github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository )
+    if: github.event_name == 'push' || github.event_name == 'workflow_dispatch' || ( github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository )
     strategy:
       fail-fast: false
       matrix:
@@ -37,6 +37,6 @@ jobs:
         with:
           context: .
           file: dev/${{ matrix.docker-file }}.Dockerfile
-          push: ${{ github.actor != "dependabot[bot]" }}
+          push: ${{ github.actor != 'dependabot[bot]' }}
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
