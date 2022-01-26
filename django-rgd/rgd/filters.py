@@ -162,11 +162,11 @@ class SpatialEntryFilter(filters.FilterSet):
         if value and value > 0 and value < 1 and self._has_geom:
             geom = self._geometry
             queryset = queryset.filter(footprint__overlaps=geom).annotate(
-                intersection_geom=(
+                overlap_percentage=(
                     Cast(Area(Intersection(F('footprint'), geom)) / Area(geom), FloatField())
                 )
             )
-            queryset = queryset.filter(intersection_geom__gte=value)
+            queryset = queryset.filter(overlap_percentage__gte=value)
         return queryset
 
     class Meta:
