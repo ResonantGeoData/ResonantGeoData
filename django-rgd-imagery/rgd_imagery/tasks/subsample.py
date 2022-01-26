@@ -1,5 +1,6 @@
 """Tasks for subsampling images with GDAL."""
 from contextlib import contextmanager
+import time
 
 from celery.utils.log import get_task_logger
 from django.contrib.gis.geos import GEOSGeometry
@@ -24,6 +25,7 @@ def _processed_image_helper(param_model, single_input=False):
         param_model.processed_image.file.delete()
     file = ChecksumFile()
 
+    time.sleep(3)  # HACK to avoid race condition in #647
     param_model.refresh_from_db()
 
     if single_input:
@@ -86,12 +88,22 @@ def extract_region(processed_image):
         """
         p = parameters
 
-        projection = p.pop('projection', None)
+        projection = p.get('projection', None)
         if sample_type in (
             SampleTypes.PIXEL_BOX,
             SampleTypes.ANNOTATION,
         ):
             projection = 'pixels'
+        elif (
+            sample_type
+            in (
+                SampleTypes.GEO_BOX,
+                SampleTypes.GEOJSON,
+            )
+            and projection is None
+        ):
+            logger.info('No projection given, defaulting to: EPSG:4326')
+            projection = 'EPSG:4326'
 
         if sample_type in (
             SampleTypes.GEO_BOX,
@@ -115,20 +127,21 @@ def extract_region(processed_image):
     l, r, b, t, projection = get_extent()
 
     with _processed_image_helper(processed_image, single_input=True) as (image, output):
-        tile_source = large_image_utilities.get_tilesource_from_image(image)
-
         filename = f'region-{image.file.name}'
-
         with output_path_helper(filename, output.file) as output_path:
             logger.debug(f'The extent: {l, r, b, t}')
             if sample_type in (
                 SampleTypes.GEOJSON,
                 SampleTypes.GEO_BOX,
             ):
+                tile_source = large_image_utilities.get_tilesource_from_image(
+                    image, projection='EPSG:3857'
+                )
                 path, mime_type = large_image_utilities.get_region_world(
                     tile_source, l, r, b, t, units=projection
                 )
             else:
+                tile_source = large_image_utilities.get_tilesource_from_image(image)
                 path, mime_type = large_image_utilities.get_region_pixel(tile_source, l, r, b, t)
             with open(path, 'rb') as f, open(output_path, 'wb') as o:
                 o.write(f.read())

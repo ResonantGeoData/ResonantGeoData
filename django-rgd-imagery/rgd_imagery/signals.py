@@ -1,7 +1,7 @@
 import os
 
 from django.db import transaction
-from django.db.models.signals import m2m_changed, post_delete, post_save, pre_delete
+from django.db.models.signals import m2m_changed, post_save, pre_delete
 from django.dispatch import receiver
 from rgd.utility import skip_signal
 from rgd_imagery import models
@@ -23,18 +23,6 @@ def _m2m_changed_image_set(sender, instance, action, reverse, *args, **kwargs):
 @skip_signal()
 def _post_save_raster(sender, instance, *args, **kwargs):
     transaction.on_commit(lambda: instance._on_commit_event_task(*args, **kwargs))
-
-
-@receiver(post_save, sender=models.KWCOCOArchive)
-@skip_signal()
-def _post_save_kwcoco_dataset(sender, instance, *args, **kwargs):
-    transaction.on_commit(lambda: instance._on_commit_event_task(*args, **kwargs))
-
-
-@receiver(post_delete, sender=models.KWCOCOArchive)
-@skip_signal()
-def _post_delete_kwcoco_dataset(sender, instance, *args, **kwargs):
-    transaction.on_commit(lambda: instance._post_delete(*args, **kwargs))
 
 
 @receiver(post_save, sender=models.Image)

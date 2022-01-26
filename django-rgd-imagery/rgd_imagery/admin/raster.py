@@ -5,6 +5,7 @@ from rgd.admin.mixins import (
     SPATIAL_ENTRY_FILTERS,
     TASK_EVENT_FILTERS,
     TASK_EVENT_READONLY,
+    GeoAdminInline,
     reprocess,
 )
 from rgd_imagery.models import Raster, RasterMeta
@@ -42,8 +43,9 @@ def clean_empty_rasters(modeladmin, request, queryset):
             raster.image_set.delete()
 
 
-@admin.register(RasterMeta)
-class RasterMetaAdmin(OSMGeoAdmin):
+class RasterMetaInline(GeoAdminInline):
+    model = RasterMeta
+    fk_name = 'parent_raster'
     list_display = (
         'pk',
         'name',
@@ -90,4 +92,13 @@ class RasterAdmin(OSMGeoAdmin):
         generate_valid_data_footprint,
         clean_empty_rasters,
     )
-    list_filter = MODIFIABLE_FILTERS + TASK_EVENT_FILTERS
+    list_filter = (
+        tuple(f'rastermeta__{s}' for s in SPATIAL_ENTRY_FILTERS)
+        + MODIFIABLE_FILTERS
+        + TASK_EVENT_FILTERS
+    )
+    raw_id_fields = (
+        'image_set',
+        'ancillary_files',
+    )
+    inlines = (RasterMetaInline,)

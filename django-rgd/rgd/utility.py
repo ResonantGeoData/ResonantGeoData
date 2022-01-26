@@ -119,7 +119,9 @@ def _download_url_file_to_stream(
     parsed = urlparse(url)
     if parsed.scheme == 's3':
         s3 = get_s3_client()
-        s3.download_fileobj(parsed.netloc, parsed.path.lstrip('/'), dest_stream)
+        s3.download_fileobj(
+            parsed.netloc, parsed.path.lstrip('/'), dest_stream, {'RequestPayer': 'requester'}
+        )
     else:
         with safe_urlopen(url) as remote:
             while chunk := remote.read(num_blocks * block_size):
@@ -166,6 +168,8 @@ def url_file_to_fuse_path(url: str) -> Path:
         fuse_path = url.replace('https://', '/tmp/rgd/https/') + '..'
     elif parsed.scheme == 'http':
         fuse_path = url.replace('http://', '/tmp/rgd/http/') + '..'
+    elif Path('/tmp/rgd/s3/').exists() and parsed.scheme == 's3':
+        fuse_path = url.replace('s3://', '/tmp/rgd/s3/') + '..'
     else:
         raise ValueError(f'Scheme {parsed.scheme} not currently handled by FUSE.')
     logger.debug(f'FUSE path: {fuse_path}')

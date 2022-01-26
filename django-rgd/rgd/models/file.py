@@ -96,6 +96,11 @@ class ChecksumFile(TimeStampedModel, TaskEventMixin):
                 fields=['file_set', 'name'],
                 name='unique_name',
             ),
+            models.UniqueConstraint(
+                fields=['collection', 'url'],
+                name='unique_url_collection',
+                condition=models.Q(type=FileSourceType.URL),  # Only apply if URL file
+            ),
         ]
 
     @property

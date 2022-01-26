@@ -113,46 +113,6 @@ def order_datetimes(value1: object, value2: object):
     return value1, value2
 
 
-def download_checksum_file_to_path(file: Dict, path: Path, keep_existing: bool):
-    """
-    Download a RGD ChecksumFile to a given path.
-
-    Args:
-        file: A RGD ChecksumFile serialized as a Dict.
-        path: The root path to download this file to.
-        keep_existing: If False, replace files existing on disk.
-
-    Returns:
-        The path on disk the file was downloaded to.
-    """
-    filepath = file.get('name')
-    file_download_url = file.get('download_url')
-
-    # Skip image if some fields are missing
-    if not (file and filepath and file_download_url):
-        # TODO: throw a warning to let user know this file failed
-        return
-
-    # Parse file path to identifiy nested directories
-    filepath: str = filepath.lstrip('/')
-    split_filepath: List[str] = filepath.split('/')
-    parent_dirname = '/'.join(split_filepath[:-1])
-    filename = split_filepath[-1]
-
-    # Create nested directory if necessary
-    parent_path = path / parent_dirname if parent_dirname else path
-    parent_path.mkdir(parents=True, exist_ok=True)
-
-    # Download contents to file
-    file_path = parent_path / filename
-    if not (file_path.is_file() and keep_existing):
-        with open(file_path, 'wb') as open_file_path:
-            for chunk in iterate_response_bytes(file_download_url):
-                open_file_path.write(chunk)
-
-    return file_path
-
-
 def spatial_subentry_id(search_result):
     """Get the id of a returned SpatialEntry."""
     if 'stac_version' in search_result:
@@ -170,6 +130,7 @@ def spatial_search_params(
     limit: Optional[int] = None,
     offset: Optional[int] = None,
     time_of_day: Optional[DATETIME_OR_STR_TUPLE] = None,
+    collections: Optional[List[int]] = None,
 ) -> Dict:
     # The dict that will be used to store params.
     # Initialize with queries that won't be additionally processed.
@@ -212,4 +173,51 @@ def spatial_search_params(
         params['time_of_day_after'] = datetime_to_time(after)
         params['time_of_day_before'] = datetime_to_time(before)
 
+    if collections:
+        params['collections'] = collections
+
     return params
+
+
+def download_checksum_file_to_path(
+    file: Dict,
+    path: Optional[Path] = None,
+    keep_existing=False,
+    use_id=False,
+) -> Path:
+    """
+    Download a RGD ChecksumFile to a given path.
+
+    Args:
+        file: A RGD ChecksumFile serialized as a Dict.
+        path: The root path to download this file to. Defaults to the current working directory.
+        keep_existing: If False, replace files existing on disk.
+        use_id: If True, save this file to disk using it's ID, rather than it's name.
+
+    Returns:
+        The path on disk the file was downloaded to.
+    """
+    filepath: str = str(file['id']) if use_id else file['name']
+    file_download_url: str = file['download_url']
+
+    if not path:
+        path = Path.cwd()
+
+    # Parse file path to identifiy nested directories
+    filepath: str = filepath.lstrip('/')
+    split_filepath: List[str] = filepath.split('/')
+    parent_dirname = '/'.join(split_filepath[:-1])
+    filename = split_filepath[-1]
+
+    # Create nested directory if necessary
+    parent_path = path / parent_dirname if parent_dirname else path
+    parent_path.mkdir(parents=True, exist_ok=True)
+
+    # Download contents to file
+    file_path = parent_path / filename
+    if not (file_path.is_file() and keep_existing):
+        with open(file_path, 'wb') as open_file_path:
+            for chunk in iterate_response_bytes(file_download_url):
+                open_file_path.write(chunk)
+
+    return file_path

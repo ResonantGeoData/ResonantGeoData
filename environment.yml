@@ -1,0 +1,74 @@
+name: rgd-env
+channels:
+  - conda-forge
+dependencies:
+  # Core
+  - python=3.8
+  - boto3
+  - celery
+  - django =3.2
+  - django-allauth
+  - django-extensions
+  - django-filter
+  - django-model-utils
+  - djangorestframework
+  - drf-yasg
+  - filelock
+  - flower
+  - GDAL
+  # - libfuse
+  - numpy
+  - pooch
+  - psutil
+  - psycopg2
+  - python-magic
+  - typing_extensions
+  # 3D subpackage
+  - pyntcloud
+  - pyvista
+  # FMV subpackage
+  - ffmpeg
+  # Geometry subpackage
+  - fiona
+  - shapely
+  # Imagery subpackage
+  - bidict
+  - cmocean
+  - large-image
+  - large-image-converter
+  - large-image-source-gdal
+  - large-image-source-tiff
+  - matplotlib
+  - pylibmc >=1.5.1
+  - pystac >=1.1.0
+  - pyvips
+  - rasterio
+  # Example priject
+  - django-crispy-forms
+  - django-debug-toolbar
+  - django-rest-swagger
+  - gunicorn
+  - ipython
+  - pydot
+  - pygraphviz
+  - pyparsing
+  # pip dependencies
+  - pip
+  - pip:
+      # Core
+      - django-click
+      - django-crum
+      - django-composed-configuration[dev]
+      - django-configurations[database,email]>=0.19.2
+      - django-girder-utils
+      - django-oauth-toolkit
+      - django-s3-file-field[minio]
+      # - simple-httpfs
+      # 3D subpackage
+      - pylas  # pyntcloud[LAS]
+      - lazrs  # pyntcloud[LAS]
+      # FMV subpackage
+      - opencv-python-headless
+      - kwiver
+      # Imager subpackage
+      - large-image-source-pil

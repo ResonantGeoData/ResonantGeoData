@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from datetime import timedelta
 import logging
 import os
 import tempfile
@@ -18,7 +19,7 @@ except ImportError:
 
 class GeoDjangoMixin(ConfigMixin):
     @staticmethod
-    def before_binding(configuration: Type[ComposedConfiguration]):
+    def mutate_configuration(configuration: Type[ComposedConfiguration]):
         configuration.INSTALLED_APPS += ['django.contrib.gis']
 
         try:
@@ -72,7 +73,7 @@ class MemachedMixin(ConfigMixin):
 
 class ResonantGeoDataBaseMixin(GeoDjangoMixin, SwaggerMixin, ConfigMixin):
     @staticmethod
-    def before_binding(configuration: ComposedConfiguration) -> None:
+    def mutate_configuration(configuration: ComposedConfiguration) -> None:
         configuration.MIDDLEWARE += [
             'crum.CurrentRequestUserMiddleware',
         ]
@@ -80,8 +81,11 @@ class ResonantGeoDataBaseMixin(GeoDjangoMixin, SwaggerMixin, ConfigMixin):
             'rest_framework.authentication.TokenAuthentication',
         ]
 
-        if getattr(configuration, 'DEBUG', False):
-            configuration.LOGGING['loggers']['rgd'] = {
+    @classmethod
+    def post_setup(cls):
+        super().post_setup()
+        if getattr(cls, 'DEBUG', False) or cls.RGD_DEBUG_LOGS:
+            cls.LOGGING['loggers']['rgd'] = {
                 'level': 'DEBUG',
                 'handlers': ['console'],
                 'propagate': False,
@@ -99,14 +103,17 @@ class ResonantGeoDataBaseMixin(GeoDjangoMixin, SwaggerMixin, ConfigMixin):
     )
 
     CELERY_WORKER_SEND_TASK_EVENTS = True
+    CELERY_TASK_TIME_LIMIT = values.IntegerValue(
+        environ=True, default=timedelta(days=1).total_seconds()
+    )
 
     RGD_FILE_FIELD_PREFIX = values.Value(default=None)
     RGD_GLOBAL_READ_ACCESS = values.Value(default=False)
     RGD_AUTO_APPROVE_SIGN_UP = values.Value(default=False)
     RGD_AUTO_COMPUTE_CHECKSUMS = values.Value(default=False)
-    RGD_STAC_BROWSER_LIMIT = values.Value(default=1000)
     RGD_TEMP_DIR = values.Value(default=os.path.join(tempfile.gettempdir(), 'rgd'))
     RGD_TARGET_AVAILABLE_CACHE = values.Value(default=2)
     RGD_REST_CACHE_TIMEOUT = values.Value(default=60 * 60 * 2)
     RGD_SIGNED_URL_TTL = values.Value(default=60 * 60 * 24)  # 24 hours
     RGD_SIGNED_URL_QUERY_PARAM = values.Value(default='signature')
+    RGD_DEBUG_LOGS = values.Value(default=True)

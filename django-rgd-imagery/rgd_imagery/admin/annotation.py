@@ -48,3 +48,4 @@ class AnnotationAdmin(OSMGeoAdmin):
         'annotator',
         'label',
     )
+    raw_id_fields = ('image',)

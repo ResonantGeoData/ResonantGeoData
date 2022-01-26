@@ -45,6 +45,14 @@ def test_inspect_raster(py_client: ImageryClient, sample_raster_multi):
 
 
 @pytest.mark.django_db(transaction=True)
+def test_get_raster(py_client: ImageryClient, sample_raster_multi):
+    raster = py_client.imagery.get_raster(sample_raster_multi.pk)
+    assert raster
+    stac = py_client.imagery.get_raster(sample_raster_multi.pk, stac=True)
+    assert stac
+
+
+@pytest.mark.django_db(transaction=True)
 def test_download_raster(py_client: ImageryClient, sample_raster_multi):
     q = py_client.rgd.search(query=json.dumps(bbox), predicate='intersects')
 

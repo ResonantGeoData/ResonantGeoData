@@ -26,8 +26,6 @@ class Annotation(TimeStampedModel):
         """Get type of segmentation."""
         return self.segmentation.get_type()
 
-    permissions_paths = [('image', Image)]
-
 
 class Segmentation(models.Model):
     """A base class for segmentations as there are different kinds.

@@ -29,7 +29,6 @@ INSTALLED_APPS += [
 
 The RGD imagery submodule has an optional setting:
 
-- `RGD_STAC_BROWSER_LIMIT`: (default of 1000) limit the response of STAC collection queries. An exception will be raised if a collection is requested with more than this many items.
 - Use the `MEMCACHE_*` options from `django-rgd` to configure `large_image` for use with Memcached.
 
 ## Models
@@ -48,6 +47,5 @@ This app adds quite a few additional models on top of the core app for storing i
 - STAC Item ingest/export for raster imagery
 - Image tile serving through `large_image`
 - Image annotation support
-- KWCOCO image archive and annotation ingest
 - Cloud Optimized GeoTIFF conversion utility
 - Extract ROIs from imagery in pixel and world coordinates
