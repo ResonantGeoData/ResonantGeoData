@@ -93,6 +93,4 @@ class RasterViewSet(ModelViewSet, TaskEventViewSetMixin):
     )
     @action(detail=True)
     def stac(self, *args, **kwargs):
-        obj = self.get_object()
-        serializer = self.get_serializer()
-        return Response(serializer.to_representation(obj))
+        return ModelViewSet.retrieve(self, *args, **kwargs)
