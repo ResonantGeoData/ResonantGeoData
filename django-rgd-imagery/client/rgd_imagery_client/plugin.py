@@ -103,11 +103,7 @@ class ImageryPlugin(RgdPlugin):
 
         r = self.session.get(f'rgd_imagery/raster/{raster_meta_id}').json()
         if stac:
-            # Get collection ID - TODO: if this is zero, will fail - could that happen?
-            collection_id = (
-                r['parent_raster']['image_set']['images'][0]['file']['collection'] or 'default'
-            )
-            r = self.session.get(f'stac/collection/{collection_id}/items/{raster_meta_id}').json()
+            r = self.session.get(f'rgd_imagery/raster/{raster_meta_id}/stac').json()
         return r
 
     def download_raster(
