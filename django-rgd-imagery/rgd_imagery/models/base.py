@@ -1,6 +1,7 @@
 """Base classes for raster dataset entries."""
 from django.contrib.gis.db import models
 from django.contrib.postgres.fields import DecimalRangeField
+from django.db.models import Count, Sum
 from django_extensions.db.models import TimeStampedModel
 from rgd.models import ChecksumFile, SpatialEntry
 from rgd.models.mixins import DetailViewMixin, TaskEventMixin
@@ -84,7 +85,9 @@ class ImageSet(TimeStampedModel):
 
     @property
     def number_of_bands(self):
-        return sum([im.number_of_bands for im in self.images.all()])
+        return self.images.annotate(band_count=Count('bandmeta')).aggregate(Sum('band_count'))[
+            'band_count__sum'
+        ]
 
     @property
     def width(self):
