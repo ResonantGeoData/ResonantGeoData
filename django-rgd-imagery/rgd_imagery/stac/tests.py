@@ -33,4 +33,6 @@ def test_eo_serialize(sample_raster_url):
 @pytest.mark.django_db(transaction=True)
 def test_optimized_query(admin_api_client, sample_raster_url, django_assert_num_queries):
     with django_assert_num_queries(1):
-        admin_api_client.get('/api/stac/collection/default/items')
+        admin_api_client.get('/api/stac/collections')
+    with django_assert_num_queries(1):
+        admin_api_client.get('/api/stac/collections/default/items')
