@@ -40,7 +40,6 @@ dependencies:
   - large-image-source-tiff
   - matplotlib
   - pylibmc >=1.5.1
-  - pystac >=1.1.0
   - pyvips
   - rasterio
   # Example priject
