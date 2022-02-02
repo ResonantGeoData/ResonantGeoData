@@ -78,8 +78,6 @@ class RasterViewSet(ModelViewSet, TaskEventViewSetMixin):
     def get_serializer_class(self):
         if self.action in {'list', 'retrieve', 'status'}:
             return serializers.RasterMetaSerializer
-        if self.action in {'stac'}:
-            return stac.serializers.ItemSerializer
         return serializers.RasterSerializer
 
     def get_queryset(self):
@@ -92,5 +90,7 @@ class RasterViewSet(ModelViewSet, TaskEventViewSetMixin):
         operation_summary='Fetch the STAC Item JSON for this raster.',
     )
     @action(detail=True)
-    def stac(self, *args, **kwargs):
-        return ModelViewSet.retrieve(self, *args, **kwargs)
+    def stac(self, *args, pk=None, **kwargs):
+        queryset = stac.querysets.item.get_queryset(pk=pk)
+        data = stac.serializers.item(queryset.get())
+        return Response(data)
