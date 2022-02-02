@@ -16,7 +16,7 @@ def test_raster_stac_serializer_multi_file_bands(admin_api_client, sample_raster
 
 
 @pytest.mark.django_db(transaction=True)
-def test_eo_serialize(sample_raster_url):
+def test_eo_serialize(admin_api_client, sample_raster_url):
     data = admin_api_client.get('/api/stac/collections/default/items').data['features'][0]
     for asset in data['assets'].values():
         if 'data' in asset.get('roles', []):
