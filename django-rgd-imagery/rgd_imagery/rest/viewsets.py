@@ -90,7 +90,7 @@ class RasterViewSet(ModelViewSet, TaskEventViewSetMixin):
         operation_summary='Fetch the STAC Item JSON for this raster.',
     )
     @action(detail=True)
-    def stac(self, *args, pk=None, **kwargs):
+    def stac(self, request, *args, pk=None, **kwargs):
         queryset = stac.querysets.item.get_queryset(pk=pk)
-        data = stac.serializers.item(queryset.get())
+        data = stac.serializers.item.get_item(queryset.get(), request)
         return Response(data)
