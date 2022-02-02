@@ -146,6 +146,7 @@ def sample_raster_url():
             file__type=FileSourceType.URL,
             file__file=None,
             file__url=datastore.get_url(f),
+            file__collection=None,
         )
         images.append(image)
         # band_range
