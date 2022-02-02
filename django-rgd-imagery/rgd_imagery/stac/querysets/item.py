@@ -1,6 +1,5 @@
 import json
 
-from dateutil.parser import parse as datetimeparse
 from django.contrib.gis.db.models.functions import AsGeoJSON
 from django.contrib.gis.geos import GEOSGeometry, Polygon
 from django.contrib.postgres.aggregates import JSONBAgg

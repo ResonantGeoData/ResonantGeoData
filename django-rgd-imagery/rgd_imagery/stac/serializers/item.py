@@ -3,8 +3,14 @@ from decimal import Decimal
 import json
 
 from bidict import bidict
+from dateutil import parser, tz
 from rest_framework.reverse import reverse as drf_reverse
 from rgd.models import ChecksumFile
+
+
+def isotime(timestr):
+    return parser.isoparse(timestr).astimezone(tz.tzutc()).strftime('%G-%m-%dT%H:%M:%S.%fZ')
+
 
 BAND_RANGE_BY_COMMON_NAMES = bidict(
     {
@@ -43,11 +49,10 @@ def get_item(value, request):
         'title': value['title'] or '',
         'description': value['description'] or '',
         'type': 'Feature',
-        'geometry': json.loads(value['geojson']),
         'properties': {
-            'datetime': value['datetimes']['datetime'],
-            'created': value['datetimes']['createdtime'],
-            'updated': value['datetimes']['updatedtime'],
+            'datetime': isotime(value['datetimes']['datetime']),
+            'created': isotime(value['datetimes']['createdtime']),
+            'updated': isotime(value['datetimes']['updatedtime']),
         },
         'collection': value['collection_id'],
         'links': [
@@ -89,7 +94,6 @@ def get_item(value, request):
     # eo
     if value['eo_cloud_cover']:
         data['properties']['eo:cloud_cover'] = value['eo_cloud_cover']
-
     # image files
     for file_dict in value['image_files']:
         assets[file_dict['id']] = {
@@ -98,8 +102,8 @@ def get_item(value, request):
             or ChecksumFile._meta.get_field('file').storage.url(file_dict['filename']),
             'roles': ['data'],
             'properties': {
-                'created': file_dict['created'],
-                'modified': file_dict['modified'],
+                'created': isotime(file_dict['created']),
+                'modified': isotime(file_dict['modified']),
             },
         }
 
@@ -119,8 +123,8 @@ def get_item(value, request):
             or ChecksumFile._meta.get_field('file').storage.url(file_dict['filename']),
             'roles': ['metadata'],
             'properties': {
-                'created': file_dict['created'],
-                'modified': file_dict['modified'],
+                'created': isotime(file_dict['created']),
+                'modified': isotime(file_dict['modified']),
             },
         }
 

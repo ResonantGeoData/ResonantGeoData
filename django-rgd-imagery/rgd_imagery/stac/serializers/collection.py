@@ -1,6 +1,11 @@
+from dateutil import parser, tz
 from rest_framework.reverse import reverse as drf_reverse
 
 from ..constants import CONFORMANCE
+
+
+def isotime(timestr):
+    return parser.isoparse(timestr).astimezone(tz.tzutc()).strftime('%G-%m-%dT%H:%M:%S.%fZ')
 
 
 # https://github.com/radiantearth/stac-api-spec/tree/master/collections
@@ -20,8 +25,8 @@ def get_collection(value, request):
             'temporal': {
                 'interval': [
                     [
-                        value['datetimes']['min_acquisition_date'],
-                        value['datetimes']['max_acquisition_date'],
+                        isotime(value['datetimes']['min_acquisition_date']),
+                        isotime(value['datetimes']['max_acquisition_date']),
                     ]
                 ]
             },
