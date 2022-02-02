@@ -20,8 +20,9 @@ def test_eo_serialize(admin_api_client, sample_raster_url):
     data = admin_api_client.get('/api/stac/collections/default/items').data['features'][0]
     for asset in data['assets'].values():
         if 'data' in asset.get('roles', []):
-            assert 'eo:bands' in asset
-            bands = asset['eo:bands']
+            asset_properties = asset['properties']
+            assert 'eo:bands' in asset_properties
+            bands = asset_properties['eo:bands']
             for band in bands:
                 assert 'name' in band and band['name'].startswith('B')
                 assert 'common_name' in band or (
