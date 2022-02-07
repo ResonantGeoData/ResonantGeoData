@@ -1,0 +1,52 @@
+name: Publish Dev Wheels to GitHub Pages
+
+on:
+  workflow_dispatch:
+  pull_request:
+  push:
+    branches:
+      - main
+
+jobs:
+  # Upload wheels to GH Pages package index
+  build-wheels:
+    name: Build Wheels
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        rgd-module: ['django-rgd', 'django-rgd/client', 'django-rgd-3d', 'django-rgd-fmv', 'django-rgd-geometry', 'django-rgd-imagery', 'django-rgd-imagery/client']
+    steps:
+      - uses: actions/checkout@v2
+      - name: Set up Python
+        uses: actions/setup-python@v2
+        with:
+          python-version: "3.8"
+      - name: Install Dependencies
+        run: pip install setuptools wheel
+      - name: Build Weel
+        working-directory: ${{ matrix.rgd-module }}
+        run: python setup.py sdist bdist_wheel
+      - name: Cache Wheel
+        uses: actions/upload-artifact@v2
+        with:
+          name: dist
+          path: ${{ matrix.rgd-module }}/dist/
+          if-no-files-found: error
+  publish-wheels:
+    if: github.ref == 'refs/heads/main'
+    name: Publish Wheels
+    runs-on: ubuntu-latest
+    needs: build-wheels
+    steps:
+      # Downloads all artifacts
+      - uses: actions/download-artifact@v2
+      - name: Make index
+        uses: banesullivan/create-pip-index-action@main
+        with:
+          package_directory: dist
+      - name: Deploy to GH Pages
+        uses: peaceiris/actions-gh-pages@v3
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir:  dist

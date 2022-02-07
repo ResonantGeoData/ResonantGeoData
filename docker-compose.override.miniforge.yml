@@ -1,0 +1,11 @@
+version: '3'
+services:
+  django:
+    build:
+      context: .
+      dockerfile: ./dev/miniforge.Dockerfile
+
+  celery:
+    build:
+      context: .
+      dockerfile: ./dev/miniforge.Dockerfile

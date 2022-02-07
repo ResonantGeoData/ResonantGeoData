@@ -46,18 +46,18 @@ setup(
     include_package_data=True,
     install_requires=[
         'bidict',
+        'cmocean',
         f'django-rgd=={__version__}',
         'large-image[memcached]>=1.9.0',
         'large-image-source-gdal>=1.9.0',
         'large-image-source-pil>=1.9.0',
         'large-image-source-tiff>=1.9.0',
-        'pyvips',
-        'tifftools>=1.2.0',
+        'matplotlib',
         'numpy',
         'pystac>=1.1.0',
+        'pyvips',
         'shapely',
-        'matplotlib',
-        'cmocean',
+        'tifftools>=1.2.0',
     ],
     extras_require={
         'worker': [

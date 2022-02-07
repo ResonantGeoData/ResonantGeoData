@@ -59,18 +59,17 @@ setup(
         'django-girder-utils',
         'django-model-utils',
         'django-oauth-toolkit',
+        'django-s3-file-field[minio]',
         'djangorestframework',
         'drf-yasg',
         'filelock',
+        'flower',
         'GDAL',
         'pooch',
+        'psutil',
         'psycopg2',
         'python-magic',
-        'flower',
-        'psutil',
         'typing_extensions',
-        # Production-only
-        'django-s3-file-field[minio]',
     ],
     extras_require={
         'fuse': [
