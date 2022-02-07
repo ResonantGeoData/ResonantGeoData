@@ -1,8 +1,9 @@
 from django.contrib.gis import forms
-from django.contrib.gis.db.models.functions import GeometryDistance
+from django.contrib.gis.db.models.functions import Area, GeometryDistance, Intersection
 from django.contrib.gis.measure import D
 from django.core.validators import RegexValidator
-from django.db.models import F, Q
+from django.db.models import F, FloatField, Q
+from django.db.models.functions import Cast
 from django_filters import rest_framework as filters
 from rgd.models import ChecksumFile, Collection, SpatialEntry
 from rgd.permissions import get_paths
@@ -79,6 +80,11 @@ class SpatialEntryFilter(filters.FilterSet):
         method='filter_collection',
         queryset=Collection.objects.all(),
     )
+    percent_overlap = filters.NumberFilter(
+        help_text='The minute percent overlap with search geometry (between 0 and 1).',
+        label='Percent overlap',
+        method='filter_percent_overlap',
+    )
 
     @property
     def _geometry(self):
@@ -152,6 +158,18 @@ class SpatialEntryFilter(filters.FilterSet):
             return queryset.filter(conditions).distinct()
         return queryset
 
+    def filter_percent_overlap(self, queryset, name, value: float):
+        """Filter the queryset by percent overlap with the queried geometry."""
+        if value is not None and value > 0 and value <= 1 and self._has_geom:
+            geom = self._geometry
+            queryset = queryset.filter(footprint__overlaps=geom).annotate(
+                overlap_percentage=(
+                    Cast(Area(Intersection(F('footprint'), geom)) / Area(geom), FloatField())
+                )
+            )
+            queryset = queryset.filter(overlap_percentage__gte=value)
+        return queryset
+
     class Meta:
         model = SpatialEntry
         fields = [
@@ -160,6 +178,7 @@ class SpatialEntryFilter(filters.FilterSet):
             'relates',
             'distance',
             'acquired',
+            'percent_overlap',
             'instrumentation',
             'time_of_day',
             'collections',
