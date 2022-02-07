@@ -2,6 +2,9 @@ from django.contrib import admin
 
 # from django.contrib.admin import SimpleListFilter
 from django.contrib.gis.admin import OSMGeoAdmin
+from django.db.models.aggregates import Count
+from django.db.models.query import QuerySet
+from django.http import HttpRequest
 from rgd.admin.mixins import (
     MODIFIABLE_FILTERS,
     SPATIAL_ENTRY_FILTERS,
@@ -113,8 +116,8 @@ class ImageSetAdmin(OSMGeoAdmin):
     list_display = (
         'pk',
         'name',
-        'count',
-        'number_of_bands',
+        'image_count',
+        'band_count',
         'modified',
         'created',
     )
@@ -125,6 +128,20 @@ class ImageSetAdmin(OSMGeoAdmin):
     list_filter = MODIFIABLE_FILTERS  # (ImageSetSpatialFilter, )
     inlines = (ImageSetSpatialInline,)
     raw_id_fields = ('images',)
+
+    def image_count(self, obj):
+        return obj.image_count
+
+    def band_count(self, obj):
+        return obj.band_count
+
+    def get_queryset(self, request: HttpRequest) -> QuerySet:
+        return (
+            super()
+            .get_queryset(request)
+            .annotate(image_count=Count('images'))
+            .annotate(band_count=Count('images__bandmeta'))
+        )
 
 
 class BandMetaInline(admin.StackedInline):
@@ -178,7 +195,7 @@ class ImageAdmin(OSMGeoAdmin, _FileGetNameMixin):
     list_display = (
         'pk',
         'get_name',
-        'number_of_bands',
+        'band_count',
         'status',
         'modified',
         'created',
@@ -200,3 +217,10 @@ class ImageAdmin(OSMGeoAdmin, _FileGetNameMixin):
         BandMetaInline,
     )
     raw_id_fields = ('file',)
+    list_select_related = ('file',)
+
+    def band_count(self, obj):
+        return obj.band_count
+
+    def get_queryset(self, request: HttpRequest) -> QuerySet:
+        return super().get_queryset(request).annotate(band_count=Count('bandmeta'))

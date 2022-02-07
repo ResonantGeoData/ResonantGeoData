@@ -5,7 +5,7 @@ from rest_framework.response import Response
 from rgd.models.mixins import Status
 from rgd.rest.base import ModelViewSet
 from rgd.rest.mixins import TaskEventViewSetMixin
-from rgd_imagery import filters, models, serializers
+from rgd_imagery import filters, models, serializers, stac
 
 
 class ProcessedImageViewSet(ModelViewSet):
@@ -47,16 +47,16 @@ class ImageSetSpatialViewSet(ModelViewSet):
     queryset = models.ImageSetSpatial.objects.all()
 
 
-class ImageViewSet(ModelViewSet):
+class ImageViewSet(ModelViewSet, TaskEventViewSetMixin):
     # TODO: consolidate 'ImageSerializer' and 'ImageMetaSerializer'
 
     def get_serializer_class(self):
-        if self.action in {'list', 'retrieve'}:
+        if self.action in {'list', 'retrieve', 'status'}:
             return serializers.ImageMetaSerializer
         return serializers.ImageSerializer
 
     def get_queryset(self):
-        if self.action in {'list', 'retrieve'}:
+        if self.action in {'list', 'retrieve', 'status'}:
             return models.ImageMeta.objects.all()
         return models.Image.objects.all()
 
@@ -76,11 +76,21 @@ class RasterViewSet(ModelViewSet, TaskEventViewSetMixin):
     filterset_class = filters.RasterMetaFilter
 
     def get_serializer_class(self):
-        if self.action in {'list', 'retrieve'}:
+        if self.action in {'list', 'retrieve', 'status'}:
             return serializers.RasterMetaSerializer
+        if self.action in {'stac'}:
+            return stac.serializers.ItemSerializer
         return serializers.RasterSerializer
 
     def get_queryset(self):
-        if self.action in {'list', 'retrieve'}:
+        if self.action in {'list', 'retrieve', 'stac', 'status'}:
             return models.RasterMeta.objects.all()
         return models.Raster.objects.all()
+
+    @swagger_auto_schema(
+        method='GET',
+        operation_summary='Fetch the STAC Item JSON for this raster.',
+    )
+    @action(detail=True)
+    def stac(self, *args, **kwargs):
+        return ModelViewSet.retrieve(self, *args, **kwargs)
