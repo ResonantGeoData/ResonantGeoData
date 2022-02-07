@@ -81,6 +81,7 @@ class SpatialEntryFilter(filters.FilterSet):
         queryset=Collection.objects.all(),
     )
     percent_overlap = filters.NumberFilter(
+        help_text='The minute percent overlap with search geometry (between 0 and 1).',
         label='Percent overlap',
         method='filter_percent_overlap',
     )
