@@ -160,7 +160,7 @@ class SpatialEntryFilter(filters.FilterSet):
 
     def filter_percent_overlap(self, queryset, name, value: float):
         """Filter the queryset by percent overlap with the queried geometry."""
-        if value and value > 0 and value < 1 and self._has_geom:
+        if value is not None and value > 0 and value <= 1 and self._has_geom:
             geom = self._geometry
             queryset = queryset.filter(footprint__overlaps=geom).annotate(
                 overlap_percentage=(
