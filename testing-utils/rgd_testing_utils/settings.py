@@ -1,3 +1,4 @@
+from datetime import timedelta
 import os
 from typing import List
 
@@ -99,6 +100,7 @@ CELERY_EVENT_QUEUE_EXPIRES = 60
 CELERY_TASK_ACKS_LATE = False if DEBUG else True
 CELERY_WORKER_CONCURRENCY = 1 if DEBUG else None
 CELERY_WORKER_SEND_TASK_EVENTS = True
+CELERY_TASK_TIME_LIMIT = timedelta(days=1).total_seconds()
 
 DEFAULT_FILE_STORAGE = 'minio_storage.storage.MinioMediaStorage'
 MINIO_STORAGE_ENDPOINT = os.environ.get('MINIO_STORAGE_ENDPOINT', 'minio:9000')

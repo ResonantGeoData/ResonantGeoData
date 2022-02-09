@@ -1,8 +1,9 @@
 from celery import shared_task
+from django.conf import settings
 from rgd.tasks import helpers
 
 
-@shared_task(time_limit=86400)
+@shared_task(time_limit=settings.CELERY_TASK_TIME_LIMIT)
 def task_read_fmv_file(file_pk):
     from rgd_fmv.models import FMV
 

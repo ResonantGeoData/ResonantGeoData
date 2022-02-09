@@ -15,12 +15,17 @@ def file_path():
     return datastore.fetch(FILENAME)
 
 
+@pytest.mark.parametrize(
+    'filename',
+    (FILENAME, f'a/b/c/{FILENAME}'),  # edge case - file name that represents a file path
+)
 @pytest.mark.django_db(transaction=True)
-def test_yield_local_path_file(file_path):
+def test_yield_local_path_file(file_path, filename):
     model = ChecksumFile()
     model.type = FileSourceType.FILE_FIELD
     with open(file_path, 'rb') as f:
-        model.file.save(FILENAME, f)
+        model.file.save(filename, f)
+        model.name = filename
     model.file_set = FileSet.objects.create()
     model.save()
     path = model.yield_local_path()
@@ -28,21 +33,31 @@ def test_yield_local_path_file(file_path):
         assert os.path.exists(path)
 
 
+@pytest.mark.parametrize(
+    'filename',
+    (FILENAME, f'a/b/c/{FILENAME}'),  # edge case - file name that represents a file path
+)
 @pytest.mark.django_db(transaction=True)
-def test_yield_local_path_url_http():
+def test_yield_local_path_url_http(filename):
     model = ChecksumFile()
     model.type = FileSourceType.URL
     model.url = datastore.get_url(FILENAME)
+    model.name = filename
     model.save()
     with model.yield_local_path() as path:
         assert os.path.exists(path)
 
 
+@pytest.mark.parametrize(
+    'filename',
+    (FILENAME, f'a/b/c/{FILENAME}'),  # edge case - file name that represents a file path
+)
 @pytest.mark.django_db(transaction=True)
-def test_yield_local_path_url_s3(s3_url):
+def test_yield_local_path_url_s3(s3_url, filename):
     model = ChecksumFile()
     model.type = FileSourceType.URL
     model.url = s3_url
+    model.name = filename
     model.save()
     with model.yield_local_path() as path:
         assert os.path.exists(path)

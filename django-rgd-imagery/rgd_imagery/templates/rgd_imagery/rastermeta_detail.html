@@ -53,6 +53,9 @@
   <select id="band-selector" onchange="updateBandThumbnail()">
   </select>
 
+  <select id="colormap-selector" onchange="updateBandThumbnail()">
+  </select>
+
   <div class="slidecontainer">
     <label for="rasterOpacityRange">Raster Layer Opacity: </label>
     <input type="range" min="1" max="100" value="100" class="slider" id="rasterOpacityRange" onChange="updateTilesOpacity(event, value)">
@@ -70,9 +73,11 @@
 
   <script>
     let extents = JSON.parse('{{ extents|escapejs }}');
+    let colormaps = JSON.parse('{{ colormaps|escapejs }}');
 
     var imageSelector = document.getElementById('image-selector')
     var bandSelector = document.getElementById('band-selector')
+    var colormapSelector = document.getElementById('colormap-selector')
 
     {% comment %} Save available bands for each image into a JSON object keyed by the image id {% endcomment %}
     const bands = {
@@ -88,6 +93,21 @@
         ],
     {% endfor %}
     };
+
+    function populateColorMapOptions() {
+      var opt = document.createElement('option');
+      opt.value = "";
+      opt.innerHTML = 'Default';
+      colormapSelector.appendChild(opt);
+      colormaps['mpl'].forEach((cmap) => {
+        var opt = document.createElement('option');
+        opt.value = cmap;
+        opt.innerHTML = `${cmap}`;
+        colormapSelector.appendChild(opt);
+        colormapSelector.style.visibility = "hidden";
+      });
+    }
+    populateColorMapOptions()
 
     // Make sure regions outside the extent of the raster do not load null tiles
     //   this relieves strain on the tile server
@@ -107,6 +127,7 @@
       toast.className ="show"
       var imageSelector_value = Number(imageSelector.value)
       var bandSelector_value = Number(bandSelector.value)
+      var cmap = colormapSelector.value
 
       if (imageSelector_value >= 0) {
         var image_id = imageSelector_value.toString();
@@ -114,9 +135,14 @@
         if (Number.isNaN(band)) {
           band = 0
         }
+        if (band != 0) {
+          colormapSelector.style.visibility = "visible";
+        } else {
+          colormapSelector.style.visibility = "hidden";
+        }
         tileLayer.visible(true);
-        tileLayer.url(`${host}/api/image_process/imagery/${image_id}/tiles/{z}/{x}/{y}.png?projection=EPSG:3857&band=${band}`)
-        thumbnail.src = `${host}/api/image_process/imagery/${image_id}/thumbnail?band=${band}`
+        tileLayer.url(`${host}/api/image_process/imagery/${image_id}/tiles/{z}/{x}/{y}.png?projection=EPSG:3857&band=${band}&palette=${cmap}`)
+        thumbnail.src = `${host}/api/image_process/imagery/${image_id}/thumbnail?band=${band}&palette=${cmap}`
         thumbnail.hidden = false
       } else {
         tileLayer.visible(false);

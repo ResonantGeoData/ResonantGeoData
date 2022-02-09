@@ -1,4 +1,6 @@
 import json
+from pathlib import Path
+from typing import Optional
 
 import pytest
 from requests.exceptions import HTTPError
@@ -148,3 +150,74 @@ def test_invalid_api_url(live_server, user_with_api_key, monkeypatch):
             password=password,
             api_url=f'{url}/invalid',
         )
+
+
+@pytest.mark.django_db(transaction=True)
+@pytest.mark.parametrize(
+    # Test cases: when download_location is None, and when it is a valid string
+    'download_path,expected_download_directory,use_id',
+    [
+        (None, Path.cwd(), False),
+        (Path('~/.rgd/temp').expanduser(), Path('~/.rgd/temp').expanduser(), False),
+        (None, Path.cwd(), True),
+        (Path('~/.rgd/temp').expanduser(), Path('~/.rgd/temp').expanduser(), True),
+    ],
+)
+def test_file_download(
+    py_client: RgdClient,
+    checksum_file: ChecksumFile,
+    download_path: Optional[Path],
+    expected_download_directory: Optional[Path],
+    use_id: bool,
+):
+    expected_download_path: Path = expected_download_directory / (
+        str(checksum_file.id) if use_id else checksum_file.name
+    )
+
+    # Remove file if it already exists
+    expected_download_path.unlink(missing_ok=True)
+
+    # Download file and make sure it exists and the contents are as expected.
+    download_path = py_client.rgd.download_checksum_file_to_path(
+        checksum_file.id, download_path, use_id=use_id
+    )
+
+    assert download_path == expected_download_path
+    assert expected_download_path.read_bytes() == checksum_file.file.file.read()
+
+
+@pytest.mark.django_db(transaction=True)
+def test_invalid_file_download(py_client: RgdClient, checksum_file: ChecksumFile):
+    """Test that attempting to download a non-existent file fails properly."""
+    checksum_file.delete()
+
+    with pytest.raises(HTTPError) as error:
+        py_client.rgd.download_checksum_file_to_path(checksum_file.id)
+
+    # Make sure it was a 404 error
+    assert error.match(r'404 Client Error')
+
+
+@pytest.mark.django_db(transaction=True)
+def test_file_download_keep_existing(
+    tmp_path: Path, py_client: RgdClient, checksum_file: ChecksumFile
+):
+    # Save a file where the client would normally put the downloaded file
+    file_path = tmp_path / str(checksum_file.id)
+    existing_file_content: bytes = b'foobar'
+
+    with open(file_path, 'wb') as f:
+        f.write(existing_file_content)
+
+    # Make sure the file isn't modified
+    assert existing_file_content == file_path.read_bytes()
+    py_client.rgd.download_checksum_file_to_path(
+        checksum_file.id, tmp_path, keep_existing=True, use_id=True
+    )
+    assert existing_file_content == file_path.read_bytes()
+
+    # Make sure the file *is* modified
+    py_client.rgd.download_checksum_file_to_path(
+        checksum_file.id, tmp_path, keep_existing=False, use_id=True
+    )
+    assert existing_file_content != file_path.read_bytes()

@@ -45,7 +45,7 @@ setup(
     packages=find_packages(),
     include_package_data=True,
     install_requires=[
-        'django-rgd',
+        f'django-rgd=={__version__}',
     ],
     extras_require={
         'worker': [

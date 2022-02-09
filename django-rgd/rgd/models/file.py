@@ -230,7 +230,7 @@ class ChecksumFile(TimeStampedModel, TaskEventMixin):
                 elif self.type == FileSourceType.URL:
                     return download_url_file_to_local_path(self.url, dest_path)
 
-    def get_cache_path(self):
+    def get_cache_path(self, root: bool = False):
         """Generate a predetermined path in the cache directory.
 
         This will use the associated FileSet's cache path if this resource
@@ -244,6 +244,8 @@ class ChecksumFile(TimeStampedModel, TaskEventMixin):
             directory.mkdir(parents=True, exist_ok=True)
         else:
             directory = self.file_set.get_cache_path()
+        if root:
+            return directory
         return directory / f'{self.name}'
 
     @contextmanager
@@ -278,6 +280,7 @@ class ChecksumFile(TimeStampedModel, TaskEventMixin):
             return
         # Fallback to loading entire file locally - this uses `get_temp_path`
         logger.debug('`yield_local_path` falling back to downloading entire file to local storage.')
+        root = self.get_cache_path(root=True)
         path = self.get_cache_path()
         if yield_file_set and self.file_set:
             # NOTE: This is messy and should be improved but it ensures the directory remains locked
@@ -287,7 +290,7 @@ class ChecksumFile(TimeStampedModel, TaskEventMixin):
         # Not in file_set. Download to cache dir
         from .utils import yield_checksumfiles
 
-        with yield_checksumfiles([self], path.parent):
+        with yield_checksumfiles([self], root):
             yield path
 
     def get_url(self, internal: bool = False):

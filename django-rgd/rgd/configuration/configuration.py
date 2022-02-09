@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from datetime import timedelta
 import logging
 import os
 import tempfile
@@ -18,7 +19,7 @@ except ImportError:
 
 class GeoDjangoMixin(ConfigMixin):
     @staticmethod
-    def before_binding(configuration: Type[ComposedConfiguration]):
+    def mutate_configuration(configuration: Type[ComposedConfiguration]):
         configuration.INSTALLED_APPS += ['django.contrib.gis']
 
         try:
@@ -72,7 +73,7 @@ class MemachedMixin(ConfigMixin):
 
 class ResonantGeoDataBaseMixin(GeoDjangoMixin, SwaggerMixin, ConfigMixin):
     @staticmethod
-    def before_binding(configuration: ComposedConfiguration) -> None:
+    def mutate_configuration(configuration: ComposedConfiguration) -> None:
         configuration.MIDDLEWARE += [
             'crum.CurrentRequestUserMiddleware',
         ]
@@ -102,6 +103,9 @@ class ResonantGeoDataBaseMixin(GeoDjangoMixin, SwaggerMixin, ConfigMixin):
     )
 
     CELERY_WORKER_SEND_TASK_EVENTS = True
+    CELERY_TASK_TIME_LIMIT = values.IntegerValue(
+        environ=True, default=timedelta(days=1).total_seconds()
+    )
 
     RGD_FILE_FIELD_PREFIX = values.Value(default=None)
     RGD_GLOBAL_READ_ACCESS = values.Value(default=False)
