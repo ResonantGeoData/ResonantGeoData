@@ -285,7 +285,7 @@ class ChecksumFile(TimeStampedModel, TaskEventMixin):
         if yield_file_set and self.file_set:
             # NOTE: This is messy and should be improved but it ensures the directory remains locked
             with self.file_set.yield_all_to_local_path() as _:
-                yield root
+                yield path
             return
         # Not in file_set. Download to cache dir
         from .utils import yield_checksumfiles
