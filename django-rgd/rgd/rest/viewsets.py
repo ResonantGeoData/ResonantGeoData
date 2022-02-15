@@ -17,6 +17,29 @@ class CollectionViewSet(ModelViewSet):
     queryset = models.Collection.objects.all()
     filterset_class = CollectionFilter
 
+    @swagger_auto_schema(
+        method='GET',
+        operation_summary='Get the file at the given index in this collection.',
+    )
+    @action(
+        detail=True,
+        serializer_class=serializers.ChecksumFileSerializer,
+        url_path=r'item/(?P<index>\d+)',
+    )
+    def item(self, request, pk, index):
+        collection = models.Collection.objects.get(pk=pk)
+        files = collection.checksumfiles.order_by("pk")
+        return Response(serializers.ChecksumFileSerializer(files[int(index)]).data)
+
+    @swagger_auto_schema(
+        method='GET',
+        operation_summary='Get the number of items in this collection',
+    )
+    @action(detail=True)
+    def len(self, request, pk):
+        collection = models.Collection.objects.get(pk=pk)
+        return Response({'len': collection.checksumfiles.count()})
+
 
 class CollectionPermissionViewSet(ModelViewSet):
     serializer_class = serializers.CollectionPermissionSerializer
