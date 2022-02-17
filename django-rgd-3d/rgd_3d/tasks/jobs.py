@@ -13,7 +13,7 @@ def task_read_mesh_3d_file(pc_file_pk):
     helpers._run_with_failure_reason(pc_file, read_mesh_3d_file, pc_file_pk)
 
 
-@shared_task(time_limit=86400)
+@shared_task(time_limit=settings.CELERY_TASK_TIME_LIMIT)
 def task_read_3d_tiles_file(tiles_3d_pk: int):
     from rgd_3d.models import Tiles3D
 
