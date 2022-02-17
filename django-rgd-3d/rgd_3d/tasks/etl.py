@@ -98,69 +98,51 @@ def read_3d_tiles_tileset_json(tiles_3d: Union[Tiles3D, int]):
     volume = tileset_json['root']['boundingVolume']
     logger.debug(f'3D tiles bounding volume: {volume}')
 
+    def bounds_to_polygon(xmin, xmax, ymin, ymax):
+        return np.array(
+            [
+                (xmin, ymax),
+                (xmax, ymax),
+                (xmax, ymin),
+                (xmin, ymin),
+                (xmin, ymax),  # close the loop
+            ]
+        )
+
+    transform = np.array(tileset_json['root']['transform']).reshape((4, 4), order='C')
+
     # The coordinates should be in EPSG:4978 by convention in 3D Tiles
     # See https://github.com/CesiumGS/3d-tiles/tree/main/specification#coordinate-reference-system-crs
-    srid = 4978
+    # srid = 4978
     if 'region' in volume:
         xmin, ymin, xmax, ymax, _, _ = volume['region']
         # The region bounding volume specifies bounds using a geographic coordinate system (latitude, longitude, height), specifically EPSG 4979.
         # See https://github.com/CesiumGS/3d-tiles/tree/main/specification#coordinate-reference-system-crs
-        srid = 4979
+        # srid = 4979
+        coords = bounds_to_polygon(xmin, xmax, ymin, ymax) * 180.0 / np.pi
     elif 'box' in volume:
         b = volume['box']
-        center, x, y = b[0:3], b[3:6], b[6:9]
+        # NOTE: I don't think this is right
+        center, x, y, _ = b[0:3], b[3:6], b[6:9], b[9:12]
         xmin = min(center[0], x[0], y[0])
         xmax = max(center[0], x[0], y[0])
         ymin = min(center[1], x[1], y[1])
         ymax = max(center[1], x[1], y[1])
-        # TODO: for the oriented bounding box, use it as the `footprint` field
+        coords = bounds_to_polygon(xmin, xmax, ymin, ymax)
+        coords = np.c_[coords, np.zeros(len(coords)), np.ones(len(coords))]
+        # Apply the tranformation
+        corners = (coords @ transform)[:, :-1]  # in XYZ world
+        src = pyproj.CRS(f'EPSG:4978')  # 4979 -> srid
+        dest = pyproj.CRS(f'EPSG:4326')
+        transformer = pyproj.Transformer.from_proj(src, dest, always_xy=True)
+        x, y, _ = transformer.transform(corners.T[0], corners.T[1], corners.T[2])
+        coords = np.c_[x, y]
     elif 'sphere' in volume:
         raise NotImplementedError
     else:
         raise ValueError(f'Bounding volume of unknown type: {volume}')
 
-    coords = np.array(
-        [
-            (xmin, ymax),
-            (xmax, ymax),
-            (xmax, ymin),
-            (xmin, ymin),
-            (xmin, ymax),  # Close the loop
-        ]
-    )
-
-    if 'transform' in tileset_json['root']:
-        # Apply transform if required
-        transform = tileset_json['root']['transform']
-        # The transform is stored in column-major order in the JSON, so reorder
-        # to produce the  full 3D Affine matrix in the form of:
-        #      [x']    / a  b  c xoff \ [x]
-        #      [y'] =  | d  e  f yoff | [y]
-        #      [z']    | g  h  i zoff | [z]
-        #      [1 ]    \ 0  0  0   1  / [1]
-        t = np.array(transform).reshape((4, 4), order='F')
-        # But we want the 2D subcomponent which would be:
-        #      [x']    / a  b xoff \ [x]
-        #      [y'] =  | d  e yoff | [y]
-        #      [1 ]    \ 0  0   1  / [1]
-        # This would effectively be: np.hstack((t[0:2,0:2], t[0:2,-1,None]))
-        # but, shapely expects the following form as a 1D array:
-        #           [a, b, d, e, xoff, yoff]
-        affine = np.append(t[0:2, 0:2].ravel(), t[0:2, -1])
-        # Use shapely to apply the affine tranformation
-        transformed = affinity.affine_transform(ShapelyPolygon(coords).exterior, affine)
-        coords = np.array(transformed.coords)
-
-    # Transform from 3DTiles SRID to Database SRID
-    # Convert the coordinates using pyproj to database SRID from source SRID
-    # This might work on proj>=8 and pyproj>=3.1 - large_image_wheels gives us these versions
-    src = pyproj.CRS(f'EPSG:{srid}')
-    dest = pyproj.CRS(f'EPSG:{DB_SRID}')
-    project = pyproj.Transformer.from_crs(src, dest, always_xy=True).transform
-    result = shapely_transform(project, ShapelyPolygon(coords))
-    logger.info(f'the coords: {list(result.exterior.coords)}')
-
-    outline = Polygon(list(result.exterior.coords), srid=DB_SRID)
+    outline = Polygon(coords, srid=DB_SRID)
 
     # Save out
     tiles_3d_meta.outline = outline
