@@ -10,9 +10,6 @@ import pyproj
 from rgd.models import DB_SRID, ChecksumFile
 from rgd.utility import get_or_create_no_commit, get_temp_dir
 from rgd_3d.models import Mesh3D, Tiles3D, Tiles3DMeta
-from shapely import affinity
-from shapely.geometry import Polygon as ShapelyPolygon
-from shapely.ops import transform as shapely_transform
 
 logger = get_task_logger(__name__)
 
@@ -132,8 +129,8 @@ def read_3d_tiles_tileset_json(tiles_3d: Union[Tiles3D, int]):
         coords = np.c_[coords, np.zeros(len(coords)), np.ones(len(coords))]
         # Apply the tranformation
         corners = (coords @ transform)[:, :-1]  # in XYZ world
-        src = pyproj.CRS(f'EPSG:4978')  # 4979 -> srid
-        dest = pyproj.CRS(f'EPSG:4326')
+        src = pyproj.CRS('EPSG:4978')  # 4979 -> srid
+        dest = pyproj.CRS('EPSG:4326')
         transformer = pyproj.Transformer.from_proj(src, dest, always_xy=True)
         x, y, _ = transformer.transform(corners.T[0], corners.T[1], corners.T[2])
         coords = np.c_[x, y]
