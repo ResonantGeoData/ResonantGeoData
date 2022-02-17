@@ -1,15 +1,10 @@
-from pathlib import Path
 from typing import List
 
 from pooch.processors import Unzip
 from rgd.datastore import datastore
-from rgd.management.commands._data_helper import (
-    SynchronousTasksCommand,
-    _get_or_create_checksum_file,
-    _get_or_create_file_model,
-)
-from rgd.models import FileSet
+from rgd.management.commands._data_helper import SynchronousTasksCommand, _get_or_create_file_model
 from rgd_3d import models
+from rgd_3d.models.tiles import create_tiles3d_from_paths
 
 SUCCESS_MSG = 'Finished loading all demo data.'
 
@@ -30,36 +25,7 @@ def load_tiles_3d_files(t3d_files: List[str]):
     ids = []
     for f in t3d_files:
         paths = datastore.fetch(f, processor=Unzip())
-
-        # Start by ingesting tileset.json
-        tileset_json_path = Path(
-            [path for path in paths if path.split('/')[-1] == 'tileset.json'][0]
-        )
-        tileset_json_name = '/'.join(str(tileset_json_path).split('/')[-2:])
-        dataset_name = str(tileset_json_path.relative_to(datastore.path)).split('/')[-2]
-
-        # Create a FileSet for the 3D tiles dataset
-        fileset, created = FileSet.objects.get_or_create(name=dataset_name)
-
-        tileset_json_checksum_file = _get_or_create_checksum_file(
-            tileset_json_path, tileset_json_name
-        )
-        tileset_json_checksum_file.file_set = fileset
-        tileset_json_checksum_file.save(update_fields=['file_set'])
-
-        # Filter out tileset.json as we have already ingested that
-        paths = [path for path in paths if path.split('/')[-1] != 'tileset.json']
-
-        for path in paths:
-            # Strip off irrelevant parts of file path
-            file_name = '/'.join(str(Path(path).relative_to(datastore.path)).split('/')[1:])
-            checksum_file = _get_or_create_checksum_file(path, file_name)
-            checksum_file.file_set = fileset
-            checksum_file.save(update_fields=['file_set'])
-
-        entry, created = models.Tiles3D.objects.get_or_create(
-            name=dataset_name, json_file=tileset_json_checksum_file
-        )
+        entry = create_tiles3d_from_paths(paths)
         ids.append(entry.pk)
     return ids
 
