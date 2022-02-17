@@ -30,7 +30,7 @@ class Mesh3D(TimeStampedModel, TaskEventMixin, DetailViewMixin):
     data_link_vtp.allow_tags = True
 
     task_funcs = (jobs.task_read_mesh_3d_file,)
-    detail_view_name = 'mesh-3d-detail'
+    detail_view_name = 'mesh-3d-entry'
 
 
 class Mesh3DSpatial(TimeStampedModel, SpatialEntry):
@@ -46,5 +46,5 @@ class Mesh3DSpatial(TimeStampedModel, SpatialEntry):
     def name(self):
         return self.source.file.name
 
-    detail_view_name = 'mesh-3d-detail'
+    detail_view_name = Mesh3D.detail_view_name
     detail_view_pk = 'source__pk'
