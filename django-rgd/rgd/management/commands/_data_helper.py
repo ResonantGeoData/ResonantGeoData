@@ -29,7 +29,7 @@ def _save_signal(entry, created):
     entry.save()
 
 
-def _get_or_create_checksum_file_url(url, name=None):
+def _get_or_create_checksum_file_url(url: str, name=None):
     URLValidator()(url)  # raises `ValidationError` if not a valid URL
     try:
         file_entry = models.ChecksumFile.objects.get(url=url)
@@ -50,12 +50,18 @@ def _get_or_create_checksum_file_url(url, name=None):
     return file_entry
 
 
-def _get_or_create_checksum_file_datastore(file, name=None):
+def _get_or_create_checksum_file_filefield(file: str, name=None, use_datastore: bool = True):
     try:
-        file_entry = models.ChecksumFile.objects.get(name=file)
+        if name is None:
+            file_entry = models.ChecksumFile.objects.get(name=file)
+        else:
+            file_entry = models.ChecksumFile.objects.get(name=name)
         _save_signal(file_entry, False)
     except models.ChecksumFile.DoesNotExist:
-        path = datastore.fetch(file)
+        if use_datastore:
+            path = datastore.fetch(file)
+        else:
+            path = file
         file_entry = models.ChecksumFile()
         if name:
             file_entry.name = name
@@ -68,13 +74,18 @@ def _get_or_create_checksum_file_datastore(file, name=None):
     return file_entry
 
 
-def _get_or_create_checksum_file(file, name=None):
+def _get_or_create_checksum_file(file: str, name=None):
     # Check if there is already an image file with this URL or name
     #  to avoid duplicating data
     try:
         file_entry = _get_or_create_checksum_file_url(file, name=name)
     except ValidationError:
-        file_entry = _get_or_create_checksum_file_datastore(file, name=name)
+        try:
+            file_entry = _get_or_create_checksum_file_filefield(file, name=name, use_datastore=True)
+        except ValueError:
+            file_entry = _get_or_create_checksum_file_filefield(
+                file, name=name, use_datastore=False
+            )
     return file_entry
 
 
