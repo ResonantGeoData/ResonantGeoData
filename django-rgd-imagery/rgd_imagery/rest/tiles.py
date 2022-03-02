@@ -60,7 +60,8 @@ class TileMetadataView(BaseTileView):
     def get(self, request: Request, pk: int) -> Response:
         tile_source = self.get_tile_source(request, pk)
         metadata = tile_source.getMetadata()
-        metadata['bounds'] = large_image_utilities.get_tile_bounds(tile_source)
+        if isinstance(tile_source, GDALFileTileSource):
+            metadata['bounds'] = large_image_utilities.get_tile_bounds(tile_source)
         return Response(metadata)
 
 

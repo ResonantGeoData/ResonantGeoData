@@ -87,6 +87,7 @@ def sample_raster_multi():
         factories.ImageFactory(
             file__file__filename=landsat_files[0],
             file__file__from_path=datastore.fetch(f),
+            file__collection=None,
         )
         for f in landsat_files
     ]
@@ -146,6 +147,7 @@ def sample_raster_url():
             file__type=FileSourceType.URL,
             file__file=None,
             file__url=datastore.get_url(f),
+            file__collection=None,
         )
         images.append(image)
         # band_range
