@@ -1,118 +1,118 @@
-from django.db.models import Prefetch
-from rest_framework.generics import GenericAPIView
+from rest_framework.decorators import api_view
 from rest_framework.response import Response
+from rest_framework.utils.urls import replace_query_param
 from rgd.models import Collection
-from rgd.rest.mixins import BaseRestViewMixin
-from rgd_imagery import models
+from rgd.permissions import filter_read_perm
 
-from . import serializers
-from .filters import STACSimpleFilter
-from .pagination import STACPagination
+from . import querysets, serializers
 
 
-class OptimizedRasterMetaQuerysetMixin:
-    queryset = (
-        models.RasterMeta.objects.select_related('parent_raster')
-        .select_related('parent_raster__image_set')
-        .prefetch_related('parent_raster__ancillary_files')
-        .prefetch_related(
-            Prefetch(
-                'parent_raster__image_set__images',
-                queryset=models.Image.objects.select_related('file')
-                .select_related('file__collection')
-                .prefetch_related(
-                    Prefetch(
-                        'processedimage_set',
-                        queryset=models.ProcessedImage.objects.select_related(
-                            'processed_image'
-                        ).select_related('processed_image__file'),
-                    )
-                )
-                .prefetch_related('bandmeta_set')
-                .all(),
-            )
-        )
-        .all()
+def paginate_queryset(queryset, request):
+    page = int(request.query_params.get('page', 1))
+    limit = int(request.query_params.get('limit', 10))
+    return queryset.order_by('stac_id')[(page - 1) * limit : page * limit]
+
+
+def add_page_links(data, values, request):
+    page = int(request.query_params.get('page', 1))
+    limit = int(request.query_params.get('limit', 10))
+    if len(values) < limit:
+        return data
+    url = request.build_absolute_uri()
+    next_link = replace_query_param(url, 'page', page + 1)
+    if 'links' not in data:
+        data['links'] = []
+    data['links'].append({'rel': 'next', 'href': next_link})
+
+
+@api_view()
+def root(request):
+    queryset = filter_read_perm(request.user, Collection.objects.all())
+    values = [*queryset.values('id', 'name')]
+    values.append({'id': 'default', 'name': 'default'})
+    data = serializers.get_root(values, request)
+    return Response(data)
+
+
+@api_view()
+def collection(request, collection_id):
+    queryset = querysets.collection.get_queryset(
+        user=request.user,
+        pk=collection_id,
     )
+    data = serializers.get_collection(queryset.get(), request)
+    return Response(data)
 
 
-class CoreView(BaseRestViewMixin, GenericAPIView):
-    """See all the Collections a user can see."""
-
-    serializer_class = serializers.CoreSerializer
-    queryset = Collection.objects.all()
-
-    def get(self, request, *args, **kwargs):
-        queryset = self.get_queryset()
-        serializer = self.get_serializer(queryset)
-        return Response(serializer.data)
+@api_view()
+def collections(request):
+    queryset = querysets.collection.get_queryset(user=request.user)
+    queryset = paginate_queryset(queryset, request)
+    values = [*queryset]
+    data = serializers.get_collections(values, request)
+    add_page_links(data, values, request)
+    return Response(data)
 
 
-class CollectionView(BaseRestViewMixin, GenericAPIView):
-    """Metadata regarding a collection."""
-
-    serializer_class = serializers.CollectionSerializer
-    queryset = Collection.objects.all()
-
-    def get(self, request, *args, collection_id=None, **kwargs):
-        queryset = self.get_queryset()
-        if collection_id != 'default':
-            collection = queryset.get(pk=collection_id)
-        else:
-            collection = Collection()
-        serializer = self.get_serializer(collection)
-        return Response(serializer.data)
+@api_view()
+def item(request, collection_id, item_id):
+    queryset = querysets.item.get_queryset(
+        user=request.user,
+        pk=item_id,
+        collection=collection_id,
+    )
+    data = serializers.get_item(queryset.get(), request)
+    return Response(data)
 
 
-class ItemCollectionView(OptimizedRasterMetaQuerysetMixin, BaseRestViewMixin, GenericAPIView):
-    """See the Items in the Collection."""
-
-    serializer_class = serializers.ItemCollectionSerializer
-    pagination_class = STACPagination
-    filterset_class = STACSimpleFilter
-
-    def get(self, request, *args, collection_id=None, **kwargs):
-        collection_id = None if collection_id == 'default' else collection_id
-        queryset = self.filter_queryset(
-            self.get_queryset().filter(
-                parent_raster__image_set__images__file__collection=collection_id
-            )
-        )
-        page = self.paginate_queryset(queryset)
-        if page is not None:
-            serializer = self.get_serializer(page)
-            return self.get_paginated_response(serializer.data)
-        serializer = self.get_serializer(queryset)
-        return Response(serializer.data)
+@api_view()
+def items(request, collection_id):
+    queryset = querysets.item.get_queryset(
+        user=request.user,
+        collection=collection_id,
+        bbox=request.query_params.get('bbox'),
+        intersects=request.query_params.get('intersects'),
+        ids=request.query_params.get('ids'),
+        collections=request.query_params.get('collections'),
+        datetime=request.query_params.get('datetime'),
+    )
+    queryset = paginate_queryset(queryset, request)
+    values = [*queryset]
+    data = serializers.get_items(values, request)
+    add_page_links(data, values, request)
+    return Response(data)
 
 
-class SimpleSearchView(OptimizedRasterMetaQuerysetMixin, BaseRestViewMixin, GenericAPIView):
-    """Search items."""
+@api_view()
+def search(request):
+    queryset = querysets.item.get_queryset(
+        user=request.user,
+        bbox=request.query_params.get('bbox'),
+        intersects=request.query_params.get('intersects'),
+        ids=request.query_params.get('ids'),
+        collections=request.query_params.get('collections'),
+        datetime=request.query_params.get('datetime'),
+    )
+    queryset = paginate_queryset(queryset, request)
+    values = [*queryset]
+    data = serializers.get_items(values, request)
+    add_page_links(data, values, request)
+    return Response(data)
 
-    serializer_class = serializers.ItemCollectionSerializer
-    pagination_class = STACPagination
-    filterset_class = STACSimpleFilter
 
-    def get(self, request, *args, **kwargs):
-        queryset = self.filter_queryset(self.get_queryset())
-        page = self.paginate_queryset(queryset)
-        if page is not None:
-            serializer = self.get_serializer(page)
-            return self.get_paginated_response(serializer.data)
-        serializer = self.get_serializer(queryset)
-        return Response(serializer.data)
+@api_view()
+def conformance(request):
+    data = serializers.get_conformance(request)
+    return Response(data)
 
 
-class ItemView(OptimizedRasterMetaQuerysetMixin, BaseRestViewMixin, GenericAPIView):
-    """See the Items in the Collection."""
+@api_view()
+def service_desc(request):
+    data = serializers.get_service_desc(request)
+    return Response(data)
 
-    serializer_class = serializers.ItemSerializer
 
-    def get(self, request, *args, collection_id=None, item_id=None, **kwargs):
-        collection_id = None if collection_id == 'default' else collection_id
-        queryset = self.get_queryset().filter(
-            parent_raster__image_set__images__file__collection=collection_id
-        )
-        item = queryset.get(pk=item_id)
-        serializer = self.get_serializer(item)
-        return Response(serializer.data)
+@api_view()
+def service_doc(request):
+    data = serializers.get_service_desc(request)
+    return Response(data)

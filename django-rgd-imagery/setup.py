@@ -54,7 +54,6 @@ setup(
         'large-image-source-tiff>=1.9.0',
         'matplotlib',
         'numpy',
-        'pystac>=1.1.0',
         'pyvips',
         'shapely',
         'tifftools>=1.2.0',
