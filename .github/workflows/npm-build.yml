@@ -9,6 +9,7 @@ on:
 jobs:
   build-vtkjs-viewer:
     runs-on: ubuntu-latest
+    if: ${{ github.actor != 'dependabot[bot]' }}
     steps:
       - uses: actions/checkout@v3
       - uses: actions/setup-node@v3
