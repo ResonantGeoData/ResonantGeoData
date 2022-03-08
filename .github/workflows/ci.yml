@@ -27,18 +27,18 @@ jobs:
     runs-on: ubuntu-latest
     services:
       postgres:
-        image: dev/postgres.Dockerfile
+        image: postgis/postgis:13-3.2
         env:
           POSTGRES_DB: django
           POSTGRES_PASSWORD: postgres
         ports:
           - 5432:5432
       rabbitmq:
-        image: dev/rabbitmq.Dockerfile
+        image: rabbitmq:3.9.13-management
         ports:
           - 5672:5672
       minio:
-        image: dev/minio.Dockerfile
+        image: bitnami/minio:2022.3.5-debian-10-r3
         env:
           MINIO_ROOT_USER: minioAccessKey
           MINIO_ROOT_PASSWORD: minioSecretKey
@@ -77,19 +77,19 @@ jobs:
     runs-on: ubuntu-latest
     services:
       postgres:
-        image: dev/postgres.Dockerfile
+        image: postgis/postgis:13-3.2
         env:
           POSTGRES_DB: django
           POSTGRES_PASSWORD: postgres
         ports:
           - 5432:5432
       rabbitmq:
-        image: dev/rabbitmq.Dockerfile
+        image: rabbitmq:3.9.13-management
         ports:
           - 5672:5672
       minio:
         # This image does not require any command arguments (which GitHub Actions don't support)
-        image: dev/minio.Dockerfile
+        image: bitnami/minio:2022.3.5-debian-10-r3
         env:
           MINIO_ROOT_USER: minioAccessKey
           MINIO_ROOT_PASSWORD: minioSecretKey
