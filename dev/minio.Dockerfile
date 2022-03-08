@@ -1,1 +1,1 @@
-FROM minio/minio:RELEASE.2022-03-03T21-21-16Z
+FROM bitnami/minio:2022.3.5-debian-10-r3
