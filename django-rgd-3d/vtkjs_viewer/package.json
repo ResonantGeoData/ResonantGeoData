@@ -21,6 +21,6 @@
   },
   "dependencies": {
     "@kitware/vtk.js": "^22.6.1",
-    "postcss": "^8.4.5"
+    "postcss": "^8.4.8"
   }
 }
