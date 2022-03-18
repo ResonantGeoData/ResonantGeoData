@@ -38,6 +38,18 @@ def test_create_url():
 
 
 @pytest.mark.django_db(transaction=True)
+def test_create_url_local_file():
+    model = ChecksumFile()
+    model.type = FileSourceType.URL
+    model.url = 'file://opt/django-project/README.md'
+    model.save()
+    model.post_save_job()
+    model.refresh_from_db()
+    assert model.checksum
+    assert model.name
+
+
+@pytest.mark.django_db(transaction=True)
 def test_constraint_mismatch(file_path):
     with pytest.raises(IntegrityError):
         model = ChecksumFile()
