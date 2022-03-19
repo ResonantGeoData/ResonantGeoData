@@ -131,10 +131,10 @@ def download_url_file_to_local_path(
             )
     elif parsed.scheme == 'file':
         # File available on localfilesystem
-        true_path = url.replace('file://', '/')
-        if os.path.exists(dest_path) and not os.path.islink(dest_path):
+        true_path = Path(url.replace('file://', '', 1)).absolute()
+        if dest_path.exists() and not os.path.islink(str(dest_path)):
             os.remove(dest_path)  # Remove file incase touched
-        if not os.path.exists(dest_path):
+        if not dest_path.exists():
             os.symlink(true_path, dest_path)
         # else exists and is a symlink - ASSUME it is correct
     else:
