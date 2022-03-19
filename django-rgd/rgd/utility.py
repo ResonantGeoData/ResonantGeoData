@@ -113,22 +113,6 @@ def get_s3_client():
     return s3
 
 
-def _download_url_file_to_stream(
-    url: str, dest_stream: io.BufferedIOBase, num_blocks: int = 128, block_size: int = 128
-):
-    parsed = urlparse(url)
-    if parsed.scheme == 's3':
-        s3 = get_s3_client()
-        s3.download_fileobj(
-            parsed.netloc, parsed.path.lstrip('/'), dest_stream, {'RequestPayer': 'requester'}
-        )
-    else:
-        with safe_urlopen(url) as remote:
-            while chunk := remote.read(num_blocks * block_size):
-                dest_stream.write(chunk)
-                dest_stream.flush()
-
-
 def download_url_file_to_local_path(
     url: str,
     path: str,
@@ -137,8 +121,28 @@ def download_url_file_to_local_path(
 ) -> Path:
     dest_path = Path(path)
     dest_path.parent.mkdir(parents=True, exist_ok=True)
-    with open(dest_path, 'wb') as dest_stream:
-        _download_url_file_to_stream(url, dest_stream, num_blocks=num_blocks, block_size=block_size)
+
+    parsed = urlparse(url)
+    if parsed.scheme == 's3':
+        s3 = get_s3_client()
+        with open(dest_path, 'wb') as dest_stream:
+            s3.download_fileobj(
+                parsed.netloc, parsed.path.lstrip('/'), dest_stream, {'RequestPayer': 'requester'}
+            )
+    elif parsed.scheme == 'file':
+        # File available on localfilesystem
+        true_path = Path(url.replace('file://', '', 1)).absolute()
+        if dest_path.exists() and not os.path.islink(str(dest_path)):
+            os.remove(dest_path)  # Remove file incase touched
+        if not dest_path.exists():
+            os.symlink(true_path, dest_path)
+        # else exists and is a symlink - ASSUME it is correct
+    else:
+        with safe_urlopen(url) as remote, open(dest_path, 'wb') as dest_stream:
+            while chunk := remote.read(num_blocks * block_size):
+                dest_stream.write(chunk)
+                dest_stream.flush()
+
     return Path(dest_path)
 
 
