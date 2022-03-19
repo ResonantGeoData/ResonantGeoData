@@ -83,6 +83,8 @@ def get_tile_bounds(
     projection: str = 'EPSG:4326',
 ):
     bounds = tile_source.getBounds(srs=projection)
+    if not bounds:
+        return
     threshold = 89.9999
     for key in ('ymin', 'ymax'):
         bounds[key] = max(min(bounds[key], threshold), -threshold)
