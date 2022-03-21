@@ -2,7 +2,7 @@ from decimal import Decimal
 
 import pytest
 from rgd.datastore import datastore
-from rgd.models import FileSourceType
+from rgd.models import ChecksumFile, FileSet, FileSourceType
 from rgd_imagery.models import BandMeta
 
 from . import factories
@@ -182,5 +182,25 @@ def elevation():
     image = factories.ImageFactory(
         file__file__filename=name,
         file__file__from_path=datastore.fetch(name),
+    )
+    return image
+
+
+@pytest.fixture
+def non_geo_envi_image():
+    # Download the two files for the image: IHTest_202009_Path3_Step5_BBXSWIR_12deg_DistStA
+    file_set = FileSet.objects.create()
+    img = ChecksumFile.objects.create(
+        file_set=file_set,
+        type=FileSourceType.URL,
+        url=datastore.get_url('IHTest_202009_Path3_Step5_BBXSWIR_12deg_DistStA.raw'),
+    )
+    _ = ChecksumFile.objects.create(
+        file_set=file_set,
+        type=FileSourceType.URL,
+        url=datastore.get_url('IHTest_202009_Path3_Step5_BBXSWIR_12deg_DistStA.hdr'),
+    )
+    image = factories.ImageFactory(
+        file=img,
     )
     return image

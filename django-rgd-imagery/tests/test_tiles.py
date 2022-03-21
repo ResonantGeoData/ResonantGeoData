@@ -38,3 +38,12 @@ def test_cache(admin_api_client, geotiff_image_entry, django_assert_num_queries)
     # ensure no new queries are made for a different tile request made by same user on same image
     with django_assert_num_queries(0):
         admin_api_client.get(f'/api/image_process/imagery/{geotiff_image_entry.pk}/tiles/1/1/0.png')
+
+
+@pytest.mark.django_db(transaction=True)
+def test_non_geo_envi_tiles(admin_api_client, non_geo_envi_image):
+    response = admin_api_client.get(
+        f'/api/image_process/imagery/{non_geo_envi_image.pk}/tiles/1/0/0.png'
+    )
+    assert response.status_code == 200
+    assert response['Content-Type'] == 'image/png'
