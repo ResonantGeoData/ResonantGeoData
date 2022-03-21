@@ -27,6 +27,10 @@ def yeild_tilesource_from_image(image: Image, projection: str = None) -> FileTil
     yield get_tilesource_from_image(image, projection)
 
 
+def is_geospatial(tile_source: FileTileSource):
+    return tile_source.getMetadata().get('geospatial', False)
+
+
 def _get_region(tile_source: FileTileSource, region: dict, encoding: str):
     result, mime_type = tile_source.getRegion(region=region, encoding=encoding)
     if encoding == 'TILED':
