@@ -6,7 +6,6 @@ from django.shortcuts import get_object_or_404
 from django.utils.decorators import method_decorator
 from django.views.decorators.cache import cache_page
 from large_image.tilesource import FileTileSource
-from large_image_source_gdal import GDALFileTileSource
 from rest_framework.request import Request
 from rest_framework.response import Response
 from rest_framework.views import APIView
@@ -60,7 +59,7 @@ class TileMetadataView(BaseTileView):
     def get(self, request: Request, pk: int) -> Response:
         tile_source = self.get_tile_source(request, pk)
         metadata = tile_source.getMetadata()
-        if isinstance(tile_source, GDALFileTileSource):
+        if large_image_utilities.is_geospatial(tile_source):
             metadata['bounds'] = large_image_utilities.get_tile_bounds(tile_source)
         return Response(metadata)
 
@@ -148,7 +147,7 @@ class TileRegionView(BaseTileView):
         self, request: Request, pk: int, left: float, right: float, bottom: float, top: float
     ) -> HttpResponse:
         tile_source = self.get_tile_source(request, pk)
-        if not isinstance(tile_source, GDALFileTileSource):
+        if not large_image_utilities.is_geospatial(tile_source):
             raise TypeError('Souce image must have geospatial reference.')
         units = request.query_params.get('units', 'EPSG:4326')
         encoding = request.query_params.get('encoding', 'TILED')

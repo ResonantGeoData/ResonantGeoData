@@ -31,7 +31,13 @@ services:
     ]
     # Docker Compose does not set the TTY width, which causes Celery errors
     tty: false
-    privileged: true
+    # Instead of privileged mode, fuse can use:
+    devices:
+      - /dev/fuse:/dev/fuse
+    security_opt:
+      - apparmor:unconfined
+    cap_add:
+      - SYS_ADMIN
     env_file: ./dev/.env.docker-compose
     volumes:
       - .:/opt/django-project

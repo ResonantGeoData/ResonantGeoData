@@ -17,9 +17,9 @@ jobs:
       matrix:
         rgd-module: ['django-rgd', 'django-rgd/client', 'django-rgd-3d', 'django-rgd-fmv', 'django-rgd-geometry', 'django-rgd-imagery', 'django-rgd-imagery/client']
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
       - name: Set up Python
-        uses: actions/setup-python@v2
+        uses: actions/setup-python@v3
         with:
           python-version: "3.8"
       - name: Install Dependencies
