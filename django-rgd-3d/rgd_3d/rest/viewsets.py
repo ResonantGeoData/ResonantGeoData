@@ -24,8 +24,17 @@ class Mesh3DViewSet(ModelViewSet, TaskEventViewSetMixin):
 
 
 class Tiles3DViewSet(ModelViewSet):
-    serializer_class = serializers.Tiles3DSerializer
     queryset = models.Tiles3D.objects.all()
+
+    def get_serializer_class(self):
+        if self.action in {'list', 'retrieve', 'status'}:
+            return serializers.Tiles3DMetaSerializer
+        return serializers.Tiles3DSerializer
+
+    def get_queryset(self):
+        if self.action in {'list', 'retrieve', 'status'}:
+            return models.Tiles3DMeta.objects.all()
+        return models.Tiles3D.objects.all()
 
     @swagger_auto_schema(responses={302: openapi.Response('Redirect to file download')})
     @action(detail=True, methods=['GET'], url_path='file/(?P<name>.+)')
