@@ -168,10 +168,8 @@ def url_file_to_fuse_path(url: str) -> Path:
     # Assumes `precheck_fuse` was verified prior
     # See https://github.com/ResonantGeoData/ResonantGeoData/issues/237
     parsed = urlparse(url)
-    if parsed.scheme == 'https':
-        fuse_path = url.replace('https://', '/tmp/rgd/https/') + '..'
-    elif parsed.scheme == 'http':
-        fuse_path = url.replace('http://', '/tmp/rgd/http/') + '..'
+    if parsed.scheme in ['https', 'http']:
+        fuse_path = url.replace('https://', '/tmp/rgd/http/') + '..'
     elif Path('/tmp/rgd/s3/').exists() and parsed.scheme == 's3':
         fuse_path = url.replace('s3://', '/tmp/rgd/s3/') + '..'
     else:
