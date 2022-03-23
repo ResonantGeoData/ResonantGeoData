@@ -24,7 +24,6 @@ class RGDExampleProjectMixin(
 ):
     WSGI_APPLICATION = 'rgd_example.wsgi.application'
     ROOT_URLCONF = 'rgd_example.urls'
-    CELERY_BROKER_URL = None
 
     BASE_DIR = Path(__file__).resolve(strict=True).parent.parent
 
