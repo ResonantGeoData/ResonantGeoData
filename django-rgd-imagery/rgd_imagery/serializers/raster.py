@@ -28,7 +28,10 @@ class RasterSerializer(serializers.ModelSerializer):
 
     def to_representation(self, value):
         ret = super().to_representation(value)
-        ret['raster_meta_id'] = value.rastermeta.pk
+        try:
+            ret['raster_meta_id'] = value.rastermeta.pk
+        except models.RasterMeta.DoesNotExist:
+            ret['raster_meta_id'] = None
         return ret
 
 

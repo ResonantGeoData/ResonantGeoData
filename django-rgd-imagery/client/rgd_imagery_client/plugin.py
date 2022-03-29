@@ -278,6 +278,16 @@ class ImageryPlugin(RgdPlugin):
 
         return self.session.post('rgd_imagery/image_set', json=payload).json()
 
+    def get_raster_status(self, raster_id):
+        """Get raster processing status
+
+        Parameters
+        ----------
+        raster_id : int
+            Accepts the Raster (not RasterMeta) primary key.
+        """
+        return self.session.post(f'rgd_imagery/raster/{raster_id}/status').json()
+
     def create_raster_from_image_set(
         self,
         image_set: Union[Dict, int],
