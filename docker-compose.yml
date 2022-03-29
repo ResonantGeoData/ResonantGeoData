@@ -24,7 +24,7 @@ services:
       context: .
       dockerfile: ./dev/minio.Dockerfile
     # When run with a TTY, minio prints credentials on startup
-    tty: true
+    # tty: true
     command: ["server", "/data", "--console-address", ":${DOCKER_MINIO_CONSOLE_PORT-9001}"]
     environment:
       MINIO_ROOT_USER: minioAccessKey

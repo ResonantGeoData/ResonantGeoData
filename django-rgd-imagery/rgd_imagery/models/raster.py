@@ -59,3 +59,7 @@ class RasterMeta(TimeStampedModel, SpatialEntry, DetailViewMixin):
     @property
     def name(self):
         return self.parent_raster.name
+
+    @property
+    def status(self):
+        return self.parent_raster.status

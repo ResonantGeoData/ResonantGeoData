@@ -26,6 +26,11 @@ class RasterSerializer(serializers.ModelSerializer):
         fields = '__all__'
         read_only_fields = MODIFIABLE_READ_ONLY_FIELDS + TASK_EVENT_READ_ONLY_FIELDS
 
+    def to_representation(self, value):
+        ret = super().to_representation(value)
+        ret['raster_meta_id'] = value.rastermeta.pk
+        return ret
+
 
 class RasterMetaSerializer(SpatialEntrySerializer):
     """This is read-only."""

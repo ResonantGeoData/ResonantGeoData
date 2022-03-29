@@ -298,7 +298,10 @@ class ImageryPlugin(RgdPlugin):
         if description is not None:
             payload['description'] = description
 
-        return self.session.post('rgd_imagery/raster', json=payload).json()
+        raster = self.session.post('rgd_imagery/raster', json=payload).json()
+        # TODO: Poll raster for status
+        # Get and return RasterMeta
+        return self.get_raster(raster['raster_meta_id'])
 
     def create_processed_image_group(
         self,
