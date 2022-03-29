@@ -1,6 +1,7 @@
 from dataclasses import dataclass
 from pathlib import Path
 import tempfile
+import time
 from typing import Dict, Iterable, Iterator, List, Optional, Tuple, Union
 
 from rgd_client.plugin import RgdPlugin
@@ -278,15 +279,20 @@ class ImageryPlugin(RgdPlugin):
 
         return self.session.post('rgd_imagery/image_set', json=payload).json()
 
-    def get_raster_status(self, raster_id):
+    def get_raster_status(
+        self,
+        raster: Union[Dict, int],
+    ):
         """Get raster processing status
 
         Parameters
         ----------
-        raster_id : int
+        raster : dict, int
             Accepts the Raster (not RasterMeta) primary key.
         """
-        return self.session.post(f'rgd_imagery/raster/{raster_id}/status').json()
+        if isinstance(raster, dict):
+            raster = raster['id']
+        return self.session.get(f'rgd_imagery/raster/{raster}/status').json()
 
     def create_raster_from_image_set(
         self,
@@ -309,7 +315,21 @@ class ImageryPlugin(RgdPlugin):
             payload['description'] = description
 
         raster = self.session.post('rgd_imagery/raster', json=payload).json()
-        # TODO: Poll raster for status
+
+        def poll():
+            response = self.get_raster_status(raster)
+            if response['status'] in ['created', 'queued', 'running']:
+                time.sleep(1)
+                return True
+            return False
+
+        # Poll raster for status
+        while poll():
+            pass
+
+        # Final refresh to ensure integrity of raster_meta_id
+        raster = self.get_raster_status(raster)
+
         # Get and return RasterMeta
         return self.get_raster(raster['raster_meta_id'])
 
