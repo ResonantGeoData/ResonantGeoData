@@ -283,7 +283,7 @@ class ImageryPlugin(RgdPlugin):
         self,
         raster: Union[Dict, int],
     ):
-        """Get raster processing status
+        """Get raster processing status.
 
         Parameters
         ----------
