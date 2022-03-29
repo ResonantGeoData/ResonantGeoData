@@ -13,7 +13,7 @@ from .base import ImageSerializer
 
 
 class ProcessedImageGroupSerializer(serializers.ModelSerializer):
-    def validate_source_image(self, value):
+    def validate_source_images(self, value):
         if 'request' in self.context:
             check_write_perm(self.context['request'].user, value)
         return value
@@ -46,7 +46,7 @@ class ProcessedImageSerializer(serializers.ModelSerializer):
         required=False,
     )
 
-    def validate_source_image(self, value):
+    def validate_source_images(self, value):
         if 'request' in self.context:
             check_write_perm(self.context['request'].user, value)
         return value
