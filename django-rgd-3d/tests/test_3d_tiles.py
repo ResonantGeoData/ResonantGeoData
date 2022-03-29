@@ -6,7 +6,8 @@ from rgd_3d.models.tiles import Tiles3DMeta, create_tiles3d_from_paths
 TOLERANCE = 2e-2
 
 centroids = {
-    'jacksonville.zip': {'x': -81.6634, 'y': 30.3234},
+    'jacksonville-untextured.zip': {'x': -81.6634, 'y': 30.3234},
+    'jacksonville-textured.zip': {'x': -81.6634, 'y': 30.3234},
     'dragon.zip': {'x': -75.6079, 'y': 40.0439},
 }
 
@@ -14,7 +15,8 @@ centroids = {
 @pytest.mark.parametrize(
     'sample_file',
     [
-        'jacksonville.zip',
+        'jacksonville-untextured.zip',
+        'jacksonville-textured.zip',
         'dragon.zip',
     ],
 )

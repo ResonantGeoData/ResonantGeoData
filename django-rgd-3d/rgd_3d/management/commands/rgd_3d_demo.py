@@ -10,7 +10,7 @@ SUCCESS_MSG = 'Finished loading all demo data.'
 
 # Names of files in the datastore
 POINT_CLOUD_FILES = ['topo.vtk']
-TILES_3D_FILES = ['jacksonville.zip', 'dragon.zip']
+TILES_3D_FILES = ['jacksonville-untextured.zip', 'jacksonville-textured.zip', 'dragon.zip']
 
 
 def load_mesh_3d_files(pc_files: List[str]):
