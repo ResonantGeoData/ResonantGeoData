@@ -71,19 +71,19 @@ class ImageViewSet(ModelViewSet, TaskEventViewSetMixin):
         return HttpResponseRedirect(url)
 
 
-class RasterViewSet(ModelViewSet, TaskEventViewSetMixin):
-    # TODO: consolidate 'RasterSerializer' and 'RasterMetaSerializer'
+class RasterMetaViewSet(ModelViewSet):
     filterset_class = filters.RasterMetaFilter
 
     def get_serializer_class(self):
-        if self.action in {'list', 'retrieve', 'status'}:
-            return serializers.RasterMetaSerializer
-        return serializers.RasterSerializer
+        if self.action in {'update', 'partial_update', 'destroy', 'create', 'status'}:
+            return serializers.RasterSerializer
+        return serializers.RasterMetaSerializer
 
     def get_queryset(self):
-        if self.action in {'list', 'retrieve', 'stac', 'status'}:
-            return models.RasterMeta.objects.all()
-        return models.Raster.objects.all()
+        if self.action in {'update', 'partial_update', 'destroy', 'create', 'status'}:
+            self.filterset_class = None
+            return models.Raster.objects.all()
+        return models.RasterMeta.objects.all()
 
     @swagger_auto_schema(
         method='GET',
@@ -94,3 +94,11 @@ class RasterViewSet(ModelViewSet, TaskEventViewSetMixin):
         queryset = stac.querysets.item.get_queryset(pk=pk)
         data = stac.serializers.item.get_item(queryset.get(), request)
         return Response(data)
+
+    @swagger_auto_schema(
+        method='GET',
+        operation_summary='Check the status.',
+    )
+    @action(detail=True)
+    def status(self, *args, **kwargs):
+        return self.retrieve(self, *args, **kwargs)

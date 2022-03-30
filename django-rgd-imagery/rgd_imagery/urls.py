@@ -8,7 +8,7 @@ router.register(r'api/image_process/group', viewsets.ProcessedImageGroupViewSet)
 router.register(r'api/image_process', viewsets.ProcessedImageViewSet)
 router.register(r'api/rgd_imagery/image_set_spatial', viewsets.ImageSetSpatialViewSet)
 router.register(r'api/rgd_imagery/image_set', viewsets.ImageSetViewSet)
-router.register(r'api/rgd_imagery/raster', viewsets.RasterViewSet, basename='raster')
+router.register(r'api/rgd_imagery/raster', viewsets.RasterMetaViewSet, basename='raster')
 router.register(r'api/rgd_imagery', viewsets.ImageViewSet, basename='imagery')
 
 

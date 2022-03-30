@@ -48,6 +48,7 @@ def test_inspect_raster(py_client: ImageryClient, sample_raster_multi):
 def test_get_raster(py_client: ImageryClient, sample_raster_multi):
     raster = py_client.imagery.get_raster(sample_raster_multi.pk)
     assert raster
+    assert 'parent_raster' in raster
     stac = py_client.imagery.get_raster(sample_raster_multi.pk, stac=True)
     assert stac
 
@@ -110,8 +111,10 @@ def test_create_raster_from_image_set(py_client: ImageryClient, sample_raster_mu
     raster_dict = py_client.imagery.create_raster_from_image_set(imageset_dict, ancillary_files)
 
     # Make assertions
-    assert raster_dict['image_set']['id'] == imageset_dict['id']
+    assert raster_dict['parent_raster']['image_set']['id'] == imageset_dict['id']
 
     sorted_ancillary_files_ids = sorted(file['id'] for file in ancillary_files)
-    sorted_raster_ancillary_file_ids = sorted(file['id'] for file in raster_dict['ancillary_files'])
+    sorted_raster_ancillary_file_ids = sorted(
+        file['id'] for file in raster_dict['parent_raster']['ancillary_files']
+    )
     assert sorted_ancillary_files_ids == sorted_raster_ancillary_file_ids

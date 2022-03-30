@@ -31,7 +31,7 @@ class TaskEventViewSetMixin:
         obj = self.get_object()
         data = {
             'pk': obj.pk,
-            'model': obj.__name__,
+            'model': type(obj).__name__,
             'status': obj.status,
         }
         return Response(data)
