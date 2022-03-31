@@ -1,3 +1,4 @@
+from django_large_image.tilesource import is_geospatial
 import pytest
 from rgd.datastore import datastore
 from rgd.models import ChecksumFile, FileSet, FileSourceType
@@ -133,4 +134,4 @@ def test_raster_with_header_file():
 @pytest.mark.django_db(transaction=True)
 def test_non_geo_envi(non_geo_envi_image):
     with large_image_utilities.yeild_tilesource_from_image(non_geo_envi_image) as source:
-        assert not large_image_utilities.is_geospatial(source)
+        assert not is_geospatial(source)

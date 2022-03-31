@@ -7,6 +7,7 @@ from celery.utils.log import get_task_logger
 import dateutil.parser
 from django.contrib.gis.geos import GEOSGeometry, Polygon
 from django.utils.timezone import make_aware
+from django_large_image.tilesource import get_bounds
 import numpy as np
 from osgeo import gdal
 import rasterio
@@ -17,7 +18,7 @@ import rasterio.warp
 from rasterio.warp import Resampling, calculate_default_transform, reproject
 from rgd.models.constants import DB_SRID
 from rgd.utility import get_or_create_no_commit, get_temp_dir
-from rgd_imagery.large_image_utilities import get_tile_bounds, yeild_tilesource_from_image
+from rgd_imagery.large_image_utilities import yeild_tilesource_from_image
 from rgd_imagery.models import BandMeta, Image, ImageMeta, Raster, RasterMeta
 from shapely.geometry import shape
 from shapely.ops import unary_union
@@ -90,7 +91,7 @@ def load_image(image):
 
 
 def _extract_raster_outline(tile_source):
-    bounds = get_tile_bounds(tile_source)
+    bounds = get_bounds(tile_source)
     coords = np.array(
         (
             (bounds['xmin'], bounds['ymax']),
@@ -116,7 +117,7 @@ def _extract_raster_meta(image):
     with yeild_tilesource_from_image(image) as tile_source:
         meta = tile_source.getMetadata()
         imeta = tile_source.getInternalMetadata()
-        bounds = get_tile_bounds(tile_source)
+        bounds = get_bounds(tile_source)
 
         raster_meta['crs'] = tile_source.getProj4String()
         raster_meta['origin'] = [bounds['xmin'], bounds['ymin']]

@@ -110,7 +110,7 @@ def get_item(value, request):
     # thumbnails
     for file_dict in value['image_files']:
         assets[f'thumbnail_{file_dict["id"]}'] = {
-            'href': reverse('image-thumbnail', args=[file_dict['id']]),
+            'href': reverse('image-tiles-thumbnail', args=[file_dict['id']]),
             'roles': ['thumbnail'],
             'type': 'image/png',
         }
