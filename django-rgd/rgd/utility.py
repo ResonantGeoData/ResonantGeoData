@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import contextlib
 from contextlib import contextmanager
 from functools import wraps
@@ -8,7 +10,7 @@ import os
 from pathlib import Path
 import shutil
 import tempfile
-from typing import Any
+from typing import TYPE_CHECKING, Any
 from urllib.error import HTTPError
 from urllib.parse import urlparse
 from urllib.request import urlopen
@@ -21,9 +23,14 @@ from django.conf import settings
 from django.contrib.gis.db.models import Model
 from django.core.files import File
 from django.db.models.fields.files import FieldFile
+from django.http import HttpResponseRedirect
 from django.utils.safestring import mark_safe
 from filelock import FileLock, Timeout
 import psutil
+from rest_framework.response import Response
+
+if TYPE_CHECKING:
+    from rgd.models import ChecksumFile
 
 try:
     from minio_storage.storage import MinioStorage
@@ -366,3 +373,15 @@ def purge_file_cache():
         f'Purged file cache. Available free space is {psutil.disk_usage(cache).free} bytes.'
     )
     return cache
+
+
+def get_file_data_url(file: ChecksumFile) -> HttpResponseRedirect | Response:
+    # Import here to avoid circular dependency
+    from rgd.models.file import FileSourceType
+
+    if file.type == FileSourceType.FILE_FIELD:
+        return HttpResponseRedirect(file.get_url())
+    elif file.type == FileSourceType.URL:
+        return Response(file.url)
+    else:
+        raise NotImplementedError('Invalid file type')

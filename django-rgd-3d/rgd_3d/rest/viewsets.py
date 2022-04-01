@@ -8,6 +8,7 @@ from rest_framework.request import Request
 from rgd.models.file import ChecksumFile
 from rgd.rest.base import ModelViewSet
 from rgd.rest.mixins import TaskEventViewSetMixin
+from rgd.utility import get_file_data_url
 from rgd_3d import models, serializers
 
 
@@ -44,5 +45,4 @@ class Tiles3DViewSet(ModelViewSet):
         checksum_file: ChecksumFile = get_object_or_404(
             tiles3d_set.json_file.file_set.files, name=name
         )
-        file: FieldFile = checksum_file.file
-        return redirect(file.url, permanent=False)
+        return get_file_data_url(checksum_file)
