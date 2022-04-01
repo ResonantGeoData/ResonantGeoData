@@ -6,11 +6,13 @@ from django.contrib.gis.db.models import Collect, Extent
 from django.contrib.gis.db.models.functions import AsGeoJSON, Centroid
 from django.contrib.postgres.aggregates import ArrayAgg
 from django.db.models import Count, Max, Min, Q
+from django.http import HttpRequest, HttpResponse, QueryDict
 from django.shortcuts import redirect
 from django.views import generic
 from django.views.generic import DetailView, TemplateView
 from rest_framework.reverse import reverse
 from rgd import permissions
+from urllib.parse import unquote
 
 from . import filters, models
 
@@ -98,6 +100,24 @@ class SpatialEntriesListView(SpatialListView):
         else:
             queryset = filterset.filter_queryset(queryset)
         return queryset
+
+    def get(self, request: HttpRequest, *args, **kwargs) -> HttpResponse:
+        # Try to load HTTP request body as JSON. If it succeeds, use values as search parameters
+        try:
+            body: dict = json.loads(request.body)
+            get_parameters = dict(request.GET)  # Get query parameters
+
+            # Add values from request body as GET params
+            for key, value in body.items():
+                get_parameters[unquote(key)] = unquote(value)
+
+            # Set GET params to new dictionary that includes request body params
+            new_parameters = QueryDict('', mutable=True)
+            new_parameters.update(get_parameters)
+            request.GET = new_parameters
+        except json.JSONDecodeError:
+            pass
+        return super().get(request, *args, **kwargs)
 
 
 class StatisticsView(PermissionListView):
