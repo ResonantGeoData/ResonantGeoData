@@ -19,7 +19,7 @@ jobs:
         run: npm install
       - working-directory: django-rgd-3d/vtkjs_viewer
         run: npm run-script build
-      - uses: EndBug/add-and-commit@v8
+      - uses: EndBug/add-and-commit@v9
         with:
           add: 'django-rgd-3d/rgd_3d/static/rgd_3d/vtkjs_viewer.js'
           message: 'Rebuild vtkjs_viewer.js asset'
