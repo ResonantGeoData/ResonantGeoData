@@ -230,7 +230,11 @@ def test_create_collection_new(py_client: RgdClient):
     assert Collection.objects.count() == 0
 
     r = py_client.rgd.create_collection('test')
-    assert r == {'id': 1, 'name': 'test', 'description': None}
+    assert r == {
+        'id': Collection.objects.order_by('-id').first().id,
+        'name': 'test',
+        'description': None,
+    }
 
     assert Collection.objects.count() == 1
 
