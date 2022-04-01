@@ -1,5 +1,3 @@
-from django.db.models.fields.files import FieldFile
-from django.shortcuts import redirect
 from drf_yasg import openapi
 from drf_yasg.utils import swagger_auto_schema
 from rest_framework.decorators import action
