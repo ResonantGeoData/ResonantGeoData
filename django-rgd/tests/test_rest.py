@@ -22,7 +22,10 @@ def test_download_checksum_file(admin_api_client, checksum_file):
 def test_download_checksum_file_url(admin_api_client, checksum_file_url):
     pk = checksum_file_url.pk
     response = admin_api_client.get(f'/api/rgd/checksum_file/{pk}/data')
-    assert status.is_redirect(response.status_code)
+
+    assert response.status_code == 200
+    assert response.headers['Content-Type'] == 'application/json'
+    assert response.json() == checksum_file_url.url
 
 
 @pytest.mark.django_db(transaction=True)
