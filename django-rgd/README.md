@@ -29,6 +29,11 @@ INSTALLED_APPS += [
 MIDDLEWARE += ('crum.CurrentRequestUserMiddleware',)
 
 REST_FRAMEWORK['DEFAULT_AUTHENTICATION_CLASSES'] += ('rest_framework.authentication.TokenAuthentication',)
+
+# doesn't have to use girder_utils if downstream projects don't have it installed, but this must be set to *something* valid to enable pagination in the API
+REST_FRAMEWORK['DEFAULT_PAGINATION_CLASS'] = 'girder_utils.rest_framework.BoundedLimitOffsetPagination'
+
+REST_FRAMEWORK['PAGE_SIZE'] = 100 # or whatever default pagination size you want
 ```
 
 (note that RGD requires [`django-crum`](https://django-crum.readthedocs.io/en/latest/) middleware.)
