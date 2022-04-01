@@ -25,7 +25,7 @@ bbox = {
 def test_inspect_raster(py_client: ImageryClient, sample_raster_multi):
     q = py_client.rgd.search(query=json.dumps(bbox), predicate='intersects')
     raster_meta = next(
-        (x for x in q if x['subentry_name'] == 'Multi File Test'),
+        (x for x in q['results'] if x['subentry_name'] == 'Multi File Test'),
         None,
     )
 
@@ -57,10 +57,11 @@ def test_get_raster(py_client: ImageryClient, sample_raster_multi):
 def test_download_raster(py_client: ImageryClient, sample_raster_multi):
     q = py_client.rgd.search(query=json.dumps(bbox), predicate='intersects')
 
-    assert len(q) >= 1
+    assert q['count'] >= 1
+    assert len(q['results']) >= 1
 
     try:
-        py_client.imagery.download_raster(q[0])
+        py_client.imagery.download_raster(q['results'][0])
     except Exception as e:
         print(e)
         pytest.fail('Failed to download raster image set')
