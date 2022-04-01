@@ -4,6 +4,7 @@ import time
 
 from celery.utils.log import get_task_logger
 from django.contrib.gis.geos import GEOSGeometry
+from django_large_image.tilesource import get_region
 import large_image_converter
 import rasterio
 from rasterio.merge import merge
@@ -137,12 +138,10 @@ def extract_region(processed_image):
                 tile_source = large_image_utilities.get_tilesource_from_image(
                     image, projection='EPSG:3857'
                 )
-                path, mime_type = large_image_utilities.get_region_world(
-                    tile_source, l, r, b, t, units=projection
-                )
+                path, mime_type = get_region(tile_source, l, r, b, t, units=projection)
             else:
                 tile_source = large_image_utilities.get_tilesource_from_image(image)
-                path, mime_type = large_image_utilities.get_region_pixel(tile_source, l, r, b, t)
+                path, mime_type = get_region(tile_source, l, r, b, t, units='pixels')
             with open(path, 'rb') as f, open(output_path, 'wb') as o:
                 o.write(f.read())
 

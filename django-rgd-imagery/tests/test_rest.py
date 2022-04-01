@@ -121,7 +121,7 @@ def test_tiles_endpoint_with_signature(admin_api_client, live_server, settings):
     response = admin_api_client.post('/api/signature')
     params = response.data
     # 15/16618/11252 - paris_france_10.tiff
-    url = f'{live_server.url}/api/image_process/imagery/{image.pk}/tiles/15/16618/11252.png?projection=EPSG:3857'
+    url = f'{live_server.url}/api/rgd_imagery/tiles/{image.pk}/tiles/15/16618/11252.png?projection=EPSG:3857'
     for k, v in params.items():
         url += f'&{k}={v}'
     # Use a client without authententication
