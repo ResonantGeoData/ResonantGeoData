@@ -25,7 +25,8 @@ def test_basic_search(py_client: RgdClient, spatial_asset_a):
     }
 
     q = py_client.rgd.search(query=json.dumps(bbox), predicate='intersects')
-    assert len(q) == 1
+    assert q['count'] == 1
+    assert len(q['results']) == 1
 
 
 @pytest.mark.django_db(transaction=True)
