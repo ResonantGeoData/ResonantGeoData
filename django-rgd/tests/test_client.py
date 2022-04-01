@@ -221,3 +221,31 @@ def test_file_download_keep_existing(
         checksum_file.id, tmp_path, keep_existing=False, use_id=True
     )
     assert existing_file_content != file_path.read_bytes()
+
+
+@pytest.mark.django_db(transaction=True)
+def test_create_collection_new(py_client: RgdClient):
+    """Test that creating a new collection succeeds."""
+    assert Collection.objects.count() == 0
+
+    r = py_client.rgd.create_collection('test')
+    assert r == {'id': 1, 'name': 'test', 'description': None}
+
+    assert Collection.objects.count() == 1
+
+
+@pytest.mark.django_db(transaction=True)
+def test_create_collection_existing(py_client: RgdClient, collection: Collection):
+    """Test that attempting to create an existing collection simply returns the existing one."""
+    collection_count = Collection.objects.count()
+
+    r = py_client.rgd.create_collection(collection.name)
+
+    assert r == {
+        'id': collection.id,
+        'name': collection.name,
+        'description': collection.description,
+    }
+
+    # Ensure that no new collections have been created
+    assert Collection.objects.count() == collection_count
