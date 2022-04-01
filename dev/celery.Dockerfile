@@ -1,4 +1,4 @@
-FROM python:3.8-slim
+FROM python:3.10.4-slim
 # Install system librarires for Python packages:
 # * psycopg2
 # * python-magic
