@@ -2,6 +2,7 @@ from django.conf import settings
 from drf_yasg.utils import swagger_auto_schema
 from rest_framework import response, views
 from rest_framework.decorators import action
+from rest_framework.exceptions import APIException
 from rest_framework.response import Response
 from rgd import models, serializers
 from rgd.filters import CollectionFilter, SpatialEntryFilter
@@ -20,7 +21,7 @@ class CollectionViewSet(ModelViewSet):
 
     @swagger_auto_schema(
         method='GET',
-        operation_summary='Get the file at the given index in this collection.',
+        operation_summary='Get the file at the given index in this collection. Associated files are orderd by primary key and the provided index is the index in that ordered set. If the files in the collection change, this will not be reproducible.',
     )
     @action(
         detail=True,
@@ -30,7 +31,11 @@ class CollectionViewSet(ModelViewSet):
     def item(self, request, pk, index):
         collection = models.Collection.objects.get(pk=pk)
         files = collection.checksumfiles.order_by('pk')
-        return Response(serializers.ChecksumFileSerializer(files[int(index)]).data)
+        try:
+            instance = files[int(index)]
+        except IndexError:
+            raise APIException(f'index {index} not valid or out of bounds.')
+        return Response(serializers.ChecksumFileSerializer(instance).data)
 
 
 class CollectionPermissionViewSet(ModelViewSet):
