@@ -6,7 +6,7 @@ from torch.utils.data import Dataset
 
 class RemoteDataset(Dataset):
     """
-    Remote dataset
+    Remote dataset interface for PyTorch.
 
     Parameters
     ----------

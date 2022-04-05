@@ -29,7 +29,7 @@ class CollectionViewSet(ModelViewSet):
     )
     def item(self, request, pk, index):
         collection = models.Collection.objects.get(pk=pk)
-        files = collection.checksumfiles.order_by("pk")
+        files = collection.checksumfiles.order_by('pk')
         return Response(serializers.ChecksumFileSerializer(files[int(index)]).data)
 
     @swagger_auto_schema(
