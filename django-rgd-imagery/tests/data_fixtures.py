@@ -2,7 +2,7 @@ from decimal import Decimal
 
 import pytest
 from rgd.datastore import datastore
-from rgd.models import FileSourceType
+from rgd.models import ChecksumFile, FileSet, FileSourceType
 from rgd_imagery.models import BandMeta
 
 from . import factories
@@ -87,6 +87,7 @@ def sample_raster_multi():
         factories.ImageFactory(
             file__file__filename=landsat_files[0],
             file__file__from_path=datastore.fetch(f),
+            file__collection=None,
         )
         for f in landsat_files
     ]
@@ -146,6 +147,7 @@ def sample_raster_url():
             file__type=FileSourceType.URL,
             file__file=None,
             file__url=datastore.get_url(f),
+            file__collection=None,
         )
         images.append(image)
         # band_range
@@ -180,5 +182,25 @@ def elevation():
     image = factories.ImageFactory(
         file__file__filename=name,
         file__file__from_path=datastore.fetch(name),
+    )
+    return image
+
+
+@pytest.fixture
+def non_geo_envi_image():
+    # Download the two files for the image: IHTest_202009_Path3_Step5_BBXSWIR_12deg_DistStA
+    file_set = FileSet.objects.create()
+    img = ChecksumFile.objects.create(
+        file_set=file_set,
+        type=FileSourceType.URL,
+        url=datastore.get_url('IHTest_202009_Path3_Step5_BBXSWIR_12deg_DistStA.raw'),
+    )
+    _ = ChecksumFile.objects.create(
+        file_set=file_set,
+        type=FileSourceType.URL,
+        url=datastore.get_url('IHTest_202009_Path3_Step5_BBXSWIR_12deg_DistStA.hdr'),
+    )
+    image = factories.ImageFactory(
+        file=img,
     )
     return image

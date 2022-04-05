@@ -3,6 +3,7 @@ import time
 import pytest
 import requests
 from rest_framework import status
+from rest_framework.response import Response
 from rest_framework.test import RequestsClient
 from rgd.datastore import datastore
 from rgd_imagery import models
@@ -17,10 +18,20 @@ def test_swagger(admin_api_client):
 
 
 @pytest.mark.django_db(transaction=True)
-def test_download_image_file(admin_api_client, astro_image):
+def test_download_image_file_filefield(admin_api_client, astro_image):
     pk = astro_image.pk
     response = admin_api_client.get(f'/api/rgd_imagery/{pk}/data')
     assert status.is_redirect(response.status_code)
+
+
+@pytest.mark.django_db(transaction=True)
+def test_download_image_file_url(admin_api_client, non_geo_envi_image):
+    pk = non_geo_envi_image.pk
+    response: Response = admin_api_client.get(f'/api/rgd_imagery/{pk}/data')
+
+    assert response.status_code == 200
+    assert response.headers['Content-Type'] == 'application/json'
+    assert response.json() == non_geo_envi_image.file.url
 
 
 @pytest.mark.xfail
@@ -110,7 +121,7 @@ def test_tiles_endpoint_with_signature(admin_api_client, live_server, settings):
     response = admin_api_client.post('/api/signature')
     params = response.data
     # 15/16618/11252 - paris_france_10.tiff
-    url = f'{live_server.url}/api/image_process/imagery/{image.pk}/tiles/15/16618/11252.png?projection=EPSG:3857'
+    url = f'{live_server.url}/api/rgd_imagery/tiles/{image.pk}/tiles/15/16618/11252.png?projection=EPSG:3857'
     for k, v in params.items():
         url += f'&{k}={v}'
     # Use a client without authententication

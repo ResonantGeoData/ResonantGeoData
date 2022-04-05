@@ -81,7 +81,10 @@ TEMPLATES = [
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': [
         'rest_framework.authentication.TokenAuthentication',
-    ]
+    ],
+    # The following two settings enable pagination and were taken from django-composed-configuration:
+    'DEFAULT_PAGINATION_CLASS': 'girder_utils.rest_framework.BoundedLimitOffsetPagination',
+    'PAGE_SIZE': 100,
 }
 
 SITE_ID = 1

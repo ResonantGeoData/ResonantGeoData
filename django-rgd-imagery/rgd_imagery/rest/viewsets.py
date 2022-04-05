@@ -1,10 +1,10 @@
-from django.http import HttpResponseRedirect
 from drf_yasg.utils import swagger_auto_schema
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from rgd.models.mixins import Status
 from rgd.rest.base import ModelViewSet
 from rgd.rest.mixins import TaskEventViewSetMixin
+from rgd.utility import get_file_data_url
 from rgd_imagery import filters, models, serializers, stac
 
 
@@ -66,31 +66,38 @@ class ImageViewSet(ModelViewSet, TaskEventViewSetMixin):
     )
     @action(detail=True)
     def data(self, *args, **kwargs):
-        obj = self.get_object()
-        url = obj.file.get_url()
-        return HttpResponseRedirect(url)
+        obj: models.Image = self.get_object()
+        return get_file_data_url(obj.file)
 
 
-class RasterViewSet(ModelViewSet, TaskEventViewSetMixin):
-    # TODO: consolidate 'RasterSerializer' and 'RasterMetaSerializer'
+class RasterMetaViewSet(ModelViewSet):
     filterset_class = filters.RasterMetaFilter
 
     def get_serializer_class(self):
-        if self.action in {'list', 'retrieve', 'status'}:
-            return serializers.RasterMetaSerializer
-        if self.action in {'stac'}:
-            return stac.serializers.ItemSerializer
-        return serializers.RasterSerializer
+        if self.action in {'update', 'partial_update', 'destroy', 'create', 'status'}:
+            return serializers.RasterSerializer
+        return serializers.RasterMetaSerializer
 
     def get_queryset(self):
-        if self.action in {'list', 'retrieve', 'stac', 'status'}:
-            return models.RasterMeta.objects.all()
-        return models.Raster.objects.all()
+        if self.action in {'update', 'partial_update', 'destroy', 'create', 'status'}:
+            self.filterset_class = None
+            return models.Raster.objects.all()
+        return models.RasterMeta.objects.all()
 
     @swagger_auto_schema(
         method='GET',
         operation_summary='Fetch the STAC Item JSON for this raster.',
     )
     @action(detail=True)
-    def stac(self, *args, **kwargs):
-        return ModelViewSet.retrieve(self, *args, **kwargs)
+    def stac(self, request, *args, pk=None, **kwargs):
+        queryset = stac.querysets.item.get_queryset(pk=pk)
+        data = stac.serializers.item.get_item(queryset.get(), request)
+        return Response(data)
+
+    @swagger_auto_schema(
+        method='GET',
+        operation_summary='Check the status.',
+    )
+    @action(detail=True)
+    def status(self, *args, **kwargs):
+        return self.retrieve(self, *args, **kwargs)

@@ -1,7 +1,9 @@
 version: '3'
 services:
   postgres:
-    image: postgis/postgis:latest
+    build:
+      context: .
+      dockerfile: ./dev/postgres.Dockerfile
     environment:
       POSTGRES_DB: django
       POSTGRES_PASSWORD: postgres
@@ -11,14 +13,18 @@ services:
       - dbdata:/var/lib/postgresql/data
 
   rabbitmq:
-    image: rabbitmq:management
+    build:
+      context: .
+      dockerfile: ./dev/rabbitmq.Dockerfile
     ports:
       - ${DOCKER_RABBITMQ_PORT-5672}:5672
 
   minio:
-    image: minio/minio:latest
+    build:
+      context: .
+      dockerfile: ./dev/minio.Dockerfile
     # When run with a TTY, minio prints credentials on startup
-    tty: true
+    # tty: true
     command: ["server", "/data", "--console-address", ":${DOCKER_MINIO_CONSOLE_PORT-9001}"]
     environment:
       MINIO_ROOT_USER: minioAccessKey
@@ -30,7 +36,9 @@ services:
       - fsdata:/data
 
   memcached:
-    image: bitnami/memcached:latest
+    build:
+      context: .
+      dockerfile: ./dev/memcached.Dockerfile
     environment:
       - MEMCACHED_USERNAME=my_user
       - MEMCACHED_PASSWORD=my_password

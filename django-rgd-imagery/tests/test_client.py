@@ -25,7 +25,7 @@ bbox = {
 def test_inspect_raster(py_client: ImageryClient, sample_raster_multi):
     q = py_client.rgd.search(query=json.dumps(bbox), predicate='intersects')
     raster_meta = next(
-        (x for x in q if x['subentry_name'] == 'Multi File Test'),
+        (x for x in q['results'] if x['subentry_name'] == 'Multi File Test'),
         None,
     )
 
@@ -48,6 +48,7 @@ def test_inspect_raster(py_client: ImageryClient, sample_raster_multi):
 def test_get_raster(py_client: ImageryClient, sample_raster_multi):
     raster = py_client.imagery.get_raster(sample_raster_multi.pk)
     assert raster
+    assert 'parent_raster' in raster
     stac = py_client.imagery.get_raster(sample_raster_multi.pk, stac=True)
     assert stac
 
@@ -56,10 +57,11 @@ def test_get_raster(py_client: ImageryClient, sample_raster_multi):
 def test_download_raster(py_client: ImageryClient, sample_raster_multi):
     q = py_client.rgd.search(query=json.dumps(bbox), predicate='intersects')
 
-    assert len(q) >= 1
+    assert q['count'] >= 1
+    assert len(q['results']) >= 1
 
     try:
-        py_client.imagery.download_raster(q[0])
+        py_client.imagery.download_raster(q['results'][0])
     except Exception as e:
         print(e)
         pytest.fail('Failed to download raster image set')
@@ -110,8 +112,10 @@ def test_create_raster_from_image_set(py_client: ImageryClient, sample_raster_mu
     raster_dict = py_client.imagery.create_raster_from_image_set(imageset_dict, ancillary_files)
 
     # Make assertions
-    assert raster_dict['image_set']['id'] == imageset_dict['id']
+    assert raster_dict['parent_raster']['image_set']['id'] == imageset_dict['id']
 
     sorted_ancillary_files_ids = sorted(file['id'] for file in ancillary_files)
-    sorted_raster_ancillary_file_ids = sorted(file['id'] for file in raster_dict['ancillary_files'])
+    sorted_raster_ancillary_file_ids = sorted(
+        file['id'] for file in raster_dict['parent_raster']['ancillary_files']
+    )
     assert sorted_ancillary_files_ids == sorted_raster_ancillary_file_ids

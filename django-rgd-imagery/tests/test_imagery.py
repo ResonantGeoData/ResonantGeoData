@@ -1,6 +1,8 @@
+from django_large_image.tilesource import is_geospatial
 import pytest
 from rgd.datastore import datastore
 from rgd.models import ChecksumFile, FileSet, FileSourceType
+from rgd_imagery import large_image_utilities
 from rgd_imagery.tasks.etl import load_image, populate_raster_footprint
 
 from . import factories
@@ -127,3 +129,9 @@ def test_raster_with_header_file():
     centroid = meta.outline.centroid
     assert centroid.x == pytest.approx(-44.75, abs=TOLERANCE)
     assert centroid.y == pytest.approx(-23.02, abs=TOLERANCE)
+
+
+@pytest.mark.django_db(transaction=True)
+def test_non_geo_envi(non_geo_envi_image):
+    with large_image_utilities.yeild_tilesource_from_image(non_geo_envi_image) as source:
+        assert not is_geospatial(source)

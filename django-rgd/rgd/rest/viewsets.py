@@ -1,12 +1,13 @@
 from django.conf import settings
-from django.http import HttpResponseRedirect
 from drf_yasg.utils import swagger_auto_schema
 from rest_framework import response, views
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from rgd import models, serializers
 from rgd.filters import CollectionFilter, SpatialEntryFilter
+from rgd.models.file import ChecksumFile
 from rgd.rest.base import ModelViewSet, ReadOnlyModelViewSet
+from rgd.utility import get_file_data_url
 
 from .authentication import UserSigner
 from .mixins import BaseRestViewMixin, TaskEventViewSetMixin
@@ -83,8 +84,8 @@ class ChecksumFileViewSet(ModelViewSet, TaskEventViewSetMixin):
     )
     @action(detail=True)
     def data(self, request, pk=None):
-        obj = self.get_object()
-        return HttpResponseRedirect(obj.get_url())
+        obj: ChecksumFile = self.get_object()
+        return get_file_data_url(obj)
 
     @swagger_auto_schema(
         query_serializer=serializers.ChecksumFilePathQuerySerializer(),

@@ -1,6 +1,7 @@
 from dataclasses import dataclass
 from pathlib import Path
 import tempfile
+import time
 from typing import Dict, Iterable, Iterator, List, Optional, Tuple, Union
 
 from rgd_client.plugin import RgdPlugin
@@ -28,7 +29,7 @@ class ImageryPlugin(RgdPlugin):
 
     def list_image_tiles(self, image_id: Union[str, int]) -> Dict:
         """List geodata imagery tiles."""
-        r = self.session.get(f'image_process/imagery/{image_id}/tiles')
+        r = self.session.get(f'rgd_imagery/tiles/{image_id}/metadata')
         return r.json()
 
     def download_image_file(
@@ -60,7 +61,7 @@ class ImageryPlugin(RgdPlugin):
         Returns:
             Thumbnail bytes.
         """
-        r = self.session.get(f'image_process/imagery/{image_id}/thumbnail')
+        r = self.session.get(f'rgd_imagery/tiles/{image_id}/thumbnail')
         return r.content
 
     def download_raster_thumbnail(
@@ -278,6 +279,21 @@ class ImageryPlugin(RgdPlugin):
 
         return self.session.post('rgd_imagery/image_set', json=payload).json()
 
+    def get_raster_status(
+        self,
+        raster: Union[Dict, int],
+    ):
+        """Get raster processing status.
+
+        Parameters
+        ----------
+        raster : dict, int
+            Accepts the Raster (not RasterMeta) primary key.
+        """
+        if isinstance(raster, dict):
+            raster = raster['id']
+        return self.session.get(f'rgd_imagery/raster/{raster}/status').json()
+
     def create_raster_from_image_set(
         self,
         image_set: Union[Dict, int],
@@ -298,7 +314,24 @@ class ImageryPlugin(RgdPlugin):
         if description is not None:
             payload['description'] = description
 
-        return self.session.post('rgd_imagery/raster', json=payload).json()
+        raster = self.session.post('rgd_imagery/raster', json=payload).json()
+
+        def poll():
+            response = self.get_raster_status(raster)
+            if response['status'] in ['created', 'queued', 'running']:
+                time.sleep(1)
+                return True
+            return False
+
+        # Poll raster for status
+        while poll():
+            pass
+
+        # Final refresh to ensure integrity of raster_meta_id
+        raster = self.get_raster_status(raster)
+
+        # Get and return RasterMeta
+        return self.get_raster(raster['raster_meta_id'])
 
     def create_processed_image_group(
         self,
@@ -376,7 +409,7 @@ class ImageryPlugin(RgdPlugin):
             raise ImportError('Please install `ipyleaflet` and `jupyter`.')
 
         # Check that the image source is valid and no server errors
-        r = self.session.get(f'image_process/imagery/{image_id}/tiles')
+        r = self.session.get(f'rgd_imagery/tiles/{image_id}/metadata')
         r.raise_for_status()
 
         params = {}
@@ -398,7 +431,7 @@ class ImageryPlugin(RgdPlugin):
         params.update(r.json())
 
         url = self.session.create_url(
-            f'image_process/imagery/{image_id}/tiles/{{z}}/{{x}}/{{y}}.png?projection=EPSG:3857'
+            f'rgd_imagery/tiles/{image_id}/tiles/{{z}}/{{x}}/{{y}}.png?projection=EPSG:3857'
         )
         for k, v in params.items():
             url += f'&{k}={v}'

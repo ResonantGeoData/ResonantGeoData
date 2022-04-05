@@ -1,5 +1,3 @@
-from django.db.models.fields.files import FieldFile
-from django.shortcuts import redirect
 from drf_yasg import openapi
 from drf_yasg.utils import swagger_auto_schema
 from rest_framework.decorators import action
@@ -8,6 +6,7 @@ from rest_framework.request import Request
 from rgd.models.file import ChecksumFile
 from rgd.rest.base import ModelViewSet
 from rgd.rest.mixins import TaskEventViewSetMixin
+from rgd.utility import get_file_data_url
 from rgd_3d import models, serializers
 
 
@@ -24,8 +23,17 @@ class Mesh3DViewSet(ModelViewSet, TaskEventViewSetMixin):
 
 
 class Tiles3DViewSet(ModelViewSet):
-    serializer_class = serializers.Tiles3DSerializer
     queryset = models.Tiles3D.objects.all()
+
+    def get_serializer_class(self):
+        if self.action in {'list', 'retrieve', 'status'}:
+            return serializers.Tiles3DMetaSerializer
+        return serializers.Tiles3DSerializer
+
+    def get_queryset(self):
+        if self.action in {'list', 'retrieve', 'status'}:
+            return models.Tiles3DMeta.objects.all()
+        return models.Tiles3D.objects.all()
 
     @swagger_auto_schema(responses={302: openapi.Response('Redirect to file download')})
     @action(detail=True, methods=['GET'], url_path='file/(?P<name>.+)')
@@ -35,5 +43,4 @@ class Tiles3DViewSet(ModelViewSet):
         checksum_file: ChecksumFile = get_object_or_404(
             tiles3d_set.json_file.file_set.files, name=name
         )
-        file: FieldFile = checksum_file.file
-        return redirect(file.url, permanent=False)
+        return get_file_data_url(checksum_file)

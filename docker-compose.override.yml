@@ -6,7 +6,7 @@ services:
       dockerfile: ./dev/django.Dockerfile
     command: ["./example_project/manage.py", "runserver", "0.0.0.0:8000"]
     # Log printing via Rich is enhanced by a TTY
-    tty: true
+    # tty: true
     env_file: ./dev/.env.docker-compose
     volumes:
       - .:/opt/django-project
@@ -30,8 +30,14 @@ services:
       "--without-heartbeat"
     ]
     # Docker Compose does not set the TTY width, which causes Celery errors
-    tty: false
-    privileged: true
+    # tty: false
+    # Instead of privileged mode, fuse can use:
+    devices:
+      - /dev/fuse:/dev/fuse
+    security_opt:
+      - apparmor:unconfined
+    cap_add:
+      - SYS_ADMIN
     env_file: ./dev/.env.docker-compose
     volumes:
       - .:/opt/django-project

@@ -1,3 +1,5 @@
+from pathlib import Path
+
 from django.db import IntegrityError
 import pytest
 from rgd.datastore import datastore, registry
@@ -34,6 +36,21 @@ def test_create_url():
     model.post_save_job()
     model.refresh_from_db()
     assert model.checksum == registry[FILENAME].split(':')[1]
+    assert model.name
+
+
+@pytest.mark.django_db(transaction=True)
+def test_create_url_local_file():
+    path = Path('/opt/django-project/README.md')
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.touch()
+    model = ChecksumFile()
+    model.type = FileSourceType.URL
+    model.url = f'file://{path}'
+    model.save()
+    model.post_save_job()
+    model.refresh_from_db()
+    assert model.checksum
     assert model.name
 
 

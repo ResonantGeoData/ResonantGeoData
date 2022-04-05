@@ -217,7 +217,8 @@ class ChecksumFile(TimeStampedModel, TaskEventMixin):
                 logger.debug(f'Found cached file ({self.pk}) at: {dest_path}')
                 # Touch the file so that it moves to the top of the priority list
                 # when cleaning.
-                dest_path.touch()
+                if not os.path.islink(str(dest_path)):
+                    dest_path.touch()
                 return dest_path
             else:
                 logger.debug(f'Downloading file ({self.pk}) to: {dest_path}')

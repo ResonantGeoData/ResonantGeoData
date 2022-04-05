@@ -36,7 +36,11 @@ class ProcessedImage(TimeStampedModel, TaskEventMixin):
     source_images = models.ManyToManyField(Image)
 
     processed_image = models.ForeignKey(
-        Image, on_delete=models.SET_NULL, null=True, blank=True, related_name='+'
+        Image,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='sourceprocessimage_set',
     )
     ancillary_files = models.ManyToManyField(ChecksumFile, blank=True, related_name='+')
 

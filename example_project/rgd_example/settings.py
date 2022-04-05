@@ -37,6 +37,7 @@ class RGDExampleProjectMixin(
             'rgd_fmv',
             'rgd_geometry',
             'rgd_imagery',
+            'django_large_image',
         ] + configuration.INSTALLED_APPS
 
         configuration.REST_FRAMEWORK['DEFAULT_AUTHENTICATION_CLASSES'].append(

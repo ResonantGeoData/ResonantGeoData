@@ -1,7 +1,7 @@
 import base64
 
 from rest_framework import serializers
-from rgd.serializers import ChecksumFileSerializer
+from rgd.serializers import ChecksumFileSerializer, SpatialEntryFootprintSerializer
 from rgd_3d import models
 
 
@@ -36,4 +36,12 @@ class Tiles3DSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = models.Tiles3D
+        fields = '__all__'
+
+
+class Tiles3DMetaSerializer(SpatialEntryFootprintSerializer):
+    source = Tiles3DSerializer(read_only=True)
+
+    class Meta:
+        model = models.Tiles3DMeta
         fields = '__all__'

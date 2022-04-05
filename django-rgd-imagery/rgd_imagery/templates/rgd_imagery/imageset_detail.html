@@ -108,12 +108,12 @@
       const band = Number(bandSelector.value).toString();
 
       const tileinfo = await fetch(
-        `${host}/api/image_process/imagery/${image_id}/tiles`
+        `${host}/api/rgd_imagery/tiles/${image_id}/metadata`
       ).then(response => response.json());
 
       const params = geo.util.pixelCoordinateParams(
         '#imageViewer', tileinfo.sizeX, tileinfo.sizeY, tileinfo.tileWidth, tileinfo.tileHeight);
-      params.layer.url = `${host}/api/image_process/imagery/${image_id}/tiles/{z}/{x}/{y}.png?band=${band}`;
+      params.layer.url = `${host}/api/rgd_imagery/tiles/${image_id}/tiles/{z}/{x}/{y}.png?band=${band}`;
 
       const imageViewer = geo.map(params.map);
 

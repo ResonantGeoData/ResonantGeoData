@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import contextlib
 from contextlib import contextmanager
 from functools import wraps
@@ -8,7 +10,7 @@ import os
 from pathlib import Path
 import shutil
 import tempfile
-from typing import Any
+from typing import TYPE_CHECKING, Any
 from urllib.error import HTTPError
 from urllib.parse import urlparse
 from urllib.request import urlopen
@@ -21,9 +23,14 @@ from django.conf import settings
 from django.contrib.gis.db.models import Model
 from django.core.files import File
 from django.db.models.fields.files import FieldFile
+from django.http import HttpResponseRedirect
 from django.utils.safestring import mark_safe
 from filelock import FileLock, Timeout
 import psutil
+from rest_framework.response import Response
+
+if TYPE_CHECKING:
+    from rgd.models import ChecksumFile
 
 try:
     from minio_storage.storage import MinioStorage
@@ -113,22 +120,6 @@ def get_s3_client():
     return s3
 
 
-def _download_url_file_to_stream(
-    url: str, dest_stream: io.BufferedIOBase, num_blocks: int = 128, block_size: int = 128
-):
-    parsed = urlparse(url)
-    if parsed.scheme == 's3':
-        s3 = get_s3_client()
-        s3.download_fileobj(
-            parsed.netloc, parsed.path.lstrip('/'), dest_stream, {'RequestPayer': 'requester'}
-        )
-    else:
-        with safe_urlopen(url) as remote:
-            while chunk := remote.read(num_blocks * block_size):
-                dest_stream.write(chunk)
-                dest_stream.flush()
-
-
 def download_url_file_to_local_path(
     url: str,
     path: str,
@@ -137,8 +128,28 @@ def download_url_file_to_local_path(
 ) -> Path:
     dest_path = Path(path)
     dest_path.parent.mkdir(parents=True, exist_ok=True)
-    with open(dest_path, 'wb') as dest_stream:
-        _download_url_file_to_stream(url, dest_stream, num_blocks=num_blocks, block_size=block_size)
+
+    parsed = urlparse(url)
+    if parsed.scheme == 's3':
+        s3 = get_s3_client()
+        with open(dest_path, 'wb') as dest_stream:
+            s3.download_fileobj(
+                parsed.netloc, parsed.path.lstrip('/'), dest_stream, {'RequestPayer': 'requester'}
+            )
+    elif parsed.scheme == 'file':
+        # File available on localfilesystem
+        true_path = Path(url.replace('file://', '', 1)).absolute()
+        if dest_path.exists() and not os.path.islink(str(dest_path)):
+            os.remove(dest_path)  # Remove file incase touched
+        if not dest_path.exists():
+            os.symlink(true_path, dest_path)
+        # else exists and is a symlink - ASSUME it is correct
+    else:
+        with safe_urlopen(url) as remote, open(dest_path, 'wb') as dest_stream:
+            while chunk := remote.read(num_blocks * block_size):
+                dest_stream.write(chunk)
+                dest_stream.flush()
+
     return Path(dest_path)
 
 
@@ -164,10 +175,8 @@ def url_file_to_fuse_path(url: str) -> Path:
     # Assumes `precheck_fuse` was verified prior
     # See https://github.com/ResonantGeoData/ResonantGeoData/issues/237
     parsed = urlparse(url)
-    if parsed.scheme == 'https':
-        fuse_path = url.replace('https://', '/tmp/rgd/https/') + '..'
-    elif parsed.scheme == 'http':
-        fuse_path = url.replace('http://', '/tmp/rgd/http/') + '..'
+    if parsed.scheme in ['https', 'http']:
+        fuse_path = url.replace('https://', '/tmp/rgd/http/') + '..'
     elif Path('/tmp/rgd/s3/').exists() and parsed.scheme == 's3':
         fuse_path = url.replace('s3://', '/tmp/rgd/s3/') + '..'
     else:
@@ -364,3 +373,15 @@ def purge_file_cache():
         f'Purged file cache. Available free space is {psutil.disk_usage(cache).free} bytes.'
     )
     return cache
+
+
+def get_file_data_url(file: ChecksumFile) -> HttpResponseRedirect | Response:
+    # Import here to avoid circular dependency
+    from rgd.models.file import FileSourceType
+
+    if file.type == FileSourceType.FILE_FIELD:
+        return HttpResponseRedirect(file.get_url())
+    elif file.type == FileSourceType.URL:
+        return Response(file.url)
+    else:
+        raise NotImplementedError('Invalid file type')

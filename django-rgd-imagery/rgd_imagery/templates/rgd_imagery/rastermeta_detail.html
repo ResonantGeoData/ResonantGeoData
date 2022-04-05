@@ -141,8 +141,8 @@
           colormapSelector.style.visibility = "hidden";
         }
         tileLayer.visible(true);
-        tileLayer.url(`${host}/api/image_process/imagery/${image_id}/tiles/{z}/{x}/{y}.png?projection=EPSG:3857&band=${band}&palette=${cmap}`)
-        thumbnail.src = `${host}/api/image_process/imagery/${image_id}/thumbnail?band=${band}&palette=${cmap}`
+        tileLayer.url(`${host}/api/rgd_imagery/tiles/${image_id}/tiles/{z}/{x}/{y}.png?projection=EPSG:3857&band=${band}&palette=${cmap}`)
+        thumbnail.src = `${host}/api/rgd_imagery/tiles/${image_id}/thumbnail?band=${band}&palette=${cmap}`
         thumbnail.hidden = false
       } else {
         tileLayer.visible(false);
@@ -310,7 +310,7 @@
           return
       }
       // Build a URL for extracting that ROI
-      var url = `${host}/api/image_process/imagery/${image_id}/tiles/region/world/${roi.left}/${roi.right}/${roi.bottom}/${roi.top}/region.tif?units=EPSG:4326`;
+      var url = `${host}/api/rgd_imagery/tiles/${image_id}/region.tif?left=${roi.left}&right=${roi.right}&bottom=${roi.bottom}&top=${roi.top}&units=EPSG:4326&encoding=TILED`;
       download(url, 'region.tif')
     }
 
