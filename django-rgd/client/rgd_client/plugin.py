@@ -28,14 +28,6 @@ class CorePlugin(RgdPlugin):
         r.raise_for_status()
         return r.json()
 
-    def get_collection_len(self, pk: Union[int, dict]):
-        """Get Collection by primary key."""
-        if isinstance(pk, dict):
-            pk = pk['id']
-        r = self.session.get(f'collection/{pk}/len')
-        r.raise_for_status()
-        return r.json()
-
     def get_collection_item(self, pk: Union[int, dict], index: int):
         """Get Collection by primary key."""
         if isinstance(pk, dict):

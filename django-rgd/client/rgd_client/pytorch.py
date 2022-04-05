@@ -22,31 +22,36 @@ class RemoteDataset(Dataset):
     """
 
     def __init__(
-        self, collection: Union[int, str], client: RgdClient, data_handler: callable = None
+        self, collection: Union[int, str, dict], client: RgdClient, data_handler: callable = None
     ):
         self._client = client
-        self._len = None
-
-        if isinstance(collection, int):
-            collection = self._client.rgd.get_collection(collection)
-        elif isinstance(collection, str):
-            collection = self._client.rgd.get_collection_by_name(collection)
-        else:
-            raise ValueError(f'Collection {collection} not understood.')
-        self._collection = collection
+        self._collection_identifier = collection
+        self._collection = None
         self._callback = data_handler
+        # Prefetch collection to make sure valid
+        self.collection
+
+    @property
+    def collection(self):
+        if self._collection is None:
+            if isinstance(self._collection_identifier, (int, dict)):
+                collection = self._client.rgd.get_collection(self._collection_identifier)
+            elif isinstance(self._collection_identifier, str):
+                collection = self._client.rgd.get_collection_by_name(self._collection_identifier)
+            else:
+                raise ValueError(f'Collection {self._collection_identifier} not understood.')
+            self._collection = collection
+        return self._collection
 
     def __getitem__(self, index: str):
-        item = self._client.rgd.get_collection_item(self._collection, index)
+        item = self._client.rgd.get_collection_item(self.collection, index)
         if self._callback is not None:
             return self._callback(item)
         return item
 
     def __len__(self):
-        if self._len is None:
-            self._len = self._client.rgd.get_collection_len(self._collection)['len']
-        return self._len
+        return self.collection['len']
 
-    @property
-    def collection(self):
-        return self._collection
+    def reset(self):
+        """Clear the cached collection metadata."""
+        self._collection = None
