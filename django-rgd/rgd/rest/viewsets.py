@@ -33,8 +33,8 @@ class CollectionViewSet(ModelViewSet):
         files = collection.checksumfiles.order_by('pk')
         try:
             instance = files[int(index)]
-        except IndexError:
-            raise APIException(f'index {index} not valid or out of bounds.')
+        except (IndexError, ValueError):
+            raise APIException(f'index {index} not valid or out of range.')
         return Response(serializers.ChecksumFileSerializer(instance).data)
 
 
