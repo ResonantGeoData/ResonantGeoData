@@ -1,5 +1,4 @@
 from rest_framework import mixins, viewsets
-from rest_framework.exceptions import APIException
 from rgd.rest.mixins import BaseRestViewMixin
 
 
@@ -34,8 +33,3 @@ class ModelViewSet(
     """
 
     pass
-
-
-class UserAPIException(APIException):
-    status_code = 404
-    default_detail = 'Invalid user request'
