@@ -46,7 +46,7 @@ setup(
     include_package_data=True,
     install_requires=[
         'bidict',
-        'django-large-image[colormaps]>=0.2.3',
+        'django-large-image[colormaps]>=0.3.0',
         f'django-rgd=={__version__}',
         'large-image[memcached]>=1.13.0',
         'large-image-source-gdal>=1.13.0',
