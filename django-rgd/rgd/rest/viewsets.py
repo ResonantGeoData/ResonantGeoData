@@ -3,12 +3,11 @@ from django.shortcuts import get_object_or_404
 from drf_yasg.utils import swagger_auto_schema
 from rest_framework import response, views
 from rest_framework.decorators import action
-from rest_framework.exceptions import APIException
 from rest_framework.response import Response
 from rgd import models, serializers
 from rgd.filters import CollectionFilter, SpatialEntryFilter
 from rgd.models.file import ChecksumFile
-from rgd.rest.base import ModelViewSet, ReadOnlyModelViewSet
+from rgd.rest.base import ModelViewSet, ReadOnlyModelViewSet, UserAPIException
 from rgd.utility import get_file_data_url
 
 from .authentication import UserSigner
@@ -35,7 +34,7 @@ class CollectionViewSet(ModelViewSet):
         try:
             instance = files[int(index)]
         except (IndexError, ValueError):
-            raise APIException(f'index {index} not valid or out of range.')
+            raise UserAPIException(f'index {index} not valid or out of range.')
         return Response(serializers.ChecksumFileSerializer(instance).data)
 
 
