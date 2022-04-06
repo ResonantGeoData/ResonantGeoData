@@ -1,4 +1,5 @@
 from django.conf import settings
+from django.shortcuts import get_object_or_404
 from drf_yasg.utils import swagger_auto_schema
 from rest_framework import response, views
 from rest_framework.decorators import action
@@ -29,7 +30,7 @@ class CollectionViewSet(ModelViewSet):
         url_path=r'item/(?P<index>\d+)',
     )
     def item(self, request, pk, index):
-        collection = models.Collection.objects.get(pk=pk)
+        collection = get_object_or_404(models.Collection, pk=pk)
         files = collection.checksumfiles.order_by('pk')
         try:
             instance = files[int(index)]
