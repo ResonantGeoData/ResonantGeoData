@@ -36,6 +36,11 @@ class CollectionSerializer(serializers.ModelSerializer):
         model = models.Collection
         fields = '__all__'
 
+    def to_representation(self, instance):
+        data = super().to_representation(instance)
+        data['len'] = len(instance)
+        return data
+
 
 class CollectionPermissionSerializer(serializers.ModelSerializer):
     collection = RelatedField(

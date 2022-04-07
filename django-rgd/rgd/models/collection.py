@@ -13,6 +13,9 @@ class Collection(models.Model):
     class Meta:
         default_related_name = 'collections'
 
+    def __len__(self):
+        return self.checksumfiles.count()
+
 
 class CollectionPermission(models.Model):
     READER = 1

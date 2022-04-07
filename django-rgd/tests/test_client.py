@@ -235,6 +235,7 @@ def test_create_collection_new(py_client: RgdClient):
         'id': Collection.objects.order_by('-id').first().id,
         'name': 'test',
         'description': None,
+        'len': 0,
     }
 
     assert Collection.objects.count() == 1
@@ -251,10 +252,35 @@ def test_create_collection_existing(py_client: RgdClient, collection: Collection
         'id': collection.id,
         'name': collection.name,
         'description': collection.description,
+        'len': len(collection),
     }
 
     # Ensure that no new collections have been created
     assert Collection.objects.count() == collection_count
+
+
+@pytest.mark.django_db(transaction=True)
+def test_get_collection_by_id(py_client: RgdClient, collection: Collection):
+    r = py_client.rgd.get_collection(collection.id)
+
+    assert r == {
+        'id': collection.id,
+        'name': collection.name,
+        'description': collection.description,
+        'len': len(collection),
+    }
+
+
+@pytest.mark.django_db(transaction=True)
+def test_get_collection_item(
+    py_client: RgdClient, checksum_file_url: ChecksumFile, collection: Collection
+):
+    checksum_file_url.collection = collection
+    checksum_file_url.save()
+
+    item = py_client.rgd.get_collection_item(collection.id, 0)
+    assert item['id'] == checksum_file_url.id
+    assert item['name'] == checksum_file_url.name
 
 
 @pytest.mark.django_db(transaction=True)
@@ -265,6 +291,7 @@ def test_get_collection_by_name_exists(py_client: RgdClient, collection: Collect
         'id': collection.id,
         'name': collection.name,
         'description': collection.description,
+        'len': len(collection),
     }
 
 

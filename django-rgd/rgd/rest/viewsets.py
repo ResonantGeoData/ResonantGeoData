@@ -1,7 +1,9 @@
 from django.conf import settings
+from django.shortcuts import get_object_or_404
 from drf_yasg.utils import swagger_auto_schema
 from rest_framework import response, views
 from rest_framework.decorators import action
+from rest_framework.exceptions import ValidationError
 from rest_framework.response import Response
 from rgd import models, serializers
 from rgd.filters import CollectionFilter, SpatialEntryFilter
@@ -17,6 +19,24 @@ class CollectionViewSet(ModelViewSet):
     serializer_class = serializers.CollectionSerializer
     queryset = models.Collection.objects.all()
     filterset_class = CollectionFilter
+
+    @swagger_auto_schema(
+        method='GET',
+        operation_summary='Get the file at the given index in this collection. Associated files are orderd by primary key and the provided index is the index in that ordered set. If the files in the collection change, this will not be reproducible.',
+    )
+    @action(
+        detail=True,
+        serializer_class=serializers.ChecksumFileSerializer,
+        url_path=r'item/(?P<index>\d+)',
+    )
+    def item(self, request, pk, index):
+        collection = get_object_or_404(models.Collection, pk=pk)
+        files = collection.checksumfiles.order_by('pk')
+        try:
+            instance = files[int(index)]
+        except (IndexError, ValueError):
+            raise ValidationError(f'index {index} not valid or out of range.')
+        return Response(serializers.ChecksumFileSerializer(instance).data)
 
 
 class CollectionPermissionViewSet(ModelViewSet):

@@ -22,6 +22,20 @@ class CorePlugin(RgdPlugin):
         super().__init__(*args, **kwargs)
         self.session.base_url += 'rgd/'
 
+    def get_collection(self, pk: int):
+        """Get Collection by primary key."""
+        r = self.session.get(f'collection/{pk}')
+        r.raise_for_status()
+        return r.json()
+
+    def get_collection_item(self, pk: Union[int, dict], index: int):
+        """Get Collection by primary key."""
+        if isinstance(pk, dict):
+            pk = pk['id']
+        r = self.session.get(f'collection/{pk}/item/{index}')
+        r.raise_for_status()
+        return r.json()
+
     def get_collection_by_name(self, name: str):
         """Get collection by name."""
         payload = {'name': name}
