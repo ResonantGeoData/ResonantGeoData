@@ -25,9 +25,9 @@
 }
 
 .fullScreen {
-  /* position: absolute; */
-  width: 100vw;
-  height: 100vh;
+  position: absolute;
+  width: 100%;
+  height: 100%;
   top: 0;
   left: 0;
   overflow: hidden;
@@ -41,7 +41,6 @@
 }
 
 .fullParentSize {
-  /* position: absolute; */
   width: 100%;
   height: 100%;
   top: 0;
@@ -74,7 +73,7 @@ select:focus {
   font-size: 50px;
   color: white;
   z-index: 1;
-  background: rgba(128,128,128,.5);
+  background: rgba(128, 128, 128, .5);
   padding: 20px;
   border-radius: 10px;
   user-select: none;

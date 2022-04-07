@@ -1,32 +1,32 @@
 {% extends "rgd/_base/detail.html" %}
 
 {% block meta_table_body %}
-  <tr>
-    <td>Description</td>
-    <td>{{ object.description }}</td>
-  </tr>
+<tr>
+  <td>Description</td>
+  <td>{{ object.description }}</td>
+</tr>
 {% endblock %}
 
 {% block detail %}
-  {% include 'rgd_3d/_include/cesiumjs_viewer.html' %}
+{% include 'rgd_3d/_include/cesiumjs_viewer.html' %}
 
-  <script>
-    var tileset = new Cesium.Cesium3DTileset({
-      url: '{% url "tiles-3d-file" name=object.json_file.name pk=object.pk %}'
-    });
-    viewer.scene.primitives.add(tileset);
-    viewer.zoomTo(tileset);
+<script>
+  var tileset = new Cesium.Cesium3DTileset({
+    url: '{% url "tiles-3d-file" name=object.json_file.name pk=object.pk %}'
+  });
+  viewer.scene.primitives.add(tileset);
+  viewer.zoomTo(tileset);
 
-    tileset.readyPromise.then(function () {
-      console.log('Ready!')
-      viewer.zoomTo(
-        tileset,
-        new Cesium.HeadingPitchRange(
-          0.0,
-          -0.5,
-          tileset.boundingSphere.radius / 4.0
-        )
-      );
-    });
-  </script>
+  tileset.readyPromise.then(function() {
+    console.log('Ready!')
+    viewer.zoomTo(
+      tileset,
+      new Cesium.HeadingPitchRange(
+        0.0,
+        -0.5,
+        tileset.boundingSphere.radius / 4.0
+      )
+    );
+  });
+</script>
 {% endblock %}

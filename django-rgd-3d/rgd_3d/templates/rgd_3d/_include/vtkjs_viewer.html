@@ -1,7 +1,13 @@
 {% block vtkjs_viewer %}
-  {% load static %}
-  <style>
+{% load static %}
+<style>
   .displayContent {
+    width: 100%;
+    height: 100%;
+    position: relative;
+  }
+
+  #vtkContainer {
     width: 100%;
     height: 100%;
     position: relative;
@@ -10,7 +16,7 @@
   .progress {
     color: black;
     z-index: 100;
-    background: rgba(128,128,128,.5);
+    background: rgba(128, 128, 128, .5);
     padding: 100px;
     border-radius: 10px;
     user-select: none;
@@ -19,42 +25,40 @@
     margin: 20% auto;
     position: relative;
   }
-  </style>
+</style>
 
-  <div class="displayContent">
-    <div id="vtkContainer">
-    </div>
-    <div class="progress" id="progressContainer">
-      <h1>Loading...</h1>
-    </div>
+<div class="displayContent">
+  <div id="vtkContainer">
   </div>
+  <div class="progress" id="progressContainer">
+    <h1>Loading...</h1>
+  </div>
+</div>
 
-  <script src="{% static 'rgd_3d/vtkjs_viewer.js' %}"></script>
+<script src="{% static 'rgd_3d/vtkjs_viewer.js' %}"></script>
 
-  <script type="text/javascript">
-    const progressContainer = document.getElementById('progressContainer');
-    progressContainer.innerHTML = 'Loading...';
+<script type="text/javascript">
+  const progressContainer = document.getElementById('progressContainer');
+  progressContainer.innerHTML = 'Loading...';
 
-    // console.log(vtk.Rendering.OpenGL.vtkRenderWindow.newInstance().getGLInformations())
-    const vtkContainer = document.getElementById("vtkContainer")
+  // console.log(vtk.Rendering.OpenGL.vtkRenderWindow.newInstance().getGLInformations())
+  const vtkContainer = document.getElementById("vtkContainer")
 
-    function load (container, url) {
-      emptyContainer(container);
+  function load(container, url) {
+    emptyContainer(container);
 
-      if (url) {
-        createViewer(container);
-        fetch(url)
-          .then((resp) => resp.json())
-          .then(function(data) {
-            createPipeline(data.vtp_data)
-            progressContainer.style.display = 'none'
-            updateCamera(renderer.getActiveCamera());
-          });
-      }
-
+    if (url) {
+      createViewer(container);
+      fetch(url)
+        .then((resp) => resp.json())
+        .then(function(data) {
+          createPipeline(data.vtp_data)
+          progressContainer.style.display = 'none'
+          updateCamera(renderer.getActiveCamera());
+        });
     }
 
-
-  </script>
+  }
+</script>
 
 {% endblock %}

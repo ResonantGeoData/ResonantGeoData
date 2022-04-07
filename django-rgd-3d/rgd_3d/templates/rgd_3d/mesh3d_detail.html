@@ -1,73 +1,69 @@
 {% extends "rgd/_base/detail.html" %}
 
 {% block meta_table_body %}
-  <tr>
-    <td>Description</td>
-    <td>{{ object.description }}</td>
-  </tr>
-  <tr>
-    <td>VTP Data</td>
-    <td>{{ object.data_link }}</td>
-  </tr>
-  <tr>
-    <td>Source Data</td>
-    <td>{{ object.data_link }}</td>
-  </tr>
+<tr>
+  <td>Description</td>
+  <td>{{ object.description }}</td>
+</tr>
+<tr>
+  <td>VTP Data</td>
+  <td>{{ object.data_link_vtp }}</td>
+</tr>
+<tr>
+  <td>Source Data</td>
+  <td>{{ object.data_link }}</td>
+</tr>
 
-  {% if object.pointcloudspatial %}
-    <tr>
-      <td>Acquisition Date</td>
-      <td>{{ object.pointcloudspatial.acquisition_date }}</td>
-    </tr>
-    <tr>
-      <td>Area</td>
-      <td>{{ object.pointcloudspatial.footprint.area | floatformat:-2 }}</td>
-    </tr>
-    <tr>
-      <td>Instrumentation</td>
-      <td>{{ object.pointcloudspatial.instrumentation }}</td>
-    </tr>
-  {% endif %}
+{% if object.pointcloudspatial %}
+<tr>
+  <td>Acquisition Date</td>
+  <td>{{ object.pointcloudspatial.acquisition_date }}</td>
+</tr>
+<tr>
+  <td>Area</td>
+  <td>{{ object.pointcloudspatial.footprint.area | floatformat:-2 }}</td>
+</tr>
+<tr>
+  <td>Instrumentation</td>
+  <td>{{ object.pointcloudspatial.instrumentation }}</td>
+</tr>
+{% endif %}
 
 {% endblock %}
 
 {% block extra_meta %}
-  {% if object.pointcloudspatial %}
+{% if object.pointcloudspatial %}
 
-    <br/>
+<br />
 
-    {% include 'rgd/_include/empty_viewer.html' %}
+{% include 'rgd/_include/empty_viewer.html' %}
 
-    <script>
+<script>
+  let reader = geo.createFileReader('geojsonReader', {
+    'layer': layer
+  });
+  var footprint = '{{ object.source.pointcloudspatial.footprint.json|escapejs }}'
+  reader.read(footprint, (features) => {
+    features[0].style({
+        strokeColor: '#FF0000',
+        fill: true,
+      })
+      .draw();
+  });
 
-      let reader = geo.createFileReader('geojsonReader', {
-        'layer': layer
-      });
-      var footprint = '{{ object.source.pointcloudspatial.footprint.json|escapejs }}'
-      reader.read(footprint, (features) => {
-        features[0].style({
-          strokeColor: '#FF0000',
-          fill: true,
-        })
-        .draw();
-      });
+  let extent = JSON.parse('{{ object.source.pointcloudspatial.bounds_json|escapejs }}');
+  setBounds(extent)
+</script>
 
-      let extent = JSON.parse('{{ object.source.pointcloudspatial.bounds_json|escapejs }}');
-      setBounds(extent)
-
-    </script>
-
-  {% endif %}
+{% endif %}
 {% endblock %}
 
 {% block detail %}
 
-    {% include 'rgd_3d/_include/vtkjs_viewer.html' %}
+{% include 'rgd_3d/_include/vtkjs_viewer.html' %}
 
-    <script>
-
-      load(vtkContainer, `{% url 'mesh-3d-base64' object.id %}`)
-
-    </script>
+<script>
+  load(vtkContainer, `{% url 'mesh-3d-base64' object.id %}`)
+</script>
 
 {% endblock %}
