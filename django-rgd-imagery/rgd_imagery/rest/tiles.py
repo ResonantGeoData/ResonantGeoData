@@ -1,6 +1,6 @@
 from django.core.cache import cache
 from django.shortcuts import get_object_or_404
-from django_large_image.rest import BaseLargeImageViewMixin
+from django_large_image.rest import LargeImageDetailMixin
 from rest_framework.request import Request
 from rgd.rest import CACHE_TIMEOUT
 from rgd.rest.authentication import SignedURLAuthentication
@@ -9,7 +9,7 @@ from rgd_imagery import models, serializers
 from rgd_imagery.models import Image
 
 
-class TilesViewSet(ModelViewSet, BaseLargeImageViewMixin):
+class TilesViewSet(ModelViewSet, LargeImageDetailMixin):
     serializer_class = serializers.ImageSerializer
     queryset = models.Image.objects.all()
     authentication_classes = ModelViewSet.authentication_classes + [
