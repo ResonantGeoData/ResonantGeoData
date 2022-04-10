@@ -24,7 +24,9 @@ def test_tile(admin_api_client, geotiff_image_entry):
 
 @pytest.mark.django_db(transaction=True)
 def test_thumbnail(admin_api_client, geotiff_image_entry):
-    response = admin_api_client.get(f'/api/rgd_imagery/tiles/{geotiff_image_entry.pk}/thumbnail')
+    response = admin_api_client.get(
+        f'/api/rgd_imagery/tiles/{geotiff_image_entry.pk}/thumbnail.png'
+    )
     assert response.status_code == 200
     assert response['Content-Type'] == 'image/png'
 

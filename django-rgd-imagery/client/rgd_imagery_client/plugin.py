@@ -61,7 +61,7 @@ class ImageryPlugin(RgdPlugin):
         Returns:
             Thumbnail bytes.
         """
-        r = self.session.get(f'rgd_imagery/tiles/{image_id}/thumbnail')
+        r = self.session.get(f'rgd_imagery/tiles/{image_id}/thumbnail.png')
         return r.content
 
     def download_raster_thumbnail(
