@@ -8,6 +8,7 @@ from .mixins import MODIFIABLE_FILTERS
 @admin.register(FileSet)
 class FileSetAdmin(OSMGeoAdmin):
     list_display = [
+        'pk',
         'name',
     ]
     list_filter = MODIFIABLE_FILTERS
