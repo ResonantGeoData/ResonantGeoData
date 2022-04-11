@@ -2,6 +2,7 @@
 
 # Resonant GeoData Core Application
 
+[![Kitware](https://img.shields.io/badge/Made%20by-Kitware-blue)](https://www.kitware.com/)
 [![PyPI](https://img.shields.io/pypi/v/django-rgd.svg?logo=python&logoColor=white)](https://pypi.org/project/django-rgd/)
 
 The core Resonant GeoData (RGD) app containing file and permissions management

@@ -2,6 +2,7 @@
 
 # Resonant GeoData Full Motion Video (FMV)
 
+[![Kitware](https://img.shields.io/badge/Made%20by-Kitware-blue)](https://www.kitware.com/)
 [![PyPI](https://img.shields.io/pypi/v/django-rgd-fmv.svg?logo=python&logoColor=white)](https://pypi.org/project/django-rgd-fmv/)
 
 A submodule of Resonant GeoData for storing Full Motion Video (FMV) datasets

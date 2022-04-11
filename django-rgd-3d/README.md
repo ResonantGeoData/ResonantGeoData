@@ -2,6 +2,7 @@
 
 # Resonant GeoData 3D
 
+[![Kitware](https://img.shields.io/badge/Made%20by-Kitware-blue)](https://www.kitware.com/)
 [![PyPI](https://img.shields.io/pypi/v/django-rgd-3d.svg?logo=python&logoColor=white)](https://pypi.org/project/django-rgd-3d/)
 
 A subapplication of Resonant GeoData for storing 3D data with an optional

@@ -2,6 +2,7 @@
 
 # Resonant GeoData Imagery
 
+[![Kitware](https://img.shields.io/badge/Made%20by-Kitware-blue)](https://www.kitware.com/)
 [![PyPI](https://img.shields.io/pypi/v/django-rgd-imagery.svg?logo=python&logoColor=white)](https://pypi.org/project/django-rgd-imagery/)
 
 A submodule of Resonant GeoData for storing imagery supporting annotations and spatial reference.
