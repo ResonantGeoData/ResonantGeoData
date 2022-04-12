@@ -50,4 +50,4 @@ def spatial_asset_b():
 
 @pytest.fixture
 def s3_url():
-    return 's3://sentinel-cogs/sentinel-s2-l2a-cogs/2020/S2A_34JCL_20200309_0_L2A/S2A_34JCL_20200309_0_L2A.json'
+    return 's3://sentinel-cogs/sentinel-s2-l2a-cogs/2020/S2A_34RCN_20200111_0_L2A/S2A_34RCN_20200111_0_L2A.json'
