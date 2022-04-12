@@ -50,7 +50,7 @@ setup(
     extras_require={
         'worker': [
             'numpy',
-            'kwiver',
+            'kwiver==1.6.0',  # broken on 1.6.1 
             'opencv-python-headless',
         ],
     },
