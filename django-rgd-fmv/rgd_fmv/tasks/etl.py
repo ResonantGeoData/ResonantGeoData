@@ -29,7 +29,7 @@ def _extract_klv(fmv_file_entry):
         cmd = [
             'kwiver',
             'dump-klv',
-            dataset_path,
+            str(dataset_path),
         ]
         try:
             with open(dataset_path, 'rb') as stdin, open(output_path, 'wb') as stdout, open(
@@ -42,7 +42,9 @@ def _extract_klv(fmv_file_entry):
                     stderr=stderr,
                 )
         except subprocess.CalledProcessError as exc:
-            logger.error('Failed to successfully run dump-klv ({exc!r})')
+            logger.error(f'Failed to successfully run dump-klv ({exc!r})')
+            with open(stderr_path, 'r') as f:
+                logger.error(f.read())
             raise exc
         # Store result
         with open(output_path, 'rb') as f:
