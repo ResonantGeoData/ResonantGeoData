@@ -57,7 +57,7 @@ def convert_to_cog(param_model):
     """Convert Image to Cloud Optimized GeoTIFF."""
     with _processed_image_helper(param_model, single_input=True) as (image, output):
 
-        with input_output_path_helper(image.file, output, prefix='cog_') as (
+        with input_output_path_helper(image.file, output, prefix='cog_', suffix='.tif') as (
             input_path,
             output_path,
         ):
