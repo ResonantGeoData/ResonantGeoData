@@ -69,6 +69,7 @@ class ChecksumFileSerializer(serializers.ModelSerializer):
     def to_representation(self, value):
         ret = super().to_representation(value)
         ret['download_url'] = value.get_url()
+        ret['size'] = value.size
         return ret
 
     class Meta:
