@@ -214,7 +214,9 @@ def patch_internal_presign(f: FieldFile):
 
 
 @contextmanager
-def output_path_helper(filename: str, output: ChecksumFile):
+def output_path_helper(filename: str, output: ChecksumFile, final_name: str = None):
+    if final_name is None:
+        final_name = os.path.basename(filename)
     workdir = get_temp_dir()
     with tempfile.TemporaryDirectory(dir=workdir) as tmpdir:
         output_path = os.path.join(tmpdir, filename)
@@ -226,29 +228,27 @@ def output_path_helper(filename: str, output: ChecksumFile):
         else:
             # Save the file contents to the output field only on success
             with open(output_path, 'rb') as f:
-                output.save_file_contents(f, os.path.basename(output_path))
+                output.save_file_contents(f, final_name)
 
 
 @contextmanager
-def input_output_path_helper(source, output: ChecksumFile, prefix: str = '', suffix: str = ''):
+def input_output_path_helper(
+    source: ChecksumFile, output: ChecksumFile, prefix: str = '', suffix: str = ''
+):
     """Yield source and output paths between a ChecksumFile and a FileFeild.
 
     The output path is saved to the output field after yielding.
 
     """
     filename = prefix + os.path.basename(source.name) + suffix
+    final = Path(source.name).parent / filename
     with source.yield_local_path() as file_path:
-        filename = prefix + os.path.basename(source.name) + suffix
-        with output_path_helper(filename, output) as output_path:
+        with output_path_helper(filename, output, final_name=final) as output_path:
             try:
                 # Yield the paths for the user to perform a task
                 yield (file_path, output_path)
             except Exception as e:
                 raise e
-            else:
-                # Save the file contents to the output field only on success
-                with open(output_path, 'rb') as f:
-                    output.save_file_contents(f, os.path.basename(output_path))
 
 
 def uuid_prefix_filename(instance: Any, filename: str):

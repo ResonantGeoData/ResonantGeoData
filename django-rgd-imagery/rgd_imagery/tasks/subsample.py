@@ -129,7 +129,7 @@ def extract_region(processed_image):
 
     with _processed_image_helper(processed_image, single_input=True) as (image, output):
         filename = f'region-{image.file.name}'
-        with output_path_helper(filename, output.file) as output_path:
+        with output_path_helper(filename, output) as output_path:
             logger.debug(f'The extent: {l, r, b, t}')
             if sample_type in (
                 SampleTypes.GEOJSON,
@@ -201,7 +201,7 @@ def mosaic_images(processed_image):
             with image.file.yield_local_path(yield_file_set=True) as file_path:
                 src_files_to_mosaic.append(rasterio.open(file_path))
 
-        with output_path_helper('mosaic.tif', output.file) as output_path:
+        with output_path_helper('mosaic.tif', output) as output_path:
             mosaic, out_trans = merge(src_files_to_mosaic)
             out_meta = src_files_to_mosaic[0].meta.copy()
 

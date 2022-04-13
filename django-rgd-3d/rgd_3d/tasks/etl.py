@@ -14,17 +14,19 @@ from rgd_3d.models import Mesh3D, Tiles3D, Tiles3DMeta
 logger = get_task_logger(__name__)
 
 
-def _file_conversion_helper(source, output, method, prefix='', extension='', **kwargs):
+def _file_conversion_helper(
+    source: ChecksumFile, output: ChecksumFile, method: callable, extension: str = '', **kwargs
+):
     workdir = get_temp_dir()
     with tempfile.TemporaryDirectory(dir=workdir) as tmpdir:
         # NOTE: cannot use FUSE with PyntCloud because it checks file extension
         #       in path. Additionally, The `name` field for the file MUST have
         #       the extension.
         with source.yield_local_path(try_fuse=False) as file_path:
-            output_path = os.path.join(tmpdir, prefix + os.path.basename(source.name) + extension)
+            output_path = os.path.join(tmpdir, os.path.basename(source.name) + extension)
             method(str(file_path), str(output_path), **kwargs)
         with open(output_path, 'rb') as f:
-            output.save_file_contents(f, os.path.basename(output_path))
+            output.save_file_contents(f, source.name + extension)
 
 
 def _save_pyvista(mesh, output_path):

@@ -335,7 +335,6 @@ class ChecksumFile(TimeStampedModel, TaskEventMixin):
                     f'`output_file_handler` not understood: {settings.RGD_OUTPUT_FILE_HANDLER}'
                 )
             func(self, file_handle, name)
-
         else:
             if not self.name:
                 self.name = name
