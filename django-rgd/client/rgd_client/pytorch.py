@@ -1,4 +1,4 @@
-from typing import Union
+from typing import Callable, Union
 
 from rgd_client.client import RgdClient
 from torch.utils.data import Dataset
@@ -15,14 +15,14 @@ class RemoteDataset(Dataset):
         collection).
     client: RgdClient
         The client connected to an RGD instance.
-    data_handler : callable
+    data_handler : Callable
         A callable that will handle converting the data from a ChecksumFile to
         something usable by PyTorch.
 
     """
 
     def __init__(
-        self, collection: Union[int, str, dict], client: RgdClient, data_handler: callable = None
+        self, collection: Union[int, str, dict], client: RgdClient, data_handler: Callable = None
     ):
         self._client = client
         self._collection_identifier = collection

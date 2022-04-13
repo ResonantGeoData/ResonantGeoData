@@ -1,7 +1,7 @@
 import json
 import os
 import tempfile
-from typing import Union
+from typing import Callable, Union
 
 from celery.utils.log import get_task_logger
 from django.contrib.gis.geos import Polygon
@@ -15,7 +15,7 @@ logger = get_task_logger(__name__)
 
 
 def _file_conversion_helper(
-    source: ChecksumFile, output: ChecksumFile, method: callable, extension: str = '', **kwargs
+    source: ChecksumFile, output: ChecksumFile, method: Callable, extension: str = '', **kwargs
 ):
     workdir = get_temp_dir()
     with tempfile.TemporaryDirectory(dir=workdir) as tmpdir:
