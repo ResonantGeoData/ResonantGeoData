@@ -10,7 +10,7 @@ import os
 from pathlib import Path
 import shutil
 import tempfile
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING, Any, Optional
 from urllib.error import HTTPError
 from urllib.parse import urlparse
 from urllib.request import urlopen
@@ -101,7 +101,7 @@ def _link_url(obj: Model, field: str):
     return mark_safe(f'<a href="{url}" download>Download</a>')
 
 
-def get_or_create_no_commit(model: Model, defaults: dict = None, **kwargs):
+def get_or_create_no_commit(model: Model, defaults: Optional[dict] = None, **kwargs):
     try:
         return model.objects.get(**kwargs), False
     except model.DoesNotExist:
@@ -214,7 +214,7 @@ def patch_internal_presign(f: FieldFile):
 
 
 @contextmanager
-def output_path_helper(filename: str, output: ChecksumFile, final_name: str = None):
+def output_path_helper(filename: str, output: ChecksumFile, final_name: Optional[str] = None):
     if final_name is None:
         final_name = os.path.basename(filename)
     workdir = get_temp_dir()
