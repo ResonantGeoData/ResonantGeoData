@@ -14,7 +14,7 @@ from rgd_3d.models import Mesh3D, Tiles3D, Tiles3DMeta
 logger = get_task_logger(__name__)
 
 
-def _file_conversion_helper(source, output_field, method, prefix='', extension='', **kwargs):
+def _file_conversion_helper(source, output, method, prefix='', extension='', **kwargs):
     workdir = get_temp_dir()
     with tempfile.TemporaryDirectory(dir=workdir) as tmpdir:
         # NOTE: cannot use FUSE with PyntCloud because it checks file extension
@@ -24,7 +24,7 @@ def _file_conversion_helper(source, output_field, method, prefix='', extension='
             output_path = os.path.join(tmpdir, prefix + os.path.basename(source.name) + extension)
             method(str(file_path), str(output_path), **kwargs)
         with open(output_path, 'rb') as f:
-            output_field.save(os.path.basename(output_path), f)
+            output.save_file_contents(f, os.path.basename(output_path))
 
 
 def _save_pyvista(mesh, output_path):
@@ -75,7 +75,7 @@ def read_mesh_3d_file(mesh_3d: Union[Mesh3D, int]):
         mesh_3d.vtp_data = ChecksumFile()
     if not mesh_3d.vtp_data.collection:
         mesh_3d.vtp_data.collection = mesh_3d.file.collection
-    _file_conversion_helper(mesh_3d.file, mesh_3d.vtp_data.file, method, extension='.vtp')
+    _file_conversion_helper(mesh_3d.file, mesh_3d.vtp_data, method, extension='.vtp')
     # Save the record
     mesh_3d.save(
         update_fields=[
@@ -127,7 +127,7 @@ def read_3d_tiles_tileset_json(tiles_3d: Union[Tiles3D, int]):
         ymax = max(center[1], x[1], y[1])
         coords = bounds_to_polygon(xmin, xmax, ymin, ymax)
         coords = np.c_[coords, np.zeros(len(coords)), np.ones(len(coords))]
-        # Apply the tranformation
+        # Apply the transform
         corners = (coords @ transform)[:, :-1]  # in XYZ world
         src = pyproj.CRS('EPSG:4978')  # 4979 -> srid
         dest = pyproj.CRS('EPSG:4326')

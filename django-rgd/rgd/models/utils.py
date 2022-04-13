@@ -71,7 +71,7 @@ def get_or_create_checksumfile_file_field(
         # Since we already computed the checksum, prevent tasks from recomputing
         file_entry.skip_signal = True
         file_handle.seek(0)
-        file_entry.file.save('test', file_handle)
+        file_entry.save_file_contents(file_handle, 'test')
         file_entry.save()
         file_entry.skip_signal = False
     return file_entry, created

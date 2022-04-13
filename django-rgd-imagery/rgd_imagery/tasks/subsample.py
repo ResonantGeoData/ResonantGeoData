@@ -57,7 +57,7 @@ def convert_to_cog(param_model):
     """Convert Image to Cloud Optimized GeoTIFF."""
     with _processed_image_helper(param_model, single_input=True) as (image, output):
 
-        with input_output_path_helper(image.file, output.file, prefix='cog_') as (
+        with input_output_path_helper(image.file, output, prefix='cog_') as (
             input_path,
             output_path,
         ):
@@ -154,7 +154,7 @@ def resample_image(processed_image):
     with _processed_image_helper(processed_image, single_input=True) as (image, output):
 
         with input_output_path_helper(
-            image.file, output.file, prefix='resampled_{:.2f}_'.format(factor)
+            image.file, output, prefix='resampled_{:.2f}_'.format(factor)
         ) as (
             input_path,
             output_path,

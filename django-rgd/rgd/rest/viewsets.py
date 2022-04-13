@@ -22,7 +22,7 @@ class CollectionViewSet(ModelViewSet):
 
     @swagger_auto_schema(
         method='GET',
-        operation_summary='Get the file at the given index in this collection. Associated files are orderd by primary key and the provided index is the index in that ordered set. If the files in the collection change, this will not be reproducible.',
+        operation_summary='Get the file at the given index in this collection. Associated files are ordered by primary key and the provided index is the index in that ordered set. If the files in the collection change, this will not be reproducible.',
     )
     @action(
         detail=True,

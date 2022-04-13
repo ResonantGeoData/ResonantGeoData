@@ -1,4 +1,6 @@
 from contextlib import contextmanager
+from importlib import import_module
+import io
 import logging
 import os
 from pathlib import Path
@@ -320,3 +322,26 @@ class ChecksumFile(TimeStampedModel, TaskEventMixin):
         return _link_url(self, 'get_url')
 
     data_link.allow_tags = True
+
+    def save_file_contents(self, file_handle: io.BufferedIOBase, name: str):
+        if hasattr(settings, 'RGD_OUTPUT_FILE_HANDLER'):
+            if isinstance(settings.RGD_OUTPUT_FILE_HANDLER, str):
+                parts = settings.RGD_OUTPUT_FILE_HANDLER.rsplit('.', 1)
+                func = getattr(import_module(parts[0]), parts[1])
+            elif callable(settings.RGD_OUTPUT_FILE_HANDLER):
+                func = settings.RGD_OUTPUT_FILE_HANDLER
+            else:
+                raise ValueError(
+                    f'`output_file_handler` not understood: {settings.RGD_OUTPUT_FILE_HANDLER}'
+                )
+            func(self, file_handle, name)
+
+        else:
+            if not self.name:
+                self.name = name
+            self.type = FileSourceType.FILE_FIELD
+            self.file.save(name, file_handle)
+        if self.pk:
+            self.save(update_fields=['type', 'file', 'url', 'name'])
+        else:
+            self.save()

@@ -140,7 +140,7 @@ def download_url_file_to_local_path(
         # File available on localfilesystem
         true_path = Path(url.replace('file://', '', 1)).absolute()
         if dest_path.exists() and not os.path.islink(str(dest_path)):
-            os.remove(dest_path)  # Remove file incase touched
+            os.remove(dest_path)  # Remove file in case touched
         if not dest_path.exists():
             os.symlink(true_path, dest_path)
         # else exists and is a symlink - ASSUME it is correct
@@ -214,7 +214,7 @@ def patch_internal_presign(f: FieldFile):
 
 
 @contextmanager
-def output_path_helper(filename: str, output: FieldFile):
+def output_path_helper(filename: str, output: ChecksumFile):
     workdir = get_temp_dir()
     with tempfile.TemporaryDirectory(dir=workdir) as tmpdir:
         output_path = os.path.join(tmpdir, filename)
@@ -226,11 +226,11 @@ def output_path_helper(filename: str, output: FieldFile):
         else:
             # Save the file contents to the output field only on success
             with open(output_path, 'rb') as f:
-                output.save(os.path.basename(output_path), f)
+                output.save_file_contents(f, os.path.basename(output_path))
 
 
 @contextmanager
-def input_output_path_helper(source, output: FieldFile, prefix: str = '', suffix: str = ''):
+def input_output_path_helper(source, output: ChecksumFile, prefix: str = '', suffix: str = ''):
     """Yield source and output paths between a ChecksumFile and a FileFeild.
 
     The output path is saved to the output field after yielding.
@@ -248,7 +248,7 @@ def input_output_path_helper(source, output: FieldFile, prefix: str = '', suffix
             else:
                 # Save the file contents to the output field only on success
                 with open(output_path, 'rb') as f:
-                    output.save(os.path.basename(output_path), f)
+                    output.save_file_contents(f, os.path.basename(output_path))
 
 
 def uuid_prefix_filename(instance: Any, filename: str):
