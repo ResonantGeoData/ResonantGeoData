@@ -10,7 +10,7 @@ import os
 from pathlib import Path
 import shutil
 import tempfile
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING, Any, Optional
 from urllib.error import HTTPError
 from urllib.parse import urlparse
 from urllib.request import urlopen
@@ -101,7 +101,7 @@ def _link_url(obj: Model, field: str):
     return mark_safe(f'<a href="{url}" download>Download</a>')
 
 
-def get_or_create_no_commit(model: Model, defaults: dict = None, **kwargs):
+def get_or_create_no_commit(model: Model, defaults: Optional[dict] = None, **kwargs):
     try:
         return model.objects.get(**kwargs), False
     except model.DoesNotExist:
@@ -140,7 +140,7 @@ def download_url_file_to_local_path(
         # File available on localfilesystem
         true_path = Path(url.replace('file://', '', 1)).absolute()
         if dest_path.exists() and not os.path.islink(str(dest_path)):
-            os.remove(dest_path)  # Remove file incase touched
+            os.remove(dest_path)  # Remove file in case touched
         if not dest_path.exists():
             os.symlink(true_path, dest_path)
         # else exists and is a symlink - ASSUME it is correct
@@ -214,7 +214,9 @@ def patch_internal_presign(f: FieldFile):
 
 
 @contextmanager
-def output_path_helper(filename: str, output: FieldFile):
+def output_path_helper(filename: str, output: ChecksumFile, final_name: Optional[str] = None):
+    if final_name is None:
+        final_name = os.path.basename(filename)
     workdir = get_temp_dir()
     with tempfile.TemporaryDirectory(dir=workdir) as tmpdir:
         output_path = os.path.join(tmpdir, filename)
@@ -226,29 +228,27 @@ def output_path_helper(filename: str, output: FieldFile):
         else:
             # Save the file contents to the output field only on success
             with open(output_path, 'rb') as f:
-                output.save(os.path.basename(output_path), f)
+                output.save_file_contents(f, final_name)
 
 
 @contextmanager
-def input_output_path_helper(source, output: FieldFile, prefix: str = '', suffix: str = ''):
+def input_output_path_helper(
+    source: ChecksumFile, output: ChecksumFile, prefix: str = '', suffix: str = ''
+):
     """Yield source and output paths between a ChecksumFile and a FileFeild.
 
     The output path is saved to the output field after yielding.
 
     """
     filename = prefix + os.path.basename(source.name) + suffix
+    final = Path(source.name).parent / filename
     with source.yield_local_path() as file_path:
-        filename = prefix + os.path.basename(source.name) + suffix
-        with output_path_helper(filename, output) as output_path:
+        with output_path_helper(filename, output, final_name=final) as output_path:
             try:
                 # Yield the paths for the user to perform a task
                 yield (file_path, output_path)
             except Exception as e:
                 raise e
-            else:
-                # Save the file contents to the output field only on success
-                with open(output_path, 'rb') as f:
-                    output.save(os.path.basename(output_path), f)
 
 
 def uuid_prefix_filename(instance: Any, filename: str):

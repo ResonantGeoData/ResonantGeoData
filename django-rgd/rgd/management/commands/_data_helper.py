@@ -68,7 +68,7 @@ def _get_or_create_checksum_file_filefield(file: str, name=None, use_datastore: 
         else:
             file_entry.name = file
         with open(path, 'rb') as f:
-            file_entry.file.save(os.path.basename(path), f)
+            file_entry.save_file_contents(f, os.path.basename(path))
         file_entry.type = models.FileSourceType.FILE_FIELD
         _save_signal(file_entry, True)
     return file_entry

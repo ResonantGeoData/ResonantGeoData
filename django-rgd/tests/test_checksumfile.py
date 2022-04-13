@@ -1,4 +1,6 @@
+import io
 from pathlib import Path
+import tempfile
 
 from django.db import IntegrityError
 import pytest
@@ -156,3 +158,25 @@ def test_get_or_create_url_checksum():
     assert created
     file, created = utils.get_or_create_checksumfile(url=url, precompute_url_checksum=True)
     assert not created
+
+
+@pytest.mark.django_db(transaction=True)
+def test_output_file_handler(settings, file_path):
+    directory = tempfile.gettempdir()
+
+    def output_file_handler(instance: ChecksumFile, file_handle: io.BufferedIOBase, name: str):
+        # save to path on disk and give `file://` URL to ChecksumFile
+        path = Path(directory, name)
+        with open(path, 'wb') as f:
+            f.write(file_handle.read())
+        instance.type = FileSourceType.URL
+        instance.url = f'file://{path}'
+        instance.file = None
+
+    settings.RGD_OUTPUT_FILE_HANDLER = output_file_handler
+
+    file = ChecksumFile()
+    with open(file_path, 'rb') as f:
+        file.save_file_contents(f, FILENAME)
+    file.save()
+    assert file.url == f'file://{str(Path(directory, FILENAME))}'
