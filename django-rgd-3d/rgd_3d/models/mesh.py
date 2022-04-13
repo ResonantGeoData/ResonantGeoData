@@ -17,7 +17,7 @@ class Mesh3D(TimeStampedModel, TaskEventMixin, DetailViewMixin):
 
     # A place to store converted file - must be in VTP format
     vtp_data = models.ForeignKey(
-        ChecksumFile, on_delete=models.DO_NOTHING, related_name='+', null=True, blank=True
+        ChecksumFile, on_delete=models.SET_NULL, related_name='+', null=True, blank=True
     )
 
     def data_link(self):
