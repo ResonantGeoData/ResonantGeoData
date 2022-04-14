@@ -182,5 +182,5 @@ class FileBrowserView(PermissionListView):
             context['path_prefix'] += '/'
         folders, files = utils.get_tree(self.get_queryset(), path_prefix)
         context['folders'] = folders
-        context['files'] = files
+        context['files'] = files.values()
         return context

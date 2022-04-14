@@ -44,7 +44,7 @@
     <tbody>
       {% for file in files %}
       <tr>
-        <td><a href="{{ file.url }}">{{ file }}</a></td>
+        <td><a href="{% url 'admin:rgd_checksumfile_change' file.pk %}" target="_blank">{{ file.name }}</a></td>
         <td>{{ file.collection }}</td>
         <td>{{ file.modified }}</td>
         <td>{{ file.size }}</td>
