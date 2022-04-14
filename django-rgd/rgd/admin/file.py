@@ -41,3 +41,8 @@ class ChecksumFileAdmin(OSMGeoAdmin):
             'created_by',
         )
     )
+    raw_id_fields = (
+        'file_set',
+        'collection',
+        'created_by',
+    )
