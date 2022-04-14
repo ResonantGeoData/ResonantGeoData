@@ -14,25 +14,25 @@
   <td>{{ object.data_link }}</td>
 </tr>
 
-{% if object.pointcloudspatial %}
+{% if object.mesh3dspatial %}
 <tr>
   <td>Acquisition Date</td>
-  <td>{{ object.pointcloudspatial.acquisition_date }}</td>
+  <td>{{ object.mesh3dspatial.acquisition_date }}</td>
 </tr>
 <tr>
   <td>Area</td>
-  <td>{{ object.pointcloudspatial.footprint.area | floatformat:-2 }}</td>
+  <td>{{ object.mesh3dspatial.footprint.area | floatformat:-2 }}</td>
 </tr>
 <tr>
   <td>Instrumentation</td>
-  <td>{{ object.pointcloudspatial.instrumentation }}</td>
+  <td>{{ object.mesh3dspatial.instrumentation }}</td>
 </tr>
 {% endif %}
 
 {% endblock %}
 
 {% block extra_meta %}
-{% if object.pointcloudspatial %}
+{% if object.mesh3dspatial %}
 
 <br />
 
@@ -42,7 +42,7 @@
   let reader = geo.createFileReader('geojsonReader', {
     'layer': layer
   });
-  var footprint = '{{ object.source.pointcloudspatial.footprint.json|escapejs }}'
+  var footprint = '{{ object.mesh3dspatial.footprint.json|escapejs }}'
   reader.read(footprint, (features) => {
     features[0].style({
         strokeColor: '#FF0000',
@@ -51,7 +51,7 @@
       .draw();
   });
 
-  let extent = JSON.parse('{{ object.source.pointcloudspatial.bounds_json|escapejs }}');
+  let extent = JSON.parse('{{ object.mesh3dspatial.bounds_json|escapejs }}');
   setBounds(extent)
 </script>
 
