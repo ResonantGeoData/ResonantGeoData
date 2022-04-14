@@ -1,4 +1,5 @@
 import json
+import os
 
 from django.contrib.gis.db import models
 from django_extensions.db.models import TimeStampedModel
@@ -53,6 +54,10 @@ class SpatialEntry(models.Model):
     @property
     def bounds_json(self):
         return json.dumps(self.bounds)
+
+    @property
+    def basename(self):
+        return os.path.basename(self.name)
 
 
 class WhitelistedEmail(models.Model):

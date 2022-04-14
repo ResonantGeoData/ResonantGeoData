@@ -44,7 +44,7 @@ class Mesh3DSpatial(TimeStampedModel, SpatialEntry):
 
     @property
     def name(self):
-        return self.source.file.name
+        return self.source.name
 
     detail_view_name = Mesh3D.detail_view_name
     detail_view_pk = 'source__pk'
