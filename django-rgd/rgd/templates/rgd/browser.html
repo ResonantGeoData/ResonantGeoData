@@ -17,7 +17,7 @@
     <tbody>
       {% for folder in folders %}
       <tr>
-        <td><a href="{% url 'browser' %}?path_prefix={{ path_prefix }}{{ folder }}">{{ folder }}</a></td>
+        <td><a href="{% url 'browser' %}?path_prefix={{ path_prefix }}{{ folder }}/">{{ folder }}</a></td>
         <td>{{ folder.num_files }}</td>
         <td>{{ folder.modified }}</td>
         <td>{{ folder.known_size }}</td>
