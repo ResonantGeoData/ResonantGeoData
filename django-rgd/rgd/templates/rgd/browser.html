@@ -1,0 +1,57 @@
+{% extends "rgd/_base/base.html" %}
+
+{% block content %}
+
+<h2>Folders</h2>
+
+<div style="overflow-x:auto;">
+  <table class="table">
+    <thead class="thead-dark">
+      <tr>
+        <th><span class="text">Name</span></th>
+        <th><span class="text">Number of Files</span></th>
+        <th><span class="text">Last Modified</span></th>
+        <th><span class="text">Known Size</span></th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for folder in folders %}
+      <tr>
+        <td><a href="{% url 'browser' %}?path_prefix={{ path_prefix }}{{ folder }}">{{ folder }}</a></td>
+        <td>{{ folder.num_files }}</td>
+        <td>{{ folder.modified }}</td>
+        <td>{{ folder.known_size }}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+
+<br />
+
+<h2>Files</h2>
+
+<div style="overflow-x:auto;">
+  <table class="table">
+    <thead class="thead-dark">
+      <tr>
+        <th><span class="text">Name</span></th>
+        <th><span class="text">Collection</span></th>
+        <th><span class="text">Last Modified</span></th>
+        <th><span class="text">Size</span></th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for file in files %}
+      <tr>
+        <td><a href="{{ file.url }}">{{ file }}</a></td>
+        <td>{{ file.collection }}</td>
+        <td>{{ file.modified }}</td>
+        <td>{{ file.size }}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+
+{% endblock %}

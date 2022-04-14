@@ -27,6 +27,11 @@ urlpatterns = [
         views.spatial_entry_redirect_view,
         name='spatial-entry-detail',
     ),
+    path(
+        'rgd/browser',
+        views.FileBrowserView.as_view(),
+        name='browser',
+    ),
     # Deprecated
     # TODO: remove route. duplicated functionality in 'rgd.viewsets.SpatialEntryViewSet'
     path(

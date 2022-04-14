@@ -13,6 +13,7 @@ from rest_framework.reverse import reverse
 from rgd import permissions
 
 from . import filters, models
+from .models import utils
 
 
 class PermissionTemplateView(LoginRequiredMixin, TemplateView):
@@ -166,3 +167,20 @@ def spatial_entry_redirect_view(request, pk):
     else:
         pk = spat.pk
     return redirect(reverse(spat.detail_view_name, kwargs={'pk': pk}))
+
+
+class FileBrowserView(PermissionListView):
+    paginate_by = None
+    template_name = 'rgd/browser.html'
+    model = models.ChecksumFile
+
+    def get_context_data(self, *args, **kwargs):
+        context = super().get_context_data(*args, **kwargs)
+        path_prefix = self.request.GET.get('path_prefix', '')
+        context['path_prefix'] = path_prefix.rstrip('/')
+        if context['path_prefix']:
+            context['path_prefix'] += '/'
+        folders, files = utils.get_tree(self.get_queryset(), path_prefix)
+        context['folders'] = folders
+        context['files'] = files
+        return context
