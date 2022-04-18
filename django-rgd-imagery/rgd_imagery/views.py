@@ -2,6 +2,7 @@ import json
 
 from rgd.views import (
     PermissionDetailView,
+    PermissionListView,
     PermissionTemplateView,
     SpatialDetailView,
     SpatialEntriesListView,
@@ -35,3 +36,10 @@ class RasterDetailView(SpatialDetailView):
 
 class STACBrowserView(PermissionTemplateView):
     template_name = 'rgd_imagery/stac/stac_browser.html'
+
+
+class ImageSetListView(PermissionListView):
+    paginate_by = 15
+    context_object_name = 'image_sets'
+    queryset = models.ImageSet.objects.all()
+    template_name = 'rgd_imagery/imageset_list.html'
