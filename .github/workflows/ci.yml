@@ -142,7 +142,7 @@ jobs:
         with:
           name: .coverage.${{ matrix.rgd-module }}
           path: ${{ matrix.django-version }}-${{ matrix.rgd-module }}/tests/coverage.xml
-      - uses: codecov/codecov-action@v2
+      - uses: codecov/codecov-action@v3
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
           files: ${{ matrix.django-version }}-${{ matrix.rgd-module }}/tests/coverage.xml
