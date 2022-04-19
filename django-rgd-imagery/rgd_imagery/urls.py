@@ -35,6 +35,11 @@ urlpatterns = [
         name=models.RasterMeta.detail_view_name,
     ),
     path(
+        'rgd_imagery/image_set/',
+        views.ImageSetListView.as_view(),
+        name='image-sets',
+    ),
+    path(
         'rgd_imagery/image_set/<int:pk>/',
         views.ImageSetDetailView.as_view(),
         name=models.ImageSet.detail_view_name,
