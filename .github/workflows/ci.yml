@@ -82,7 +82,7 @@ jobs:
           DJANGO_MINIO_STORAGE_SECRET_KEY: minioSecretKey
           DJANGO_STORAGE_BUCKET_NAME: django-storage
       - name: Upload model graphs
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v3
         with:
           name: graphs
           path: .tox/graphs/*.png
@@ -138,7 +138,7 @@ jobs:
           CELERY_BROKER_URL: amqp://localhost:5672/
           DATABASE_HOST: localhost
       - name: Stash coverage
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v3
         with:
           name: .coverage.${{ matrix.rgd-module }}
           path: ${{ matrix.django-version }}-${{ matrix.rgd-module }}/tests/coverage.xml
