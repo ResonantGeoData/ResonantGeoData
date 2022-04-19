@@ -1,0 +1,15 @@
+{% extends "rgd/_base/list_view.html" %}
+
+{% block list_headers %}
+  <th><span class="text">ID - Name</span></th>
+  <th><span class="text">Data Type</span></th>
+{% endblock list_headers %}
+
+{% block list_entries %}
+  {% for mesh3d in mesh3ds %}
+    <tr>
+      <td><a href="{% url 'detail-mesh-3d' mesh3d.pk %}">{{ mesh3d.id }} - {{ mesh3d.name }}</a></td>
+      <td>Mesh3D</td>
+    </tr>
+  {% endfor %}
+{% endblock list_entries %}
