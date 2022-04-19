@@ -3,7 +3,7 @@ updates:
   - package-ecosystem: "npm"
     directory: "django-rgd-3d/vtkjs_viewer"
     schedule:
-      interval: "weekly"
+      interval: "monthly"
   - package-ecosystem: "docker"
     directory: "dev"
     schedule:
