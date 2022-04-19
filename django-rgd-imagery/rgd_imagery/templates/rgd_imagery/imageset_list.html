@@ -1,0 +1,22 @@
+{% extends "rgd/_base/list_view.html" %}
+
+{% block list_headers %}
+  <th><span class="text">Thumbnail</span></th>
+  <th><span class="text">ID - Name</span></th>
+  <th><span class="text">Data Type</span></th>
+{% endblock list_headers %}
+
+{% block list_entries %}
+  {% for image_set in image_sets %}
+    <tr>
+      <td>
+        {# Display thumbnail of first image if available #}
+        {% if image_set.images.first %}
+          <img src="{% url 'image-tiles-thumbnail-png' image_set.images.first.pk %}" style="height: 50px;">
+        {% endif %}
+      </td>
+      <td><a href="{% url 'image-set-detail' image_set.pk %}">{{ image_set.id }} - {{ image_set.name }}</a></td>
+      <td>ImageSet</td>
+    </tr>
+  {% endfor %}
+{% endblock list_entries %}
