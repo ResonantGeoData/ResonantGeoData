@@ -20,7 +20,7 @@
     "webpack-dev-server": "^4.8.1"
   },
   "dependencies": {
-    "@kitware/vtk.js": "^24.5.1",
+    "@kitware/vtk.js": "^24.5.2",
     "postcss": "^8.4.12"
   }
 }
