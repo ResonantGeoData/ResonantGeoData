@@ -40,7 +40,7 @@ jobs:
     needs: build-wheels
     steps:
       # Downloads all artifacts
-      - uses: actions/download-artifact@v2
+      - uses: actions/download-artifact@v3
       - name: Make index
         uses: banesullivan/create-pip-index-action@main
         with:
