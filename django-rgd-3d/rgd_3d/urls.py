@@ -9,7 +9,7 @@ router.register(r'api/rgd_3d/tiles3d', viewsets.Tiles3DViewSet, basename='tiles-
 
 urlpatterns = [
     # Pages
-    path('rgd_3d/mesh/', views.Mesh3DListView.as_view()),
+    path('rgd_3d/mesh/', views.Mesh3DListView.as_view(), name='meshes'),
     path(
         'rgd_3d/mesh/<int:pk>/',
         views.Mesh3DDetailView.as_view(),
