@@ -28,7 +28,7 @@ jobs:
         working-directory: ${{ matrix.rgd-module }}
         run: python setup.py sdist bdist_wheel
       - name: Cache Wheel
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v3
         with:
           name: dist
           path: ${{ matrix.rgd-module }}/dist/
