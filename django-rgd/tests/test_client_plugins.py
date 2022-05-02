@@ -1,3 +1,5 @@
+from django.contrib.auth.models import User
+from rest_framework.authtoken.models import Token
 from rgd_client import create_rgd_client
 from rgd_client.plugin import CorePlugin, RgdPlugin
 
@@ -25,8 +27,22 @@ class MyClient(ClientA, ClientB):
     pass
 
 
-def test_plugin_dependency_inject():
-    client: MyClient = create_rgd_client(extra_plugins=[ClientA, ClientB])
+def test_plugin_dependency_inject(live_server):
+
+    params = {'username': 'test@kitware.com', 'email': 'test@kitware.com', 'password': 'password'}
+
+    user = User.objects.create_user(is_staff=True, is_superuser=True, **params)
+    user.save()
+
+    # use constant value for API key so this client fixture can be reused across multiple tests
+    Token.objects.create(user=user, key='topsecretkey')
+
+    client = create_rgd_client(
+        username=params['username'],
+        password=params['password'],
+        api_url=f'{live_server.url}/api',
+        extra_plugins=[ClientA, ClientB],
+    )
 
     # Assert plugins were loaded correctly
     assert isinstance(client.a.rgd, CorePlugin)
