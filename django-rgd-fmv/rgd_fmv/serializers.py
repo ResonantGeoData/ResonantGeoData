@@ -6,6 +6,7 @@ from rgd.serializers import (
     TASK_EVENT_READ_ONLY_FIELDS,
     ChecksumFileSerializer,
     RelatedField,
+    SpatialEntryFootprintSerializer,
     SpatialEntrySerializer,
 )
 
@@ -35,7 +36,7 @@ class FMVMetaSerializer(SpatialEntrySerializer):
         ]
 
 
-class FMVMetaDataSerializer(FMVMetaSerializer):
+class FMVMetaDataSerializer(FMVMetaSerializer, SpatialEntryFootprintSerializer):
     def to_representation(self, value):
         ret = super().to_representation(value)
         ret['ground_frames'] = json.loads(value.ground_frames.geojson)
