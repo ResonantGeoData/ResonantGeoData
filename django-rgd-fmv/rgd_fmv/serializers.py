@@ -41,6 +41,7 @@ class FMVMetaDataSerializer(FMVMetaSerializer):
         ret['ground_frames'] = json.loads(value.ground_frames.geojson)
         ret['ground_union'] = json.loads(value.ground_union.geojson)
         ret['flight_path'] = json.loads(value.flight_path.geojson)
+        ret['frame_numbers'] = value._blob_to_array(value.frame_numbers)
         return ret
 
     class Meta:
