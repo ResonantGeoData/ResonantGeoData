@@ -33,7 +33,7 @@ jobs:
         with:
           images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}/${{ matrix.docker-file }}
       - name: Build and push the Docker image
-        uses: docker/build-push-action@v2
+        uses: docker/build-push-action@v3
         with:
           context: .
           file: dev/${{ matrix.docker-file }}.Dockerfile
