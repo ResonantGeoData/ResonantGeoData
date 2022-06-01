@@ -1,0 +1,14 @@
+version: 2
+updates:
+  - package-ecosystem: "npm"
+    directory: "django-rgd-3d/vtkjs_viewer"
+    schedule:
+      interval: "monthly"
+  - package-ecosystem: "docker"
+    directory: "dev"
+    schedule:
+      interval: "monthly"
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "monthly"
