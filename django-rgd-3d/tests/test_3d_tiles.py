@@ -8,6 +8,7 @@ TOLERANCE = 2e-2
 centroids = {
     'jacksonville-untextured.zip': {'x': -81.6634, 'y': 30.3234},
     'jacksonville-textured.zip': {'x': -81.6634, 'y': 30.3234},
+    'jacksonville-point-cloud-3d-tiles.zip': {'x': -81.6634, 'y': 30.3234},
     'dragon.zip': {'x': -75.6079, 'y': 40.0439},
 }
 
@@ -17,6 +18,7 @@ centroids = {
     [
         'jacksonville-untextured.zip',
         'jacksonville-textured.zip',
+        'jacksonville-point-cloud-3d-tiles.zip',
         'dragon.zip',
     ],
 )
