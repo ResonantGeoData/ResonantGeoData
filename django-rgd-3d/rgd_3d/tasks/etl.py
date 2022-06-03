@@ -108,7 +108,13 @@ def read_3d_tiles_tileset_json(tiles_3d: Union[Tiles3D, int]):
             ]
         )
 
-    transform = np.array(tileset_json['root']['transform']).reshape((4, 4), order='C')
+    # 'transform' is an optional property
+    # ref: https://github.com/CesiumGS/3d-tiles/tree/main/specification#transforms
+    transform = (
+        np.array(tileset_json['root']['transform']).reshape((4, 4), order='C')
+        if 'transform' in tileset_json['root']
+        else None
+    )
 
     # The coordinates should be in EPSG:4978 by convention in 3D Tiles
     # See https://github.com/CesiumGS/3d-tiles/tree/main/specification#coordinate-reference-system-crs
@@ -129,13 +135,14 @@ def read_3d_tiles_tileset_json(tiles_3d: Union[Tiles3D, int]):
         ymax = max(center[1], x[1], y[1])
         coords = bounds_to_polygon(xmin, xmax, ymin, ymax)
         coords = np.c_[coords, np.zeros(len(coords)), np.ones(len(coords))]
-        # Apply the transform
-        corners = (coords @ transform)[:, :-1]  # in XYZ world
-        src = pyproj.CRS('EPSG:4978')  # 4979 -> srid
-        dest = pyproj.CRS('EPSG:4326')
-        transformer = pyproj.Transformer.from_proj(src, dest, always_xy=True)
-        x, y, _ = transformer.transform(corners.T[0], corners.T[1], corners.T[2])
-        coords = np.c_[x, y]
+        # Apply the transform if one is given
+        if transform is not None:
+            corners = (coords @ transform)[:, :-1]  # in XYZ world
+            src = pyproj.CRS('EPSG:4978')  # 4979 -> srid
+            dest = pyproj.CRS('EPSG:4326')
+            transformer = pyproj.Transformer.from_proj(src, dest, always_xy=True)
+            x, y, _ = transformer.transform(corners.T[0], corners.T[1], corners.T[2])
+            coords = np.c_[x, y]
     elif 'sphere' in volume:
         raise NotImplementedError
     else:
