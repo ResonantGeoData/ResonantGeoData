@@ -21,7 +21,7 @@ centroids = {
     ],
 )
 @pytest.mark.django_db(transaction=True)
-def test_mesh_3d_etl(sample_file):
+def test_tiles_3d_etl(sample_file):
     paths = datastore.fetch(sample_file, processor=Unzip())
 
     entry = create_tiles3d_from_paths(paths)
