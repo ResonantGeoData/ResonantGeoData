@@ -28,7 +28,7 @@ class ImageMetaSerializer(serializers.ModelSerializer):
 
     def to_representation(self, value):
         ret = super().to_representation(value)
-        realtive_thumbnail_uri = reverse('image-tiles-thumbnail-png', args=[value.id])
+        realtive_thumbnail_uri = reverse('image-tiles-thumbnail', args=[value.id, 'png'])
         if 'request' in self.context:
             request = self.context['request']
             ret['thumbnail'] = request.build_absolute_uri(realtive_thumbnail_uri)

@@ -12,7 +12,7 @@
       <td>
         {# Display thumbnail of first image if available #}
         {% if image_set.images.first %}
-          <img src="{% url 'image-tiles-thumbnail-png' image_set.images.first.pk %}" style="height: 50px;">
+          <img src="{% url 'image-tiles-thumbnail' image_set.images.first.pk 'png' %}" style="height: 50px;">
         {% endif %}
       </td>
       <td><a href="{% url 'image-set-detail' image_set.pk %}">{{ image_set.id }} - {{ image_set.name }}</a></td>
