@@ -108,7 +108,7 @@
       const band = Number(bandSelector.value).toString();
 
       const tileinfo = await fetch(
-        `${host}/api/rgd_imagery/tiles/${image_id}/metadata`
+        `${host}/api/rgd_imagery/tiles/${image_id}/info/metadata`
       ).then(response => response.json());
 
       const params = geo.util.pixelCoordinateParams(

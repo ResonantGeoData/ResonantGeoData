@@ -29,7 +29,7 @@ class ImageryPlugin(RgdPlugin):
 
     def list_image_tiles(self, image_id: Union[str, int]) -> Dict:
         """List geodata imagery tiles."""
-        r = self.session.get(f'rgd_imagery/tiles/{image_id}/metadata')
+        r = self.session.get(f'rgd_imagery/tiles/{image_id}/info/metadata')
         return r.json()
 
     def download_image_file(
@@ -61,7 +61,7 @@ class ImageryPlugin(RgdPlugin):
         Returns:
             Thumbnail bytes.
         """
-        r = self.session.get(f'rgd_imagery/tiles/{image_id}/thumbnail.png')
+        r = self.session.get(f'rgd_imagery/tiles/{image_id}/data/thumbnail.png')
         return r.content
 
     def download_raster_thumbnail(
@@ -409,7 +409,7 @@ class ImageryPlugin(RgdPlugin):
             raise ImportError('Please install `ipyleaflet` and `jupyter`.')
 
         # Check that the image source is valid and no server errors
-        r = self.session.get(f'rgd_imagery/tiles/{image_id}/metadata')
+        r = self.session.get(f'rgd_imagery/tiles/{image_id}/info/metadata')
         r.raise_for_status()
 
         params = {}
