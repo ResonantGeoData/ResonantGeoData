@@ -9,6 +9,7 @@ import cv2
 from django.contrib.gis.geos import MultiPoint, MultiPolygon, Point, Polygon
 from girder_utils.files import field_file_to_local_path
 import numpy as np
+import pyproj
 from rgd.utility import get_or_create_no_commit
 from rgd_fmv.models import FMV, FMVMeta
 
@@ -73,7 +74,41 @@ def _get_spatial_ref_of_frame(frame):
 
     # Corner points
     corners_regex = re.compile(r'Metadata item: Corner points (.+): {(.+)} @ (\d+)')
-    _, corners, sridb = re.findall(corners_regex, meta_block)[0]
+    results = re.findall(corners_regex, meta_block)
+    if results:
+        _, corners, sridb = results[0]
+        bbox = np.array([float(v) for c in corners.split(',') for v in c.split('/')]).reshape(
+            (-1, 2)
+        )
+    else:
+        # If corner points weren't found, check for frame center/target width and use them
+        # instead if they're present in the metadata.
+        center_regex = re.compile(
+            r'Metadata item: Geodetic Frame Center, (.+): geo_point.\[(.+)\] @ (\d+)'
+        )
+        width_regex = re.compile(r'Metadata item: Target Width (.+): (.+)')
+
+        # Extract the coords of the center of the footprint
+        _, center, sridb = re.findall(center_regex, meta_block)[0]
+
+        # Extract the width of the footprint
+        _, width = re.findall(width_regex, meta_block)[0]
+
+        longitude, latitude, meters = [float(s) for s in center.split(', ')]
+
+        # Create a point that serves as the origin of the footprint
+        center = Point(longitude, latitude, meters)
+
+        # Use the origin point and the width of the footprint to
+        # create a list of Points that forms a Polygon representing
+        # the footprint
+        geod = pyproj.Geod(ellps='WGS84')
+        points = []
+        for az in (0, 90, 180, 270):
+            lng_new, lat_new, _ = geod.fwd(longitude, latitude, az, float(width) / 2)
+            points.append(Point(lng_new, lat_new))
+
+        bbox = np.array(points)
 
     # make usable
     srida = int(srida)
@@ -82,7 +117,6 @@ def _get_spatial_ref_of_frame(frame):
         raise ValueError()
 
     path = np.array([float(s) for s in loc.split(',')])
-    bbox = np.array([float(v) for c in corners.split(',') for v in c.split('/')]).reshape((-1, 2))
 
     return path, bbox, srida
 
