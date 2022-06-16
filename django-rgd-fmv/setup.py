@@ -52,6 +52,7 @@ setup(
             'numpy',
             'kwiver',
             'opencv-python-headless',
+            'pyproj',
         ],
     },
 )
