@@ -26,12 +26,6 @@ INSTALLED_APPS += [
 ]
 ```
 
-## Configurations
-
-The RGD imagery submodule has an optional setting:
-
-- Use the `MEMCACHE_*` options from `django-rgd` to configure `large_image` for use with Memcached.
-
 ## Models
 
 This app adds quite a few additional models on top of the core app for storing image data

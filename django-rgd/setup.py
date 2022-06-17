@@ -79,6 +79,8 @@ setup(
         'configuration': [
             'django-composed-configuration[dev]',
             'django-configurations[database,email]>=0.19.2',
+            'django-cache-url',
+            'redis',
         ],
     },
 )
