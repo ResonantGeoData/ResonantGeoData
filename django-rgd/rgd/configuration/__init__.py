@@ -1,6 +1,6 @@
 from .configuration import (  # noqa
     GeoDjangoMixin,
-    MemachedMixin,
+    RedisCacheMixin,
     ResonantGeoDataBaseMixin,
     SwaggerMixin,
 )

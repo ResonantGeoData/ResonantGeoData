@@ -42,33 +42,13 @@ class SwaggerMixin(ConfigMixin):
     DEEP_LINKING = True
 
 
-class MemachedMixin(ConfigMixin):
-    MEMCACHED_URL = values.Value(default=None)
-    MEMCACHED_USERNAME = values.Value(default=None)
-    MEMCACHED_PASSWORD = values.Value(default=None)
-    MEMCACHED_BINARY = values.Value(default=True)
+class RedisCacheMixin(ConfigMixin):
     SESSION_ENGINE = 'django.contrib.sessions.backends.cached_db'
-
-    @classmethod
-    def post_setup(cls):
-        super().post_setup()
-
-        if cls.MEMCACHED_URL:
-            caches = {
-                'default': {
-                    'BACKEND': 'django.core.cache.backends.memcached.PyLibMCCache',
-                    'LOCATION': cls.MEMCACHED_URL,
-                    'OPTIONS': {
-                        'binary': cls.MEMCACHED_BINARY,
-                    },
-                }
-            }
-
-            if cls.MEMCACHED_USERNAME and cls.MEMCACHED_PASSWORD:
-                caches['default']['OPTIONS']['username'] = cls.MEMCACHED_PASSWORD
-                caches['default']['OPTIONS']['password'] = cls.MEMCACHED_USERNAME
-
-            cls.CACHES = caches
+    CACHES = values.CacheURLValue(
+        default=None,
+        environ_name='REDIS_URL',
+        environ_prefix='DJANGO',
+    )
 
 
 class ResonantGeoDataBaseMixin(GeoDjangoMixin, SwaggerMixin, ConfigMixin):

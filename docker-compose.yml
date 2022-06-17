@@ -35,15 +35,11 @@ services:
     volumes:
       - fsdata:/data
 
-  memcached:
-    build:
-      context: .
-      dockerfile: ./dev/memcached.Dockerfile
-    environment:
-      - MEMCACHED_USERNAME=my_user
-      - MEMCACHED_PASSWORD=my_password
-      - MEMCACHED_CACHE_SIZE=512
-      - MEMCACHED_EXTRA_FLAGS="--max-item-size 8M"
+  redis:
+    image: redis:7.0.2
+    ports:
+      - 6379:6379
+    command: [ "redis-server" ]
 
 
 volumes:

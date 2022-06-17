@@ -48,7 +48,7 @@ setup(
         'bidict',
         'django-large-image[colormaps]>=0.8',
         f'django-rgd=={__version__}',
-        'large-image[memcached]>=1.15',
+        'large-image>=1.15',
         'large-image-source-gdal>=1.15',
         'large-image-source-pil>=1.15',
         'large-image-source-tiff>=1.15',
