@@ -45,7 +45,7 @@ class SwaggerMixin(ConfigMixin):
 class RedisCacheMixin(ConfigMixin):
     SESSION_ENGINE = 'django.contrib.sessions.backends.cached_db'
     CACHES = values.CacheURLValue(
-        default=None,
+        default='locmem://',
         environ_name='REDIS_URL',
         environ_prefix='DJANGO',
     )
